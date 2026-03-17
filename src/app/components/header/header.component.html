@@ -22,7 +22,7 @@
         <div class="nav-inventory-wrap"
              (mouseenter)="openInventoryMenu()"
              (mouseleave)="closeInventoryMenu()">
-          <a routerLink="/showroom" routerLinkActive="nav-link-active" class="nav-link nav-cta-btn">Inventory</a>
+          <a routerLink="/showroom" routerLinkActive="nav-link-active" class="nav-link nav-cta-btn">Shop</a>
 
           @if(inventoryMenuOpen()){
           <div class="mega-menu" (mouseenter)="openInventoryMenu()" (mouseleave)="closeInventoryMenu()">
@@ -147,7 +147,7 @@
         </button>
     </div>
     <nav class="drawer-nav">
-        <a routerLink="/showroom"  class="drawer-link" (click)="closeMenu()">Inventory</a>
+        <a routerLink="/showroom"  class="drawer-link" (click)="closeMenu()">Shop</a>
         <a routerLink="/sell"      class="drawer-link" (click)="closeMenu()">Sell or Trade</a>
         <a routerLink="/financing" class="drawer-link" (click)="closeMenu()">Financing</a>
         <a routerLink="/about"     class="drawer-link" (click)="closeMenu()">About</a>
