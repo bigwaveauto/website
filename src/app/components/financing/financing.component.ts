@@ -4,13 +4,14 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { HeaderComponent } from '../header/header.component';
+import { FooterComponent } from '../footer/footer.component';
 
 @Component({
   selector: 'app-financing',
   templateUrl: './financing.component.html',
   styleUrl: './financing.component.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule, RouterLink, HeaderComponent]
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule, RouterLink, HeaderComponent, FooterComponent]
 })
 export class FinancingComponent {
   step = signal(1);
