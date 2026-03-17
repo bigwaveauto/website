@@ -13,16 +13,19 @@ const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 /**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/{*splat}', (req, res) => {
- *   // Handle API request
- * });
- * ```
+ * Proxy Overfuel API requests to avoid CORS restrictions.
+ * Browser calls /api/dealers/... → this server forwards to api.overfuel.com
  */
+app.use('/api/dealers', async (req, res) => {
+  const targetUrl = `https://api.overfuel.com/api/1.0/dealers${req.url}`;
+  try {
+    const response = await fetch(targetUrl);
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    res.status(502).json({ error: 'Upstream API error' });
+  }
+});
 
 /**
  * Serve static files from /browser

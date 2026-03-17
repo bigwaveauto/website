@@ -1,5 +1,6 @@
 // src/app/services/inventory.service.ts
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformServer } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ParamMap } from '@angular/router';
@@ -9,9 +10,14 @@ import { environment } from '../../environments/environment';
 @Injectable()
 export class InventoryService {
     private http = inject(HttpClient);
+    private isServer = isPlatformServer(inject(PLATFORM_ID));
 
-    // Replace with your actual Overfuel API base
-    private apiUrl = `${environment.externalApi}/${environment.dealerId}`; 
+    // SSR: call Overfuel directly (no CORS). Browser: proxy through our Express server.
+    private get apiUrl(): string {
+      return this.isServer
+        ? `${environment.externalApi}/${environment.dealerId}`
+        : `/api/dealers/${environment.dealerId}`;
+    }
   
     public buildParams(params: InventoryQueryParams): HttpParams {
       let httpParams = new HttpParams();
