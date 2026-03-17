@@ -1,0 +1,9 @@
+ {
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "html.format.wrapLineLength": 0,
+  "html.format.wrapAttributes": "auto",
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  }
+}

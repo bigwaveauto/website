@@ -1,0 +1,418 @@
+$navy: #0e1523;
+$blue: #1a78c2;
+$light-blue: #e8f0fb;
+$bg: #f4f8fa;
+$text: #111;
+$muted: #666;
+$border: #e0e6ed;
+$radius: 14px;
+
+/* ── Banner ── */
+.fin-banner {
+  background: $navy;
+  padding: 36px 32px 28px;
+  margin: 20px 20px 0;
+  border-radius: 16px;
+}
+
+.fin-banner-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.fin-banner-title {
+  font-size: clamp(22px, 3.5vw, 42px);
+  font-weight: 700;
+  color: white;
+  margin: 0 0 10px;
+}
+
+.fin-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.fin-breadcrumb-link {
+  color: rgba(255,255,255,0.65);
+  text-decoration: none;
+  &:hover { color: white; }
+}
+
+.fin-breadcrumb-sep { color: rgba(255,255,255,0.35); }
+.fin-breadcrumb-current { color: $blue; font-weight: 600; }
+
+/* ── Page container ── */
+.fin-page {
+  background: $bg;
+  min-height: 100vh;
+  padding: 40px 20px 80px;
+}
+
+/* ── Section shared ── */
+.fin-section-title {
+  font-size: clamp(20px, 2.5vw, 30px);
+  font-weight: 700;
+  color: $text;
+  text-align: center;
+  margin: 0 0 12px;
+}
+
+.fin-divider {
+  width: 48px;
+  height: 3px;
+  background: $blue;
+  border-radius: 999px;
+  margin: 0 auto 24px;
+}
+
+/* ── Intro ── */
+.fin-intro {
+  max-width: 760px;
+  margin: 0 auto 48px;
+  text-align: center;
+
+  p {
+    color: $muted;
+    line-height: 1.75;
+    margin: 0 0 14px;
+    font-size: 15px;
+  }
+}
+
+/* ── Wizard ── */
+.fin-wizard {
+  max-width: 760px;
+  margin: 0 auto 64px;
+}
+
+/* Step indicator */
+.fin-steps {
+  display: flex;
+  align-items: center;
+  margin-bottom: 32px;
+  gap: 0;
+}
+
+.fin-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.fin-step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #dde4ee;
+  color: $muted;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s, color 0.3s;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+  .fin-step.active & {
+    background: $blue;
+    color: white;
+  }
+
+  .fin-step.done & {
+    background: #22c55e;
+    color: white;
+  }
+}
+
+.fin-step-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: $muted;
+  text-align: center;
+  white-space: nowrap;
+
+  .fin-step.active & { color: $blue; }
+  .fin-step.done &   { color: #22c55e; }
+}
+
+.fin-step-line {
+  flex: 1;
+  height: 2px;
+  background: #dde4ee;
+  margin: 0 4px;
+  margin-bottom: 22px;
+  transition: background 0.3s;
+
+  &.done { background: #22c55e; }
+}
+
+/* Form card */
+.fin-form-card {
+  background: white;
+  border-radius: $radius;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  overflow: hidden;
+}
+
+.fin-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  border-bottom: 1px solid $border;
+}
+
+.fin-form-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: $text;
+}
+
+.fin-form-counter {
+  font-size: 13px;
+  color: $muted;
+}
+
+/* Borrower choice */
+.fin-borrower-choice {
+  padding: 24px 28px 0;
+
+  p { color: $muted; font-size: 15px; margin: 0 0 16px; }
+}
+
+.fin-borrower-btns {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.fin-borrower-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 2px solid $border;
+  border-radius: 10px;
+  background: white;
+  font-size: 15px;
+  font-weight: 600;
+  color: $text;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+
+  mat-icon { font-size: 20px; width: 20px; height: 20px; }
+
+  &:hover {
+    border-color: $blue;
+    background: $light-blue;
+    color: $blue;
+  }
+}
+
+/* Form fields */
+.fin-form {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fin-form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.fin-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &--full { flex: 1 1 100%; }
+  &--sm   { flex: 0 0 120px; }
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+  }
+
+  input, select {
+    padding: 10px 14px;
+    border: 1.5px solid $border;
+    border-radius: 8px;
+    font-size: 14px;
+    color: $text;
+    background: white;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+
+    &:focus { border-color: $blue; }
+  }
+}
+
+/* Consent */
+.fin-consent-text {
+  color: $muted;
+  font-size: 14px;
+  line-height: 1.7;
+  background: #f8fafd;
+  border-radius: 10px;
+  padding: 16px;
+  margin: 0 0 20px;
+}
+
+.fin-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    accent-color: $blue;
+  }
+
+  label {
+    font-size: 14px;
+    color: $text;
+    line-height: 1.5;
+    cursor: pointer;
+
+    a { color: $blue; text-decoration: none; &:hover { text-decoration: underline; } }
+  }
+}
+
+/* Nav buttons */
+.fin-form-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  border-top: 1px solid $border;
+}
+
+.fin-btn-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  font-weight: 600;
+  color: $muted;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover { border-color: #aaa; color: $text; }
+}
+
+.fin-btn-next,
+.fin-btn-submit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 28px;
+  background: $blue;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+  text-decoration: none;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+  &:hover { background: darken($blue, 8%); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+/* Success */
+.fin-success {
+  max-width: 500px;
+  margin: 0 auto 64px;
+}
+
+.fin-success-card {
+  background: white;
+  border-radius: $radius;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  padding: 48px 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+
+  h2 { font-size: 24px; font-weight: 700; margin: 0; color: $text; }
+  p  { color: $muted; font-size: 15px; line-height: 1.7; margin: 0; }
+}
+
+.fin-success-icon {
+  font-size: 64px !important;
+  width: 64px !important;
+  height: 64px !important;
+  color: #22c55e;
+}
+
+/* Benefits */
+.fin-benefits {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.fin-benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 8px;
+}
+
+.fin-benefit-card {
+  background: white;
+  border-radius: $radius;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+  h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: $text;
+    margin: 0;
+  }
+
+  p {
+    font-size: 14px;
+    color: $muted;
+    line-height: 1.65;
+    margin: 0;
+  }
+}
+
+.fin-benefit-icon {
+  font-size: 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  color: $blue;
+}

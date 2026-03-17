@@ -1,0 +1,218 @@
+<div class="page-root">
+
+    <header ngClass.lt-md="sticky-on-scroll" [floating]="true"></header>
+
+    <main class="page-main">
+
+        <!-- ── Hero (rounded card, matches DealerAssist exactly) ── -->
+        <section class="hero-section">
+
+            <!-- Sliding photos -->
+            @for(photo of heroPhotos; track photo; let i = $index) {
+            <img [src]="photo" class="hero-photo" [class.active]="currentSlide() === i" alt="Big Wave Auto" />
+            }
+
+            <!-- Dark overlay -->
+            <div class="hero-overlay"></div>
+
+            <!-- Content -->
+            <div class="hero-content">
+                <div class="hero-inner">
+                    <h1 class="hero-heading fade-in-onload-opacity-2s">
+                        You deserve a better buying experience.
+                    </h1>
+                    <p class="hero-sub fade-in-onload-opacity-4s">
+                        Welcome to a car-buying experience designed for those who expect more. More choice, more style, and more personalized service. At Big Wave Auto, we match quality vehicles with great drivers.
+                    </p>
+                    <div class="hero-actions fade-in-onload-opacity-4s">
+                        <a routerLink="/showroom" class="btn-hero-primary">
+                            Explore Inventory &nbsp;→
+                        </a>
+                        <a routerLink="/sell" class="btn-hero-secondary">
+                            Start a Nationwide Search
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pill indicators -->
+            <div class="hero-pills">
+                @for(photo of heroPhotos; track photo; let i = $index) {
+                <button class="pill" [class.active]="currentSlide() === i" (click)="goToSlide(i)"></button>
+                }
+            </div>
+
+        </section>
+
+        <!-- ── Google Reviews ── -->
+        <div class="reviews-section">
+            <div class="elfsight-app-979aace1-ab83-447e-bea4-36aff9b1e047" data-elfsight-app-lazy></div>
+        </div>
+
+        <!-- ── Brand Logo Marquee ── -->
+        <div class="brands-section">
+            <div class="brands-header">
+                <div class="brands-line"></div>
+                <h2 class="brands-title">Explore our premium brands</h2>
+                <div class="brands-line"></div>
+            </div>
+            <p class="brands-subtitle">View from our collection of most prestigious brands of cars</p>
+            <div class="marquee-wrapper">
+                <div class="marquee-track">
+                    <div class="brand-item"><img src="/brands/bmw-logo-2022.svg" alt="BMW"></div>
+                    <div class="brand-item"><img src="/brands/porsche-logo.svg" alt="Porsche"></div>
+                    <div class="brand-item"><img src="/brands/mercedes-benz-logo.svg" alt="Mercedes-Benz"></div>
+                    <div class="brand-item"><img src="/brands/rivian-logo.svg" alt="Rivian"></div>
+                    <div class="brand-item"><img src="/brands/tesla-logo.svg" alt="Tesla"></div>
+                    <div class="brand-item"><img src="/brands/Audi_Logo.svg" alt="Audi"></div>
+                    <div class="brand-item"><img src="/brands/bmw-logo-2022.svg" alt="BMW"></div>
+                    <div class="brand-item"><img src="/brands/porsche-logo.svg" alt="Porsche"></div>
+                    <div class="brand-item"><img src="/brands/mercedes-benz-logo.svg" alt="Mercedes-Benz"></div>
+                    <div class="brand-item"><img src="/brands/rivian-logo.svg" alt="Rivian"></div>
+                    <div class="brand-item"><img src="/brands/tesla-logo.svg" alt="Tesla"></div>
+                    <div class="brand-item"><img src="/brands/Audi_Logo.svg" alt="Audi"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── What Sets Us Apart + Service Cards ── -->
+        <div class="section-dark" fxLayout="column" fxLayoutAlign="start center">
+            <div class="section-inner" fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="48px" style="width:100%">
+
+                <div fxFlex="55" fxLayout="column">
+                    <h2 class="section-heading">What Sets Us Apart</h2>
+                    <p class="section-subtext">
+                        Every car on our lot reflects a commitment to quality, performance, and style. Whether you're upgrading your drive or starting fresh, our team delivers the best experience backed by a wide selection of vehicles and white-glove service.
+                    </p>
+                    <div class="diff-list">
+                        <div class="diff-item float-in" floatInOnScroll [direction]="'right'">
+                            <span class="diff-num">01</span>
+                            <span class="diff-label">Curated Inventory from Leading Brands</span>
+                        </div>
+                        <div class="diff-item float-in" floatInOnScroll [direction]="'right'">
+                            <span class="diff-num">02</span>
+                            <span class="diff-label">Transparent, Competitive Pricing</span>
+                        </div>
+                        <div class="diff-item float-in" floatInOnScroll [direction]="'right'">
+                            <span class="diff-num">03</span>
+                            <span class="diff-label">Trade-In Options Designed Around You</span>
+                        </div>
+                    </div>
+                    <div style="margin-top:36px;">
+                        <a routerLink="/about" class="btn-primary">Learn More</a>
+                    </div>
+                </div>
+
+                <div fxFlex="45" fxLayout="column" fxLayoutGap="16px">
+                    <div class="svc-card float-in" floatInOnScroll [direction]="'left'">
+                        <div fxFlex fxLayout="column">
+                            <span class="svc-title">Financing Options</span>
+                            <span class="svc-body">Tailored financing to get you on the road fast.</span>
+                        </div>
+                        <div class="svc-icon">&#x1F511;</div>
+                    </div>
+                    <div class="svc-card float-in" floatInOnScroll [direction]="'left'">
+                        <div fxFlex fxLayout="column">
+                            <span class="svc-title">Seamless Trade-In</span>
+                            <span class="svc-body">Effortless trade-ins with fair, quick offers.</span>
+                        </div>
+                        <div class="svc-icon">&#x1F4CB;</div>
+                    </div>
+                    <div class="svc-card float-in" floatInOnScroll [direction]="'left'">
+                        <div fxFlex fxLayout="column">
+                            <span class="svc-title">Premium Inventory</span>
+                            <span class="svc-body">Hand-selected vehicles from top brands at every price point.</span>
+                        </div>
+                        <div class="svc-icon">&#x1F697;</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ── Sell Your Car ── -->
+        <div class="section-light" fxLayout="column" fxLayoutAlign="start center">
+            <div class="section-inner" fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="64px" style="width:100%">
+
+                <div fxFlex fxLayout="column" fxLayoutAlign="center start">
+                    <p class="section-eyebrow">Trade or Sell</p>
+                    <h2 class="section-heading-dark" style="line-height:1.2;">Sell Your Car.<br>Skip the Stress.</h2>
+                    <p class="section-body-text">We make it simple to sell your vehicle — no hassle, no lowball offers, no waiting around.</p>
+                    <a routerLink="/sell" class="btn-primary" style="margin-top:8px;">Get Your Offer</a>
+                </div>
+
+                <div fxFlex fxLayout="column" fxLayoutGap="28px">
+                    <div fxLayout="row" fxLayoutGap="20px" fxLayoutAlign="start start" class="float-in" floatInOnScroll [direction]="'right'">
+                        <div class="step-bubble">1</div>
+                        <div fxLayout="column">
+                            <b class="step-title">Share Your Vehicle Details</b>
+                            <p class="step-body">Tell us about your car and provide your contact info. Takes less than 2 minutes.</p>
+                        </div>
+                    </div>
+                    <div fxLayout="row" fxLayoutGap="20px" fxLayoutAlign="start start" class="float-in" floatInOnScroll [direction]="'right'">
+                        <div class="step-bubble">2</div>
+                        <div fxLayout="column">
+                            <b class="step-title">Receive a Real Offer</b>
+                            <p class="step-body">Our team reviews your submission and sends a genuine, competitive offer.</p>
+                        </div>
+                    </div>
+                    <div fxLayout="row" fxLayoutGap="20px" fxLayoutAlign="start start" class="float-in" floatInOnScroll [direction]="'right'">
+                        <div class="step-bubble">3</div>
+                        <div fxLayout="column">
+                            <b class="step-title">Schedule Drop-Off or Pickup</b>
+                            <p class="step-body">Choose what works for you. We'll handle the rest — it's that easy.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ── Contact ── -->
+        <div class="section-dark" fxLayout="column" fxLayoutAlign="start center">
+            <div class="section-inner" fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="64px" style="width:100%">
+
+                <div fxFlex fxLayout="column">
+                    <p class="section-eyebrow">Get In Touch</p>
+                    <h2 class="section-heading" style="margin-bottom:24px;">Let's Connect,<br>In Person or Online.</h2>
+                    <p class="section-subtext" style="margin-bottom:32px;">
+                        Whether you prefer to visit our lot in Sussex, WI or handle everything from home — we've got you covered.
+                    </p>
+                    <div fxLayout="column" fxLayoutGap="14px">
+                        <div fxLayout="row" fxLayoutGap="12px" fxLayoutAlign="start center">
+                            <span class="contact-icon">&#x1F4CD;</span>
+                            <span class="contact-text">N69W25055 Indian Grass Lane, Unit H, Sussex, WI 53089</span>
+                        </div>
+                        <div fxLayout="row" fxLayoutGap="12px" fxLayoutAlign="start center">
+                            <span class="contact-icon">&#x1F4DE;</span>
+                            <span class="contact-text">(262) 281-1295</span>
+                        </div>
+                        <div fxLayout="row" fxLayoutGap="12px" fxLayoutAlign="start center">
+                            <span class="contact-icon">&#x2709;</span>
+                            <span class="contact-text">dave&#64;bigwaveauto.com</span>
+                        </div>
+                        <div fxLayout="row" fxLayoutGap="12px" fxLayoutAlign="start center">
+                            <span class="contact-icon">&#x1F552;</span>
+                            <span class="contact-text">Mon – Sat, 9 AM – 6 PM <em style="color:rgba(0,0,0,0.4)">(By Appointment)</em></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div fxFlex fxLayout="column" fxLayoutAlign="center start">
+                    <div class="contact-card">
+                        <b class="contact-card-title">Ready to find your next vehicle?</b>
+                        <p class="contact-card-body">Browse our current inventory or reach out directly — we're happy to help.</p>
+                        <div fxLayout="column" fxLayoutGap="12px">
+                            <a routerLink="/showroom" class="btn-primary" style="text-align:center;display:block;">Browse Inventory</a>
+                            <a routerLink="/contact" class="btn-outline" style="text-align:center;display:block;">Contact Us</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <footer></footer>
+    </main>
+
+</div>

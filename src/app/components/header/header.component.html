@@ -1,0 +1,168 @@
+<!-- ── Announcement bar ── -->
+<div class="announcement-bar">
+    <span>Now open in Sussex, WI &nbsp;·&nbsp; By appointment Mon–Sat, 9AM–6PM &nbsp;·&nbsp;
+        <a routerLink="/contact" class="announcement-link">Get in touch →</a>
+    </span>
+</div>
+
+<!-- ── Nav bar ── -->
+<div [ngClass.gt-sm]="'nav-bar-lg' + (floating() ? ' floating-nav-bar' : ' fixed-nav-bar')"
+     ngClass.lt-md="nav-bar-sm fixed-nav-bar"
+     class="header-wrap">
+
+    <!-- Left: Logo -->
+    <div class="header-col-left">
+        <a [routerLink]="['/']" class="header-logo-link">
+            <img src="big-wave-auto-logo.webp" class="header-logo-img">
+        </a>
+    </div>
+
+    <!-- Center: Nav items (desktop) -->
+    <div class="header-col-center" fxHide.lt-lg>
+        <div class="nav-inventory-wrap"
+             (mouseenter)="openInventoryMenu()"
+             (mouseleave)="closeInventoryMenu()">
+          <a routerLink="/showroom" routerLinkActive="nav-link-active" class="nav-link nav-cta-btn">Inventory</a>
+
+          @if(inventoryMenuOpen()){
+          <div class="mega-menu" (mouseenter)="openInventoryMenu()" (mouseleave)="closeInventoryMenu()">
+            <!-- Left: quick links -->
+            <div class="mega-left">
+              <p class="mega-section-label">Shop</p>
+              <a routerLink="/showroom" class="mega-text-link" (click)="inventoryMenuOpen.set(false)">View all</a>
+              <a routerLink="/showroom" [queryParams]="{price_max: 30000}" class="mega-text-link" (click)="inventoryMenuOpen.set(false)">Under $30,000</a>
+              <a routerLink="/showroom" [queryParams]="{price_max: 500}" class="mega-text-link" (click)="inventoryMenuOpen.set(false)">Under $500/mo</a>
+            </div>
+            <!-- Right: brand / feature cards -->
+            <div class="mega-cards">
+              <a routerLink="/showroom" [queryParams]="{'make[]': 'Rivian'}" class="mega-card" (click)="inventoryMenuOpen.set(false)">
+                <div class="mega-card-img"><img src="/brands/rivian-logo.svg" alt="Rivian"></div>
+                <span class="mega-card-label">Rivian</span>
+              </a>
+              <a routerLink="/showroom" [queryParams]="{'make[]': 'Tesla'}" class="mega-card" (click)="inventoryMenuOpen.set(false)">
+                <div class="mega-card-img"><img src="/brands/tesla-logo.svg" alt="Tesla"></div>
+                <span class="mega-card-label">Tesla</span>
+              </a>
+              <a routerLink="/showroom" [queryParams]="{'fuel[]': 'Electric'}" class="mega-card" (click)="inventoryMenuOpen.set(false)">
+                <div class="mega-card-img mega-card-icon"><mat-icon>bolt</mat-icon></div>
+                <span class="mega-card-label">EV</span>
+              </a>
+              <a routerLink="/showroom" [queryParams]="{mileage_max: 50000}" class="mega-card" (click)="inventoryMenuOpen.set(false)">
+                <div class="mega-card-img mega-card-icon"><mat-icon>speed</mat-icon></div>
+                <span class="mega-card-label">Low Miles</span>
+              </a>
+            </div>
+          </div>
+          }
+        </div>
+        <a routerLink="/sell"      routerLinkActive="nav-link-active" class="nav-link">Sell or Trade</a>
+        <a routerLink="/financing" routerLinkActive="nav-link-active" class="nav-link">Financing</a>
+        <a routerLink="/about"     routerLinkActive="nav-link-active" class="nav-link">About</a>
+    </div>
+
+    <!-- Right: Icon actions -->
+    <div class="header-col-right">
+        <button class="header-icon-btn" (click)="toggleLocation()" title="Our Location" fxHide.lt-md>
+            <mat-icon>location_on</mat-icon>
+        </button>
+        <a routerLink="/account" class="header-icon-btn" title="My Account" fxHide.lt-md>
+            <mat-icon>person</mat-icon>
+        </a>
+        <div class="header-icon-divider" fxHide.lt-md></div>
+        <button class="header-icon-btn" (click)="toggleMenu()" title="Menu">
+            <mat-icon>{{ menuOpen() ? 'close' : 'menu' }}</mat-icon>
+        </button>
+    </div>
+
+</div>
+
+<!-- ── Location modal ── -->
+@if (locationOpen()) {
+<div class="modal-overlay" (click)="closeLocation()"></div>
+<div class="location-panel">
+    <div class="location-panel-header">
+        <span class="location-panel-title">Find Us</span>
+        <button class="panel-close-btn" (click)="closeLocation()">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <h2 class="location-name">Big Wave Auto</h2>
+    <p class="location-address">N69W25055 Indian Grass Lane, Unit H, Sussex, WI 53089</p>
+
+    <div class="location-map">
+        <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2912.4!2d-88.2234!3d43.1302!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8805a1e8b2e9f1c3%3A0x1234567890abcdef!2sN69W25055+Indian+Grass+Ln%2C+Sussex%2C+WI+53089!5e0!3m2!1sen!2sus!4v1234567890"
+            width="100%" height="180" style="border:0; border-radius:12px;" allowfullscreen loading="lazy">
+        </iframe>
+    </div>
+
+    <div class="location-details">
+        <div class="location-detail-row">
+            <mat-icon>directions_car</mat-icon>
+            <span>Pre-owned vehicle dealership</span>
+        </div>
+        <div class="location-detail-row">
+            <mat-icon>drive_eta</mat-icon>
+            <span>Test drives available by appointment</span>
+        </div>
+        <div class="location-detail-row">
+            <mat-icon>email</mat-icon>
+            <span>dave&#64;bigwaveauto.com</span>
+        </div>
+        <div class="location-detail-row">
+            <mat-icon>phone</mat-icon>
+            <span>(262) 281-1295</span>
+        </div>
+    </div>
+
+    <a routerLink="/contact" class="location-cta-btn" (click)="closeLocation()">
+        Request Appointment
+    </a>
+
+    <div class="location-hours">
+        <div class="location-hours-header">
+            <span class="location-hours-title">Store hours</span>
+            <span class="location-hours-badge">By Appointment</span>
+        </div>
+        <div class="location-hours-row">
+            <b>Showroom & Test Drives</b>
+            <span>Mon – Sat, 9AM – 6PM</span>
+        </div>
+        <div class="location-hours-row">
+            <b>Sunday</b>
+            <span>Closed</span>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ── Slide-out drawer ── -->
+@if (menuOpen()) {
+<div class="modal-overlay" (click)="closeMenu()"></div>
+<div class="drawer-panel">
+    <div class="drawer-header">
+        <button class="panel-close-btn" (click)="closeMenu()">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+    <nav class="drawer-nav">
+        <a routerLink="/showroom"  class="drawer-link" (click)="closeMenu()">Inventory</a>
+        <a routerLink="/sell"      class="drawer-link" (click)="closeMenu()">Sell or Trade</a>
+        <a routerLink="/financing" class="drawer-link" (click)="closeMenu()">Financing</a>
+        <a routerLink="/about"     class="drawer-link" (click)="closeMenu()">About</a>
+    </nav>
+    <div class="drawer-divider"></div>
+    <nav class="drawer-secondary">
+        <button class="drawer-secondary-link" (click)="closeMenu(); toggleLocation()">
+            <mat-icon>location_on</mat-icon> Find Us
+        </button>
+        <a routerLink="/contact" class="drawer-secondary-link" (click)="closeMenu()">
+            <mat-icon>help_outline</mat-icon> Contact
+        </a>
+        <a routerLink="/account" class="drawer-secondary-link" (click)="closeMenu()">
+            <mat-icon>person</mat-icon> Account
+        </a>
+    </nav>
+</div>
+}

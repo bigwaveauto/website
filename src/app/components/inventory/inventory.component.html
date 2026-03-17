@@ -1,0 +1,263 @@
+@if(showFilters()){
+<header [floating]="true"></header>
+
+<!-- ── Inventory Banner ── -->
+<div class="inv-banner">
+  <div class="inv-banner-overlay"></div>
+  <div class="inv-banner-content">
+    <h1 class="inv-banner-title">Available Inventory in Sussex, WI</h1>
+    <div class="inv-breadcrumb">
+      <a routerLink="/" class="inv-breadcrumb-link">Home</a>
+      <span class="inv-breadcrumb-sep">/</span>
+      <span class="inv-breadcrumb-current">Inventory</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Brand Filter Bar ── -->
+@if(filters(); as qfilters){
+<div class="inv-brands-bar">
+  <div class="inv-brands-track">
+    @for(make of sortedMakes(qfilters.filters.make.counts); track make.key){
+    <button class="inv-brand-item" [class.active]="optionSelected({type:'make[]', value: make.key})"
+      (click)="updateFilters(['make[]'], [{type:'make[]', value: make.key}])">
+      @if(getBrandLogo(make.key); as logoSrc){
+      <div class="inv-brand-logo-wrap">
+        <img class="inv-brand-logo" [src]="logoSrc" [alt]="make.key">
+      </div>
+      }
+      <span class="inv-brand-name">{{ make.key }}</span>
+    </button>
+    }
+  </div>
+</div>
+}
+}
+
+<!-- ── Main Layout ── -->
+<div class="inv-layout">
+
+  <!-- ── Sidebar ── -->
+  @if(showFilters()){
+  <aside class="inv-sidebar">
+    <div class="inv-sidebar-header">
+      <span class="inv-results-count">{{ inventory()?.meta?.total ?? 0 }} Results</span>
+      <button class="inv-clear-btn" (click)="clearFilters()">Clear All</button>
+    </div>
+
+    <!-- Active filter chips -->
+    <div class="inv-active-chips">
+      @for(filt of currParams() | keyvalue; track $index){
+        @let display = getDisplay(filt);
+        @if(display){
+          @for(fval of display.filterValues; track $index){
+          <div class="inv-chip">
+            <span>{{ display.displayName }}: {{ fval | titlecase }}</span>
+            <button class="inv-chip-remove" (click)="removeFilter(filt, fval)">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          }
+        }
+      }
+    </div>
+
+    @if(filters(); as qfilters){
+
+    <!-- Price Range -->
+    @if(priceRange(); as pricerange){
+    <div class="inv-filter-section">
+      <button class="inv-filter-heading" (click)="toggleSection('price')">
+        <span>Price Range</span>
+        <mat-icon class="inv-chevron" [class.open]="isSectionOpen('price')">keyboard_arrow_down</mat-icon>
+      </button>
+      @if(isSectionOpen('price')){
+      <div class="inv-filter-body">
+        <mat-slider class="inv-slider" discrete step="1000" [min]="pricerange.min" [max]="pricerange.max"
+          [displayWith]="formatSliderLabel">
+          <input #slinpmin (dragEnd)="slinpmin.blur()" [ngModelOptions]="{updateOn:'blur'}"
+            (ngModelChange)="changeSlider(false,$event)" [(ngModel)]="priceMin" matSliderStartThumb />
+          <input #slinpmax (dragEnd)="slinpmax.blur()" [ngModelOptions]="{updateOn:'blur'}"
+            (ngModelChange)="changeSlider(true,$event)" [(ngModel)]="priceMax" matSliderEndThumb />
+        </mat-slider>
+        <div class="inv-price-labels">
+          <span>{{ pricerange.min | currency:'USD':'symbol':'1.0-0' }}</span>
+          <span>{{ pricerange.max | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- Make & Model -->
+    <div class="inv-filter-section">
+      <button class="inv-filter-heading" (click)="toggleSection('makemodel')">
+        <span>Make &amp; Model</span>
+        <mat-icon class="inv-chevron" [class.open]="isSectionOpen('makemodel')">keyboard_arrow_down</mat-icon>
+      </button>
+      @if(isSectionOpen('makemodel')){
+      <div class="inv-filter-body">
+        <mat-selection-list class="inv-sel-list wrap-list-item" #mmselList
+          (selectionChange)="changeSelection(mmselList, ['make[]','model[]'])" [multiple]="true">
+          @for(mm of qfilters.filters.make.counts | keyvalue; track mm.key){
+            @let poptitem = {type:'make[]', value: mm.key};
+            <mat-list-option #lopt [selected]="optionSelected(poptitem)" [value]="poptitem">
+              {{ mm.key }} <i class="inv-count">({{ mm.value }})</i>
+            </mat-list-option>
+            @if(lopt.selected){
+            <div class="inv-model-group">
+              @for(mk of qfilters.filters.modelgroups[mm.key] | keyvalue; track mk.key){
+                @let optitem = {type:'model[]', value:mk.key, parent:{type:'make[]',value:mm.key}};
+                <mat-list-option [selected]="optionSelected(optitem)" [value]="optitem">
+                  {{ mk.key }} <i class="inv-count">({{ mk.value }})</i>
+                </mat-list-option>
+              }
+            </div>
+            }
+          }
+        </mat-selection-list>
+      </div>
+      }
+    </div>
+
+    <!-- Other filters -->
+    @for(availFilt of filterTypes | keyvalue: null; track availFilt.key){
+      @if(availFilt.value.include){
+      <div class="inv-filter-section">
+        <button class="inv-filter-heading" (click)="toggleSection(availFilt.key)">
+          <span>{{ availFilt.value.displayName }}</span>
+          <mat-icon class="inv-chevron" [class.open]="isSectionOpen(availFilt.key)">keyboard_arrow_down</mat-icon>
+        </button>
+        @if(isSectionOpen(availFilt.key)){
+        <div class="inv-filter-body">
+          <mat-selection-list class="inv-sel-list wrap-list-item" #selList
+            (selectionChange)="changeSelection(selList, [availFilt.key+'[]'])" [multiple]="true">
+            @let counts = getCountsForFilter(availFilt.key);
+            @for(mm of counts | keyvalue; track mm.key){
+              @let optitem = {type: availFilt.key+'[]', value: mm.key};
+              <mat-list-option
+                [selected]="optionSelected(optitem) || (availFilt.value.highlightifone ? (counts | keyvalue)?.length === 1 : false)"
+                [value]="optitem">
+                {{ mm.key }} <i class="inv-count">({{ mm.value }})</i>
+              </mat-list-option>
+            }
+          </mat-selection-list>
+        </div>
+        }
+      </div>
+      }
+    }
+
+    }
+  </aside>
+  }
+
+  <!-- ── Vehicle Grid ── -->
+  <div class="inv-grid-area">
+
+    <!-- Sort/count bar -->
+    @if(showFilters()){
+    <div class="inv-sort-bar">
+      <span class="inv-sort-count">{{ inventory()?.meta?.total ?? 0 }} vehicles</span>
+    </div>
+    }
+
+    <div class="inv-grid">
+      @if(focusPictureMap | async; as focusmap){
+        @for(auto of vehicles(); track auto.vin; let i = $index){
+          @let photoslen = auto.photos.length || 1;
+          @let focusedimg = focusmap[auto.vin] || 0;
+
+          <div class="inv-card hover-parent">
+            <!-- Image -->
+            <div class="inv-card-img-wrap" [routerLink]="[pathRoot(), auto.vin]">
+              @if(focusedimg !== 0){
+              <button class="inv-img-arrow left show-on-parent-hover"
+                (click)="$event.stopPropagation(); setFocusedImage(auto.vin, -1)">
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+              }
+              @if(focusedimg !== (photoslen - 1)){
+              <button class="inv-img-arrow right show-on-parent-hover"
+                (click)="$event.stopPropagation(); setFocusedImage(auto.vin, 1)">
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+              }
+              <div class="inv-img-track"
+                [style.width.%]="photoslen * 100"
+                [style.transform]="'translateX('+(-(focusedimg/photoslen)*100)+'%)'">
+                <div class="inv-img-slide" [style.width.%]="(1/photoslen)*100">
+                  <img (load)="onImageLoad($event, i)"
+                    [src]="auto.photos[0] || 'https://static.overfuel.com/photos/1368/848688/202412-7f6fa4ca4bf848799c7e693986e85fda-thumb.webp'"
+                    [alt]="auto.make + ' ' + auto.model" class="inv-img" />
+                </div>
+                @for(img of auto.photos | slice:1:photoslen; track img){
+                <div class="inv-img-slide" [style.width.%]="(1/photoslen)*100"
+                  [style.height.px]="heroDims()[i]?.height">
+                  <img [src]="img" [alt]="auto.make + ' ' + auto.model" class="inv-img" />
+                </div>
+                }
+              </div>
+              <!-- Dot indicators -->
+              @if(photoslen > 1){
+              <div class="inv-img-dots">
+                @for(p of auto.photos; track $index; let pi = $index){
+                <span class="inv-img-dot" [class.active]="focusedimg === pi"></span>
+                }
+              </div>
+              }
+              <!-- Condition badge -->
+              <span class="inv-condition-badge">{{ auto.condition }}</span>
+            </div>
+
+            <!-- Card body -->
+            <div class="inv-card-body">
+              <span class="inv-card-stock">Stock #{{ auto.stocknumber }}</span>
+              <h3 class="inv-card-title" [routerLink]="[pathRoot(), auto.vin]">
+                {{ auto.year }} {{ auto.make }} {{ auto.model }}
+              </h3>
+              <span class="inv-card-trim">{{ auto.trim }}</span>
+
+              <!-- Specs chips -->
+              <div class="inv-specs">
+                <span class="inv-spec">{{ auto.mileage | number:'1.0-0' }} mi</span>
+                @if(auto.fuel){
+                <span class="inv-spec">{{ auto.fuel }}</span>
+                }
+                @if(auto.drivetrainstandard){
+                <span class="inv-spec">{{ auto.drivetrainstandard }}</span>
+                }
+              </div>
+
+              <div class="inv-card-footer">
+                <div class="inv-price-block">
+                  <span class="inv-price">{{ auto.price | currency:'USD':'symbol':'1.0-0' }}</span>
+                  <span class="inv-monthly">{{ auto.finance.monthly_payment | currency:'USD':'symbol':'1.0-0' }}/mo est.</span>
+                </div>
+                <a class="inv-view-btn" [routerLink]="[pathRoot(), auto.vin]">View →</a>
+              </div>
+            </div>
+          </div>
+
+        }
+      }
+    </div>
+
+  </div>
+</div>
+
+<!-- ── SEO + Footer ── -->
+@if(!featured()){
+<div class="inv-seo">
+  <h2>Used Cars, Trucks &amp; SUVs for Sale in Sussex, WI – Big Wave Auto</h2>
+  <p>Looking for a dependable used vehicle in the greater Milwaukee area? At Big Wave Auto in Sussex, WI, we offer a wide variety of quality pre-owned cars, trucks, and SUVs at prices that fit your budget.</p>
+  <h3>Our used inventory often includes popular makes and models such as:</h3>
+  <p>• Toyota Camry, Corolla &amp; RAV4 – Reliable sedans and SUVs built for everyday driving</p>
+  <p>• Honda Accord, Civic &amp; CR-V – Efficient, practical, and long-lasting favorites</p>
+  <p>• Ford F-150, Escape &amp; Explorer – Tough trucks and versatile SUVs made for work and play</p>
+  <p>• Chevrolet Silverado, Malibu &amp; Equinox – American classics with performance and comfort</p>
+  <p>• Luxury brands like BMW, Mercedes-Benz, Lexus &amp; Audi – Premium driving at great value</p>
+  <p>We proudly serve drivers from Sussex, Waukesha, Menomonee Falls, Pewaukee, Brookfield, Milwaukee, and surrounding Wisconsin communities.</p>
+</div>
+<footer></footer>
+}

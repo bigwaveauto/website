@@ -1,0 +1,248 @@
+/* You can add global styles to this file, and also import other style files */
+
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$my-theme: mat.define-theme(
+  (
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$orange-palette,
+      theme-type: light,
+    ),
+    typography: (
+      brand-family: 'Barlow',
+      plain-family: 'Barlow',
+    ),
+    density: (
+      scale: 0,
+    ),
+  )
+);
+
+html {
+  height: 100%;
+  width: 100%;
+  scrollbar-color: black gray;
+
+  @include mat.all-component-themes($my-theme);
+}
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: #f7f8fa;
+  color: #111111;
+  margin: 0;
+  min-height: 100%;
+}
+
+// ── Design tokens (matched to DealerAssist system, blue swap for green) ──
+:root {
+  // Brand primary → BLUE (their #9DCD5A green → your blue)
+  --color-primary:        #2563eb;
+  --color-primary-50:     #eff6ff;
+  --color-primary-100:    #dbeafe;
+  --color-primary-200:    #bfdbfe;
+  --color-primary-300:    #93c5fd;
+  --color-primary-400:    #60a5fa;
+  --color-primary-500:    #2563eb;
+  --color-primary-600:    #1d4ed8;
+  --color-primary-700:    #1e40af;
+  --color-primary-800:    #1e3a8a;
+  --color-primary-900:    #1e3366;
+
+  // Neutrals (exact from DealerAssist)
+  --color-neutral:        #8CA0B3;
+  --color-neutral-50:     #F4F6F7;
+  --color-neutral-100:    #DBE2E7;
+  --color-neutral-200:    #CAD3DC;
+  --color-neutral-300:    #B2BFCC;
+  --color-neutral-400:    #A3B3C2;
+  --color-neutral-500:    #8CA0B3;
+  --color-neutral-600:    #7F92A3;
+  --color-neutral-700:    #63727F;
+  --color-neutral-800:    #4D5862;
+  --color-neutral-900:    #3B434B;
+
+  // Backgrounds
+  --color-dark:           #131313;
+  --color-dark-card:      #1e1e1e;
+  --color-gray-surface:   #F4F6F9;
+  --color-gray-250:       #F7F7F7;
+
+  // Status colors (exact from DealerAssist)
+  --color-red:            #e93d3d;
+  --color-orange:         #F5A623;
+  --color-green:          #2AC866;
+  --color-blue:           #2845E6;
+
+  // Radius (from DealerAssist --radius: 0.5rem)
+  --radius:               0.5rem;
+  --radius-lg:            1rem;
+  --radius-xl:            1.5rem;
+}
+
+$primary: #2563eb;
+
+.vertical-divider {
+  height: 100%;
+  background-color: $primary;
+}
+
+.horizontal-divider {
+  width: 100%;
+  background-color: $primary;
+}
+
+.primary-color {
+  color: $primary;
+}
+
+.bwa-nav-container {
+  height: 100%;
+  position: relative;
+  overflow: visible;
+}
+
+.bwa-nav-container:hover .bwa-nav-list {
+  display: flex;
+}
+
+.bwa-nav-container:hover .bwa-nav-btn {
+  color: $primary;
+}
+
+.hover-parent:hover .child-primary {
+  color: $primary;
+}
+
+.hover-parent:hover .show-on-parent-hover {
+  visibility: visible !important;
+}
+
+.bwa-nav-btn:hover {
+  color: $primary !important;
+}
+
+.bottom-border-primary {
+  border-bottom-color: $primary;
+  border-bottom-style: solid;
+}
+
+.mat-padded {
+  padding: 10px;
+}
+
+.mat-margin {
+  margin: 10px;
+}
+
+.mat-padded-tb {
+  padding: 10px 0;
+}
+
+.mat-margin-tb {
+  margin: 10px 0;
+}
+
+.mat-padded-lr {
+  padding: 0 10px;
+}
+
+.mat-margin-lr {
+  margin: 0 10px;
+}
+
+.mdc-button__label {
+  flex: 1;
+}
+
+:root {
+  @include mat.button-overrides(
+    (
+      filled-container-color: #1a8fc2,
+    )
+  );
+}
+
+.listitemhover:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.white-background-form-field .mdc-text-field--outlined {
+  background-color: white;
+}
+
+.mat-mdc-form-field-infix {
+  width: unset !important;
+}
+
+.mdc-slider__track {
+  background-color: lightgray;
+}
+
+.mat-mdc-selection-list {
+  overflow-x: hidden;
+}
+
+.mdc-list-item__primary-text {
+  font-size: inherit !important;
+}
+
+.mdc-evolution-chip__text-label {
+  font-size: inherit !important;
+}
+
+.wrap-list-item .mdc-list-item__primary-text {
+  white-space: wrap !important;
+  line-height: 1em;
+}
+
+.mdc-slider__value-indicator {
+  transform: scale(1.1) !important;
+}
+
+.mdc-slider__value-indicator-text {
+  font-size: 10px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+.float-in {
+  transition:
+    transform 1s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 1s ease;
+  will-change: transform, opacity;
+}
+
+.float-in.is-visible {
+  transform: translate(0, 0) !important;
+  opacity: 1 !important;
+}
+
+.home-page-select {
+  --mat-form-field-outlined-container-shape: 12px;
+  .mdc-text-field {
+    background: #fafafa;
+    border-radius: 12px;
+  }
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+}
+
+.sticky-on-scroll {
+  position: sticky;
+  top: 0;
+}

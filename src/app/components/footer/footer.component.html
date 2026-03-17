@@ -1,0 +1,60 @@
+<div fxLayout="column" class="bwa-footer" style="color: white;position: sticky;top: 0;">
+    <div fxFlex="62px" fxLayout="row" fxLayoutAlign="start center" style="overflow: hidden;background-color: rgba(255,255,255,.1);">
+        <span fxFlex style="font-size: 22px;font-weight: 500;padding:0 20px">
+            {{businessName}}
+        </span>
+        <a matIconButton style="transform: scale(1.5);color:white"><mat-icon style="margin-bottom: 5px;">facebook</mat-icon></a>
+        <span fxFlex="20px"></span>
+    </div>
+    <div style="padding-bottom: 20px;" fxLayout.lt-sm="column" fxLayout.gt-xs="row">
+        <div fxFlex fxLayout="column" fxLayoutAlign.lt-sm="start center">
+            <span fxLayout="row">
+                <b style="margin: 0 20px;padding:20px 0 ;border-bottom-width: 3px;" class="bottom-border-primary ">Location</b>
+            </span>
+            <div fxLayoutAlign="start" fxLayoutAlign.lt-sm="start center" fxLayout="column" style="margin-left:10px;padding: 10px;line-height: 24px;">
+                <b>{{businessName}}</b>
+                <span>{{addressLine1}}</span>
+                <span>{{addressLine2}}</span>
+                <span>{{addressCity}}, {{addressState}} {{addressZip}}</span>
+                <a [href]="'tel:+1'+unformattedPhone" style="padding:5px 0;display: flex;align-items: center;text-decoration: none;color:white"><mat-icon style="margin-right: 5px;">phone</mat-icon>Sales: {{phoneNumber}}</a>
+            </div>
+        </div>
+        <div fxFlex fxLayout="column" fxLayoutAlign.lt-sm="start center">
+            <span fxLayout="row">
+                <b style="margin: 0 20px;padding:20px 0 ;border-bottom-width: 3px;" class="bottom-border-primary">Quick Links</b>
+            </span>
+            <div fxLayoutAlign="start" fxLayoutAlign.lt-sm="start center" fxLayout="column" style="padding: 10px;line-height: 12px;" [ngStyle.lt-sm]="{'line-height':'24px'}">
+                @for(qlink of quicklinks;track $index){
+                <a [routerLink]="qlink.route" style="text-decoration: none;color:white;padding: 10px;">{{qlink.name}}</a>
+                }
+            </div>
+        </div>
+        <div fxFlex fxLayout="column" fxLayoutAlign.lt-sm="start center">
+            <span fxLayout="row">
+                <b style="margin: 0 20px;padding:20px 0 ;border-bottom-width: 3px;" class="bottom-border-primary">Stay Updated</b>
+            </span>
+            <div fxLayout="column" class="mat-margin" fxLayoutAlign="start" fxLayoutAlign.lt-sm="start center">
+                <span fxFlex="36px" style="padding:0 10px 15px">Get special offers directly to your inbox.</span>
+                <div fxLayout="column" class="mat-padded" style="background-color: lightgray;border-radius: 12px;padding:16px">
+                    <div fxLayout="row">
+                        <mat-form-field fxFlex class="white-background-form-field" appearance="outline">
+                            <mat-label>First</mat-label>
+                            <input matInput>
+                        </mat-form-field>
+                        <mat-form-field fxFlex class="white-background-form-field" appearance="outline">
+                            <mat-label>Last</mat-label>
+                            <input matInput>
+                        </mat-form-field>
+
+                    </div>
+                    <mat-form-field class="white-background-form-field" appearance="outline">
+                        <mat-label>Email</mat-label>
+                        <input matInput>
+                    </mat-form-field>
+                    <button matButton="filled">Sign Up</button>
+                </div>
+            </div>
+        </div>
+        <span fxFlex="40px" fxHide.gt-xs></span>
+    </div>
+</div>

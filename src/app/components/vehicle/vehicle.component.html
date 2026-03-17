@@ -1,0 +1,310 @@
+<header></header>
+
+@if(fullVehicle()?.results; as v){
+
+<!-- ── Gallery ── -->
+<div class="vdp-gallery">
+  @let total = v.photos.length;
+  @let curr = selectedPhotoIndex();
+  @let c1 = (curr + 1) % total;
+  @let c2 = (curr + 2) % total;
+
+  @if(total > 0){
+  <div class="vdp-photo-row hover-parent">
+
+    <!-- Nav arrows -->
+    @if(total > 1){
+    <button class="vdp-pgallery-arrow left show-on-parent-hover" (click)="prevPhoto(total)">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <button class="vdp-pgallery-arrow right show-on-parent-hover" (click)="nextPhoto(total)">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+    }
+
+    <!-- Left slot = current photo (index 0 on load) -->
+    <div class="vdp-photo-slot center" (click)="openLightbox(curr)">
+      <img [src]="v.photos[curr].large" [alt]="v.title" />
+    </div>
+
+    <!-- Center slot -->
+    @if(total >= 2){
+    <div class="vdp-photo-slot side" (click)="openLightbox(c1)">
+      <img [src]="v.photos[c1].large" [alt]="v.title" />
+    </div>
+    }
+
+    <!-- Right slot -->
+    @if(total >= 3){
+    <div class="vdp-photo-slot side" (click)="openLightbox(c2)">
+      <img [src]="v.photos[c2].large" [alt]="v.title" />
+    </div>
+    }
+
+    <!-- Counter + view all -->
+    <div class="vdp-gallery-footer">
+      <span class="vdp-photo-counter-inline">{{ curr + 1 }} / {{ total }}</span>
+      @if(total > 3){
+      <button class="vdp-view-all-btn" (click)="openLightbox(curr)">
+        <mat-icon>photo_library</mat-icon> View all {{ total }} photos
+      </button>
+      }
+    </div>
+
+  </div>
+  }@else{
+  <div class="vdp-no-photo-wrap">
+    <span>Photos Coming Soon</span>
+  </div>
+  }
+</div>
+
+<!-- ── Lightbox ── -->
+@if(lightboxOpen()){
+<div class="vdp-lightbox" (click)="closeLightbox()">
+
+  <!-- Top bar -->
+  <div class="vdp-lb-topbar" (click)="$event.stopPropagation()">
+    <span class="vdp-lb-counter">{{ selectedPhotoIndex() + 1 }} / {{ v.photos.length }}</span>
+    <button class="vdp-lb-close" (click)="closeLightbox()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <!-- Pill arrows -->
+  <button class="vdp-lb-arrow left" (click)="$event.stopPropagation(); prevPhoto(v.photos.length)">
+    <mat-icon>chevron_left</mat-icon>
+  </button>
+  <button class="vdp-lb-arrow right" (click)="$event.stopPropagation(); nextPhoto(v.photos.length)">
+    <mat-icon>chevron_right</mat-icon>
+  </button>
+
+  <!-- Main image -->
+  <div class="vdp-lb-img-wrap" (click)="$event.stopPropagation()">
+    <img [src]="v.photos[selectedPhotoIndex()].large" [alt]="v.title" class="vdp-lb-img" />
+  </div>
+
+  <!-- Bottom thumbnail strip -->
+  <div class="vdp-lb-thumbs" (click)="$event.stopPropagation()">
+    @for(photo of v.photos; track $index; let i = $index){
+    <button class="vdp-lb-thumb" [class.active]="selectedPhotoIndex() === i" (click)="selectPhoto(i)">
+      <img [src]="photo.thumbnail || photo.large" [alt]="v.title + ' ' + (i+1)" />
+    </button>
+    }
+  </div>
+
+</div>
+}
+
+<!-- ── Page body ── -->
+<div class="vdp-body">
+
+  <!-- Breadcrumb -->
+  <div class="vdp-breadcrumb">
+    <a routerLink="/" class="vdp-bc-link">Home</a>
+    <span class="vdp-bc-sep">/</span>
+    <a routerLink="/showroom" class="vdp-bc-link">Inventory</a>
+    <span class="vdp-bc-sep">/</span>
+    <span class="vdp-bc-current">{{ v.year }} {{ v.make }} {{ v.model }}</span>
+  </div>
+
+  <!-- Two-column layout -->
+  <div class="vdp-content">
+
+    <!-- ── Left column ── -->
+    <div class="vdp-left">
+
+      <!-- Title block -->
+      <div class="vdp-title-block">
+        <p class="vdp-make-model">{{ v.make }} {{ v.model }}</p>
+        <h1 class="vdp-title">{{ v.year }} {{ v.make }} {{ v.model }}</h1>
+        <p class="vdp-trim">{{ v.trim }}</p>
+
+        <!-- Key specs pills -->
+        <div class="vdp-specs-pills">
+          <span class="vdp-pill">
+            <mat-icon>speed</mat-icon> {{ v.mileage | number:'1.0-0' }} mi
+          </span>
+          @if(v.fuel){
+          <span class="vdp-pill">
+            <mat-icon>local_gas_station</mat-icon> {{ v.fuel }}
+          </span>
+          }
+          @if(v.transmissionstandard){
+          <span class="vdp-pill">
+            <mat-icon>settings</mat-icon> {{ v.transmissionstandard }}
+          </span>
+          }
+          @if(v.drivetrainstandard){
+          <span class="vdp-pill">
+            <mat-icon>drive_eta</mat-icon> {{ v.drivetrainstandard }}
+          </span>
+          }
+          @if(v.maxhorsepower){
+          <span class="vdp-pill">
+            <mat-icon>flash_on</mat-icon> {{ v.maxhorsepower }} hp
+          </span>
+          }
+          @if(v.mpgcity && v.mpghwy){
+          <span class="vdp-pill">
+            <mat-icon>eco</mat-icon> {{ v.mpgcity }}/{{ v.mpghwy }} mpg
+          </span>
+          }
+        </div>
+      </div>
+
+      <!-- Carfax + CarGurus row -->
+      <div class="vdp-badges-row">
+
+        @if(v.carfaxurl){
+        <div class="vdp-carfax-card">
+          <a [href]="v.carfaxurl" target="_blank" rel="noopener" class="vdp-carfax-snapshot">
+            <img [src]="v.carfaxicon" [alt]="v.carfaxalt || 'Carfax Report'" class="vdp-carfax-snapshot-img" />
+          </a>
+          <div class="vdp-carfax-items">
+            @if(v.carfaxownerstext){
+            <div class="vdp-carfax-item">
+              @if(v.carfaxownersicon){ <img [src]="v.carfaxownersicon" alt="" class="vdp-carfax-item-icon" /> }
+              <span>{{ v.carfaxownerstext }}</span>
+            </div>
+            }
+            @if(v.carfaxaccidenttext){
+            <div class="vdp-carfax-item">
+              @if(v.carfaxaccidenticon){ <img [src]="v.carfaxaccidenticon" alt="" class="vdp-carfax-item-icon" /> }
+              <span>{{ v.carfaxaccidenttext }}</span>
+            </div>
+            }
+            @if(v.carfaxusetext){
+            <div class="vdp-carfax-item">
+              @if(v.carfaxuseicon){ <img [src]="v.carfaxuseicon" alt="" class="vdp-carfax-item-icon" /> }
+              <span>{{ v.carfaxusetext }}</span>
+            </div>
+            }
+            @if(v.carfaxservicerecords){
+            <div class="vdp-carfax-item">
+              <mat-icon class="cfx-svc-icon">build_circle</mat-icon>
+              <span>{{ v.carfaxservicerecords }} Service Record{{ v.carfaxservicerecords > 1 ? 's' : '' }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        <!-- CarGurus Deal Rating pill -->
+        <div class="vdp-cargurus-pill">
+          <span [attr.data-cg-vin]="v.vin" [attr.data-cg-price]="v.price"></span>
+        </div>
+
+      </div>
+
+      <!-- Description -->
+      @if(v.vehicledescription || v.notes){
+      <div class="vdp-section">
+        <h2 class="vdp-section-title">About This Vehicle</h2>
+        <p class="vdp-description">{{ v.vehicledescription || v.notes }}</p>
+      </div>
+      }
+
+
+      <!-- Specs table -->
+      <div class="vdp-section">
+        <h2 class="vdp-section-title">Vehicle Details</h2>
+        <div class="vdp-specs-grid">
+          @for(item of detailsItems; track $index){
+            @let val = $any(v)[item.datacol];
+            @if(val){
+            <div class="vdp-spec-row">
+              <span class="vdp-spec-label">{{ item.displayName }}</span>
+              <span class="vdp-spec-value">{{ val }}</span>
+            </div>
+            }
+          }
+          @if(v.mpgcity && v.mpghwy){
+          <div class="vdp-spec-row">
+            <span class="vdp-spec-label">Fuel Economy</span>
+            <span class="vdp-spec-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</span>
+          </div>
+          }
+        </div>
+      </div>
+
+    </div><!-- /vdp-left -->
+
+    <!-- ── Right sidebar ── -->
+    <aside class="vdp-sidebar">
+      <div class="vdp-price-card">
+
+        <!-- Price header -->
+        <div class="vdp-price-header">
+          <div class="vdp-price-row">
+            <span class="vdp-price">{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span>
+            @if(v.msrp && v.msrp > v.price){
+            <span class="vdp-msrp">MSRP {{ v.msrp | currency:'USD':'symbol':'1.0-0' }}</span>
+            }
+          </div>
+          <span class="vdp-monthly-est">
+            Est. {{ v.finance.monthly_payment | currency:'USD':'symbol':'1.0-0' }}/mo
+          </span>
+        </div>
+
+        <!-- Stock / VIN -->
+        <div class="vdp-stock-row">
+          <span>Stock #{{ v.stocknumber }}</span>
+          <span class="vdp-vin-text">VIN: {{ v.vin }}</span>
+        </div>
+
+        <!-- CTAs -->
+        <div class="vdp-cta-stack">
+          <a routerLink="/contact" class="vdp-btn-primary">Request a Test Drive</a>
+          <a routerLink="/contact" class="vdp-btn-outline">Make an Offer</a>
+          <a routerLink="/financing" class="vdp-btn-ghost">Apply for Financing →</a>
+        </div>
+
+        <!-- Finance breakdown -->
+        <div class="vdp-finance-breakdown">
+          <div class="vdp-finance-row">
+            <span>Est. Monthly</span>
+            <span>{{ v.finance.monthly_payment | currency:'USD':'symbol':'1.0-0' }}/mo</span>
+          </div>
+          <div class="vdp-finance-row">
+            <span>Down Payment</span>
+            <span>{{ v.finance.down_payment | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+          <div class="vdp-finance-row">
+            <span>Loan Term</span>
+            <span>{{ v.finance.loan_months }} months</span>
+          </div>
+          <div class="vdp-finance-row">
+            <span>Interest Rate</span>
+            <span>{{ v.finance.interest_rate_formatted }}%</span>
+          </div>
+          <p class="vdp-finance-disclaimer">Estimated payment for well-qualified buyers. Actual terms may vary.</p>
+        </div>
+
+        <!-- Dealer info -->
+        <div class="vdp-dealer-info">
+          <div class="vdp-dealer-row">
+            <mat-icon>location_on</mat-icon>
+            <span>N69W25055 Indian Grass Lane, Unit H<br>Sussex, WI 53089</span>
+          </div>
+          <div class="vdp-dealer-row">
+            <mat-icon>phone</mat-icon>
+            <a href="tel:+12622811295">(262) 281-1295</a>
+          </div>
+          <div class="vdp-dealer-row">
+            <mat-icon>schedule</mat-icon>
+            <span>Mon–Sat, 9AM–6PM (By Appointment)</span>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+  </div><!-- /vdp-content -->
+</div><!-- /vdp-body -->
+
+}@else{
+<div class="vdp-loading">
+  <span>Loading vehicle details…</span>
+</div>
+}
+
+<footer></footer>

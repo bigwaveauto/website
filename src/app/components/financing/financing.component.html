@@ -1,0 +1,256 @@
+<header [floating]="true"></header>
+
+<!-- Banner -->
+<div class="fin-banner">
+  <div class="fin-banner-content">
+    <h1 class="fin-banner-title">Auto Financing in Sussex, WI</h1>
+    <div class="fin-breadcrumb">
+      <a routerLink="/" class="fin-breadcrumb-link">Home</a>
+      <span class="fin-breadcrumb-sep">/</span>
+      <span class="fin-breadcrumb-current">Financing</span>
+    </div>
+  </div>
+</div>
+
+<div class="fin-page">
+
+  <!-- Intro -->
+  <section class="fin-intro">
+    <h2 class="fin-section-title">Apply Online For A Car Loan At Big Wave Auto</h2>
+    <div class="fin-divider"></div>
+    <p>At Big Wave Auto, we make financing your next vehicle simple and stress-free. Whether you're purchasing your first car or upgrading to something newer, our finance team is here to help you secure a loan that works for your budget—no matter your credit history.</p>
+    <p>We proudly partner with multiple local and national credit unions, giving you access to competitive rates, flexible terms, and lending options that fit your unique situation. From excellent credit to first-time buyers or those rebuilding their credit, we'll work hard to match you with the right plan—sometimes with as little as $0 down.</p>
+    <p>Fill out the form below and lock in the best auto loan rate regardless of your credit history.</p>
+  </section>
+
+  <!-- Wizard -->
+  @if(!submitted()){
+  <section class="fin-wizard">
+
+    <!-- Step indicator -->
+    <div class="fin-steps">
+      @for(s of steps; track s.number){
+      <div class="fin-step" [class.active]="step() === s.number" [class.done]="step() > s.number">
+        <div class="fin-step-circle">
+          @if(step() > s.number){
+          <mat-icon>check</mat-icon>
+          }@else{
+          {{ s.number }}
+          }
+        </div>
+        <span class="fin-step-label">{{ s.label }}</span>
+      </div>
+      @if(s.number < totalSteps){
+      <div class="fin-step-line" [class.done]="step() > s.number"></div>
+      }
+      }
+    </div>
+
+    <!-- Step content -->
+    <div class="fin-form-card">
+      <div class="fin-form-header">
+        <span class="fin-form-title">{{ steps[step()-1].label }}</span>
+        <span class="fin-form-counter">{{ step() }} / {{ totalSteps }}</span>
+      </div>
+
+      <!-- Step 1: Contact -->
+      @if(step() === 1){
+      <div class="fin-borrower-choice">
+        <p>Are you applying for financing for yourself, or jointly with a co-borrower?</p>
+        <div class="fin-borrower-btns">
+          <button class="fin-borrower-btn" (click)="selectBorrower(false)">
+            <mat-icon>person</mat-icon> For myself
+          </button>
+          <button class="fin-borrower-btn" (click)="selectBorrower(true)">
+            <mat-icon>group</mat-icon> With a co-borrower
+          </button>
+        </div>
+      </div>
+      <form [formGroup]="contactForm" class="fin-form">
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>First Name</label>
+            <input formControlName="firstname" placeholder="First name" type="text">
+          </div>
+          <div class="fin-field">
+            <label>Last Name</label>
+            <input formControlName="lastname" placeholder="Last name" type="text">
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Email</label>
+            <input formControlName="email" placeholder="you@email.com" type="email">
+          </div>
+          <div class="fin-field">
+            <label>Phone</label>
+            <input formControlName="phone" placeholder="(262) 555-0100" type="tel">
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Date of Birth</label>
+            <input formControlName="dob" type="date">
+          </div>
+        </div>
+      </form>
+      }
+
+      <!-- Step 2: Address -->
+      @if(step() === 2){
+      <form [formGroup]="addressForm" class="fin-form">
+        <div class="fin-form-row">
+          <div class="fin-field fin-field--full">
+            <label>Street Address</label>
+            <input formControlName="street" placeholder="123 Main St" type="text">
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>City</label>
+            <input formControlName="city" placeholder="Sussex" type="text">
+          </div>
+          <div class="fin-field fin-field--sm">
+            <label>State</label>
+            <select formControlName="state">
+              <option value="">Select</option>
+              <option>WI</option><option>IL</option><option>MN</option><option>MI</option><option>IA</option>
+              <option>IN</option><option>OH</option><option>MO</option><option>Other</option>
+            </select>
+          </div>
+          <div class="fin-field fin-field--sm">
+            <label>ZIP</label>
+            <input formControlName="zip" placeholder="53089" type="text" maxlength="5">
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Years at Address</label>
+            <select formControlName="yearsAtAddress">
+              <option value="">Select</option>
+              <option>Less than 1 year</option>
+              <option>1–2 years</option>
+              <option>3–5 years</option>
+              <option>5+ years</option>
+            </select>
+          </div>
+          <div class="fin-field">
+            <label>Housing Status</label>
+            <select formControlName="housingStatus">
+              <option value="">Select</option>
+              <option>Own</option>
+              <option>Rent</option>
+              <option>Live with family</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+      </form>
+      }
+
+      <!-- Step 3: Employment -->
+      @if(step() === 3){
+      <form [formGroup]="employmentForm" class="fin-form">
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Employment Status</label>
+            <select formControlName="employmentStatus">
+              <option value="">Select</option>
+              <option>Full-time employed</option>
+              <option>Part-time employed</option>
+              <option>Self-employed</option>
+              <option>Retired</option>
+              <option>Student</option>
+              <option>Unemployed</option>
+            </select>
+          </div>
+          <div class="fin-field">
+            <label>Employer Name</label>
+            <input formControlName="employerName" placeholder="Employer" type="text">
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Gross Monthly Income</label>
+            <input formControlName="monthlyIncome" placeholder="$0,000" type="text">
+          </div>
+          <div class="fin-field">
+            <label>Years Employed</label>
+            <select formControlName="yearsEmployed">
+              <option value="">Select</option>
+              <option>Less than 1 year</option>
+              <option>1–2 years</option>
+              <option>3–5 years</option>
+              <option>5+ years</option>
+            </select>
+          </div>
+        </div>
+      </form>
+      }
+
+      <!-- Step 4: Consent -->
+      @if(step() === 4){
+      <form [formGroup]="consentForm" class="fin-form">
+        <p class="fin-consent-text">By submitting this application, you authorize Big Wave Auto and its lending partners to obtain your credit report and use your information to process your financing request. Your information is secure and will never be sold to third parties.</p>
+        <div class="fin-checkbox-row">
+          <input type="checkbox" formControlName="agreeTerms" id="agreeTerms">
+          <label for="agreeTerms">I agree to the <a routerLink="/about">Terms & Conditions</a> and Privacy Policy</label>
+        </div>
+        <div class="fin-checkbox-row">
+          <input type="checkbox" formControlName="agreeCreditCheck" id="agreeCreditCheck">
+          <label for="agreeCreditCheck">I authorize Big Wave Auto to run a credit check as part of this application</label>
+        </div>
+      </form>
+      }
+
+      <!-- Nav buttons -->
+      <div class="fin-form-nav">
+        @if(step() > 1){
+        <button class="fin-btn-back" (click)="prevStep()">
+          <mat-icon>arrow_back</mat-icon> Back
+        </button>
+        }@else{
+        <span></span>
+        }
+
+        @if(step() < totalSteps){
+        <button class="fin-btn-next" (click)="nextStep()" [disabled]="!currentStepValid()">
+          Continue <mat-icon>arrow_forward</mat-icon>
+        </button>
+        }@else{
+        <button class="fin-btn-submit" (click)="submitForm()" [disabled]="!currentStepValid()">
+          Submit Application <mat-icon>send</mat-icon>
+        </button>
+        }
+      </div>
+    </div>
+
+  </section>
+  }@else{
+  <!-- Success state -->
+  <section class="fin-success">
+    <div class="fin-success-card">
+      <mat-icon class="fin-success-icon">check_circle</mat-icon>
+      <h2>Application Submitted!</h2>
+      <p>Thank you for applying. A member of our finance team will reach out within 1 business day to discuss your options.</p>
+      <a routerLink="/showroom" class="fin-btn-next">Browse Inventory <mat-icon>arrow_forward</mat-icon></a>
+    </div>
+  </section>
+  }
+
+  <!-- Benefits -->
+  <section class="fin-benefits">
+    <h2 class="fin-section-title">Online Car Financing Is Fast And Secure</h2>
+    <div class="fin-divider"></div>
+    <div class="fin-benefits-grid">
+      @for(b of benefits; track b.title){
+      <div class="fin-benefit-card">
+        <mat-icon class="fin-benefit-icon">{{ b.icon }}</mat-icon>
+        <h4>{{ b.title }}</h4>
+        <p>{{ b.desc }}</p>
+      </div>
+      }
+    </div>
+  </section>
+
+</div>

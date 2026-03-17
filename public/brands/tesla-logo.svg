@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="18.520834cm"
+   height="18.520834cm"
+   viewBox="0 0 185.20833 185.20834"
+   version="1.1"
+   id="svg1058"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   sodipodi:docname="tesla-logo.svg"
+   inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-0.png"
+   inkscape:export-xdpi="561.73712"
+   inkscape:export-ydpi="561.73712">
+  <defs
+     id="defs1052">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath172">
+      <path
+         d="m 72,524.707 h 60.804 V 612 H 72 Z"
+         id="path170"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath172-7">
+      <path
+         d="m 72,524.707 h 60.804 V 612 H 72 Z"
+         id="path170-7"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath172-6">
+      <path
+         d="m 72,524.707 h 60.804 V 612 H 72 Z"
+         id="path170-4"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.5"
+     inkscape:cx="894.48328"
+     inkscape:cy="207.39865"
+     inkscape:document-units="mm"
+     inkscape:current-layer="g168-2"
+     showgrid="false"
+     units="cm"
+     inkscape:window-width="1600"
+     inkscape:window-height="837"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata1055">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-111.79165)">
+    <path
+       d="M 44.497172,273.46042 H 140.71116 V 135.33122 H 44.497172 Z"
+       style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.58236277"
+       id="path164"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-3.png"
+       inkscape:export-xdpi="184.7964"
+       inkscape:export-ydpi="184.7964" />
+    <g
+       transform="matrix(1.5823628,0,0,-1.5823628,-69.432951,1103.7372)"
+       id="g166"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-3.png"
+       inkscape:export-xdpi="184.7964"
+       inkscape:export-ydpi="184.7964">
+      <g
+         id="g168"
+         clip-path="url(#clipPath172)">
+        <g
+           id="g174"
+           transform="translate(102.4417,556.9077)">
+          <path
+             d="m 0,0 6.251,35.16 c 5.96,0 7.838,-0.654 8.11,-3.321 0,0 3.999,1.491 6.015,4.518 -7.868,3.646 -15.773,3.81 -15.773,3.81 L -0.01,34.549 0,34.55 -4.613,40.168 c 0,0 -7.906,-0.164 -15.773,-3.81 2.015,-3.027 6.015,-4.518 6.015,-4.518 0.272,2.668 2.15,3.32 8.069,3.325 z"
+             style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path176"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g178"
+           transform="translate(102.4391,598.6978)">
+          <path
+             d="m 0,0 c 6.359,0.049 13.64,-0.984 21.092,-4.231 0.996,1.792 1.251,2.584 1.251,2.584 C 14.197,1.576 6.569,2.679 -0.001,2.707 -6.57,2.679 -14.198,1.576 -22.344,-1.647 c 0,0 0.363,-0.976 1.251,-2.584 7.451,3.247 14.733,4.28 21.092,4.231 z"
+             style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path180"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g182"
+           transform="translate(76.9553,544.2743)">
+          <path
+             d="m 0,0 c 0.143,-0.558 0.626,-1.128 1.29,-1.272 h 2.003 l 0.102,-0.04 v -5.056 h 1.252 v 5.056 l 0.113,0.04 H 6.766 C 7.436,-1.099 7.909,-0.558 8.05,0 V 0.013 H 0 Z"
+             style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path184"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g186"
+           transform="translate(115.1603,537.8919)">
+          <path
+             d="M 0,0 C 0.624,0.265 0.959,0.723 1.088,1.258 H -4.466 L -4.463,6.389 -5.707,6.386 V 0 Z"
+             style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path188"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g190"
+           transform="translate(100.1944,543.0228)">
+          <path
+             d="M 0,0 H 4.398 C 5.06,0.192 5.617,0.697 5.753,1.257 H -1.233 V -2.516 H 4.485 V -3.841 L 0,-3.844 c -0.703,-0.197 -1.298,-0.668 -1.596,-1.292 l 0.363,0.007 h 6.947 v 3.866 H 0 Z"
+             style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path192"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g194"
+           transform="translate(118.9103,541.7558)">
+          <path
+             d="m 0,0 v -3.862 h 1.238 v 2.57 h 4.508 v -2.57 h 1.237 v 3.855 z"
+             style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path196"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g198"
+           transform="translate(89.339,543.0094)">
+          <path
+             d="M 0,0 H 4.76 C 5.422,0.132 5.915,0.716 6.053,1.28 H -1.293 C -1.156,0.716 -0.656,0.132 0,0"
+             style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path200"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g202"
+           transform="translate(89.339,540.485)">
+          <path
+             d="M 0,0 H 4.76 C 5.422,0.132 5.915,0.716 6.053,1.28 H -1.293 C -1.156,0.716 -0.656,0.132 0,0"
+             style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path204"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g206"
+           transform="translate(89.339,537.8928)">
+          <path
+             d="M 0,0 H 4.76 C 5.422,0.132 5.915,0.715 6.053,1.28 H -1.293 C -1.156,0.715 -0.656,0.132 0,0"
+             style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path208"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g210"
+           transform="translate(120.0111,543.0048)">
+          <path
+             d="M 0,0 H 4.761 C 5.423,0.131 5.915,0.715 6.053,1.28 H -1.293 C -1.155,0.715 -0.656,0.131 0,0"
+             style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path212"
+             inkscape:connector-curvature="0" />
+        </g>
+      </g>
+    </g>
+    <g
+       id="g182-4-4"
+       transform="matrix(3.7020748,0,0,-3.7020748,1.7019406,321.62347)"
+       style="fill:#e82127;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-4.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="m 0,0 c 0.143,-0.558 0.626,-1.128 1.29,-1.272 h 2.003 l 0.102,-0.04 v -5.056 h 1.252 v 5.056 l 0.113,0.04 H 6.766 C 7.436,-1.099 7.909,-0.558 8.05,0 V 0.013 H 0 Z"
+         style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path184-4-8"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g186-9-1"
+       transform="matrix(3.7020748,0,0,-3.7020748,143.1397,345.25161)"
+       style="fill:#e82127;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-4.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="M 0,0 C 0.624,0.265 0.959,0.723 1.088,1.258 H -4.466 L -4.463,6.389 -5.707,6.386 V 0 Z"
+         style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path188-4-1"
+         inkscape:connector-curvature="0" />
+    </g>
+    <path
+       d="m 87.734828,326.25663 h 16.281722 c 2.45076,-0.7108 4.51283,-2.58036 5.0163,-4.65352 H 83.170163 v 13.96794 h 21.168467 v 4.90525 l -16.603802,0.0117 c -2.602559,0.72932 -4.8053,2.47299 -5.908515,4.7831 l 1.34385,-0.026 H 108.88848 V 330.93294 H 87.734828 Z"
+       style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:3.70207477"
+       id="path192-9-8"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-4.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394" />
+    <g
+       id="g194-3-3"
+       transform="matrix(3.7020748,0,0,-3.7020748,157.02249,330.94714)"
+       style="fill:#e82127;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-4.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="m 0,0 v -3.862 h 1.238 v 2.57 h 4.508 v -2.57 h 1.237 v 3.855 z"
+         style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path196-2-5"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g198-6-7"
+       transform="matrix(3.7020748,0,0,-3.7020748,47.547322,326.30622)"
+       style="fill:#e82127;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-4.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="M 0,0 H 4.76 C 5.422,0.132 5.915,0.716 6.053,1.28 H -1.293 C -1.156,0.716 -0.656,0.132 0,0"
+         style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path200-8-6"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g202-9-6"
+       transform="matrix(3.7020748,0,0,-3.7020748,47.547322,335.65175)"
+       style="fill:#e82127;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-4.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="M 0,0 H 4.76 C 5.422,0.132 5.915,0.716 6.053,1.28 H -1.293 C -1.156,0.716 -0.656,0.132 0,0"
+         style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path204-9-0"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g206-9-4"
+       transform="matrix(3.7020748,0,0,-3.7020748,47.547322,345.24827)"
+       style="fill:#e82127;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-4.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="M 0,0 H 4.76 C 5.422,0.132 5.915,0.715 6.053,1.28 H -1.293 C -1.156,0.715 -0.656,0.132 0,0"
+         style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path208-1-8"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g210-0-6"
+       transform="matrix(3.7020748,0,0,-3.7020748,161.09773,326.32325)"
+       style="fill:#e82127;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-4.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="M 0,0 H 4.761 C 5.423,0.131 5.915,0.715 6.053,1.28 H -1.293 C -1.155,0.715 -0.656,0.131 0,0"
+         style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path212-1-2"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g182-4-4-8"
+       transform="matrix(3.7020749,0,0,-3.7020749,2.2679318,361.5363)"
+       style="fill:#1a1a1a;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-5.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="m 0,0 c 0.143,-0.558 0.626,-1.128 1.29,-1.272 h 2.003 l 0.102,-0.04 v -5.056 h 1.252 v 5.056 l 0.113,0.04 H 6.766 C 7.436,-1.099 7.909,-0.558 8.05,0 V 0.013 H 0 Z"
+         style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path184-4-8-1"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g186-9-1-0"
+       transform="matrix(3.7020749,0,0,-3.7020749,143.70569,385.16443)"
+       style="fill:#1a1a1a;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-5.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="M 0,0 C 0.624,0.265 0.959,0.723 1.088,1.258 H -4.466 L -4.463,6.389 -5.707,6.386 V 0 Z"
+         style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path188-4-1-9"
+         inkscape:connector-curvature="0" />
+    </g>
+    <path
+       d="m 88.30082,366.16946 h 16.28172 c 2.45076,-0.7108 4.51283,-2.58036 5.0163,-4.65352 H 83.736157 v 13.96794 h 21.168463 v 4.90525 l -16.6038,0.0117 c -2.602558,0.72932 -4.805299,2.47299 -5.908514,4.7831 l 1.343851,-0.026 H 109.45447 V 370.84577 H 88.30082 Z"
+       style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:3.70207477"
+       id="path192-9-8-6"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-5.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394" />
+    <g
+       id="g194-3-3-5"
+       transform="matrix(3.7020749,0,0,-3.7020749,157.58848,370.85996)"
+       style="fill:#1a1a1a;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-5.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="m 0,0 v -3.862 h 1.238 v 2.57 h 4.508 v -2.57 h 1.237 v 3.855 z"
+         style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path196-2-5-3"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g198-6-7-7"
+       transform="matrix(3.7020749,0,0,-3.7020749,48.113313,366.21905)"
+       style="fill:#1a1a1a;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-5.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="M 0,0 H 4.76 C 5.422,0.132 5.915,0.716 6.053,1.28 H -1.293 C -1.156,0.716 -0.656,0.132 0,0"
+         style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path200-8-6-2"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g202-9-6-0"
+       transform="matrix(3.7020749,0,0,-3.7020749,48.113313,375.56458)"
+       style="fill:#1a1a1a;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-5.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="M 0,0 H 4.76 C 5.422,0.132 5.915,0.716 6.053,1.28 H -1.293 C -1.156,0.716 -0.656,0.132 0,0"
+         style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path204-9-0-5"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g206-9-4-3"
+       transform="matrix(3.7020749,0,0,-3.7020749,48.113313,385.1611)"
+       style="fill:#1a1a1a;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-5.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="M 0,0 H 4.76 C 5.422,0.132 5.915,0.715 6.053,1.28 H -1.293 C -1.156,0.715 -0.656,0.132 0,0"
+         style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path208-1-8-0"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g210-0-6-2"
+       transform="matrix(3.7020749,0,0,-3.7020749,161.66372,366.23607)"
+       style="fill:#1a1a1a;fill-opacity:1"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-5.png"
+       inkscape:export-xdpi="97.797394"
+       inkscape:export-ydpi="97.797394">
+      <path
+         d="M 0,0 H 4.761 C 5.423,0.131 5.915,0.715 6.053,1.28 H -1.293 C -1.155,0.715 -0.656,0.131 0,0"
+         style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path212-1-2-6"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       transform="matrix(2.0995817,0,0,-2.0995817,53.042926,1396.2025)"
+       id="g166-3"
+       inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-7.png"
+       inkscape:export-xdpi="172.44069"
+       inkscape:export-ydpi="172.44069"
+       style="fill:#e82127;fill-opacity:1">
+      <g
+         id="g168-2"
+         clip-path="url(#clipPath172-6)"
+         style="fill:#e82127;fill-opacity:1">
+        <g
+           id="g174-8"
+           transform="translate(102.4417,556.9077)"
+           style="fill:#e82127;fill-opacity:1"
+           inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-8.png"
+           inkscape:export-xdpi="584.75452"
+           inkscape:export-ydpi="584.75452">
+          <path
+             d="m 0,0 6.251,35.16 c 5.96,0 7.838,-0.654 8.11,-3.321 0,0 3.999,1.491 6.015,4.518 -7.868,3.646 -15.773,3.81 -15.773,3.81 L -0.01,34.549 0,34.55 -4.613,40.168 c 0,0 -7.906,-0.164 -15.773,-3.81 2.015,-3.027 6.015,-4.518 6.015,-4.518 0.272,2.668 2.15,3.32 8.069,3.325 z"
+             style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path176-0"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g178-6"
+           transform="translate(102.4391,598.6978)"
+           style="fill:#e82127;fill-opacity:1"
+           inkscape:export-filename="C:\Users\suitedoalex\sites\tesla-logo-8.png"
+           inkscape:export-xdpi="584.75452"
+           inkscape:export-ydpi="584.75452">
+          <path
+             d="m 0,0 c 6.359,0.049 13.64,-0.984 21.092,-4.231 0.996,1.792 1.251,2.584 1.251,2.584 C 14.197,1.576 6.569,2.679 -0.001,2.707 -6.57,2.679 -14.198,1.576 -22.344,-1.647 c 0,0 0.363,-0.976 1.251,-2.584 7.451,3.247 14.733,4.28 21.092,4.231 z"
+             style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path180-6"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g182-5"
+           transform="translate(76.9553,544.2743)"
+           style="fill:#e82127;fill-opacity:1">
+          <path
+             d="m 0,0 c 0.143,-0.558 0.626,-1.128 1.29,-1.272 h 2.003 l 0.102,-0.04 v -5.056 h 1.252 v 5.056 l 0.113,0.04 H 6.766 C 7.436,-1.099 7.909,-0.558 8.05,0 V 0.013 H 0 Z"
+             style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path184-5"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g186-7"
+           transform="translate(115.1603,537.8919)"
+           style="fill:#e82127;fill-opacity:1">
+          <path
+             d="M 0,0 C 0.624,0.265 0.959,0.723 1.088,1.258 H -4.466 L -4.463,6.389 -5.707,6.386 V 0 Z"
+             style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path188-3"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g190-7"
+           transform="translate(100.1944,543.0228)"
+           style="fill:#e82127;fill-opacity:1">
+          <path
+             d="M 0,0 H 4.398 C 5.06,0.192 5.617,0.697 5.753,1.257 H -1.233 V -2.516 H 4.485 V -3.841 L 0,-3.844 c -0.703,-0.197 -1.298,-0.668 -1.596,-1.292 l 0.363,0.007 h 6.947 v 3.866 H 0 Z"
+             style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path192-7"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g194-0"
+           transform="translate(118.9103,541.7558)"
+           style="fill:#e82127;fill-opacity:1">
+          <path
+             d="m 0,0 v -3.862 h 1.238 v 2.57 h 4.508 v -2.57 h 1.237 v 3.855 z"
+             style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path196-3"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g198-0"
+           transform="translate(89.339,543.0094)"
+           style="fill:#e82127;fill-opacity:1">
+          <path
+             d="M 0,0 H 4.76 C 5.422,0.132 5.915,0.716 6.053,1.28 H -1.293 C -1.156,0.716 -0.656,0.132 0,0"
+             style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path200-1"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g202-9"
+           transform="translate(89.339,540.485)"
+           style="fill:#e82127;fill-opacity:1">
+          <path
+             d="M 0,0 H 4.76 C 5.422,0.132 5.915,0.716 6.053,1.28 H -1.293 C -1.156,0.716 -0.656,0.132 0,0"
+             style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path204-3"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g206-0"
+           transform="translate(89.339,537.8928)"
+           style="fill:#e82127;fill-opacity:1">
+          <path
+             d="M 0,0 H 4.76 C 5.422,0.132 5.915,0.715 6.053,1.28 H -1.293 C -1.156,0.715 -0.656,0.132 0,0"
+             style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path208-3"
+             inkscape:connector-curvature="0" />
+        </g>
+        <g
+           id="g210-8"
+           transform="translate(120.0111,543.0048)"
+           style="fill:#e82127;fill-opacity:1">
+          <path
+             d="M 0,0 H 4.761 C 5.423,0.131 5.915,0.715 6.053,1.28 H -1.293 C -1.155,0.715 -0.656,0.131 0,0"
+             style="fill:#e82127;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path212-0"
+             inkscape:connector-curvature="0" />
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

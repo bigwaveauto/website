@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Big Wave Auto</title>
+  <base href="/" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <script src="https://elfsightcdn.com/platform.js" async></script>
+</head>
+
+<body>
+  <app-root></app-root>
+  <script>
+    var CarGurus = window.CarGurus || {}; window.CarGurus = CarGurus;
+    CarGurus.DealRatingBadge = window.CarGurus.DealRatingBadge || {};
+    CarGurus.DealRatingBadge.options = {
+      "style": "STYLE2",
+      "minRating": "GOOD_PRICE",
+      "defaultHeight": "60"
+    };
+    (function() {
+      var script = document.createElement('script');
+      script.src = "https://static.cargurus.com/js/api/en_US/1.0/dealratingbadge.js";
+      script.async = true;
+      var entry = document.getElementsByTagName('script')[0];
+      entry.parentNode.insertBefore(script, entry);
+    })();
+  </script>
+</body>
+
+</html>
