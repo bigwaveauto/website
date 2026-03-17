@@ -1,60 +1,69 @@
-<div fxLayout="column" class="bwa-footer" style="color: white;position: sticky;top: 0;">
-    <div fxFlex="62px" fxLayout="row" fxLayoutAlign="start center" style="overflow: hidden;background-color: rgba(255,255,255,.1);">
-        <span fxFlex style="font-size: 22px;font-weight: 500;padding:0 20px">
-            {{businessName}}
-        </span>
-        <a matIconButton style="transform: scale(1.5);color:white"><mat-icon style="margin-bottom: 5px;">facebook</mat-icon></a>
-        <span fxFlex="20px"></span>
-    </div>
-    <div style="padding-bottom: 20px;" fxLayout.lt-sm="column" fxLayout.gt-xs="row">
-        <div fxFlex fxLayout="column" fxLayoutAlign.lt-sm="start center">
-            <span fxLayout="row">
-                <b style="margin: 0 20px;padding:20px 0 ;border-bottom-width: 3px;" class="bottom-border-primary ">Location</b>
-            </span>
-            <div fxLayoutAlign="start" fxLayoutAlign.lt-sm="start center" fxLayout="column" style="margin-left:10px;padding: 10px;line-height: 24px;">
-                <b>{{businessName}}</b>
-                <span>{{addressLine1}}</span>
-                <span>{{addressLine2}}</span>
-                <span>{{addressCity}}, {{addressState}} {{addressZip}}</span>
-                <a [href]="'tel:+1'+unformattedPhone" style="padding:5px 0;display: flex;align-items: center;text-decoration: none;color:white"><mat-icon style="margin-right: 5px;">phone</mat-icon>Sales: {{phoneNumber}}</a>
-            </div>
-        </div>
-        <div fxFlex fxLayout="column" fxLayoutAlign.lt-sm="start center">
-            <span fxLayout="row">
-                <b style="margin: 0 20px;padding:20px 0 ;border-bottom-width: 3px;" class="bottom-border-primary">Quick Links</b>
-            </span>
-            <div fxLayoutAlign="start" fxLayoutAlign.lt-sm="start center" fxLayout="column" style="padding: 10px;line-height: 12px;" [ngStyle.lt-sm]="{'line-height':'24px'}">
-                @for(qlink of quicklinks;track $index){
-                <a [routerLink]="qlink.route" style="text-decoration: none;color:white;padding: 10px;">{{qlink.name}}</a>
-                }
-            </div>
-        </div>
-        <div fxFlex fxLayout="column" fxLayoutAlign.lt-sm="start center">
-            <span fxLayout="row">
-                <b style="margin: 0 20px;padding:20px 0 ;border-bottom-width: 3px;" class="bottom-border-primary">Stay Updated</b>
-            </span>
-            <div fxLayout="column" class="mat-margin" fxLayoutAlign="start" fxLayoutAlign.lt-sm="start center">
-                <span fxFlex="36px" style="padding:0 10px 15px">Get special offers directly to your inbox.</span>
-                <div fxLayout="column" class="mat-padded" style="background-color: lightgray;border-radius: 12px;padding:16px">
-                    <div fxLayout="row">
-                        <mat-form-field fxFlex class="white-background-form-field" appearance="outline">
-                            <mat-label>First</mat-label>
-                            <input matInput>
-                        </mat-form-field>
-                        <mat-form-field fxFlex class="white-background-form-field" appearance="outline">
-                            <mat-label>Last</mat-label>
-                            <input matInput>
-                        </mat-form-field>
+<div class="footer-wrap">
+  <div class="footer-inner">
 
-                    </div>
-                    <mat-form-field class="white-background-form-field" appearance="outline">
-                        <mat-label>Email</mat-label>
-                        <input matInput>
-                    </mat-form-field>
-                    <button matButton="filled">Sign Up</button>
-                </div>
-            </div>
-        </div>
-        <span fxFlex="40px" fxHide.gt-xs></span>
+    <!-- Col 1: Brand -->
+    <div class="footer-col footer-col--brand">
+      <div class="footer-logo">
+        <span class="footer-logo-wave">Big Wave</span>
+        <span class="footer-logo-auto">AUTO</span>
+      </div>
+      <p class="footer-tagline">Licensed Dealer &amp;<br>Auto Search Service</p>
+      <div class="footer-social">
+        <a href="https://www.instagram.com/bigwaveauto" target="_blank" rel="noopener" aria-label="Instagram" class="footer-social-link">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+        </a>
+        <a href="https://www.facebook.com/bigwaveauto" target="_blank" rel="noopener" aria-label="Facebook" class="footer-social-link">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </a>
+      </div>
+      <a href="https://www.carfax.com/dealers/carfax-advantage-dealer" target="_blank" rel="noopener" class="footer-carfax">
+        <img src="https://www.carfaxonline.com/assets/subscriber/carfax_advantage_v2.png" alt="CARFAX Advantage Dealer" width="140">
+      </a>
     </div>
+
+    <!-- Col 2: Quick Links -->
+    <div class="footer-col">
+      <h4 class="footer-heading">Quick Links</h4>
+      <ul class="footer-links">
+        @for(link of quickLinks; track link.name) {
+          <li><a [routerLink]="link.route" class="footer-link">{{ link.name }}</a></li>
+        }
+      </ul>
+    </div>
+
+    <!-- Col 3: Contact -->
+    <div class="footer-col">
+      <h4 class="footer-heading">Contact Us</h4>
+      <ul class="footer-contact-list">
+        <li>
+          <mat-icon class="footer-contact-icon">location_on</mat-icon>
+          <span>N69W25055 Indian Grass Ln, Suite H<br>Sussex, WI 53089</span>
+        </li>
+        <li>
+          <mat-icon class="footer-contact-icon">phone</mat-icon>
+          <a href="tel:+12622811295" class="footer-link">(262) 281-1295</a>
+        </li>
+        <li>
+          <mat-icon class="footer-contact-icon">email</mat-icon>
+          <a href="mailto:dave@bigwaveauto.com" class="footer-link">dave&#64;bigwaveauto.com</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Col 4: Hours -->
+    <div class="footer-col">
+      <h4 class="footer-heading">Business Hours</h4>
+      <p class="footer-hours-note">We operate by appointment.<br>Call, email, or chat to schedule.</p>
+      <ul class="footer-hours-list">
+        <li><span class="footer-hours-day">Monday – Friday</span><span class="footer-hours-time">By Appointment</span></li>
+        <li><span class="footer-hours-day">Saturday</span><span class="footer-hours-time">By Appointment</span></li>
+        <li><span class="footer-hours-day">Sunday</span><span class="footer-hours-time">Closed</span></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    <span>&copy; {{ currentYear }} Big Wave Auto. All rights reserved.</span>
+  </div>
 </div>
