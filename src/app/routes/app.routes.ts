@@ -22,5 +22,9 @@ export const routes: Routes = [
   {
     path: 'financing',
     loadComponent: () => import('../components/financing/financing.component').then(mod => mod.FinancingComponent),
+  },
+  {
+    path: 'sell',
+    loadComponent: () => import('../components/sell/sell.component').then(mod => mod.SellComponent),
   }
 ];

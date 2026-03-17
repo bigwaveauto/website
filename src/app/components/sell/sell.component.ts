@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { HeaderComponent } from '../header/header.component';
@@ -14,7 +15,9 @@ import { FooterComponent } from '../footer/footer.component';
   imports: [CommonModule, ReactiveFormsModule, MatIconModule, RouterLink, HeaderComponent, FooterComponent]
 })
 export class SellComponent {
+  private http = inject(HttpClient);
   submitted = signal(false);
+  submitting = signal(false);
 
   steps = [
     { number: 1, icon: 'directions_car', title: 'Tell us about your vehicle', desc: 'Enter your VIN or license plate, or fill in the year, make, model, and mileage manually.' },
@@ -52,8 +55,11 @@ export class SellComponent {
   }
 
   submit() {
-    if (this.form.valid) {
-      this.submitted.set(true);
-    }
+    if (this.form.invalid || this.submitting()) return;
+    this.submitting.set(true);
+    this.http.post('/api/leads/trade-in', this.form.value).subscribe({
+      next: () => { this.submitted.set(true); this.submitting.set(false); },
+      error: () => { this.submitting.set(false); alert('Something went wrong. Please try again.'); }
+    });
   }
 }

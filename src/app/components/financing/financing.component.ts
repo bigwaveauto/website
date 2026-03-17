@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { HeaderComponent } from '../header/header.component';
@@ -14,9 +15,11 @@ import { FooterComponent } from '../footer/footer.component';
   imports: [CommonModule, ReactiveFormsModule, MatIconModule, RouterLink, HeaderComponent, FooterComponent]
 })
 export class FinancingComponent {
+  private http = inject(HttpClient);
   step = signal(1);
   totalSteps = 4;
   submitted = signal(false);
+  submitting = signal(false);
   coborrower = signal(false);
 
   steps = [
@@ -89,7 +92,18 @@ export class FinancingComponent {
   }
 
   submitForm() {
-    this.submitted.set(true);
+    if (this.submitting()) return;
+    this.submitting.set(true);
+    const payload = {
+      ...this.contactForm.value,
+      ...this.addressForm.value,
+      ...this.employmentForm.value,
+      coborrower: this.coborrower(),
+    };
+    this.http.post('/api/leads/financing', payload).subscribe({
+      next: () => { this.submitted.set(true); this.submitting.set(false); },
+      error: () => { this.submitting.set(false); alert('Something went wrong. Please try again.'); }
+    });
   }
 
   currentStepValid(): boolean {

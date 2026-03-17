@@ -32,8 +32,10 @@
     "@angular/platform-server": "^20.2.0",
     "@angular/router": "^20.2.0",
     "@angular/ssr": "^20.2.2",
+    "@supabase/supabase-js": "^2.99.2",
     "express": "^5.1.0",
     "ngx-flexible-layout": "^20.0.0",
+    "resend": "^6.9.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
