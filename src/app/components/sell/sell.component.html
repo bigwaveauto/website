@@ -1,0 +1,172 @@
+<header [floating]="true"></header>
+
+<!-- Banner -->
+<div class="sell-banner">
+  <div class="sell-banner-content">
+    <h1 class="sell-banner-title">Sell or Trade Your Car</h1>
+    <div class="sell-breadcrumb">
+      <a routerLink="/" class="sell-breadcrumb-link">Home</a>
+      <span class="sell-breadcrumb-sep">/</span>
+      <span class="sell-breadcrumb-current">Sell or Trade</span>
+    </div>
+  </div>
+</div>
+
+<div class="sell-page">
+
+  <!-- Intro -->
+  <section class="sell-intro">
+    <p class="sell-eyebrow">Get Your Offer</p>
+    <h2 class="sell-section-title">Selling your car just got easier</h2>
+    <div class="sell-divider"></div>
+    <p>Whether you're upgrading, downsizing, or just ready for something new, Big Wave Auto makes it simple to get real value for your vehicle — no listings, no strangers, no wasted time. Fill out the form below and we'll be in touch with a competitive offer.</p>
+  </section>
+
+  <!-- Steps -->
+  <section class="sell-steps-section">
+    <div class="sell-steps-inner">
+      <p class="sell-eyebrow sell-eyebrow--center">How It Works</p>
+      <h2 class="sell-section-title">Get started fast, fair, and fully online</h2>
+      <div class="sell-divider sell-divider--center"></div>
+      <div class="sell-steps-grid">
+        @for(s of steps; track s.number) {
+        <div class="sell-step-card">
+          <div class="sell-step-number">{{ s.number }}</div>
+          <div class="sell-step-icon">
+            <mat-icon>{{ s.icon }}</mat-icon>
+          </div>
+          <h3>{{ s.title }}</h3>
+          <p>{{ s.desc }}</p>
+        </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Form + Why Us -->
+  <section class="sell-main">
+    <div class="sell-main-inner">
+
+      <!-- Form -->
+      <div class="sell-form-col">
+        @if(!submitted()) {
+        <div class="sell-form-card">
+          <div class="sell-form-card-header">
+            <mat-icon>directions_car</mat-icon>
+            <span>Vehicle &amp; Contact Details</span>
+          </div>
+
+          <form [formGroup]="form" (ngSubmit)="submit()" class="sell-form">
+
+            <div class="sell-form-section-label">About Your Vehicle</div>
+
+            <div class="sell-form-row">
+              <div class="sell-field">
+                <label>Year</label>
+                <select formControlName="year">
+                  <option value="">Select</option>
+                  @for(y of years; track y) {
+                  <option [value]="y">{{ y }}</option>
+                  }
+                </select>
+              </div>
+              <div class="sell-field">
+                <label>Make</label>
+                <input formControlName="make" placeholder="e.g. Toyota" type="text">
+              </div>
+              <div class="sell-field">
+                <label>Model</label>
+                <input formControlName="model" placeholder="e.g. Camry" type="text">
+              </div>
+            </div>
+
+            <div class="sell-form-row">
+              <div class="sell-field">
+                <label>Mileage</label>
+                <input formControlName="mileage" placeholder="e.g. 45,000" type="text">
+              </div>
+              <div class="sell-field">
+                <label>Condition</label>
+                <select formControlName="condition">
+                  <option value="">Select</option>
+                  @for(c of conditions; track c) {
+                  <option [value]="c">{{ c }}</option>
+                  }
+                </select>
+              </div>
+              <div class="sell-field">
+                <label>VIN <span class="sell-optional">(optional)</span></label>
+                <input formControlName="vin" placeholder="17-character VIN" type="text">
+              </div>
+            </div>
+
+            <div class="sell-form-section-label">Your Contact Info</div>
+
+            <div class="sell-form-row">
+              <div class="sell-field">
+                <label>First Name</label>
+                <input formControlName="firstname" placeholder="First name" type="text">
+              </div>
+              <div class="sell-field">
+                <label>Last Name</label>
+                <input formControlName="lastname" placeholder="Last name" type="text">
+              </div>
+            </div>
+
+            <div class="sell-form-row">
+              <div class="sell-field">
+                <label>Email</label>
+                <input formControlName="email" placeholder="you@email.com" type="email">
+              </div>
+              <div class="sell-field">
+                <label>Phone</label>
+                <input formControlName="phone" placeholder="(262) 555-0100" type="tel">
+              </div>
+            </div>
+
+            <div class="sell-field sell-field--full">
+              <label>Additional Notes <span class="sell-optional">(optional)</span></label>
+              <textarea formControlName="notes" placeholder="Any extra details about your vehicle..." rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="sell-btn-submit" [disabled]="form.invalid">
+              Submit for Offer <mat-icon>send</mat-icon>
+            </button>
+
+          </form>
+        </div>
+        } @else {
+        <div class="sell-success-card">
+          <mat-icon class="sell-success-icon">check_circle</mat-icon>
+          <h2>We Got Your Submission!</h2>
+          <p>Thank you for reaching out. A member of our team will review your vehicle details and contact you within 1 business day with an offer.</p>
+          <a routerLink="/showroom" class="sell-btn-browse">Browse Inventory <mat-icon>arrow_forward</mat-icon></a>
+        </div>
+        }
+      </div>
+
+      <!-- Why Sell to Us -->
+      <div class="sell-reasons-col">
+        <p class="sell-eyebrow">Why Big Wave Auto?</p>
+        <h3 class="sell-reasons-title">Skip the hassle.<br>Get a real offer.</h3>
+        <div class="sell-reasons-list">
+          @for(r of reasons; track r.title) {
+          <div class="sell-reason">
+            <div class="sell-reason-icon">
+              <mat-icon>{{ r.icon }}</mat-icon>
+            </div>
+            <div class="sell-reason-text">
+              <strong>{{ r.title }}</strong>
+              <span>{{ r.desc }}</span>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<footer></footer>

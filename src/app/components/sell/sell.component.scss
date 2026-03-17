@@ -1,0 +1,177 @@
+$navy:   #0e1523;
+$blue:   #1a78c2;
+$green:  #22c55e;
+$bg:     #f4f8fa;
+$text:   #111;
+$muted:  #666;
+$border: #e0e6ed;
+$radius: 14px;
+
+:host { display: block; }
+
+/* ── Banner ── */
+.sell-banner {
+  background: $navy;
+  padding: 36px 32px 28px;
+  margin: 20px 20px 0;
+  border-radius: 16px;
+}
+.sell-banner-content { max-width: 960px; margin: 0 auto; }
+.sell-banner-title {
+  font-size: clamp(22px, 3.5vw, 42px);
+  font-weight: 700; color: white; margin: 0 0 10px;
+}
+.sell-breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.sell-breadcrumb-link { color: rgba(255,255,255,0.65); text-decoration: none; &:hover { color: white; } }
+.sell-breadcrumb-sep   { color: rgba(255,255,255,0.35); }
+.sell-breadcrumb-current { color: $blue; font-weight: 600; }
+
+/* ── Page ── */
+.sell-page { background: $bg; }
+
+/* ── Shared ── */
+.sell-eyebrow {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 2px; color: $blue; margin: 0 0 10px;
+  &--center { text-align: center; }
+}
+.sell-section-title {
+  font-size: clamp(22px, 3vw, 34px); font-weight: 700;
+  color: $text; text-align: center; margin: 0 0 12px;
+}
+.sell-divider {
+  width: 48px; height: 3px; background: $blue;
+  border-radius: 999px; margin: 0 auto 28px;
+  &--center { margin: 0 auto 28px; }
+}
+
+/* ── Intro ── */
+.sell-intro {
+  max-width: 720px; margin: 0 auto; padding: 56px 24px 40px; text-align: center;
+  p { color: $muted; font-size: 16px; line-height: 1.8; margin: 0; }
+}
+
+/* ── Steps ── */
+.sell-steps-section { background: white; padding: 56px 24px; }
+.sell-steps-inner { max-width: 960px; margin: 0 auto; }
+.sell-steps-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 8px;
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
+}
+.sell-step-card {
+  background: $bg; border-radius: $radius; padding: 32px 24px;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;
+  h3 { font-size: 16px; font-weight: 700; color: $text; margin: 0; }
+  p  { font-size: 14px; color: $muted; line-height: 1.7; margin: 0; }
+}
+.sell-step-number {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: $blue; color: white;
+  font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.sell-step-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: rgba($blue, 0.1);
+  display: flex; align-items: center; justify-content: center;
+  mat-icon { color: $blue; font-size: 26px; width: 26px; height: 26px; }
+}
+
+/* ── Main: form + reasons ── */
+.sell-main { padding: 56px 24px 80px; }
+.sell-main-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; gap: 48px; align-items: flex-start;
+  @media (max-width: 900px) { flex-direction: column; }
+}
+
+/* ── Form ── */
+.sell-form-col { flex: 1 1 620px; }
+
+.sell-form-card {
+  background: white; border-radius: $radius;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07); overflow: hidden;
+}
+.sell-form-card-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 20px 28px; border-bottom: 1px solid $border;
+  font-size: 16px; font-weight: 700; color: $text;
+  mat-icon { color: $blue; }
+}
+.sell-form { padding: 24px 28px; display: flex; flex-direction: column; gap: 16px; }
+
+.sell-form-section-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: $blue; margin-top: 4px;
+}
+.sell-form-row { display: flex; gap: 16px; @media (max-width: 600px) { flex-direction: column; } }
+
+.sell-field {
+  flex: 1; display: flex; flex-direction: column; gap: 6px;
+  &--full { flex: 1 1 100%; }
+  label { font-size: 13px; font-weight: 600; color: #444; }
+  input, select, textarea {
+    padding: 10px 14px; border: 1.5px solid $border;
+    border-radius: 8px; font-size: 14px; color: $text;
+    background: white; outline: none;
+    transition: border-color 0.2s; font-family: inherit;
+    width: 100%; box-sizing: border-box;
+    &:focus { border-color: $blue; }
+  }
+  textarea { resize: vertical; }
+}
+.sell-optional { color: $muted; font-weight: 400; }
+
+.sell-btn-submit {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 13px 32px; background: $blue; color: white;
+  border: none; border-radius: 8px; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: background 0.2s, opacity 0.2s;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover { background: darken($blue, 8%); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+/* ── Success ── */
+.sell-success-card {
+  background: white; border-radius: $radius;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  padding: 56px 40px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  h2 { font-size: 24px; font-weight: 700; margin: 0; color: $text; }
+  p  { color: $muted; font-size: 15px; line-height: 1.7; margin: 0; max-width: 400px; }
+}
+.sell-success-icon { font-size: 64px !important; width: 64px !important; height: 64px !important; color: $green; }
+.sell-btn-browse {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 12px 28px; background: $blue; color: white;
+  border-radius: 8px; font-size: 14px; font-weight: 700;
+  text-decoration: none; margin-top: 8px;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover { background: darken($blue, 8%); }
+}
+
+/* ── Reasons ── */
+.sell-reasons-col {
+  flex: 0 0 320px;
+  @media (max-width: 900px) { flex: 1; width: 100%; }
+}
+.sell-reasons-title {
+  font-size: clamp(20px, 2.5vw, 28px); font-weight: 700;
+  color: $text; margin: 0 0 28px; line-height: 1.3;
+}
+.sell-reasons-list { display: flex; flex-direction: column; gap: 20px; }
+.sell-reason {
+  display: flex; align-items: flex-start; gap: 16px;
+}
+.sell-reason-icon {
+  width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px;
+  background: rgba($blue, 0.1);
+  display: flex; align-items: center; justify-content: center;
+  mat-icon { color: $blue; font-size: 22px; width: 22px; height: 22px; }
+}
+.sell-reason-text {
+  display: flex; flex-direction: column; gap: 4px;
+  strong { font-size: 15px; font-weight: 700; color: $text; }
+  span   { font-size: 14px; color: $muted; line-height: 1.6; }
+}
