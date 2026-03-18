@@ -33,6 +33,7 @@
     "@angular/router": "^20.2.0",
     "@angular/ssr": "^20.2.2",
     "@supabase/supabase-js": "^2.99.2",
+    "dotenv": "^17.3.1",
     "express": "^5.1.0",
     "ngx-flexible-layout": "^20.0.0",
     "resend": "^6.9.4",

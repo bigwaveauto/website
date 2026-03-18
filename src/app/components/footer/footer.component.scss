@@ -37,35 +37,10 @@ $border: rgba(255, 255, 255, 0.08);
   gap: 16px;
 }
 
-.footer-logo {
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-
-  .footer-logo-wave {
-    font-size: 22px;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: 0.02em;
-  }
-
-  .footer-logo-auto {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.22em;
-    color: $blue;
-    text-transform: uppercase;
-    margin-top: 2px;
-  }
-}
-
-.footer-tagline {
-  font-size: 12px;
-  color: $muted;
-  line-height: 1.6;
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+.footer-logo-img {
+  width: 200px;
+  height: auto;
+  display: block;
 }
 
 .footer-social {
