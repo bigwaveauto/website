@@ -1,208 +1,116 @@
 <header></header>
 
 @if(fullVehicle()?.results; as v){
+@let total = v.photos.length;
 
-<!-- ── Gallery ── -->
-<div class="vdp-gallery">
-  @let total = v.photos.length;
-  @let curr = selectedPhotoIndex();
-  @let c1 = (curr + 1) % total;
-  @let c2 = (curr + 2) % total;
+<!-- ── Page shell: left col + right rail ── -->
+<div class="vdp-shell">
 
-  @if(total > 0){
-  <div class="vdp-photo-row hover-parent">
+  <!-- ── Left column: photo + content ── -->
+  <div class="vdp-main">
 
-    <!-- Nav arrows -->
-    @if(total > 1){
-    <button class="vdp-pgallery-arrow left show-on-parent-hover" (click)="prevPhoto(total)">
-      <mat-icon>chevron_left</mat-icon>
-    </button>
-    <button class="vdp-pgallery-arrow right show-on-parent-hover" (click)="nextPhoto(total)">
-      <mat-icon>chevron_right</mat-icon>
-    </button>
-    }
-
-    <!-- Left slot = current photo (index 0 on load) -->
-    <div class="vdp-photo-slot center" (click)="openLightbox(curr)">
-      <img [src]="v.photos[curr].large" [alt]="v.title" />
-    </div>
-
-    <!-- Center slot -->
-    @if(total >= 2){
-    <div class="vdp-photo-slot side" (click)="openLightbox(c1)">
-      <img [src]="v.photos[c1].large" [alt]="v.title" />
-    </div>
-    }
-
-    <!-- Right slot -->
-    @if(total >= 3){
-    <div class="vdp-photo-slot side" (click)="openLightbox(c2)">
-      <img [src]="v.photos[c2].large" [alt]="v.title" />
-    </div>
-    }
-
-    <!-- Counter + view all -->
-    <div class="vdp-gallery-footer">
-      <span class="vdp-photo-counter-inline">{{ curr + 1 }} / {{ total }}</span>
-      @if(total > 3){
-      <button class="vdp-view-all-btn" (click)="openLightbox(curr)">
-        <mat-icon>photo_library</mat-icon> View all {{ total }} photos
-      </button>
+    <!-- Gallery: main photo + vertical strip side by side -->
+    @if(total > 0){
+    <div class="vdp-gallery">
+      <!-- Main photo -->
+      <div class="vdp-gallery-main" (click)="openSinglePhoto(selectedPhotoIndex())">
+        <img [src]="v.photos[selectedPhotoIndex()].large" [alt]="v.title" />
+      </div>
+      <!-- Vertical thumbnail strip -->
+      @if(total > 1){
+      <div class="vdp-vstrip">
+        @for(photo of v.photos | slice:0:4; track $index; let i = $index){
+        <div class="vdp-vthumb" [class.active]="i === selectedPhotoIndex()"
+             (click)="$event.stopPropagation(); selectGalleryPhoto(i)">
+          <img [src]="photo.large" [alt]="v.title" />
+          @if(i === 3 && total > 4){
+          <div class="vdp-vmore" (click)="$event.stopPropagation(); openLightbox()">
+            +{{ total - 3 }} more
+          </div>}
+        </div>
+        }
+      </div>
       }
     </div>
-
-  </div>
-  }@else{
-  <div class="vdp-no-photo-wrap">
-    <span>Photos Coming Soon</span>
-  </div>
-  }
-</div>
-
-<!-- ── Lightbox ── -->
-@if(lightboxOpen()){
-<div class="vdp-lightbox" (click)="closeLightbox()">
-
-  <!-- Top bar -->
-  <div class="vdp-lb-topbar" (click)="$event.stopPropagation()">
-    <span class="vdp-lb-counter">{{ selectedPhotoIndex() + 1 }} / {{ v.photos.length }}</span>
-    <button class="vdp-lb-close" (click)="closeLightbox()"><mat-icon>close</mat-icon></button>
-  </div>
-
-  <!-- Pill arrows -->
-  <button class="vdp-lb-arrow left" (click)="$event.stopPropagation(); prevPhoto(v.photos.length)">
-    <mat-icon>chevron_left</mat-icon>
-  </button>
-  <button class="vdp-lb-arrow right" (click)="$event.stopPropagation(); nextPhoto(v.photos.length)">
-    <mat-icon>chevron_right</mat-icon>
-  </button>
-
-  <!-- Main image -->
-  <div class="vdp-lb-img-wrap" (click)="$event.stopPropagation()">
-    <img [src]="v.photos[selectedPhotoIndex()].large" [alt]="v.title" class="vdp-lb-img" />
-  </div>
-
-  <!-- Bottom thumbnail strip -->
-  <div class="vdp-lb-thumbs" (click)="$event.stopPropagation()">
-    @for(photo of v.photos; track $index; let i = $index){
-    <button class="vdp-lb-thumb" [class.active]="selectedPhotoIndex() === i" (click)="selectPhoto(i)">
-      <img [src]="photo.thumbnail || photo.large" [alt]="v.title + ' ' + (i+1)" />
-    </button>
+    <!-- Mobile horizontal strip -->
+    @if(total > 1){
+    <div class="vdp-hstrip">
+      @for(photo of v.photos; track $index; let i = $index){
+      <div class="vdp-hthumb" [class.active]="i === selectedPhotoIndex()"
+           (click)="$event.stopPropagation(); selectGalleryPhoto(i)">
+        <img [src]="photo.large" [alt]="v.title" />
+      </div>
+      }
+    </div>
     }
-  </div>
+    }@else{
+    <div class="vdp-no-photo-wrap"><span>Photos Coming Soon</span></div>
+    }
 
-</div>
-}
+    <!-- Content below photo -->
+    <div class="vdp-content-body">
 
-<!-- ── Page body ── -->
-<div class="vdp-body">
-
-  <!-- Breadcrumb -->
-  <div class="vdp-breadcrumb">
-    <a routerLink="/" class="vdp-bc-link">Home</a>
-    <span class="vdp-bc-sep">/</span>
-    <a routerLink="/showroom" class="vdp-bc-link">Inventory</a>
-    <span class="vdp-bc-sep">/</span>
-    <span class="vdp-bc-current">{{ v.year }} {{ v.make }} {{ v.model }}</span>
-  </div>
-
-  <!-- Two-column layout -->
-  <div class="vdp-content">
-
-    <!-- ── Left column ── -->
-    <div class="vdp-left">
+      <!-- Breadcrumb -->
+      <div class="vdp-breadcrumb">
+        <a routerLink="/" class="vdp-bc-link">Home</a>
+        <span class="vdp-bc-sep">/</span>
+        <a routerLink="/showroom" class="vdp-bc-link">Inventory</a>
+        <span class="vdp-bc-sep">/</span>
+        <span class="vdp-bc-current">{{ v.year }} {{ v.make }} {{ v.model }}</span>
+      </div>
 
       <!-- Title block -->
       <div class="vdp-title-block">
         <p class="vdp-make-model">{{ v.make }} {{ v.model }}</p>
         <h1 class="vdp-title">{{ v.year }} {{ v.make }} {{ v.model }}</h1>
         <p class="vdp-trim">{{ v.trim }}</p>
-
-        <!-- Key specs pills -->
         <div class="vdp-specs-pills">
-          <span class="vdp-pill">
-            <mat-icon>speed</mat-icon> {{ v.mileage | number:'1.0-0' }} mi
-          </span>
-          @if(v.fuel){
-          <span class="vdp-pill">
-            <mat-icon>local_gas_station</mat-icon> {{ v.fuel }}
-          </span>
-          }
-          @if(v.transmissionstandard){
-          <span class="vdp-pill">
-            <mat-icon>settings</mat-icon> {{ v.transmissionstandard }}
-          </span>
-          }
-          @if(v.drivetrainstandard){
-          <span class="vdp-pill">
-            <mat-icon>drive_eta</mat-icon> {{ v.drivetrainstandard }}
-          </span>
-          }
-          @if(v.maxhorsepower){
-          <span class="vdp-pill">
-            <mat-icon>flash_on</mat-icon> {{ v.maxhorsepower }} hp
-          </span>
-          }
-          @if(v.mpgcity && v.mpghwy){
-          <span class="vdp-pill">
-            <mat-icon>eco</mat-icon> {{ v.mpgcity }}/{{ v.mpghwy }} mpg
-          </span>
-          }
+          <span class="vdp-pill"><lucide-icon name="gauge" /> {{ v.mileage | number:'1.0-0' }} mi</span>
+          @if(v.fuel){<span class="vdp-pill"><lucide-icon name="fuel" /> {{ v.fuel }}</span>}
+          @if(v.transmissionstandard){<span class="vdp-pill"><lucide-icon name="settings" /> {{ v.transmissionstandard }}</span>}
+          @if(v.drivetrainstandard){<span class="vdp-pill"><lucide-icon name="car-front" /> {{ v.drivetrainstandard }}</span>}
+          @if(v.maxhorsepower){<span class="vdp-pill"><lucide-icon name="zap" /> {{ v.maxhorsepower }} hp</span>}
+          @if(v.mpgcity && v.mpghwy){<span class="vdp-pill"><lucide-icon name="leaf" /> {{ v.mpgcity }}/{{ v.mpghwy }} mpg</span>}
         </div>
       </div>
 
-      <!-- Carfax + CarGurus row -->
-      <div class="vdp-badges-row">
-
-        @if(v.carfaxurl){
-        <div class="vdp-carfax-card">
-          <a [href]="v.carfaxurl" target="_blank" rel="noopener" class="vdp-carfax-snapshot">
-            <img [src]="v.carfaxicon" [alt]="v.carfaxalt || 'Carfax Report'" class="vdp-carfax-snapshot-img" />
-          </a>
-          <div class="vdp-carfax-items">
-            @if(v.carfaxownerstext){
-            <div class="vdp-carfax-item">
-              @if(v.carfaxownersicon){ <img [src]="v.carfaxownersicon" alt="" class="vdp-carfax-item-icon" /> }
-              <span>{{ v.carfaxownerstext }}</span>
-            </div>
-            }
-            @if(v.carfaxaccidenttext){
-            <div class="vdp-carfax-item">
-              @if(v.carfaxaccidenticon){ <img [src]="v.carfaxaccidenticon" alt="" class="vdp-carfax-item-icon" /> }
-              <span>{{ v.carfaxaccidenttext }}</span>
-            </div>
-            }
-            @if(v.carfaxusetext){
-            <div class="vdp-carfax-item">
-              @if(v.carfaxuseicon){ <img [src]="v.carfaxuseicon" alt="" class="vdp-carfax-item-icon" /> }
-              <span>{{ v.carfaxusetext }}</span>
-            </div>
-            }
-            @if(v.carfaxservicerecords){
-            <div class="vdp-carfax-item">
-              <mat-icon class="cfx-svc-icon">build_circle</mat-icon>
-              <span>{{ v.carfaxservicerecords }} Service Record{{ v.carfaxservicerecords > 1 ? 's' : '' }}</span>
-            </div>
-            }
-          </div>
+      <!-- Carfax -->
+      @if(v.carfaxurl){
+      <div class="vdp-carfax-card">
+        <a [href]="v.carfaxurl" target="_blank" rel="noopener" class="vdp-carfax-snapshot">
+          <img [src]="v.carfaxicon" [alt]="v.carfaxalt || 'Carfax Report'" class="vdp-carfax-snapshot-img" />
+        </a>
+        <div class="vdp-carfax-items">
+          @if(v.carfaxownerstext){
+          <div class="vdp-carfax-item">
+            @if(v.carfaxownersicon){<img [src]="v.carfaxownersicon" alt="" class="vdp-carfax-item-icon" />}
+            <span>{{ v.carfaxownerstext }}</span>
+          </div>}
+          @if(v.carfaxaccidenttext){
+          <div class="vdp-carfax-item">
+            @if(v.carfaxaccidenticon){<img [src]="v.carfaxaccidenticon" alt="" class="vdp-carfax-item-icon" />}
+            <span>{{ v.carfaxaccidenttext }}</span>
+          </div>}
+          @if(v.carfaxusetext){
+          <div class="vdp-carfax-item">
+            @if(v.carfaxuseicon){<img [src]="v.carfaxuseicon" alt="" class="vdp-carfax-item-icon" />}
+            <span>{{ v.carfaxusetext }}</span>
+          </div>}
+          @if(v.carfaxservicerecords){
+          <div class="vdp-carfax-item">
+            <lucide-icon name="wrench" class="cfx-svc-icon" />
+            <span>{{ v.carfaxservicerecords }} Service Record{{ v.carfaxservicerecords > 1 ? 's' : '' }}</span>
+          </div>}
         </div>
-        }
-
-        <!-- CarGurus Deal Rating pill -->
-        <div class="vdp-cargurus-pill">
-          <span [attr.data-cg-vin]="v.vin" [attr.data-cg-price]="v.price"></span>
-        </div>
-
       </div>
+      }
 
       <!-- Description -->
       @if(v.vehicledescription || v.notes){
       <div class="vdp-section">
         <h2 class="vdp-section-title">About This Vehicle</h2>
         <p class="vdp-description">{{ v.vehicledescription || v.notes }}</p>
-      </div>
-      }
-
+      </div>}
 
       <!-- Specs table -->
       <div class="vdp-section">
@@ -214,97 +122,248 @@
             <div class="vdp-spec-row">
               <span class="vdp-spec-label">{{ item.displayName }}</span>
               <span class="vdp-spec-value">{{ val }}</span>
-            </div>
-            }
+            </div>}
           }
           @if(v.mpgcity && v.mpghwy){
           <div class="vdp-spec-row">
             <span class="vdp-spec-label">Fuel Economy</span>
             <span class="vdp-spec-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</span>
-          </div>
-          }
+          </div>}
         </div>
       </div>
 
-    </div><!-- /vdp-left -->
+    </div><!-- /vdp-content-body -->
+  </div><!-- /vdp-main -->
 
-    <!-- ── Right sidebar ── -->
-    <aside class="vdp-sidebar">
-      <div class="vdp-price-card">
+  <!-- ── Right rail: price card ── -->
+  <aside class="vdp-rail">
 
-        <!-- Price header -->
-        <div class="vdp-price-header">
-          <div class="vdp-price-row">
-            <span class="vdp-price">{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span>
-            @if(v.msrp && v.msrp > v.price){
-            <span class="vdp-msrp">MSRP {{ v.msrp | currency:'USD':'symbol':'1.0-0' }}</span>
+    <!-- Price card -->
+    <div class="vdp-price-card">
+      <div class="vdp-price-header">
+        <div class="vdp-price-row">
+          <span class="vdp-price">{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span>
+          @if(v.msrp && v.msrp > v.price){
+          <span class="vdp-msrp">MSRP {{ v.msrp | currency:'USD':'symbol':'1.0-0' }}</span>}
+        </div>
+        <span class="vdp-monthly-est">Est. {{ v.finance.monthly_payment | currency:'USD':'symbol':'1.0-0' }}/mo</span>
+      </div>
+      <div class="vdp-stock-row">
+        <span>Stock #{{ v.stocknumber }}</span>
+        <span class="vdp-vin-text">VIN: {{ v.vin }}</span>
+      </div>
+      <div class="vdp-cta-stack">
+        <button class="vdp-btn-reserve" (click)="reserveVehicle(v)">Reserve This Vehicle</button>
+        <button class="vdp-btn-primary" (click)="openTestDrive()">Request a Test Drive</button>
+        <button class="vdp-btn-outline" (click)="openMakeOffer()">Make an Offer</button>
+        <a routerLink="/financing" class="vdp-btn-ghost">Apply for Financing →</a>
+      </div>
+      <div class="vdp-finance-breakdown">
+        <div class="vdp-finance-row"><span>Est. Monthly</span><span>{{ v.finance.monthly_payment | currency:'USD':'symbol':'1.0-0' }}/mo</span></div>
+        <div class="vdp-finance-row"><span>Down Payment</span><span>{{ v.finance.down_payment | currency:'USD':'symbol':'1.0-0' }}</span></div>
+        <div class="vdp-finance-row"><span>Loan Term</span><span>{{ v.finance.loan_months }} months</span></div>
+        <div class="vdp-finance-row"><span>Interest Rate</span><span>{{ v.finance.interest_rate_formatted }}%</span></div>
+        <p class="vdp-finance-disclaimer">Estimated payment for well-qualified buyers. Actual terms may vary.</p>
+      </div>
+      <div class="vdp-dealer-info">
+        <div class="vdp-dealer-row"><lucide-icon name="map-pin" /><span>N69W25055 Indian Grass Lane, Unit H<br>Sussex, WI 53089</span></div>
+        <div class="vdp-dealer-row"><lucide-icon name="phone" /><a href="tel:+12625924795">(262) 592-4795</a></div>
+        <div class="vdp-dealer-row"><lucide-icon name="clock" /><span>Mon–Sat, 9AM–6PM (By Appointment)</span></div>
+      </div>
+    </div>
+
+  </aside><!-- /vdp-rail -->
+
+</div><!-- /vdp-shell -->
+
+<!-- ── Photo Grid Lightbox ── -->
+@if(lightboxOpen() && !singlePhotoOpen()){
+<div class="vdp-lgrid-overlay" (click)="closeLightbox()">
+  <div class="vdp-lgrid-modal" (click)="$event.stopPropagation()">
+    <div class="vdp-lgrid-header">
+      <span class="vdp-lgrid-title">Photo Gallery</span>
+      <button class="vdp-lgrid-close" (click)="closeLightbox()"><lucide-icon name="x" /></button>
+    </div>
+    <div class="vdp-lgrid-body">
+      @for(photo of v.photos; track $index; let i = $index){
+      <div class="vdp-lgrid-item" (click)="openSinglePhoto(i)">
+        <img [src]="photo.large" [alt]="v.title" />
+      </div>}
+    </div>
+  </div>
+</div>}
+
+<!-- ── Single Photo Fullscreen ── -->
+@if(singlePhotoOpen()){
+<div class="vdp-single-overlay">
+  <div class="vdp-single-bar">
+    <button class="vdp-single-back" (click)="closeSinglePhoto()">
+      <lucide-icon name="arrow-left" /> All photos
+    </button>
+    <span class="vdp-single-counter">{{ selectedPhotoIndex() + 1 }} / {{ total }}</span>
+    <div class="vdp-single-zoom">
+      <button class="vdp-single-zoom-btn" (click)="zoomOut()" [disabled]="zoomLevel() <= 1"><lucide-icon name="zoom-out" /></button>
+      <button class="vdp-single-zoom-btn" (click)="zoomIn()" [disabled]="zoomLevel() >= 3"><lucide-icon name="zoom-in" /></button>
+      <button class="vdp-single-zoom-btn" (click)="closeLightbox()"><lucide-icon name="x" /></button>
+    </div>
+  </div>
+  <div class="vdp-single-img-wrap">
+    <img [src]="v.photos[selectedPhotoIndex()].large" [alt]="v.title"
+         class="vdp-single-img" [style.transform]="'scale(' + zoomLevel() + ')'">
+  </div>
+  @if(total > 1){
+  <button class="vdp-single-arrow left" (click)="prevPhoto(total)"><lucide-icon name="chevron-left" /></button>
+  <button class="vdp-single-arrow right" (click)="nextPhoto(total)"><lucide-icon name="chevron-right" /></button>
+  }
+</div>}
+
+<!-- ── Test Drive Modal ── -->
+@if(testDriveOpen()){
+<div class="vdp-modal-overlay" (click)="closeTestDrive()">
+  <div class="vdp-modal" (click)="$event.stopPropagation()">
+    <div class="vdp-modal-header">
+      <div>
+        <h2 class="vdp-modal-title">Request a Test Drive</h2>
+        @if(fullVehicle()?.results; as v){
+        <p class="vdp-modal-subtitle">{{ v.year }} {{ v.make }} {{ v.model }} {{ v.trim }}</p>
+        }
+      </div>
+      <button class="vdp-modal-close" (click)="closeTestDrive()"><lucide-icon name="x" /></button>
+    </div>
+
+    @if(testDriveSubmitted()){
+    <div class="vdp-modal-success">
+      <lucide-icon name="circle-check" class="vdp-success-icon" />
+      <h3>You're All Set!</h3>
+      <p>We'll reach out shortly to confirm your test drive. See you soon!</p>
+      <button class="vdp-modal-btn" (click)="closeTestDrive()">Close</button>
+    </div>
+    }@else{
+    <form [formGroup]="testDriveForm" (ngSubmit)="submitTestDrive()" class="vdp-modal-form">
+      <div class="vdp-form-row">
+        <div class="vdp-form-field">
+          <label>First Name *</label>
+          <input formControlName="firstname" placeholder="John" />
+        </div>
+        <div class="vdp-form-field">
+          <label>Last Name *</label>
+          <input formControlName="lastname" placeholder="Doe" />
+        </div>
+      </div>
+      <div class="vdp-form-row">
+        <div class="vdp-form-field">
+          <label>Email *</label>
+          <input formControlName="email" type="email" placeholder="john@example.com" />
+        </div>
+        <div class="vdp-form-field">
+          <label>Phone *</label>
+          <input formControlName="phone" type="tel" placeholder="(262) 555-1234" />
+        </div>
+      </div>
+      <div class="vdp-form-row">
+        <div class="vdp-form-field">
+          <label>Preferred Date</label>
+          <input formControlName="preferred_date" type="date" />
+        </div>
+        <div class="vdp-form-field">
+          <label>Preferred Time</label>
+          <select formControlName="preferred_time">
+            <option value="">Select a time</option>
+            @for(t of timeSlots; track t){
+            <option [value]="t">{{ t }}</option>
             }
-          </div>
-          <span class="vdp-monthly-est">
-            Est. {{ v.finance.monthly_payment | currency:'USD':'symbol':'1.0-0' }}/mo
-          </span>
+          </select>
         </div>
-
-        <!-- Stock / VIN -->
-        <div class="vdp-stock-row">
-          <span>Stock #{{ v.stocknumber }}</span>
-          <span class="vdp-vin-text">VIN: {{ v.vin }}</span>
-        </div>
-
-        <!-- CTAs -->
-        <div class="vdp-cta-stack">
-          <a routerLink="/contact" class="vdp-btn-primary">Request a Test Drive</a>
-          <a routerLink="/contact" class="vdp-btn-outline">Make an Offer</a>
-          <a routerLink="/financing" class="vdp-btn-ghost">Apply for Financing →</a>
-        </div>
-
-        <!-- Finance breakdown -->
-        <div class="vdp-finance-breakdown">
-          <div class="vdp-finance-row">
-            <span>Est. Monthly</span>
-            <span>{{ v.finance.monthly_payment | currency:'USD':'symbol':'1.0-0' }}/mo</span>
-          </div>
-          <div class="vdp-finance-row">
-            <span>Down Payment</span>
-            <span>{{ v.finance.down_payment | currency:'USD':'symbol':'1.0-0' }}</span>
-          </div>
-          <div class="vdp-finance-row">
-            <span>Loan Term</span>
-            <span>{{ v.finance.loan_months }} months</span>
-          </div>
-          <div class="vdp-finance-row">
-            <span>Interest Rate</span>
-            <span>{{ v.finance.interest_rate_formatted }}%</span>
-          </div>
-          <p class="vdp-finance-disclaimer">Estimated payment for well-qualified buyers. Actual terms may vary.</p>
-        </div>
-
-        <!-- Dealer info -->
-        <div class="vdp-dealer-info">
-          <div class="vdp-dealer-row">
-            <mat-icon>location_on</mat-icon>
-            <span>N69W25055 Indian Grass Lane, Unit H<br>Sussex, WI 53089</span>
-          </div>
-          <div class="vdp-dealer-row">
-            <mat-icon>phone</mat-icon>
-            <a href="tel:+12622811295">(262) 281-1295</a>
-          </div>
-          <div class="vdp-dealer-row">
-            <mat-icon>schedule</mat-icon>
-            <span>Mon–Sat, 9AM–6PM (By Appointment)</span>
-          </div>
-        </div>
-
       </div>
-    </aside>
+      <div class="vdp-form-field">
+        <label>Notes</label>
+        <textarea formControlName="notes" rows="3" placeholder="Anything we should know?"></textarea>
+      </div>
+      <button type="submit" class="vdp-modal-submit" [disabled]="testDriveForm.invalid || testDriveSubmitting()">
+        @if(testDriveSubmitting()){ Sending… }@else{ <lucide-icon name="car" /> Schedule Test Drive }
+      </button>
+    </form>
+    }
+  </div>
+</div>
+}
 
-  </div><!-- /vdp-content -->
-</div><!-- /vdp-body -->
+<!-- ── Make an Offer Modal ── -->
+@if(makeOfferOpen()){
+<div class="vdp-modal-overlay" (click)="closeMakeOffer()">
+  <div class="vdp-modal" (click)="$event.stopPropagation()">
+    <div class="vdp-modal-header">
+      <div>
+        <h2 class="vdp-modal-title">Make an Offer</h2>
+        @if(fullVehicle()?.results; as v){
+        <p class="vdp-modal-subtitle">{{ v.year }} {{ v.make }} {{ v.model }} — Listed at {{ v.price | currency:'USD':'symbol':'1.0-0' }}</p>
+        }
+      </div>
+      <button class="vdp-modal-close" (click)="closeMakeOffer()"><lucide-icon name="x" /></button>
+    </div>
+
+    @if(makeOfferSubmitted()){
+    <div class="vdp-modal-success">
+      <lucide-icon name="circle-check" class="vdp-success-icon" />
+      <h3>Offer Submitted!</h3>
+      <p>We'll review your offer and get back to you within 24 hours.</p>
+      <button class="vdp-modal-btn" (click)="closeMakeOffer()">Close</button>
+    </div>
+    }@else{
+    <form [formGroup]="makeOfferForm" (ngSubmit)="submitMakeOffer()" class="vdp-modal-form">
+      <div class="vdp-offer-amount-wrap" [class.too-low]="offerTooLow()">
+        <label>Your Offer *</label>
+        <div class="vdp-offer-input-row">
+          <span class="vdp-dollar-sign">$</span>
+          <input formControlName="offer_amount" type="number" placeholder="25,000" class="vdp-offer-input" (input)="offerTooLow.set(false)" />
+        </div>
+        @if(offerTooLow()){
+        <p class="vdp-too-low-msg">At this time, we are not considering offers this low.</p>
+        }
+      </div>
+      <div class="vdp-form-row">
+        <div class="vdp-form-field">
+          <label>First Name *</label>
+          <input formControlName="firstname" placeholder="John" />
+        </div>
+        <div class="vdp-form-field">
+          <label>Last Name *</label>
+          <input formControlName="lastname" placeholder="Doe" />
+        </div>
+      </div>
+      <div class="vdp-form-row">
+        <div class="vdp-form-field">
+          <label>Email *</label>
+          <input formControlName="email" type="email" placeholder="john@example.com" />
+        </div>
+        <div class="vdp-form-field">
+          <label>Phone *</label>
+          <input formControlName="phone" type="tel" placeholder="(262) 555-1234" />
+        </div>
+      </div>
+      <div class="vdp-form-field">
+        <label>Will you need financing?</label>
+        <div class="vdp-radio-group">
+          <label class="vdp-radio"><input type="radio" formControlName="financing" value="yes" /> Yes</label>
+          <label class="vdp-radio"><input type="radio" formControlName="financing" value="no" /> No</label>
+          <label class="vdp-radio"><input type="radio" formControlName="financing" value="undecided" /> Not Sure</label>
+        </div>
+      </div>
+      <div class="vdp-form-field">
+        <label>Notes</label>
+        <textarea formControlName="notes" rows="3" placeholder="Trade-in details, questions, etc."></textarea>
+      </div>
+      <button type="submit" class="vdp-modal-submit" [disabled]="makeOfferForm.invalid || makeOfferSubmitting()">
+        @if(makeOfferSubmitting()){ Sending… }@else{ <lucide-icon name="send" /> Submit Offer }
+      </button>
+    </form>
+    }
+  </div>
+</div>
+}
 
 }@else{
-<div class="vdp-loading">
-  <span>Loading vehicle details…</span>
-</div>
+<div class="vdp-loading"><span>Loading vehicle details…</span></div>
 }
 
 <footer></footer>

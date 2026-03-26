@@ -7,52 +7,32 @@ $muted: #666;
 $border: #e0e6ed;
 $radius: 14px;
 
-/* ── Banner ── */
-.fin-banner {
-  background: $navy;
-  padding: 36px 32px 28px;
-  margin: 20px 20px 0;
-  border-radius: 16px;
-}
-
-.fin-banner-content {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.fin-banner-title {
-  font-size: clamp(22px, 3.5vw, 42px);
-  font-weight: 700;
-  color: white;
-  margin: 0 0 10px;
-}
-
-.fin-breadcrumb {
+/* ── Hero breadcrumb ── */
+.fin-hero-breadcrumb {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
 }
-
-.fin-breadcrumb-link {
-  color: rgba(255,255,255,0.65);
+.fin-hero-breadcrumb-link {
+  color: rgba(255,255,255,0.5);
   text-decoration: none;
   &:hover { color: white; }
 }
-
-.fin-breadcrumb-sep { color: rgba(255,255,255,0.35); }
-.fin-breadcrumb-current { color: $blue; font-weight: 600; }
+.fin-hero-breadcrumb-sep { color: rgba(255,255,255,0.25); }
+.fin-hero-breadcrumb-current { color: #38bdf8; font-weight: 600; }
 
 /* ── Page container ── */
 .fin-page {
   background: $bg;
   min-height: 100vh;
-  padding: 40px 20px 80px;
+  padding: 20px 20px 80px;
 }
 
 /* ── Section shared ── */
 .fin-section-title {
-  font-size: clamp(20px, 2.5vw, 30px);
+  font-size: clamp(22px, 3vw, 34px);
   font-weight: 700;
   color: $text;
   text-align: center;
@@ -64,21 +44,193 @@ $radius: 14px;
   height: 3px;
   background: $blue;
   border-radius: 999px;
-  margin: 0 auto 24px;
+  margin: 0 auto 28px;
 }
 
-/* ── Intro ── */
-.fin-intro {
-  max-width: 760px;
-  margin: 0 auto 48px;
-  text-align: center;
 
-  p {
-    color: $muted;
-    line-height: 1.75;
-    margin: 0 0 14px;
-    font-size: 15px;
+/* ── Hero ── */
+.fin-hero {
+  background: $navy;
+  background-image: radial-gradient(ellipse at 80% 50%, rgba(26,120,194,0.25) 0%, transparent 65%);
+  border-radius: 20px;
+  padding: 56px 48px;
+  margin: 0 auto 24px;
+  max-width: 760px;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+
+  @media (max-width: 860px) {
+    flex-direction: column;
+    padding: 40px 28px;
+    gap: 36px;
   }
+}
+
+.fin-hero-left {
+  flex: 1;
+}
+
+.fin-hero-right {
+  flex-shrink: 0;
+  @media (max-width: 860px) { width: 100%; }
+}
+
+.fin-hero-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
+}
+
+.fin-hero-title {
+  font-size: clamp(20px, 2.8vw, 34px);
+  font-weight: 800;
+  color: white;
+  line-height: 1.3;
+  margin: 0 0 36px;
+}
+
+.fin-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  row-gap: 20px;
+}
+
+.fin-hero-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 28px;
+}
+
+.fin-hero-stat-num {
+  font-size: 28px;
+  font-weight: 800;
+  color: #38bdf8;
+  line-height: 1;
+}
+
+.fin-hero-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fin-hero-stat-divider {
+  width: 1px;
+  height: 40px;
+  background: rgba(255,255,255,0.15);
+  margin-right: 28px;
+  flex-shrink: 0;
+}
+
+/* Rate card */
+.fin-rate-card {
+  background: white;
+  border-radius: 16px;
+  padding: 32px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  width: 220px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 20px 60px rgba(0,0,0,0.35);
+
+  @media (max-width: 860px) { width: 100%; box-sizing: border-box; }
+}
+
+.fin-rate-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: $muted;
+}
+
+.fin-rate-num {
+  font-size: 64px;
+  font-weight: 900;
+  color: $blue;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+.fin-rate-term {
+  font-size: 13px;
+  font-weight: 600;
+  color: $text;
+}
+
+.fin-rate-divider {
+  width: 32px;
+  height: 2px;
+  background: $border;
+  border-radius: 999px;
+  margin: 6px 0;
+}
+
+.fin-rate-note {
+  font-size: 11px;
+  color: $muted;
+  line-height: 1.5;
+}
+
+/* ── Feature cards ── */
+.fin-feature-strip {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin: 0 auto 48px;
+  max-width: 760px;
+
+  @media (max-width: 500px) { grid-template-columns: 1fr; }
+}
+
+.fin-feature-card {
+  background: white;
+  border-radius: $radius;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border-top: 4px solid transparent;
+
+  strong {
+    font-size: 15px;
+    font-weight: 700;
+    color: $text;
+  }
+
+  span {
+    font-size: 13px;
+    color: $muted;
+    line-height: 1.6;
+  }
+
+  &--blue   { border-top-color: #1a78c2; }
+  &--teal   { border-top-color: #0d9488; }
+  &--green  { border-top-color: #22c55e; }
+  &--purple { border-top-color: #8b5cf6; }
+}
+
+.fin-feature-icon {
+  font-size: 36px;
+  line-height: 1;
 }
 
 /* ── Wizard ── */
@@ -116,7 +268,7 @@ $radius: 14px;
   justify-content: center;
   transition: background 0.3s, color 0.3s;
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  lucide-icon { width: 18px; height: 18px; }
 
   .fin-step.active & {
     background: $blue;
@@ -207,7 +359,7 @@ $radius: 14px;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
 
-  mat-icon { font-size: 20px; width: 20px; height: 20px; }
+  lucide-icon { width: 20px; height: 20px; }
 
   &:hover {
     border-color: $blue;
@@ -319,7 +471,7 @@ $radius: 14px;
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s;
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  lucide-icon { width: 18px; height: 18px; }
   &:hover { border-color: #aaa; color: $text; }
 }
 
@@ -339,7 +491,7 @@ $radius: 14px;
   transition: background 0.2s, opacity 0.2s;
   text-decoration: none;
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  lucide-icon { width: 18px; height: 18px; }
 
   &:hover { background: darken($blue, 8%); }
   &:disabled { opacity: 0.45; cursor: not-allowed; }

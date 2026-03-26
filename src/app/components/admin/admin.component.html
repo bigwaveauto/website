@@ -1,0 +1,53 @@
+@if(checking()){
+<div class="adm-loading">
+  <div class="adm-spinner"></div>
+  <span>Verifying access…</span>
+</div>
+}@else if(!authorized()){
+<div class="adm-denied">
+  <lucide-icon name="shield" class="adm-denied-icon" />
+  <h1>Access Denied</h1>
+  <p>You don't have permission to access this area.</p>
+  <a routerLink="/" class="adm-denied-btn">Back to Website</a>
+</div>
+}@else{
+<div class="adm-shell">
+
+  <!-- Sidebar -->
+  <aside class="adm-sidebar">
+    <div class="adm-sidebar-brand">
+      <span class="adm-brand-wave">🌊</span>
+      <div>
+        <span class="adm-brand-name">Big Wave Auto</span>
+        <span class="adm-brand-sub">Dealer Management</span>
+      </div>
+    </div>
+
+    <nav class="adm-nav">
+      @for(item of navItems; track item.route){
+      <a [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item.route === '/admin' }" class="adm-nav-item">
+        <lucide-icon [name]="item.icon" />
+        <span>{{ item.label }}</span>
+      </a>
+      }
+    </nav>
+
+    <div class="adm-sidebar-footer">
+      <div class="adm-user">
+        <lucide-icon name="user" />
+        <span>{{ auth.user()?.email }}</span>
+      </div>
+      <a routerLink="/" class="adm-nav-item adm-back-link">
+        <lucide-icon name="arrow-left" />
+        <span>Back to Website</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="adm-main">
+    <router-outlet />
+  </main>
+
+</div>
+}

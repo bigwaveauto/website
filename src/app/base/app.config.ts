@@ -1,15 +1,37 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withRouterConfig } from '@angular/router';
 
 import { routes } from '../routes/app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import {
+  LUCIDE_ICONS, LucideIconProvider,
+  MapPin, User, Users, UserPlus, X, Menu, ArrowRight, ArrowLeft,
+  CircleCheck, Check, Send, Car, CarFront, Heart, Tag, Bell, BellOff,
+  Settings, LogOut, CircleHelp, Smartphone, Mail, Zap, Gauge, RefreshCw,
+  Handshake, Phone, Plus, Pencil, ZoomIn, ZoomOut, ChevronLeft, ChevronRight,
+  ChevronDown, Landmark, IdCard, Shield, Leaf, Fuel, PiggyBank, Clock,
+  Headphones, Waves, BadgeCheck, Lock, Wrench, ListChecks, FileText,
+  Calculator, Search, ChevronUp, Home,
+} from 'lucide-angular';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideHttpClient(withFetch()),
-    provideRouter(routes), provideClientHydration(withEventReplay())
+    {
+      provide: LUCIDE_ICONS, multi: true,
+      useValue: new LucideIconProvider({
+        MapPin, User, Users, UserPlus, X, Menu, ArrowRight, ArrowLeft,
+        CircleCheck, Check, Send, Car, CarFront, Heart, Tag, Bell, BellOff,
+        Settings, LogOut, CircleHelp, Smartphone, Mail, Zap, Gauge, RefreshCw,
+        Handshake, Phone, Plus, Pencil, ZoomIn, ZoomOut, ChevronLeft, ChevronRight,
+        ChevronDown, Landmark, IdCard, Shield, Leaf, Fuel, PiggyBank, Clock,
+        Headphones, Waves, BadgeCheck, Lock, Wrench, ListChecks, FileText,
+        Calculator, Search, ChevronUp, Home,
+      }),
+    },
+    provideRouter(routes, withRouterConfig({ onSameUrlNavigation: 'reload' })), provideClientHydration(withEventReplay())
   ]
 };

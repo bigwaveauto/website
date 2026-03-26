@@ -1,10 +1,13 @@
 import { CommonModule } from "@angular/common";
 import { Component, inject, input, signal } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
-import { MatIconModule } from "@angular/material/icon";
+import { LucideAngularModule } from 'lucide-angular';
 import { FlexLayoutModule } from "ngx-flexible-layout";
 import { FlexLayoutServerModule } from "ngx-flexible-layout/server";
 import { Router, RouterLink, RouterLinkActive } from "@angular/router";
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { HttpClient } from "@angular/common/http";
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'header',
@@ -16,27 +19,77 @@ import { Router, RouterLink, RouterLinkActive } from "@angular/router";
         FlexLayoutModule,
         FlexLayoutServerModule,
         MatButtonModule,
-        MatIconModule,
+        LucideAngularModule,
         CommonModule,
         RouterLink,
-        RouterLinkActive
+        RouterLinkActive,
+        ReactiveFormsModule
     ]
 })
 export class HeaderComponent {
     private readonly router = inject(Router);
+    private readonly fb = inject(FormBuilder);
+    private readonly http = inject(HttpClient);
+    readonly authService = inject(AuthService);
+
     floating = input<boolean>(false);
 
     menuOpen = signal(false);
     locationOpen = signal(false);
-    inventoryMenuOpen = signal(false);
+    contactOpen = signal(false);
+    inventoryMenuOpen  = signal(false);
+    financingMenuOpen  = signal(false);
+    contactSubmitted = signal(false);
+    contactSubmitting = signal(false);
+    charCount = signal(0);
+
     private inventoryMenuTimer: any;
 
-    toggleMenu() { this.menuOpen.update(v => !v); this.locationOpen.set(false); }
+    contactForm: FormGroup = this.fb.group({
+        topic:           ['', Validators.required],
+        phone:           [''],
+        email:           ['', [Validators.required, Validators.email]],
+        preferredMethod: ['', Validators.required],
+        message:         [''],
+    });
+
+    toggleMenu() { this.menuOpen.update(v => !v); this.locationOpen.set(false); this.contactOpen.set(false); }
     closeMenu()  { this.menuOpen.set(false); }
 
-    toggleLocation() { this.locationOpen.update(v => !v); this.menuOpen.set(false); }
+    toggleLocation() { this.locationOpen.update(v => !v); this.menuOpen.set(false); this.contactOpen.set(false); }
     closeLocation()  { this.locationOpen.set(false); }
 
-    openInventoryMenu()  { clearTimeout(this.inventoryMenuTimer); this.inventoryMenuOpen.set(true); }
-    closeInventoryMenu() { this.inventoryMenuTimer = setTimeout(() => this.inventoryMenuOpen.set(false), 180); }
+    openContact()  { this.contactOpen.set(true); this.menuOpen.set(false); this.locationOpen.set(false); }
+    closeContact() { this.contactOpen.set(false); }
+
+    onMessageInput(e: Event) {
+        this.charCount.set((e.target as HTMLTextAreaElement).value.length);
+    }
+
+    submitContact() {
+        if (this.contactForm.invalid || this.contactSubmitting()) return;
+        this.contactSubmitting.set(true);
+        this.http.post('/api/leads/contact', this.contactForm.value).subscribe({
+            next: () => { this.contactSubmitted.set(true); this.contactSubmitting.set(false); },
+            error: () => { this.contactSubmitting.set(false); alert('Something went wrong. Please try again.'); }
+        });
+    }
+
+    openInventoryMenu()   { clearTimeout(this.inventoryMenuTimer); this.inventoryMenuOpen.set(true); }
+    closeInventoryMenu()  { this.inventoryMenuTimer = setTimeout(() => this.inventoryMenuOpen.set(false), 180); }
+
+    private financingMenuTimer: any;
+    openFinancingMenu()   { clearTimeout(this.financingMenuTimer); this.financingMenuOpen.set(true); }
+    closeFinancingMenu()  { this.financingMenuTimer = setTimeout(() => this.financingMenuOpen.set(false), 180); }
+
+    shareReferral() {
+        const url = 'https://bigwaveauto.com';
+        const msg = `Check out Big Wave Auto at: ${url}`;
+        if (navigator.share) {
+            navigator.share({ title: 'Big Wave Auto', text: msg });
+        } else {
+            navigator.clipboard.writeText(msg);
+            alert('Message copied to clipboard!');
+        }
+    }
 }

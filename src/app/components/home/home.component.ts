@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnDestroy } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
+import { LucideAngularModule } from 'lucide-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -29,7 +29,7 @@ import { InventoryComponent } from '../inventory/inventory.component';
     FlexLayoutModule,
     CommonModule,
     MatMenuModule,
-    MatIconModule,
+    LucideAngularModule,
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,

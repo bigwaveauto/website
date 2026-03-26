@@ -1,0 +1,408 @@
+<header></header>
+
+<div class="acct-page">
+
+  <!-- Sidebar -->
+  <aside class="acct-sidebar">
+
+    <!-- Profile + Settings -->
+    <div class="acct-profile">
+      <div class="acct-profile-avatar">
+        @if(auth.user()?.user_metadata?.['avatar_url']){
+          <img [src]="auth.user()?.user_metadata?.['avatar_url']" alt="Avatar" />
+        }@else{
+          <span>{{ (auth.user()?.user_metadata?.['first_name'] || auth.user()?.email || 'U')[0].toUpperCase() }}</span>
+        }
+      </div>
+      <div class="acct-profile-info">
+        <p class="acct-profile-name">{{ auth.user()?.user_metadata?.['full_name'] || 'My Account' }}</p>
+        <p class="acct-profile-email">{{ auth.user()?.email }}</p>
+      </div>
+      <button class="acct-settings-icon" (click)="activeTab = 'settings'" [class.active]="activeTab === 'settings'" title="Account Settings">
+        <lucide-icon name="settings" />
+      </button>
+    </div>
+
+    <!-- My Garage -->
+    <button class="acct-garage-btn" [class.active]="activeTab === 'garage'" (click)="activeTab = 'garage'">
+      <lucide-icon name="car" />
+      <span>My Garage</span>
+      <lucide-icon name="chevron-right" class="acct-garage-chevron" />
+    </button>
+
+    <!-- Main nav -->
+    <nav class="acct-nav">
+      @for(tab of tabs; track tab.id){
+      <button class="acct-nav-item" [class.active]="activeTab === tab.id" (click)="activeTab = tab.id">
+        <lucide-icon [name]="tab.icon" />
+        {{ tab.label }}
+      </button>
+      }
+      <div class="acct-nav-divider"></div>
+      <button class="acct-nav-item acct-signout" (click)="auth.signOut()">
+        <lucide-icon name="log-out" /> Sign out
+      </button>
+    </nav>
+
+    <!-- Wave it Forward bubble -->
+    <div class="acct-rewards-card">
+      <div class="acct-rewards-top">
+        <div class="acct-rewards-logo">
+          <lucide-icon name="waves" />
+          <span>Share the Wave</span>
+        </div>
+      </div>
+
+      <p class="acct-rewards-headline">Share the<br>Wave. 🌊</p>
+      <p class="acct-rewards-sub">Know someone looking for a car? <strong>Share Big Wave Auto</strong> with them — we'll take great care of them.</p>
+
+      <button class="acct-rewards-refer-btn" (click)="shareReferral()">
+        <lucide-icon name="send" />
+        Share Big Wave
+      </button>
+
+      <p class="acct-rewards-footer">Share via text, email, or social</p>
+    </div>
+  </aside>
+
+  <!-- Content -->
+  <main class="acct-content">
+
+    @if(activeTab === 'garage'){
+    <h1 class="acct-heading">My Garage</h1>
+
+    <!-- Vehicle cards -->
+    @if(garageVehicles().length > 0){
+    <div class="acct-garage-grid">
+      @for(v of garageVehicles(); track $index){
+      <div class="acct-garage-vehicle-card">
+        <div class="agv-header">
+          <div>
+            <p class="agv-title">{{ v.year }} {{ v.make }} {{ v.model }}</p>
+            @if(v.trim){ <p class="agv-trim">{{ v.trim }}</p> }
+          </div>
+          <div class="agv-header-actions">
+            <button class="agv-edit-btn" (click)="openEdit($index)" title="Edit"><lucide-icon name="pencil" /></button>
+            <button class="agv-remove" (click)="removeVehicle($index)" title="Remove"><lucide-icon name="x" /></button>
+          </div>
+        </div>
+        <div class="agv-meta">
+          <span><lucide-icon name="gauge" /> {{ v.mileage | number:'1.0-0' }} mi</span>
+          <span class="agv-condition agv-condition--{{ v.condition }}">{{ v.condition | titlecase }}</span>
+        </div>
+        <p class="agv-vin">VIN: {{ v.vin | uppercase }}</p>
+        <div class="agv-values">
+          <div class="agv-value-row">
+            <span class="agv-value-label">Trade-In Est.</span>
+            <span class="agv-value-num">—</span>
+          </div>
+          <div class="agv-value-row">
+            <span class="agv-value-label">Private Party Est.</span>
+            <span class="agv-value-num">—</span>
+          </div>
+        </div>
+        @if(v.loan?.monthlyPayment){
+        <div class="agv-loan-section">
+          <p class="agv-loan-label"><lucide-icon name="landmark" /> Current Loan</p>
+          <div class="agv-loan-grid">
+            <div class="agv-loan-item">
+              <span class="agv-loan-item-label">Monthly</span>
+              <span class="agv-loan-item-val">{{ v.loan!.monthlyPayment | currency:'USD':'symbol':'1.0-0' }}/mo</span>
+            </div>
+            @if(v.loan?.interestRate != null){
+            <div class="agv-loan-item">
+              <span class="agv-loan-item-label">Rate</span>
+              <span class="agv-loan-item-val">{{ v.loan!.interestRate }}%</span>
+            </div>}
+            @if(v.loan?.remainingTermMonths != null){
+            <div class="agv-loan-item">
+              <span class="agv-loan-item-label">Remaining</span>
+              <span class="agv-loan-item-val">{{ v.loan!.remainingTermMonths }} mo</span>
+            </div>}
+          </div>
+          <div class="agv-refi-banner">
+            <lucide-icon name="piggy-bank" />
+            <span>You may qualify for a lower rate — <strong>see refinance options</strong></span>
+          </div>
+        </div>
+        }
+
+        <div class="agv-action-btns">
+          <button class="agv-bwa-btn" (click)="activeTab = 'offers'">
+            <lucide-icon name="tag" /> Get Big Wave Trade Value
+          </button>
+          <button class="agv-deal-btn" (click)="activeTab = 'reservations'">
+            <lucide-icon name="handshake" /> Create a Deal
+          </button>
+          <a class="agv-carfax-btn" href="https://www.carfax.com/vehicle/{{ v.vin }}" target="_blank" rel="noopener">
+            <lucide-icon name="badge-check" /> Get Carfax Report — $9
+          </a>
+        </div>
+      </div>
+      }
+
+      @if(!showAddForm()){
+      <button class="acct-garage-add" (click)="showAddForm.set(true)">
+        <div class="acct-garage-add-icon"><lucide-icon name="plus" /></div>
+        <p class="acct-garage-add-title">Add Another Vehicle</p>
+        <p class="acct-garage-add-sub">Track trade-in value, private party value &amp; get a Carfax report for $9</p>
+      </button>
+      }
+    </div>
+    }
+
+    <!-- Empty state + add button -->
+    @if(garageVehicles().length === 0 && !showAddForm()){
+    <div class="acct-garage-grid">
+      <button class="acct-garage-add" (click)="showAddForm.set(true)">
+        <div class="acct-garage-add-icon"><lucide-icon name="plus" /></div>
+        <p class="acct-garage-add-title">Add a Vehicle</p>
+        <p class="acct-garage-add-sub">Track trade-in value, private party value &amp; get a Carfax report for $9</p>
+      </button>
+    </div>
+    }
+
+    <!-- Add vehicle form -->
+    @if(showAddForm()){
+    <div class="acct-garage-form-card">
+      <div class="acct-garage-form-header">
+        <h2>Add a Vehicle</h2>
+        <button class="agv-remove" (click)="resetForm()"><lucide-icon name="x" /></button>
+      </div>
+
+      <!-- Mode toggle -->
+      <div class="agf-mode-toggle">
+        <button type="button" class="agf-mode-btn" [class.active]="addMode() === 'vin'" (click)="switchMode('vin')">
+          VIN Lookup
+        </button>
+        <button type="button" class="agf-mode-btn" [class.active]="addMode() === 'manual'" (click)="switchMode('manual')">
+          Year / Make / Model
+        </button>
+      </div>
+
+      <form [formGroup]="garageForm" (ngSubmit)="addVehicle()" class="acct-garage-form">
+
+        <!-- VIN mode -->
+        @if(addMode() === 'vin'){
+        <div class="agf-field">
+          <label>VIN</label>
+          <div class="agf-vin-row">
+            <input formControlName="vin" type="text" placeholder="Enter 17-character VIN"
+                   class="agf-input agf-vin-input" maxlength="17" style="text-transform:uppercase" />
+            <button type="button" class="agf-vin-btn"
+                    [disabled]="garageForm.get('vin')?.invalid || garageForm.get('vin')?.value?.length !== 17 || vinLoading()"
+                    (click)="decodeVin()">
+              @if(vinLoading()){ <span class="agf-loading">Looking up…</span> }@else{ Look up }
+            </button>
+          </div>
+          @if(vinError()){ <span class="agf-error">{{ vinError() }}</span> }
+        </div>
+
+        @if(vinDecoded()){
+        <div class="agf-decoded-card">
+          <lucide-icon name="circle-check" class="agf-decoded-check" />
+          <div>
+            <p class="agf-decoded-title">{{ vinDecoded()!.year }} {{ vinDecoded()!.make }} {{ vinDecoded()!.model }}</p>
+            @if(vinDecoded()!.trim){ <p class="agf-decoded-trim">{{ vinDecoded()!.trim }}</p> }
+          </div>
+        </div>
+        }
+        }
+
+        <!-- Manual mode -->
+        @if(addMode() === 'manual'){
+        <div class="agf-row">
+          <div class="agf-field">
+            <label>Year</label>
+            <select formControlName="year" class="agf-select">
+              <option value="">Select year</option>
+              @for(y of years; track y){ <option [value]="y">{{ y }}</option> }
+            </select>
+          </div>
+          <div class="agf-field">
+            <label>Make</label>
+            <select formControlName="make" class="agf-select">
+              <option value="">Select make</option>
+              @for(m of makes; track m){ <option [value]="m">{{ m }}</option> }
+            </select>
+          </div>
+        </div>
+        <div class="agf-row">
+          <div class="agf-field">
+            <label>Model</label>
+            <input formControlName="model" type="text" placeholder="e.g. Model 3, F-150" class="agf-input" />
+          </div>
+          <div class="agf-field">
+            <label>Trim <span class="agf-optional">Optional</span></label>
+            <input formControlName="trim" type="text" placeholder="e.g. Long Range, XLT" class="agf-input" />
+          </div>
+        </div>
+        <div class="agf-field">
+          <label>VIN <span class="agf-optional">Optional</span></label>
+          <input formControlName="vin" type="text" placeholder="17-character VIN" class="agf-input" maxlength="17" style="text-transform:uppercase" />
+        </div>
+        }
+
+        <!-- Mileage + condition (both modes) -->
+        @if(addMode() === 'manual' || vinDecoded()){
+        <div class="agf-row">
+          <div class="agf-field">
+            <label>Mileage</label>
+            <input formControlName="mileage" type="number" placeholder="e.g. 32000" class="agf-input" min="0" />
+          </div>
+          <div class="agf-field">
+            <label>Condition</label>
+            <select formControlName="condition" class="agf-select">
+              @for(c of conditions; track c.value){ <option [value]="c.value">{{ c.label }}</option> }
+            </select>
+          </div>
+        </div>
+        }
+
+        <div class="agf-actions">
+          <button type="button" class="agf-cancel" (click)="resetForm()">Cancel</button>
+          <button type="submit" class="agf-submit" [disabled]="!canSubmit">Add to Garage →</button>
+        </div>
+
+      </form>
+    </div>
+    }
+    }
+
+    <!-- Edit vehicle modal -->
+    @if(editIndex() !== null){
+    <div class="agv-modal-overlay" (click)="closeEdit()">
+      <div class="agv-modal" (click)="$event.stopPropagation()">
+        <div class="agv-modal-header">
+          <h2>Edit Vehicle</h2>
+          <button class="agv-remove" (click)="closeEdit()"><lucide-icon name="x" /></button>
+        </div>
+
+        <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="agv-modal-form">
+
+          <p class="agv-modal-section-title">Vehicle Details</p>
+          <div class="agf-row">
+            <div class="agf-field">
+              <label>Year</label>
+              <select formControlName="year" class="agf-select">
+                @for(y of years; track y){ <option [value]="y">{{ y }}</option> }
+              </select>
+            </div>
+            <div class="agf-field">
+              <label>Make</label>
+              <select formControlName="make" class="agf-select">
+                @for(m of makes; track m){ <option [value]="m">{{ m }}</option> }
+              </select>
+            </div>
+          </div>
+          <div class="agf-row">
+            <div class="agf-field">
+              <label>Model</label>
+              <input formControlName="model" type="text" class="agf-input" />
+            </div>
+            <div class="agf-field">
+              <label>Trim <span class="agf-optional">Optional</span></label>
+              <input formControlName="trim" type="text" placeholder="e.g. Long Range" class="agf-input" />
+            </div>
+          </div>
+
+          <div class="agv-modal-divider"></div>
+          <p class="agv-modal-section-title"><lucide-icon name="landmark" /> Current Loan <span class="agf-optional">Optional</span></p>
+          <p class="agv-modal-section-sub">Add your loan details to see refinance savings from our partner banks.</p>
+
+          <div class="agf-row">
+            <div class="agf-field">
+              <label>Monthly Payment</label>
+              <div class="agf-prefix-wrap">
+                <span class="agf-prefix">$</span>
+                <input formControlName="monthlyPayment" type="number" placeholder="e.g. 650" class="agf-input agf-input--prefix" min="0" />
+              </div>
+            </div>
+            <div class="agf-field">
+              <label>Interest Rate</label>
+              <div class="agf-prefix-wrap">
+                <input formControlName="interestRate" type="number" placeholder="e.g. 7.9" class="agf-input agf-input--suffix" step="0.1" min="0" />
+                <span class="agf-suffix">%</span>
+              </div>
+            </div>
+          </div>
+          <div class="agf-field" style="max-width:50%">
+            <label>Remaining Term</label>
+            <div class="agf-prefix-wrap">
+              <input formControlName="remainingTermMonths" type="number" placeholder="e.g. 48" class="agf-input agf-input--suffix" min="0" />
+              <span class="agf-suffix">mo</span>
+            </div>
+          </div>
+
+          <div class="agf-actions">
+            <button type="button" class="agf-cancel" (click)="closeEdit()">Cancel</button>
+            <button type="submit" class="agf-submit">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    }
+
+    @if(activeTab === 'reservations'){
+    <h1 class="acct-heading">My Reservations</h1>
+    <div class="acct-empty">
+      <lucide-icon name="car" />
+      <p>No reservations yet.</p>
+      <a routerLink="/showroom" class="acct-cta-link">Browse inventory →</a>
+    </div>
+    }
+
+    @if(activeTab === 'offers'){
+    <h1 class="acct-heading">My Offers</h1>
+    <div class="acct-empty"><lucide-icon name="tag" /><p>No offers submitted yet.</p></div>
+    }
+
+    @if(activeTab === 'saved'){
+    <h1 class="acct-heading">Saved Vehicles</h1>
+    <div class="acct-empty"><lucide-icon name="heart" /><p>No saved vehicles yet.</p></div>
+    }
+
+    @if(activeTab === 'searches'){
+    <h1 class="acct-heading">Saved Searches</h1>
+    <div class="acct-empty"><lucide-icon name="bell-off" /><p>No saved searches yet.</p></div>
+    }
+
+    @if(activeTab === 'referral'){
+    <h1 class="acct-heading">Share the Wave</h1>
+
+    <div class="acct-referral-banner">
+      <lucide-icon name="waves" />
+      <div>
+        <p class="acct-referral-banner-title">Share Big Wave Auto</p>
+        <p class="acct-referral-banner-sub">Know someone looking for a car? Send them our way — we'll take great care of them.</p>
+      </div>
+    </div>
+
+    <div class="acct-referral-form-card">
+      <h3 class="acct-referral-form-title">Share with a friend</h3>
+      <p style="font-size:14px;color:#666;margin:0 0 16px;">Send them a link to Big Wave Auto via text, email, or your favorite app.</p>
+      <button class="acct-referral-submit" (click)="shareReferral()">
+        <lucide-icon name="send" /> Share Big Wave
+      </button>
+    </div>
+    }
+
+    @if(activeTab === 'settings'){
+    <h1 class="acct-heading">Account Settings</h1>
+    <div class="acct-settings-card">
+      <div class="acct-settings-row">
+        <span>Email</span>
+        <span>{{ auth.user()?.email }}</span>
+      </div>
+      <div class="acct-settings-row">
+        <span>Name</span>
+        <span>{{ auth.user()?.user_metadata?.['full_name'] || '—' }}</span>
+      </div>
+    </div>
+    }
+
+  </main>
+
+</div>
+
+<footer></footer>

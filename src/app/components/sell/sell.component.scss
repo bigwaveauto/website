@@ -9,169 +9,390 @@ $radius: 14px;
 
 :host { display: block; }
 
-/* ── Banner ── */
-.sell-banner {
-  background: $navy;
-  padding: 36px 32px 28px;
-  margin: 20px 20px 0;
-  border-radius: 16px;
-}
-.sell-banner-content { max-width: 960px; margin: 0 auto; }
-.sell-banner-title {
-  font-size: clamp(22px, 3.5vw, 42px);
-  font-weight: 700; color: white; margin: 0 0 10px;
-}
-.sell-breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
-.sell-breadcrumb-link { color: rgba(255,255,255,0.65); text-decoration: none; &:hover { color: white; } }
-.sell-breadcrumb-sep   { color: rgba(255,255,255,0.35); }
-.sell-breadcrumb-current { color: $blue; font-weight: 600; }
-
 /* ── Page ── */
-.sell-page { background: $bg; }
-
-/* ── Shared ── */
-.sell-eyebrow {
-  font-size: 12px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 2px; color: $blue; margin: 0 0 10px;
-  &--center { text-align: center; }
-}
-.sell-section-title {
-  font-size: clamp(22px, 3vw, 34px); font-weight: 700;
-  color: $text; text-align: center; margin: 0 0 12px;
-}
-.sell-divider {
-  width: 48px; height: 3px; background: $blue;
-  border-radius: 999px; margin: 0 auto 28px;
-  &--center { margin: 0 auto 28px; }
+.sell-page {
+  background: $bg;
+  min-height: 100vh;
+  padding: 20px 20px 80px;
 }
 
-/* ── Intro ── */
-.sell-intro {
-  max-width: 720px; margin: 0 auto; padding: 56px 24px 40px; text-align: center;
-  p { color: $muted; font-size: 16px; line-height: 1.8; margin: 0; }
+/* ── Hero ── */
+.sell-hero {
+  background: $navy;
+  background-image: radial-gradient(ellipse at 75% 50%, rgba(26,120,194,0.22) 0%, transparent 65%);
+  border-radius: 20px;
+  padding: 56px 48px;
+  margin: 0 auto 24px;
+  max-width: 960px;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+
+  @media (max-width: 860px) {
+    flex-direction: column;
+    padding: 40px 28px;
+    gap: 36px;
+  }
 }
 
-/* ── Steps ── */
-.sell-steps-section { background: white; padding: 56px 24px; }
-.sell-steps-inner { max-width: 960px; margin: 0 auto; }
-.sell-steps-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 8px;
-  @media (max-width: 768px) { grid-template-columns: 1fr; }
-}
-.sell-step-card {
-  background: $bg; border-radius: $radius; padding: 32px 24px;
-  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;
-  h3 { font-size: 16px; font-weight: 700; color: $text; margin: 0; }
-  p  { font-size: 14px; color: $muted; line-height: 1.7; margin: 0; }
-}
-.sell-step-number {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: $blue; color: white;
-  font-size: 14px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-}
-.sell-step-icon {
-  width: 56px; height: 56px; border-radius: 50%;
-  background: rgba($blue, 0.1);
-  display: flex; align-items: center; justify-content: center;
-  mat-icon { color: $blue; font-size: 26px; width: 26px; height: 26px; }
+.sell-hero-left { flex: 1; }
+.sell-hero-right {
+  flex-shrink: 0;
+  @media (max-width: 860px) { width: 100%; }
 }
 
-/* ── Main: form + reasons ── */
-.sell-main { padding: 56px 24px 80px; }
-.sell-main-inner {
-  max-width: 1100px; margin: 0 auto;
-  display: flex; gap: 48px; align-items: flex-start;
-  @media (max-width: 900px) { flex-direction: column; }
+.sell-hero-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
 }
+.sell-hero-breadcrumb-link {
+  color: rgba(255,255,255,0.5);
+  text-decoration: none;
+  &:hover { color: white; }
+}
+.sell-hero-breadcrumb-sep     { color: rgba(255,255,255,0.25); }
+.sell-hero-breadcrumb-current { color: #38bdf8; font-weight: 600; }
+
+.sell-hero-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
+}
+
+.sell-hero-title {
+  font-size: clamp(20px, 2.8vw, 34px);
+  font-weight: 800;
+  color: white;
+  line-height: 1.3;
+  margin: 0 0 36px;
+}
+
+.sell-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  row-gap: 20px;
+}
+
+.sell-hero-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 28px;
+}
+
+.sell-hero-stat-num {
+  font-size: 28px;
+  font-weight: 800;
+  color: #38bdf8;
+  line-height: 1;
+}
+
+.sell-hero-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.sell-hero-stat-divider {
+  width: 1px;
+  height: 40px;
+  background: rgba(255,255,255,0.15);
+  margin-right: 28px;
+  flex-shrink: 0;
+}
+
+/* ── VIN card ── */
+.sell-vin-card {
+  background: white;
+  border-radius: 16px;
+  padding: 28px;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 20px 60px rgba(0,0,0,0.35);
+
+  @media (max-width: 860px) { width: 100%; box-sizing: border-box; }
+}
+
+.sell-vin-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sell-vin-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: $text;
+}
+
+.sell-vin-card-sub {
+  font-size: 12px;
+  color: $muted;
+}
+
+.sell-vin-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.sell-vin-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 0;
+  &:focus { border-color: $blue; }
+}
+
+.sell-vin-btn {
+  padding: 10px 14px;
+  background: $blue;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s, opacity 0.2s;
+  &:hover:not(:disabled) { background: darken($blue, 8%); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+.sell-vin-error {
+  font-size: 12px;
+  color: #ef4444;
+  margin: 0;
+}
+
+.sell-vin-decoded {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #166534;
+  lucide-icon { width: 18px; height: 18px; color: $green; flex-shrink: 0; }
+}
+
+.sell-vin-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  background: $blue;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  lucide-icon { width: 18px; height: 18px; }
+  &:hover { background: darken($blue, 8%); }
+}
+
+.sell-vin-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: $muted;
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: $border;
+  }
+}
+
+/* ── Feature cards ── */
+.sell-feature-strip {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin: 0 auto 40px;
+  max-width: 960px;
+
+  @media (max-width: 500px) { grid-template-columns: 1fr; }
+}
+
+.sell-feature-card {
+  background: white;
+  border-radius: $radius;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border-top: 4px solid transparent;
+
+  strong { font-size: 15px; font-weight: 700; color: $text; }
+  span   { font-size: 13px; color: $muted; line-height: 1.6; }
+
+  &--blue   { border-top-color: #1a78c2; }
+  &--green  { border-top-color: #22c55e; }
+  &--teal   { border-top-color: #0d9488; }
+  &--purple { border-top-color: #8b5cf6; }
+}
+
+.sell-feature-icon { font-size: 36px; line-height: 1; }
 
 /* ── Form ── */
-.sell-form-col { flex: 1 1 620px; }
+.sell-main {
+  max-width: 960px;
+  margin: 0 auto;
+}
 
 .sell-form-card {
-  background: white; border-radius: $radius;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.07); overflow: hidden;
+  background: white;
+  border-radius: $radius;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  overflow: hidden;
 }
+
 .sell-form-card-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 20px 28px; border-bottom: 1px solid $border;
-  font-size: 16px; font-weight: 700; color: $text;
-  mat-icon { color: $blue; }
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 28px;
+  border-bottom: 1px solid $border;
+  font-size: 16px;
+  font-weight: 700;
+  color: $text;
+  lucide-icon { color: $blue; }
 }
+
 .sell-form { padding: 24px 28px; display: flex; flex-direction: column; gap: 16px; }
 
 .sell-form-section-label {
-  font-size: 12px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 1.5px; color: $blue; margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: $blue;
+  margin-top: 4px;
 }
-.sell-form-row { display: flex; gap: 16px; @media (max-width: 600px) { flex-direction: column; } }
+
+.sell-form-row {
+  display: flex;
+  gap: 16px;
+  @media (max-width: 600px) { flex-direction: column; }
+}
 
 .sell-field {
-  flex: 1; display: flex; flex-direction: column; gap: 6px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   &--full { flex: 1 1 100%; }
+
   label { font-size: 13px; font-weight: 600; color: #444; }
+
   input, select, textarea {
-    padding: 10px 14px; border: 1.5px solid $border;
-    border-radius: 8px; font-size: 14px; color: $text;
-    background: white; outline: none;
-    transition: border-color 0.2s; font-family: inherit;
-    width: 100%; box-sizing: border-box;
+    padding: 10px 14px;
+    border: 1.5px solid $border;
+    border-radius: 8px;
+    font-size: 14px;
+    color: $text;
+    background: white;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
     &:focus { border-color: $blue; }
   }
   textarea { resize: vertical; }
 }
+
 .sell-optional { color: $muted; font-weight: 400; }
 
 .sell-btn-submit {
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 13px 32px; background: $blue; color: white;
-  border: none; border-radius: 8px; font-size: 15px; font-weight: 700;
-  cursor: pointer; transition: background 0.2s, opacity 0.2s;
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 13px 32px;
+  background: $blue;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+  lucide-icon { width: 18px; height: 18px; }
   &:hover { background: darken($blue, 8%); }
   &:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 /* ── Success ── */
 .sell-success-card {
-  background: white; border-radius: $radius;
+  background: white;
+  border-radius: $radius;
   box-shadow: 0 2px 16px rgba(0,0,0,0.07);
-  padding: 56px 40px; text-align: center;
-  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  padding: 56px 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
   h2 { font-size: 24px; font-weight: 700; margin: 0; color: $text; }
   p  { color: $muted; font-size: 15px; line-height: 1.7; margin: 0; max-width: 400px; }
 }
-.sell-success-icon { font-size: 64px !important; width: 64px !important; height: 64px !important; color: $green; }
+.sell-success-icon {
+  font-size: 64px !important;
+  width: 64px !important;
+  height: 64px !important;
+  color: $green;
+}
 .sell-btn-browse {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 12px 28px; background: $blue; color: white;
-  border-radius: 8px; font-size: 14px; font-weight: 700;
-  text-decoration: none; margin-top: 8px;
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 28px;
+  background: $blue;
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  margin-top: 8px;
+  lucide-icon { width: 18px; height: 18px; }
   &:hover { background: darken($blue, 8%); }
 }
 
-/* ── Reasons ── */
-.sell-reasons-col {
-  flex: 0 0 320px;
-  @media (max-width: 900px) { flex: 1; width: 100%; }
-}
-.sell-reasons-title {
-  font-size: clamp(20px, 2.5vw, 28px); font-weight: 700;
-  color: $text; margin: 0 0 28px; line-height: 1.3;
-}
-.sell-reasons-list { display: flex; flex-direction: column; gap: 20px; }
-.sell-reason {
-  display: flex; align-items: flex-start; gap: 16px;
-}
-.sell-reason-icon {
-  width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px;
-  background: rgba($blue, 0.1);
-  display: flex; align-items: center; justify-content: center;
-  mat-icon { color: $blue; font-size: 22px; width: 22px; height: 22px; }
-}
-.sell-reason-text {
-  display: flex; flex-direction: column; gap: 4px;
-  strong { font-size: 15px; font-weight: 700; color: $text; }
-  span   { font-size: 14px; color: $muted; line-height: 1.6; }
-}
+/* Spinner */
+.spin { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

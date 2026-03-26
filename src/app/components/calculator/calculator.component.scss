@@ -1,0 +1,733 @@
+$navy:   #0e1523;
+$blue:   #1a78c2;
+$green:  #22c55e;
+$bg:     #f4f8fa;
+$text:   #111;
+$muted:  #666;
+$border: #e0e6ed;
+$radius: 14px;
+
+// Step accent colors
+$s1: #1a78c2;   // blue
+$s2: #0d9488;   // teal
+$s3: #f97316;   // orange
+$s4: #22c55e;   // green
+$s5: #8b5cf6;   // purple
+
+// ── Page ──────────────────────────────────────────────────────────────────
+
+.calc-page {
+  background: $bg;
+  min-height: 100vh;
+  padding: 20px 20px 80px;
+}
+
+// ── Hero ──────────────────────────────────────────────────────────────────
+
+.calc-hero {
+  background: $navy;
+  background-image: radial-gradient(ellipse at 60% 50%, rgba(26, 120, 194, 0.28) 0%, transparent 65%);
+  border-radius: 20px;
+  padding: 52px 48px;
+  max-width: 1100px;
+  margin: 0 auto 24px;
+  text-align: center;
+
+  @media (max-width: 600px) { padding: 36px 24px; }
+}
+
+.calc-hero-breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.calc-hero-breadcrumb-link {
+  color: rgba(255,255,255,0.5);
+  text-decoration: none;
+  transition: color 0.2s;
+  &:hover { color: #fff; }
+}
+
+.calc-hero-breadcrumb-sep  { color: rgba(255,255,255,0.25); }
+
+.calc-hero-breadcrumb-current {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.calc-hero-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
+}
+
+.calc-hero-title {
+  font-size: clamp(24px, 3.5vw, 44px);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+  margin: 0 0 14px;
+}
+
+.calc-hero-sub {
+  font-size: 16px;
+  color: rgba(255,255,255,0.6);
+  margin: 0;
+  line-height: 1.65;
+}
+
+// ── Body layout ──────────────────────────────────────────────────────────
+
+.calc-body {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+
+  @media (max-width: 860px) { flex-direction: column; }
+}
+
+// ── Form column ──────────────────────────────────────────────────────────
+
+.calc-form-col {
+  flex: 0 0 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (max-width: 860px) {
+    flex: none;
+    width: 100%;
+  }
+}
+
+// ── Step Cards ───────────────────────────────────────────────────────────
+
+.calc-step-card {
+  background: #fff;
+  border-radius: $radius;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+  overflow: hidden;
+}
+
+.calc-step-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid $border;
+  background: #fafcfe;
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid $border;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s;
+
+  &:hover { background: #f0f5fb; }
+
+  .calc-step-card:not(.open) & { border-bottom: none; }
+}
+
+.calc-step-num {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  font-family: inherit;
+
+  &.s1 { background: $s1; }
+  &.s2 { background: $s2; }
+  &.s3 { background: $s3; }
+  &.s4 { background: $s4; }
+  &.s5 { background: $s5; }
+}
+
+.calc-step-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.calc-step-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: $muted;
+}
+
+.calc-step-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
+}
+
+// Preview shown when step is collapsed
+.calc-step-preview {
+  margin-left: auto;
+  margin-right: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: $blue;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+// Chevron rotates when open
+.calc-step-chevron {
+  width: 18px;
+  height: 18px;
+  color: $muted;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+
+  .calc-step-card.open & { transform: rotate(180deg); }
+}
+
+.calc-step-body {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.calc-step-hint {
+  font-size: 12px;
+  color: $muted;
+  margin: 0;
+  font-style: italic;
+}
+
+// ── Mode toggle ──────────────────────────────────────────────────────────
+
+.calc-mode-toggle {
+  display: flex;
+  gap: 10px;
+}
+
+.calc-mode-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 10px;
+  border: 2px solid $border;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+
+  .mode-icon  { font-size: 22px; line-height: 1; }
+  .mode-label { font-size: 12px; font-weight: 600; color: $muted; transition: color 0.2s; }
+
+  &.active {
+    border-color: $blue;
+    background: #f0f7ff;
+    box-shadow: 0 0 0 3px rgba(26,120,194,0.12);
+
+    .mode-label { color: $blue; }
+  }
+
+  &:not(.active):hover {
+    border-color: #b0c8e0;
+    background: #fafcff;
+  }
+}
+
+// ── Two-column inputs (bank step) ─────────────────────────────────────
+
+.calc-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.calc-field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .calc-field-label { margin-bottom: 0; }
+  .calc-input-wrap  { flex: none; }
+}
+
+// ── Term pills ───────────────────────────────────────────────────────────
+
+.calc-term-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.calc-term-pill {
+  padding: 6px 12px;
+  border: 1.5px solid $border;
+  border-radius: 999px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: $muted;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &.active {
+    background: $s2;
+    border-color: $s2;
+    color: #fff;
+  }
+
+  &:not(.active):hover {
+    border-color: $s2;
+    color: $s2;
+  }
+}
+
+// ── Field rows ───────────────────────────────────────────────────────────
+
+.calc-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.calc-field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.calc-label-icon {
+  width: 14px;
+  height: 14px;
+  color: $muted;
+  flex-shrink: 0;
+}
+
+.calc-auto-badge {
+  display: inline-block;
+  background: #e8f4ff;
+  color: $blue;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+  text-transform: uppercase;
+  margin-left: 4px;
+}
+
+.calc-input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  overflow: hidden;
+  flex: 0 0 140px;
+  background: #fff;
+  transition: border-color 0.2s;
+
+  .calc-field-stack & { flex: none; width: 100%; }
+
+  &:focus-within { border-color: $blue; }
+}
+
+.calc-input-prefix,
+.calc-input-suffix {
+  padding: 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: $muted;
+  background: #f7f9fb;
+  border-right: 1px solid $border;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+
+.calc-input-suffix {
+  border-right: none;
+  border-left: 1px solid $border;
+}
+
+.calc-input {
+  flex: 1;
+  padding: 9px 10px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-family: inherit;
+  color: $text;
+  background: #fff;
+  min-width: 0;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  &[type=number] { -moz-appearance: textfield; }
+}
+
+.calc-select {
+  flex: 0 0 140px;
+  padding: 9px 10px;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: $text;
+  background: #fff;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  &:focus { border-color: $blue; }
+}
+
+.calc-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    accent-color: $s5;
+    cursor: pointer;
+  }
+
+  label {
+    font-size: 13px;
+    font-family: inherit;
+    color: $text;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+}
+
+.calc-btn-calculate {
+  width: 100%;
+  padding: 16px;
+  background: $blue;
+  color: #fff;
+  border: none;
+  border-radius: $radius;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  letter-spacing: 0.3px;
+
+  &:hover  { background: darken($blue, 8%); }
+  &:active { transform: scale(0.99); }
+}
+
+// ── Result column ────────────────────────────────────────────────────────
+
+.calc-result-col {
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+  border-radius: $radius;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  overflow: hidden;
+
+  @media (max-width: 860px) {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+// Monthly payment hero
+
+.calc-result-header {
+  background: linear-gradient(135deg, $navy 0%, #172238 100%);
+  padding: 32px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+.calc-result-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.5);
+  font-family: inherit;
+}
+
+.calc-result-payment {
+  font-size: clamp(36px, 5.5vw, 52px);
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  font-family: inherit;
+}
+
+.calc-result-term {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  font-weight: 600;
+  font-family: inherit;
+}
+
+// Summary rows
+
+.calc-summary {
+  padding: 8px 0;
+  border-bottom: 1px solid $border;
+}
+
+.calc-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 28px;
+  border-bottom: 1px solid $border;
+  font-size: 14px;
+
+  &:last-child { border-bottom: none; }
+
+  &--total {
+    background: #f4f8fa;
+
+    .calc-summary-label { font-weight: 700; color: $text; }
+  }
+}
+
+.calc-summary-label {
+  color: $muted;
+  font-weight: 500;
+  font-family: inherit;
+}
+
+.calc-summary-value {
+  font-weight: 800;
+  font-size: 15px;
+  font-family: inherit;
+  color: $text;
+
+  &--interest { color: $green; }
+  &--total    { font-size: 17px; font-weight: 800; color: $blue; }
+}
+
+// Donut chart
+
+.calc-donut-section {
+  padding: 24px 28px;
+  border-bottom: 1px solid $border;
+}
+
+.calc-donut-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.calc-donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.calc-donut-svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.08));
+}
+
+.calc-donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.calc-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.calc-legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &--blue  { background: $blue; }
+  &--green { background: $green; }
+}
+
+.calc-legend-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.calc-legend-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: $text;
+  font-family: inherit;
+}
+
+.calc-legend-val {
+  font-size: 12px;
+  color: $muted;
+  font-family: inherit;
+}
+
+// Amortization schedule
+
+.calc-schedule-section { padding: 24px 28px; }
+
+.calc-schedule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.calc-schedule-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.calc-schedule-toggle {
+  display: flex;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.calc-schedule-tab {
+  padding: 7px 16px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: $muted;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+
+  &.active { background: $blue; color: #fff; }
+  &:not(.active):hover { background: #f0f5fb; color: $blue; }
+}
+
+.calc-schedule-empty {
+  padding: 24px;
+  text-align: center;
+  font-size: 13px;
+  color: $muted;
+  background: #fafcfe;
+  border-radius: 8px;
+  border: 1px dashed $border;
+}
+
+.calc-table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid $border;
+  max-height: 360px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar { width: 6px; height: 6px; }
+  &::-webkit-scrollbar-track { background: #f4f8fa; }
+  &::-webkit-scrollbar-thumb { background: #c0ccd8; border-radius: 3px; }
+}
+
+.calc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  thead tr {
+    background: #f4f8fa;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  th {
+    padding: 10px 14px;
+    text-align: right;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: $muted;
+    border-bottom: 1px solid $border;
+    white-space: nowrap;
+    font-family: inherit;
+
+    &:first-child { text-align: left; }
+  }
+
+  td {
+    padding: 9px 14px;
+    text-align: right;
+    color: $text;
+    border-bottom: 1px solid #f0f4f8;
+    font-family: inherit;
+    font-size: 13px;
+    white-space: nowrap;
+
+    &:first-child { text-align: left; font-weight: 600; }
+  }
+
+  tbody tr {
+    &:last-child td { border-bottom: none; }
+    &:nth-child(even) td { background: #fafcfe; }
+    &:hover td { background: #eff6ff; }
+  }
+}
+
+.td-interest  { color: darken($green, 5%); }
+.td-principal { color: $blue; }

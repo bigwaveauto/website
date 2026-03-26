@@ -5,7 +5,7 @@
 <div class="inv-banner">
   <div class="inv-banner-overlay"></div>
   <div class="inv-banner-content">
-    <h1 class="inv-banner-title">Available Inventory in Sussex, WI</h1>
+    <h1 class="inv-banner-title">Find Your Wave</h1>
     <div class="inv-breadcrumb">
       <a routerLink="/" class="inv-breadcrumb-link">Home</a>
       <span class="inv-breadcrumb-sep">/</span>
@@ -20,9 +20,9 @@
   <div class="inv-brands-track">
     @for(make of sortedMakes(qfilters.filters.make.counts); track make.key){
     <button class="inv-brand-item" [class.active]="optionSelected({type:'make[]', value: make.key})"
-      (click)="updateFilters(['make[]'], [{type:'make[]', value: make.key}])">
+      (click)="toggleMakeFilter(make.key)">
       @if(getBrandLogo(make.key); as logoSrc){
-      <div class="inv-brand-logo-wrap">
+      <div class="inv-brand-logo-wrap" [class.inv-brand-logo-wrap--lg]="make.key.toLowerCase() === 'porsche'">
         <img class="inv-brand-logo" [src]="logoSrc" [alt]="make.key">
       </div>
       }
@@ -54,7 +54,7 @@
           <div class="inv-chip">
             <span>{{ display.displayName }}: {{ fval | titlecase }}</span>
             <button class="inv-chip-remove" (click)="removeFilter(filt, fval)">
-              <mat-icon>close</mat-icon>
+              <lucide-icon name="x" />
             </button>
           </div>
           }
@@ -69,7 +69,7 @@
     <div class="inv-filter-section">
       <button class="inv-filter-heading" (click)="toggleSection('price')">
         <span>Price Range</span>
-        <mat-icon class="inv-chevron" [class.open]="isSectionOpen('price')">keyboard_arrow_down</mat-icon>
+        <lucide-icon name="chevron-down" class="inv-chevron" [class.open]="isSectionOpen('price')" />
       </button>
       @if(isSectionOpen('price')){
       <div class="inv-filter-body">
@@ -93,7 +93,7 @@
     <div class="inv-filter-section">
       <button class="inv-filter-heading" (click)="toggleSection('makemodel')">
         <span>Make &amp; Model</span>
-        <mat-icon class="inv-chevron" [class.open]="isSectionOpen('makemodel')">keyboard_arrow_down</mat-icon>
+        <lucide-icon name="chevron-down" class="inv-chevron" [class.open]="isSectionOpen('makemodel')" />
       </button>
       @if(isSectionOpen('makemodel')){
       <div class="inv-filter-body">
@@ -126,7 +126,7 @@
       <div class="inv-filter-section">
         <button class="inv-filter-heading" (click)="toggleSection(availFilt.key)">
           <span>{{ availFilt.value.displayName }}</span>
-          <mat-icon class="inv-chevron" [class.open]="isSectionOpen(availFilt.key)">keyboard_arrow_down</mat-icon>
+          <lucide-icon name="chevron-down" class="inv-chevron" [class.open]="isSectionOpen(availFilt.key)" />
         </button>
         @if(isSectionOpen(availFilt.key)){
         <div class="inv-filter-body">
@@ -174,13 +174,13 @@
               @if(focusedimg !== 0){
               <button class="inv-img-arrow left show-on-parent-hover"
                 (click)="$event.stopPropagation(); setFocusedImage(auto.vin, -1)">
-                <mat-icon>chevron_left</mat-icon>
+                <lucide-icon name="chevron-left" />
               </button>
               }
               @if(focusedimg !== (photoslen - 1)){
               <button class="inv-img-arrow right show-on-parent-hover"
                 (click)="$event.stopPropagation(); setFocusedImage(auto.vin, 1)">
-                <mat-icon>chevron_right</mat-icon>
+                <lucide-icon name="chevron-right" />
               </button>
               }
               <div class="inv-img-track"
@@ -206,8 +206,6 @@
                 }
               </div>
               }
-              <!-- Condition badge -->
-              <span class="inv-condition-badge">{{ auto.condition }}</span>
             </div>
 
             <!-- Card body -->
@@ -246,18 +244,6 @@
   </div>
 </div>
 
-<!-- ── SEO + Footer ── -->
 @if(!featured()){
-<div class="inv-seo">
-  <h2>Used Cars, Trucks &amp; SUVs for Sale in Sussex, WI – Big Wave Auto</h2>
-  <p>Looking for a dependable used vehicle in the greater Milwaukee area? At Big Wave Auto in Sussex, WI, we offer a wide variety of quality pre-owned cars, trucks, and SUVs at prices that fit your budget.</p>
-  <h3>Our used inventory often includes popular makes and models such as:</h3>
-  <p>• Toyota Camry, Corolla &amp; RAV4 – Reliable sedans and SUVs built for everyday driving</p>
-  <p>• Honda Accord, Civic &amp; CR-V – Efficient, practical, and long-lasting favorites</p>
-  <p>• Ford F-150, Escape &amp; Explorer – Tough trucks and versatile SUVs made for work and play</p>
-  <p>• Chevrolet Silverado, Malibu &amp; Equinox – American classics with performance and comfort</p>
-  <p>• Luxury brands like BMW, Mercedes-Benz, Lexus &amp; Audi – Premium driving at great value</p>
-  <p>We proudly serve drivers from Sussex, Waukesha, Menomonee Falls, Pewaukee, Brookfield, Milwaukee, and surrounding Wisconsin communities.</p>
-</div>
 <footer></footer>
 }

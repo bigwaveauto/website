@@ -1,0 +1,95 @@
+$blue: #2563eb;
+$border: rgba(0,0,0,0.07);
+$text-muted: rgba(0,0,0,0.45);
+
+.inv-list { display: flex; flex-direction: column; gap: 16px; }
+
+.inv-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  flex-wrap: wrap;
+}
+
+.inv-title { font-size: 26px; font-weight: 800; color: #111; margin: 0; }
+
+.inv-search-wrap {
+  position: relative;
+  width: 320px;
+}
+
+.inv-search-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 18px; height: 18px; color: $text-muted; pointer-events: none;
+}
+
+.inv-search {
+  width: 100%; padding: 10px 14px 10px 38px;
+  border: 1.5px solid rgba(0,0,0,0.12); border-radius: 10px;
+  font-size: 14px; font-family: inherit; color: #111;
+  background: white; outline: none;
+  &:focus { border-color: $blue; }
+  &::placeholder { color: rgba(0,0,0,0.3); }
+}
+
+.inv-count { font-size: 13px; color: $text-muted; }
+
+.inv-loading {
+  padding: 60px; text-align: center; color: $text-muted; font-size: 15px;
+}
+
+.inv-table-wrap {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow: auto;
+  max-height: calc(100vh - 200px);
+}
+
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  white-space: nowrap;
+  table-layout: fixed;
+
+  th, td { padding: 6px 8px; text-align: left; overflow: hidden; text-overflow: ellipsis; }
+
+  th {
+    font-size: 10px;
+    font-weight: 700;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-bottom: 2px solid $border;
+    background: #fafbfc;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    user-select: none;
+
+    &.sortable { cursor: pointer; &:hover { color: #111; } }
+  }
+
+  td { border-bottom: 1px solid $border; color: #333; }
+
+  .r { text-align: right; }
+  .mono { font-family: 'SF Mono', 'Consolas', monospace; font-size: 11px; letter-spacing: -0.3px; }
+  .vin { color: $text-muted; font-size: 10px; }
+  .trim { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+
+  .price { font-weight: 700; color: #111; }
+  .cost { color: $text-muted; }
+
+  .aging-warn { color: #d97706; font-weight: 700; }
+  .aging-danger { color: #dc2626; font-weight: 700; }
+}
+
+.sort-icon { width: 14px; height: 14px; vertical-align: middle; margin-left: 2px; }
+
+.inv-row {
+  cursor: pointer;
+  transition: background 0.12s;
+  &:hover { background: #f5f7ff; }
+}
+
+// Lucide search icon fix
+lucide-icon { display: inline-flex; align-items: center; }

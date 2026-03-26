@@ -1,0 +1,1102 @@
+.acct-page {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 120px);
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 24px;
+  gap: 32px;
+}
+
+/* ── Sidebar ── */
+.acct-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.acct-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+}
+
+.acct-profile-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  span {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1;
+  }
+}
+
+.acct-profile-info {
+  overflow: hidden;
+}
+
+.acct-profile-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.acct-profile-email {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #777;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Settings icon in profile card ── */
+.acct-settings-icon {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+
+  lucide-icon { width: 20px; height: 20px; }
+
+  &:hover { color: #111; background: #f0f0f0; }
+  &.active { color: #111; }
+}
+
+/* ── My Garage button ── */
+.acct-garage-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+  width: 100%;
+
+  lucide-icon { color: #555; width: 20px; height: 20px; }
+
+  .acct-garage-chevron {
+    margin-left: auto;
+    color: #bbb;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover { background: #f8f8f8; border-color: #d0d0d0; }
+
+  &.active {
+    background: #111;
+    border-color: #111;
+    color: #fff;
+    lucide-icon { color: #fff; }
+  }
+}
+
+/* ── Garage content ── */
+.acct-subheading {
+  font-size: 14px;
+  color: #777;
+  margin: -16px 0 24px;
+}
+
+.acct-garage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.acct-garage-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 36px 24px;
+  background: #fff;
+  border: 2px dashed #d8d8d8;
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+
+  &:hover {
+    border-color: #111;
+    background: #fafafa;
+  }
+}
+
+.acct-garage-add-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  lucide-icon { width: 26px; height: 26px; color: #555; }
+}
+
+.acct-garage-add-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+}
+
+.acct-garage-add-sub {
+  margin: 0;
+  font-size: 12px;
+  color: #888;
+  line-height: 1.5;
+}
+
+/* ── Nav ── */
+.acct-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.acct-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #444;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+
+  lucide-icon {
+    width: 18px;
+    height: 18px;
+    color: #888;
+    transition: color 0.15s;
+  }
+
+  &:hover {
+    background: #f5f5f5;
+    color: #111;
+
+    lucide-icon { color: #111; }
+  }
+
+  &.active {
+    background: #111;
+    color: #fff;
+
+    lucide-icon { color: #fff; }
+  }
+}
+
+.acct-nav-divider {
+  height: 1px;
+  background: #e8e8e8;
+  margin: 4px 0;
+}
+
+.acct-signout {
+  color: #c0392b;
+
+  lucide-icon { color: #c0392b; }
+
+  &:hover {
+    background: #fdf2f2;
+    color: #a93226;
+
+    lucide-icon { color: #a93226; }
+  }
+}
+
+/* ── Content ── */
+.acct-content {
+  min-width: 0;
+}
+
+.acct-heading {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 24px;
+}
+
+/* Empty states */
+.acct-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 64px 32px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  color: #999;
+  text-align: center;
+
+  lucide-icon {
+    width: 40px;
+    height: 40px;
+    color: #ccc;
+  }
+
+  p {
+    margin: 0;
+    font-size: 15px;
+  }
+}
+
+.acct-cta-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+/* Settings */
+.acct-settings-card {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.acct-settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  font-size: 14px;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child { border-bottom: none; }
+
+  span:first-child {
+    font-weight: 500;
+    color: #666;
+  }
+
+  span:last-child {
+    color: #111;
+  }
+}
+
+/* ── Garage vehicle cards ── */
+.acct-garage-vehicle-card {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.agv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.agv-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+}
+
+.agv-trim {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #888;
+}
+
+.agv-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #bbb;
+  padding: 2px;
+  display: flex;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+
+  lucide-icon { width: 18px; height: 18px; }
+  &:hover { color: #c0392b; background: #fdf2f2; }
+}
+
+.agv-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #666;
+
+  span { display: flex; align-items: center; gap: 4px; }
+  lucide-icon { width: 15px; height: 15px; }
+}
+
+.agv-condition {
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+
+  &--excellent { background: #e8f8f0; color: #1a7a4a; }
+  &--good      { background: #e8f4ff; color: #1a5cb8; }
+  &--fair      { background: #fff8e8; color: #b87a1a; }
+  &--poor      { background: #fdf2f2; color: #c0392b; }
+}
+
+.agv-vin {
+  margin: 0;
+  font-size: 11px;
+  color: #aaa;
+  letter-spacing: 0.5px;
+  font-family: monospace;
+}
+
+.agv-values {
+  background: #f8f8f8;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agv-value-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.agv-value-label { color: #666; }
+.agv-value-num   { font-weight: 700; color: #111; }
+
+/* ── Loan section on card ── */
+.agv-loan-section {
+  background: #f8f8f8;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.agv-loan-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  lucide-icon { width: 14px; height: 14px; }
+}
+
+.agv-loan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.agv-loan-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.agv-loan-item-label {
+  font-size: 10px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.agv-loan-item-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+}
+
+.agv-refi-banner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #e8f4ff, #f0e8ff);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #333;
+  cursor: pointer;
+
+  lucide-icon { width: 15px; height: 15px; color: #5b4fcf; }
+
+  strong { color: #5b4fcf; }
+}
+
+/* ── Edit button ── */
+.agv-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.agv-edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  color: #bbb;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+
+  lucide-icon { width: 17px; height: 17px; }
+  &:hover { color: #555; background: #f0f0f0; }
+}
+
+/* ── Edit modal ── */
+.agv-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.agv-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+.agv-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  h2 { margin: 0; font-size: 18px; font-weight: 700; color: #111; }
+}
+
+.agv-modal-form { display: flex; flex-direction: column; gap: 16px; }
+
+.agv-modal-section-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  lucide-icon { width: 16px; height: 16px; color: #666; }
+}
+
+.agv-modal-section-sub {
+  margin: -8px 0 0;
+  font-size: 12px;
+  color: #888;
+  line-height: 1.4;
+}
+
+.agv-modal-divider {
+  height: 1px;
+  background: #f0f0f0;
+}
+
+/* ── Prefix/suffix inputs ── */
+.agf-prefix-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.agf-prefix {
+  position: absolute;
+  left: 12px;
+  font-size: 14px;
+  color: #888;
+  pointer-events: none;
+}
+
+.agf-suffix {
+  position: absolute;
+  right: 12px;
+  font-size: 14px;
+  color: #888;
+  pointer-events: none;
+}
+
+.agf-input--prefix { padding-left: 24px; }
+.agf-input--suffix { padding-right: 32px; }
+
+/* ── Action buttons ── */
+.agv-action-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agv-bwa-btn,
+.agv-deal-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  lucide-icon { width: 16px; height: 16px; }
+}
+
+.agv-bwa-btn {
+  background: #111;
+  color: #fff;
+  &:hover { background: #333; }
+}
+
+.agv-deal-btn {
+  background: #f0f7ff;
+  color: #1a5cb8;
+  border: 1px solid #c0d8f5;
+  &:hover { background: #ddeeff; }
+}
+
+.agv-carfax-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #003366;
+  border-radius: 8px;
+  color: #003366;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s;
+
+  lucide-icon { width: 16px; height: 16px; }
+  &:hover { background: #f0f5ff; }
+}
+
+/* ── Add vehicle form ── */
+.acct-garage-form-card {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 14px;
+  padding: 24px;
+  margin-top: 20px;
+}
+
+.acct-garage-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  h2 { margin: 0; font-size: 17px; font-weight: 700; color: #111; }
+}
+
+.agf-mode-toggle {
+  display: flex;
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 20px;
+  gap: 4px;
+}
+
+.agf-mode-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #777;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &.active {
+    background: #fff;
+    color: #111;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+}
+
+.acct-garage-form { display: flex; flex-direction: column; gap: 16px; }
+
+.agf-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+.agf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.agf-loading {
+  font-size: 11px;
+  font-weight: 400;
+  color: #888;
+  animation: pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
+
+.agf-error {
+  font-size: 11px;
+  color: #c0392b;
+}
+
+.agf-optional {
+  font-size: 11px;
+  font-weight: 400;
+  color: #aaa;
+}
+
+.agf-input,
+.agf-select {
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111;
+  background: #fafafa;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+
+  &:focus { border-color: #111; background: #fff; }
+}
+
+.agf-vin-row {
+  display: flex;
+  gap: 8px;
+}
+
+.agf-vin-input { flex: 1; }
+
+.agf-vin-btn {
+  padding: 10px 18px;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) { background: #333; }
+  &:disabled { background: #ccc; cursor: not-allowed; }
+}
+
+.agf-decoded-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f0faf4;
+  border: 1px solid #b7e4c7;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.agf-decoded-check {
+  color: #1a7a4a;
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.agf-decoded-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+}
+
+.agf-decoded-trim {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #555;
+}
+
+.agf-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.agf-cancel {
+  padding: 10px 20px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+  cursor: pointer;
+  &:hover { background: #eee; }
+}
+
+.agf-submit {
+  padding: 10px 24px;
+  background: #111;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #333; }
+  &:disabled { background: #ccc; cursor: not-allowed; }
+}
+
+/* ── WaveCash rewards bubble ── */
+.acct-rewards-card {
+  background: linear-gradient(160deg, #0d1b2a 0%, #1a3a5c 60%, #0d2a1a 100%);
+  border-radius: 16px;
+  padding: 20px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 130px;
+    height: 130px;
+    background: radial-gradient(circle, rgba(79,195,247,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+}
+
+.acct-rewards-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.acct-rewards-logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+
+  lucide-icon {
+    width: 16px;
+    height: 16px;
+    color: #4fc3f7;
+  }
+}
+
+.acct-rewards-balance-btn {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  color: rgba(255,255,255,0.7);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover, &.active { background: rgba(79,195,247,0.2); color: #4fc3f7; border-color: rgba(79,195,247,0.3); }
+}
+
+.acct-rewards-headline {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+.acct-rewards-sub {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.5;
+
+  strong { color: #4fc3f7; font-weight: 700; }
+}
+
+.acct-rewards-refer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: #4fc3f7;
+  color: #05111c;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  letter-spacing: 0.2px;
+
+  lucide-icon { width: 18px; height: 18px; }
+
+  &:hover { background: #81d4fa; transform: translateY(-1px); }
+  &.active { background: #81d4fa; }
+}
+
+.acct-rewards-footer {
+  margin: 0;
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+  text-align: center;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+/* ── Referral form ── */
+.acct-referral-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: linear-gradient(135deg, #0d1b2a, #1a3a5c);
+  border-radius: 14px;
+  padding: 20px;
+  color: #fff;
+  margin-bottom: 20px;
+
+  lucide-icon {
+    width: 28px;
+    height: 28px;
+    color: #4fc3f7;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
+.acct-referral-banner-title {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.acct-referral-banner-sub {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.5;
+}
+
+.acct-referral-form-card {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.acct-referral-form-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+}
+
+.acct-referral-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.agf-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.acct-referral-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 24px;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  lucide-icon { width: 18px; height: 18px; }
+  &:hover { background: #333; }
+}
+
+.acct-referral-disclaimer {
+  margin: 0;
+  font-size: 12px;
+  color: #aaa;
+  text-align: center;
+}
+
+.acct-wavecash-card {
+  background: linear-gradient(135deg, #0a0a0a, #1a2a3a);
+  border-radius: 14px;
+  padding: 40px 32px;
+  text-align: center;
+  color: #fff;
+}
+
+.acct-wavecash-balance {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  lucide-icon {
+    width: 40px;
+    height: 40px;
+    color: #4fc3f7;
+  }
+}
+
+.acct-wavecash-amount {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.acct-wavecash-label {
+  font-size: 14px;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .acct-page {
+    grid-template-columns: 1fr;
+    margin: 16px auto;
+    gap: 16px;
+  }
+
+  .acct-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 6px;
+  }
+
+  .acct-nav-item {
+    flex: 1;
+    min-width: fit-content;
+    justify-content: center;
+    padding: 8px 10px;
+    font-size: 12px;
+    gap: 6px;
+  }
+}

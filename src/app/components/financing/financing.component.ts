@@ -2,7 +2,7 @@ import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { MatIconModule } from '@angular/material/icon';
+import { LucideAngularModule } from 'lucide-angular';
 import { RouterLink } from '@angular/router';
 import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
@@ -12,10 +12,16 @@ import { FooterComponent } from '../footer/footer.component';
   templateUrl: './financing.component.html',
   styleUrl: './financing.component.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule, RouterLink, HeaderComponent, FooterComponent]
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink, HeaderComponent, FooterComponent]
 })
 export class FinancingComponent {
   private http = inject(HttpClient);
+
+  // ── Business-configurable rate ──────────────────────────────────────────
+  lowestRate = '6.9%';
+  lowestRateTerm = '60-month term';
+  // ────────────────────────────────────────────────────────────────────────
+
   step = signal(1);
   totalSteps = 4;
   submitted = signal(false);
@@ -50,6 +56,7 @@ export class FinancingComponent {
       email: ['', [Validators.required, Validators.email]],
       phone: ['', Validators.required],
       dob: ['', Validators.required],
+      ssn: ['', Validators.required],
     });
 
     this.addressForm = this.fb.group({

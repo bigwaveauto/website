@@ -32,26 +32,26 @@
 
         <div class="abt-principle-card">
           <div class="abt-principle-icon">
-            <mat-icon>shield</mat-icon>
+            <lucide-icon name="badge-check" />
           </div>
-          <h3>Transparent, Trustworthy &amp; Secure</h3>
-          <p>We only buy cars we would purchase for ourselves. That means no dealer fees, no gimmicks, and no games. Every vehicle is hand-selected with your best interest in mind.</p>
+          <h3>Cars We'd Buy Ourselves</h3>
+          <p>Every vehicle in our inventory is hand-selected like we're buying it for our own family. Transparent pricing, no gimmicks — just cars we genuinely stand behind and people you can actually trust.</p>
         </div>
 
         <div class="abt-principle-card">
           <div class="abt-principle-icon">
-            <mat-icon>savings</mat-icon>
+            <lucide-icon name="search" />
           </div>
-          <h3>Approachable &amp; Affordable</h3>
-          <p>We cut unnecessary markups while giving you the same access to nationwide inventory as big dealerships — without paying for their overhead. Quality cars at prices that make sense.</p>
+          <h3>Built Around You, Not the Lot</h3>
+          <p>Most dealerships sell what they have. We find what you want. Tell us your must-haves and we'll search our nationwide network to track down your exact car — right make, model, color, and features. No settling.</p>
         </div>
 
         <div class="abt-principle-card">
           <div class="abt-principle-icon">
-            <mat-icon>surfing</mat-icon>
+            <lucide-icon name="handshake" />
           </div>
-          <h3>Fun &amp; Exciting</h3>
-          <p>Buying a car should feel like a treasure hunt, not a chore. We deliver stress-free, personalized experiences that put the joy back into finding your next vehicle.</p>
+          <h3>We're in Your Corner</h3>
+          <p>From your first question to long after you drive away, we're here. We listen, we guide, and we make sure the whole experience feels less like a transaction and more like buying a car with a friend who really knows cars.</p>
         </div>
 
       </div>
@@ -84,8 +84,8 @@
           <span class="abt-stat-label">Personal Purchases</span>
         </div>
         <div class="abt-stat">
-          <span class="abt-stat-value">$0</span>
-          <span class="abt-stat-label">Dealer Fees</span>
+          <span class="abt-stat-value">5★</span>
+          <span class="abt-stat-label">Google Rating</span>
         </div>
         <div class="abt-stat">
           <span class="abt-stat-value">100%</span>
@@ -93,6 +93,97 @@
         </div>
       </div>
 
+    </div>
+  </section>
+
+  <!-- Sales Heat Map -->
+  <section class="abt-map-section">
+    <div class="abt-map-inner">
+      <p class="abt-eyebrow abt-eyebrow--light">Our Reach</p>
+      <h2 class="abt-section-title abt-section-title--white">Cars Delivered Across America</h2>
+      <div class="abt-map-stats-row">
+        <div class="abt-map-stat">
+          <span class="abt-map-stat-num">174+</span>
+          <span class="abt-map-stat-label">Vehicles Sold</span>
+        </div>
+        <div class="abt-map-stat">
+          <span class="abt-map-stat-num">{{ statesReached }}</span>
+          <span class="abt-map-stat-label">States Reached</span>
+        </div>
+        <div class="abt-map-stat">
+          <span class="abt-map-stat-num">81</span>
+          <span class="abt-map-stat-label">Sold in Wisconsin</span>
+        </div>
+      </div>
+
+      <!-- SVG US Map -->
+      <div class="abt-map-wrap">
+        <svg viewBox="0 0 960 600" class="abt-us-map" xmlns="http://www.w3.org/2000/svg">
+          <!-- Continental US state paths -->
+          <path d="M831,396L833,395L835,394L838,391L841,388L842,387L843,385L845,383L844,381L841,380L839,381L836,381L833,382L832,383L830,385L828,386L826,389L825,391L825,394L827,396Z" [attr.fill]="getStateFill('FL')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'FL','Florida')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M219,140L222,141L225,142L228,141L230,139L232,137L233,135L234,132L237,130L240,128L243,126L246,126L248,127L250,129L253,129L256,128L258,126L259,124L261,122L264,121L267,120L270,120L271,121L272,123L274,124L276,124L278,123L280,121L282,120L283,121L284,124L283,127L281,129L278,131L276,133L275,136L276,138L278,139L281,140L283,140L285,139L287,137L289,136L290,135L291,133L293,132L295,131L297,131L299,132L301,133L302,135L303,137L303,139L302,141L300,143L298,144L296,146L295,147L294,149L294,151L295,153L297,154L299,155L300,157L300,159L299,161L297,162L295,163L293,163L291,163L290,161L289,159L288,157L287,155L285,153L283,152L281,152L278,153L276,154L274,156L272,158L271,160L271,163L272,165L274,167L275,169L275,171L273,173L271,174L269,175L266,176L264,176L261,175L259,174L257,173L255,172L253,172L251,173L249,175L247,176L246,178L246,180L247,182L248,184L249,186L249,188L248,190L246,192L244,193L242,194L240,194L238,193L236,192L234,190L232,188L231,186L230,184L229,182L229,179L228,177L226,176L224,175L222,174L220,174L218,175L216,176L213,177L211,177L208,176L206,175L204,174L202,172L200,170L199,168L198,166L198,163L197,161L196,159L194,158L192,157L191,155L190,153L190,151L189,149L188,147L188,145L189,143L190,141L192,139L194,138L196,137L198,137L201,137L203,138L206,138L209,138L211,137L213,137L216,138Z" [attr.fill]="getStateFill('WA')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'WA','Washington')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M563,168L567,168L572,168L577,167L581,167L585,167L589,167L593,168L597,169L600,170L602,172L605,174L607,177L607,180L605,183L602,185L600,187L599,189L599,191L601,194L603,196L604,199L604,201L602,203L599,204L596,205L594,205L591,205L588,206L586,208L585,210L585,213L586,215L588,218L589,221L589,224L587,226L585,228L582,229L579,230L576,230L573,229L571,228L568,227L566,225L564,222L563,219L563,216L563,213L564,210L564,207L563,205L562,202L560,200L559,198L558,196L558,193L558,190L559,188L560,185L560,183L560,180L560,177L560,175L561,172L562,170Z" [attr.fill]="getStateFill('WI')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'WI','Wisconsin')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M604,201L607,199L610,198L614,197L618,197L621,198L624,199L627,201L629,204L629,207L628,210L626,213L624,215L621,217L618,218L615,219L612,219L609,218L607,216L605,214L604,212L603,209L603,206L604,204Z" [attr.fill]="getStateFill('IL')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'IL','Illinois')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M629,204L632,202L635,201L639,200L643,200L646,202L649,204L651,207L651,210L650,213L648,216L645,218L642,219L639,219L636,218L633,217L631,215L629,212L628,210L628,207Z" [attr.fill]="getStateFill('IN')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'IN','Indiana')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M430,180L438,180L445,179L452,179L459,179L466,180L473,181L479,183L485,186L489,188L492,192L493,196L492,200L490,205L487,209L484,212L480,215L476,217L471,219L466,219L461,218L456,216L451,214L446,211L442,207L439,203L436,199L434,194L432,189L431,185Z" [attr.fill]="getStateFill('ND')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'ND','North Dakota')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M486,268L493,266L500,264L507,263L515,263L522,264L528,266L533,270L537,274L540,279L541,284L540,290L537,295L534,299L530,302L525,305L520,306L515,306L509,305L504,302L499,299L495,295L492,291L490,286L489,281L488,276L487,272Z" [attr.fill]="getStateFill('MO')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'MO','Missouri')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M390,315L399,311L410,307L420,305L430,305L440,307L450,310L459,315L466,322L471,330L474,340L474,350L472,360L468,370L462,378L455,385L447,390L437,394L426,396L415,396L405,394L396,389L388,383L382,375L378,366L376,356L377,346L379,336L383,327Z" [attr.fill]="getStateFill('TX')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'TX','Texas')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M325,240L332,239L339,239L346,240L353,241L359,244L365,247L370,252L374,257L377,263L378,269L377,276L374,282L370,288L365,292L360,296L354,298L348,299L341,299L335,297L329,294L324,290L320,285L317,280L316,274L316,268L317,262L319,256L321,250L323,245Z" [attr.fill]="getStateFill('CO')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'CO','Colorado')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M260,295L266,295L273,296L280,299L286,303L291,308L295,314L296,320L295,326L292,332L287,337L282,340L276,342L269,343L263,342L257,339L252,335L248,330L245,324L244,318L244,312L246,306L249,301L254,297Z" [attr.fill]="getStateFill('AZ')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'AZ','Arizona')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M651,207L655,205L659,204L664,204L668,206L672,208L675,211L676,215L675,219L673,223L669,225L665,226L661,226L657,224L654,221L652,217L651,213L651,210Z" [attr.fill]="getStateFill('KY')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'KY','Kentucky')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M770,177L776,176L782,176L787,178L791,181L794,184L795,188L794,192L791,196L787,198L782,199L777,199L773,197L770,194L768,190L767,186L768,182Z" [attr.fill]="getStateFill('NJ')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'NJ','New Jersey')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M753,190L758,189L762,190L766,192L769,196L770,200L769,204L766,207L762,209L758,210L754,209L751,206L749,203L749,199L750,195L751,192Z" [attr.fill]="getStateFill('MD')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'MD','Maryland')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M746,210L750,209L754,210L758,212L761,215L763,219L762,223L760,226L756,228L752,228L749,226L746,223L745,219L745,215Z" [attr.fill]="getStateFill('PA')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'PA','Pennsylvania')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M760,170L764,169L768,170L772,172L775,175L776,179L775,183L772,186L768,188L764,188L761,186L759,183L758,180L758,176L759,173Z" [attr.fill]="getStateFill('NY')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'NY','New York')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M795,155L799,155L803,157L806,160L807,164L805,168L802,170L798,170L794,168L792,165L791,161L792,158Z" [attr.fill]="getStateFill('MA')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'MA','Massachusetts')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M681,233L685,231L690,230L695,230L699,232L703,235L705,239L705,244L703,248L699,251L695,252L691,251L687,249L684,246L682,242L681,238Z" [attr.fill]="getStateFill('GA')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'GA','Georgia')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M724,283L728,282L732,283L736,286L738,289L739,293L737,296L734,298L730,299L726,298L723,295L722,292L722,288L723,285Z" [attr.fill]="getStateFill('FL')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'FL','Florida')" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path d="M530,175L536,174L542,174L548,175L553,177L558,180L562,184L563,188L562,193L559,197L555,200L550,202L544,203L539,202L534,200L530,196L527,192L526,187L527,182L528,178Z" [attr.fill]="getStateFill('MN')" stroke="#0e1523" stroke-width="1" (mouseenter)="onStateHover($event,'MN','Minnesota')" (mouseleave)="onStateLeave()" class="abt-state" />
+
+          <!-- Remaining states with no sales — dark fill -->
+          @for(s of ['AL','AR','CA','CT','DE','HI','IA','ID','KS','LA','ME','MI','MS','MT','NC','NE','NH','NM','NV','OH','OK','OR','RI','SC','SD','TN','UT','VA','VT','WV','WY']; track s){
+          <!-- Unlisted states are part of the base dark background -->
+          }
+        </svg>
+
+        <!-- Tooltip -->
+        @if(tooltipVisible()){
+        <div class="abt-map-tooltip" [style.left.px]="tooltipX()" [style.top.px]="tooltipY()">
+          <strong>{{ tooltipState() }}</strong>
+          <span>{{ tooltipCount() }} vehicle{{ tooltipCount() > 1 ? 's' : '' }} sold</span>
+        </div>
+        }
+      </div>
+
+      <!-- Legend -->
+      <div class="abt-map-legend">
+        <div class="abt-legend-item"><span class="abt-legend-dot" style="background:#1e293b"></span> No sales</div>
+        <div class="abt-legend-item"><span class="abt-legend-dot" style="background:#1e4a6e"></span> 1</div>
+        <div class="abt-legend-item"><span class="abt-legend-dot" style="background:#1a78c2"></span> 2–3</div>
+        <div class="abt-legend-item"><span class="abt-legend-dot" style="background:#38bdf8"></span> 4–12</div>
+        <div class="abt-legend-item"><span class="abt-legend-dot" style="background:#7dd3fc"></span> 80+</div>
+      </div>
+
+      <!-- Top Brands Leaderboard -->
+      <div class="abt-brands-board">
+        <h3 class="abt-brands-board-title">Top Brands Sold</h3>
+        <div class="abt-brands-board-list">
+          @for(brand of topBrands; track brand.name; let i = $index){
+          <div class="abt-brand-rank">
+            <span class="abt-brand-rank-num">#{{ i + 1 }}</span>
+            @if(brand.logo){
+            <img [src]="brand.logo" [alt]="brand.name" class="abt-brand-rank-logo" />
+            }@else{
+            <span class="abt-brand-rank-name-only">{{ brand.name }}</span>
+            }
+            <span class="abt-brand-rank-count">{{ brand.count }}</span>
+            <div class="abt-brand-rank-bar">
+              <div class="abt-brand-rank-fill" [style.width.%]="(brand.count / topBrands[0].count) * 100"></div>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
     </div>
   </section>
 
@@ -105,19 +196,19 @@
         <h2 class="abt-section-title abt-section-title--white">Find Us in Sussex, WI</h2>
         <div class="abt-location-rows">
           <div class="abt-location-row">
-            <mat-icon>location_on</mat-icon>
+            <lucide-icon name="map-pin" />
             <span>N69W25055 Indian Grass Lane, Unit H<br>Sussex, WI 53089</span>
           </div>
           <div class="abt-location-row">
-            <mat-icon>phone</mat-icon>
-            <span>(262) 281-1295</span>
+            <lucide-icon name="phone" />
+            <span>(262) 592-4795</span>
           </div>
           <div class="abt-location-row">
-            <mat-icon>email</mat-icon>
+            <lucide-icon name="mail" />
             <span>dave&#64;bigwaveauto.com</span>
           </div>
           <div class="abt-location-row">
-            <mat-icon>schedule</mat-icon>
+            <lucide-icon name="clock" />
             <span>Monday – Saturday, 9 AM – 6 PM<br><em>By appointment only</em></span>
           </div>
         </div>
@@ -127,8 +218,8 @@
         <p>We proudly serve drivers from Sussex, Waukesha, Menomonee Falls, Pewaukee, Brookfield, Milwaukee, and surrounding Wisconsin communities.</p>
         <p>Ready to find your next vehicle? Reach out to schedule an appointment or browse our inventory online.</p>
         <div class="abt-cta-btns">
-          <a routerLink="/showroom" class="abt-btn abt-btn--primary">Browse Inventory <mat-icon>arrow_forward</mat-icon></a>
-          <a routerLink="/financing" class="abt-btn abt-btn--outline">Get Financing <mat-icon>arrow_forward</mat-icon></a>
+          <a routerLink="/showroom" class="abt-btn abt-btn--primary">Browse Inventory <lucide-icon name="arrow-right" /></a>
+          <a routerLink="/financing" class="abt-btn abt-btn--outline">Get Financing <lucide-icon name="arrow-right" /></a>
         </div>
       </div>
 

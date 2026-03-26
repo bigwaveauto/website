@@ -83,6 +83,16 @@ body {
   --radius-xl:            1.5rem;
 }
 
+/* ── Lucide icon base styles ── */
+lucide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 0;
+  svg { width: 1em; height: 1em; }
+}
+
 $primary: #2563eb;
 
 .vertical-divider {

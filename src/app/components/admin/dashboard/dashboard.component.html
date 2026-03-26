@@ -1,0 +1,143 @@
+<div class="dash">
+
+  <div class="dash-header">
+    <h1 class="dash-title">Dashboard</h1>
+    <span class="dash-date">{{ today }}</span>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="dash-stats">
+    <div class="dash-stat-card">
+      <div class="dash-stat-icon blue"><lucide-icon name="car" /></div>
+      <div>
+        <span class="dash-stat-value">{{ data()?.inventory?.totalVehicles ?? '—' }}</span>
+        <span class="dash-stat-label">Units in Stock</span>
+      </div>
+    </div>
+    <div class="dash-stat-card">
+      <div class="dash-stat-icon green"><lucide-icon name="users" /></div>
+      <div>
+        <span class="dash-stat-value">{{ data()?.leads?.total ?? '—' }}</span>
+        <span class="dash-stat-label">Total Leads</span>
+      </div>
+    </div>
+    <div class="dash-stat-card">
+      <div class="dash-stat-icon teal"><lucide-icon name="bell" /></div>
+      <div>
+        <span class="dash-stat-value">{{ data()?.leads?.newToday ?? '—' }}</span>
+        <span class="dash-stat-label">New Today</span>
+      </div>
+    </div>
+    <div class="dash-stat-card">
+      <div class="dash-stat-icon purple"><lucide-icon name="tag" /></div>
+      <div>
+        <span class="dash-stat-value">{{ data()?.leads?.offers ?? '—' }}</span>
+        <span class="dash-stat-label">Pending Offers</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory + Top Sellers row -->
+  <div class="dash-row">
+
+    <!-- Current Inventory Aging -->
+    <div class="dash-card dash-card-wide">
+      <h2 class="dash-card-title">Current Inventory</h2>
+      @if(data()?.inventory; as inv){
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>Age in Days</th>
+            <th></th>
+            <th class="r">No. of Vehicles</th>
+            <th class="r">Total Cost</th>
+            <th class="r">Total Vehicle Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for(row of inv.ageRows; track row.label){
+          <tr>
+            <td>{{ row.label }}</td>
+            <td class="bar-cell">
+              <div class="bar-track">
+                <div class="bar-fill" [style.width.%]="row.pct"></div>
+              </div>
+              <span class="bar-pct">{{ row.pct | number:'1.2-2' }}%</span>
+            </td>
+            <td class="r">{{ row.count }}</td>
+            <td class="r">{{ row.totalCost | currency:'USD':'symbol':'1.0-0' }}</td>
+            <td class="r">{{ row.totalPrice | currency:'USD':'symbol':'1.0-0' }}</td>
+          </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <td><strong>Total Vehicles</strong></td>
+            <td></td>
+            <td class="r"><strong>{{ inv.totalVehicles }}</strong></td>
+            <td class="r"><strong>{{ inv.totalCost | currency:'USD':'symbol':'1.0-0' }}</strong></td>
+            <td class="r"><strong>{{ inv.totalPrice | currency:'USD':'symbol':'1.0-0' }}</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+      }@else{
+      <div class="dash-empty">Loading inventory data…</div>
+      }
+    </div>
+
+    <!-- Top Sellers -->
+    <div class="dash-card dash-card-narrow">
+      <h2 class="dash-card-title">Top Sellers</h2>
+      @if(data()?.topSellers; as top){
+      <div class="dash-top-list">
+        <div class="dash-top-header">
+          <span>Model</span>
+        </div>
+        @for(item of top; track item.model){
+        <div class="dash-top-row">
+          <span>{{ item.model }}</span>
+        </div>
+        }
+        <div class="dash-top-row total">
+          <span><strong>Total</strong></span>
+        </div>
+      </div>
+      }@else{
+      <div class="dash-empty">No sales data yet</div>
+      }
+    </div>
+
+  </div>
+
+  <!-- Lead Breakdown -->
+  <div class="dash-card">
+    <h2 class="dash-card-title">Lead Breakdown</h2>
+    <!-- Period tabs -->
+    <div class="dash-period-tabs">
+      @for(p of periods; track p.key){
+      <button class="dash-period-tab" [class.active]="selectedPeriod() === p.key" (click)="selectPeriod(p.key)">{{ p.label }}</button>
+      }
+    </div>
+    @if(data()?.leads; as leads){
+    <div class="dash-lead-bars">
+      <div class="dash-lead-bar-row">
+        <span class="dash-lead-label"><lucide-icon name="car" /> Test Drives</span>
+        <span class="dash-lead-count">{{ leads.testDrives }}</span>
+      </div>
+      <div class="dash-lead-bar-row">
+        <span class="dash-lead-label"><lucide-icon name="send" /> Offers</span>
+        <span class="dash-lead-count">{{ leads.offers }}</span>
+      </div>
+      <div class="dash-lead-bar-row">
+        <span class="dash-lead-label"><lucide-icon name="landmark" /> Financing</span>
+        <span class="dash-lead-count">{{ leads.financing }}</span>
+      </div>
+      <div class="dash-lead-bar-row">
+        <span class="dash-lead-label"><lucide-icon name="refresh-cw" /> Trade-Ins</span>
+        <span class="dash-lead-count">{{ leads.tradeIns }}</span>
+      </div>
+    </div>
+    }
+  </div>
+
+</div>

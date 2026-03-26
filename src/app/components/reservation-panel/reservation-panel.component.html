@@ -1,0 +1,229 @@
+@if(reserve.panelOpen()){
+
+<!-- Overlay -->
+<div class="rp-overlay" (click)="reserve.close()"></div>
+
+<!-- Panel -->
+<div class="rp-panel">
+
+  <!-- ══════════════════ OVERVIEW ══════════════════ -->
+  @if(reserve.currentStep() === 'overview'){
+
+  <div class="rp-header">
+    <span class="rp-title">Reservation process</span>
+    <button class="rp-close" (click)="reserve.close()"><lucide-icon name="x" /></button>
+  </div>
+
+  @if(reserve.vehicle(); as v){
+  <div class="rp-vehicle-tag">
+    <lucide-icon name="car" />
+    <span>{{ v.year }} {{ v.make }} {{ v.model }}</span>
+    <span class="rp-vehicle-price">{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span>
+  </div>
+  }
+
+  <div class="rp-steps-list">
+    @for(s of reserve.steps; track s.id){
+    <button class="rp-step-row" (click)="reserve.goToStep(s.id)">
+      <div class="rp-step-icon" [class.complete]="reserve.stepComplete(s.id)">
+        @if(reserve.stepComplete(s.id)){
+          <lucide-icon name="check" />
+        }
+      </div>
+      <div class="rp-step-info">
+        <span class="rp-step-label">{{ s.label }}</span>
+        <span class="rp-step-sub">{{ s.sub }}</span>
+      </div>
+      <lucide-icon name="chevron-right" class="rp-step-chevron" />
+    </button>
+    }
+  </div>
+
+  @if(reserve.allComplete()){
+  <div class="rp-submit-wrap">
+    <button class="rp-submit-btn">Submit Reservation</button>
+  </div>
+  }
+
+  <button class="rp-cancel-btn" (click)="reserve.cancel()">Cancel reservation</button>
+  }
+
+  <!-- ══════════════════ INFO STEP ══════════════════ -->
+  @if(reserve.currentStep() === 'info'){
+
+  <div class="rp-header">
+    <button class="rp-back" (click)="reserve.goToOverview()"><lucide-icon name="arrow-left" /></button>
+    <span class="rp-title">Your Information</span>
+  </div>
+
+  <div class="rp-step-body">
+    <form [formGroup]="infoForm" (ngSubmit)="submitInfo()">
+      <div class="rp-section-label">Registrant information</div>
+      <div class="rp-row-2">
+        <div class="rp-field">
+          <label>First name</label>
+          <input formControlName="firstName" type="text" autocomplete="given-name" />
+        </div>
+        <div class="rp-field">
+          <label>Last name</label>
+          <input formControlName="lastName" type="text" autocomplete="family-name" />
+        </div>
+      </div>
+      <div class="rp-field">
+        <label>Email</label>
+        <input formControlName="email" type="email" autocomplete="email" />
+      </div>
+      <div class="rp-field">
+        <label>Phone</label>
+        <input formControlName="phone" type="tel" autocomplete="tel" />
+      </div>
+      <label class="rp-checkbox-row">
+        <input type="checkbox" formControlName="coRegistrant" />
+        <span>I have a co-registrant for this vehicle</span>
+      </label>
+      @if(infoForm.get('coRegistrant')?.value){
+      <div class="rp-field">
+        <label>Co-registrant name</label>
+        <input formControlName="coRegName" type="text" />
+      </div>
+      }
+
+      <div class="rp-section-label" style="margin-top:24px">Home address</div>
+      <div class="rp-field">
+        <label>Street address</label>
+        <input formControlName="street" type="text" autocomplete="street-address" />
+      </div>
+      <div class="rp-row-3">
+        <div class="rp-field">
+          <label>City</label>
+          <input formControlName="city" type="text" />
+        </div>
+        <div class="rp-field">
+          <label>State</label>
+          <input formControlName="state" type="text" maxlength="2" style="text-transform:uppercase" />
+        </div>
+        <div class="rp-field">
+          <label>ZIP</label>
+          <input formControlName="zip" type="text" inputmode="numeric" />
+        </div>
+      </div>
+
+      <button type="submit" class="rp-step-submit">Continue</button>
+    </form>
+  </div>
+  }
+
+  <!-- ══════════════════ COVERAGE STEP ══════════════════ -->
+  @if(reserve.currentStep() === 'coverage'){
+
+  <div class="rp-header">
+    <button class="rp-back" (click)="reserve.goToOverview()"><lucide-icon name="arrow-left" /></button>
+    <span class="rp-title">Protection Plans</span>
+  </div>
+
+  <div class="rp-step-body">
+    <p class="rp-step-intro">Add coverage to protect your investment. You can also skip for now.</p>
+    <div class="rp-coverage-list">
+      @for(opt of coverageOptions; track opt.id){
+      <button class="rp-coverage-card" [class.selected]="coverageSelected() === opt.id"
+              (click)="coverageSelected.set(opt.id)">
+        <div class="rp-coverage-info">
+          <span class="rp-coverage-label">{{ opt.label }}</span>
+          <span class="rp-coverage-sub">{{ opt.sub }}</span>
+        </div>
+        <div class="rp-coverage-price">
+          @if(opt.price > 0){ {{ opt.price | currency:'USD':'symbol':'1.0-0' }} }
+          @else { Included }
+        </div>
+        <div class="rp-coverage-check" [class.visible]="coverageSelected() === opt.id">
+          <lucide-icon name="circle-check" />
+        </div>
+      </button>
+      }
+    </div>
+    <button class="rp-step-submit" [disabled]="!coverageSelected()" (click)="submitCoverage()">Continue</button>
+  </div>
+  }
+
+  <!-- ══════════════════ DELIVERY STEP ══════════════════ -->
+  @if(reserve.currentStep() === 'delivery'){
+
+  <div class="rp-header">
+    <button class="rp-back" (click)="reserve.goToOverview()"><lucide-icon name="arrow-left" /></button>
+    <span class="rp-title">Pickup or Delivery</span>
+  </div>
+
+  <div class="rp-step-body">
+    <div class="rp-delivery-cards">
+      <button class="rp-delivery-card" [class.selected]="deliveryMethod() === 'pickup'"
+              (click)="deliveryMethod.set('pickup')">
+        <div class="rp-delivery-info">
+          <span class="rp-delivery-label">Pick it up at Big Wave Auto</span>
+          <span class="rp-delivery-sub">N69W25055 Indian Grass Lane, Sussex WI</span>
+          <span class="rp-delivery-sub">By appointment — Mon–Sat 9AM–6PM</span>
+        </div>
+        <span class="rp-delivery-price">Free</span>
+      </button>
+
+      <button class="rp-delivery-card" [class.selected]="deliveryMethod() === 'delivery'"
+              (click)="deliveryMethod.set('delivery')">
+        <div class="rp-delivery-info">
+          <span class="rp-delivery-label">Have it delivered</span>
+          <span class="rp-delivery-sub">White-glove delivery to your door</span>
+          @if(infoForm.get('street')?.value){
+          <span class="rp-delivery-sub">{{ infoForm.get('street')?.value }}, {{ infoForm.get('city')?.value }}</span>
+          <button type="button" class="rp-change-link" (click)="$event.stopPropagation()">Change</button>
+          }
+        </div>
+        <span class="rp-delivery-price">$299</span>
+      </button>
+    </div>
+
+    <button class="rp-step-submit" (click)="submitDelivery()">Continue</button>
+  </div>
+  }
+
+  <!-- ══════════════════ VERIFY STEP ══════════════════ -->
+  @if(reserve.currentStep() === 'verify'){
+
+  <div class="rp-header">
+    <button class="rp-back" (click)="reserve.goToOverview()"><lucide-icon name="arrow-left" /></button>
+    <span class="rp-title">Verify Your Identity</span>
+  </div>
+
+  <div class="rp-step-body">
+    <h2 class="rp-verify-heading">Verify your identity with your driver's license.</h2>
+
+    <div class="rp-persona-box">
+      <div id="persona-container"></div>
+      @if(!reserve.verifyComplete()){
+      <div class="rp-persona-placeholder">
+        <div class="rp-persona-icon">
+          <lucide-icon name="id-card" />
+        </div>
+      </div>
+      }
+    </div>
+
+    @if(!reserve.verifyComplete()){
+    <button class="rp-step-submit" (click)="startPersona()" [disabled]="personaLoading()">
+      {{ personaLoading() ? 'Loading…' : 'Get verified' }}
+    </button>
+    <div class="rp-verify-help">
+      <lucide-icon name="headphones" />
+      <div>
+        <b>Have a question?</b>
+        <span>Our team is here to help if anything about verification feels unclear.</span>
+      </div>
+    </div>
+    }@else{
+    <div class="rp-verify-success">
+      <lucide-icon name="badge-check" />
+      <p>Identity verified successfully!</p>
+    </div>
+    }
+  </div>
+  }
+
+</div><!-- /rp-panel -->
+}

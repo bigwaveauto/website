@@ -1,0 +1,341 @@
+<div class="intake">
+
+  <!-- Step indicator -->
+  <div class="intake-steps">
+    <div class="intake-step" [class.active]="step() >= 1" [class.done]="step() > 1">
+      <span class="step-num">1</span><span class="step-label">Upload</span>
+    </div>
+    <div class="step-line" [class.done]="step() > 1"></div>
+    <div class="intake-step" [class.active]="step() >= 2" [class.done]="step() > 2">
+      <span class="step-num">2</span><span class="step-label">Review</span>
+    </div>
+    <div class="step-line" [class.done]="step() > 2"></div>
+    <div class="intake-step" [class.active]="step() >= 3" [class.done]="step() > 3">
+      <span class="step-num">3</span><span class="step-label">Flooring</span>
+    </div>
+    <div class="step-line" [class.done]="step() > 3"></div>
+    <div class="intake-step" [class.active]="step() >= 4">
+      <span class="step-num">4</span><span class="step-label">Done</span>
+    </div>
+  </div>
+
+  <!-- ═══════ STEP 1: Upload Bill of Sale ═══════ -->
+  @if(step() === 1){
+  <div class="intake-card intake-upload-card">
+    <h1 class="intake-title">Add New Vehicle</h1>
+    <p class="intake-subtitle">Drop a bill of sale and we'll do the rest</p>
+
+    <div class="intake-dropzone" [class.dragover]="dragOver()" [class.scanning]="scanning()"
+         (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)"
+         (click)="fileInput.click()">
+      <input #fileInput type="file" accept="image/*,.pdf" (change)="onFileSelect($event)" hidden />
+
+      @if(scanning()){
+        <div class="intake-spinner"></div>
+        <span class="intake-drop-text">Scanning {{ fileName() }}…</span>
+        <span class="intake-drop-sub">AI is reading your document</span>
+      }@else{
+        <lucide-icon name="file-text" class="intake-drop-icon" />
+        <span class="intake-drop-text">Drop bill of sale here</span>
+        <span class="intake-drop-sub">PDF, JPG, or PNG — or click to browse</span>
+      }
+    </div>
+
+    @if(scanError()){
+    <div class="intake-error">
+      <lucide-icon name="circle-help" />
+      <span>{{ scanError() }}</span>
+    </div>
+    }
+
+    <div class="intake-or">
+      <span>or</span>
+    </div>
+
+    <button class="intake-manual-btn" (click)="skipToManual()">
+      <lucide-icon name="pencil" /> Enter manually
+    </button>
+  </div>
+  }
+
+  <!-- ═══════ STEP 2: Review & Edit ═══════ -->
+  @if(step() === 2){
+  <div class="intake-card">
+    <div class="intake-card-header">
+      <h1 class="intake-title">Review Vehicle Details</h1>
+      @if(vinDecoded()){
+      <span class="intake-decoded-badge"><lucide-icon name="circle-check" /> VIN Decoded</span>
+      }
+    </div>
+
+    <!-- VIN row -->
+    <div class="intake-section">
+      <h3 class="intake-section-title">Vehicle</h3>
+      <div class="intake-field-row">
+        <div class="intake-field wide">
+          <label>VIN</label>
+          <div class="intake-vin-row">
+            <input [ngModel]="vin()" (ngModelChange)="vin.set($event)" placeholder="17-character VIN" class="mono" />
+            <button class="intake-decode-btn" (click)="decodeVin()" [disabled]="vinDecoding() || vin().length !== 17">
+              @if(vinDecoding()){ Decoding… }@else{ Decode }
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="intake-field-row">
+        <div class="intake-field"><label>Year</label><input [ngModel]="year()" (ngModelChange)="year.set($event)" /></div>
+        <div class="intake-field"><label>Make</label><input [ngModel]="make()" (ngModelChange)="make.set($event)" /></div>
+        <div class="intake-field"><label>Model</label><input [ngModel]="model()" (ngModelChange)="model.set($event)" /></div>
+        <div class="intake-field"><label>Trim</label><input [ngModel]="trim()" (ngModelChange)="trim.set($event)" /></div>
+      </div>
+      <div class="intake-field-row">
+        <div class="intake-field"><label>Body</label><input [ngModel]="body()" (ngModelChange)="body.set($event)" /></div>
+        <div class="intake-field"><label>Engine</label><input [ngModel]="engine()" (ngModelChange)="engine.set($event)" /></div>
+        <div class="intake-field"><label>Transmission</label><input [ngModel]="transmission()" (ngModelChange)="transmission.set($event)" /></div>
+        <div class="intake-field"><label>Drivetrain</label><input [ngModel]="drivetrain()" (ngModelChange)="drivetrain.set($event)" /></div>
+      </div>
+      <div class="intake-field-row">
+        <div class="intake-field"><label>Fuel</label><input [ngModel]="fuel()" (ngModelChange)="fuel.set($event)" /></div>
+        <div class="intake-field"><label>Ext. Color</label><input [ngModel]="exteriorColor()" (ngModelChange)="exteriorColor.set($event)" /></div>
+        <div class="intake-field"><label>Int. Color</label><input [ngModel]="interiorColor()" (ngModelChange)="interiorColor.set($event)" /></div>
+        <div class="intake-field"><label>Odometer</label><input type="number" [ngModel]="mileage()" (ngModelChange)="mileage.set($event)" /></div>
+      </div>
+    </div>
+
+    <!-- Purchase Info -->
+    <div class="intake-section">
+      <h3 class="intake-section-title">Purchase Info</h3>
+      <div class="intake-field-row">
+        <div class="intake-field">
+          <label>Purchase Price</label>
+          <div class="intake-dollar"><span>$</span><input type="number" [ngModel]="purchasePrice()" (ngModelChange)="purchasePrice.set($event)" /></div>
+        </div>
+        <div class="intake-field"><label>Purchase Date</label><input type="date" [ngModel]="purchaseDate()" (ngModelChange)="purchaseDate.set($event)" /></div>
+        <div class="intake-field"><label>Source</label><input [ngModel]="source()" (ngModelChange)="source.set($event)" placeholder="Auction, dealer, private…" /></div>
+        <div class="intake-field">
+          <label>Buyer Fee</label>
+          <div class="intake-dollar"><span>$</span><input type="number" [ngModel]="buyerFee()" (ngModelChange)="buyerFee.set($event)" /></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seller Info -->
+    <div class="intake-section">
+      <h3 class="intake-section-title">Seller</h3>
+      <div class="intake-field-row">
+        <div class="intake-field wide"><label>Name</label><input [ngModel]="sellerName()" (ngModelChange)="sellerName.set($event)" placeholder="Seller or auction name" /></div>
+        <div class="intake-field">
+          <label>Type</label>
+          <select [ngModel]="sellerType()" (ngModelChange)="sellerType.set($event)">
+            <option value="auction">Auction</option>
+            <option value="dealer">Dealer</option>
+            <option value="private">Private Party</option>
+          </select>
+        </div>
+      </div>
+      <div class="intake-field-row">
+        <div class="intake-field wide"><label>Address</label><input [ngModel]="sellerAddress()" (ngModelChange)="sellerAddress.set($event)" /></div>
+        <div class="intake-field"><label>City</label><input [ngModel]="sellerCity()" (ngModelChange)="sellerCity.set($event)" /></div>
+        <div class="intake-field"><label>State</label><input [ngModel]="sellerState()" (ngModelChange)="sellerState.set($event)" /></div>
+        <div class="intake-field"><label>Zip</label><input [ngModel]="sellerZip()" (ngModelChange)="sellerZip.set($event)" /></div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="intake-section">
+      <div class="intake-field">
+        <label>Notes</label>
+        <textarea [ngModel]="notes()" (ngModelChange)="notes.set($event)" rows="3" placeholder="Any additional notes…"></textarea>
+      </div>
+    </div>
+
+    <div class="intake-actions">
+      <button class="intake-back-btn" (click)="step.set(1)"><lucide-icon name="arrow-left" /> Back</button>
+      <button class="intake-next-btn" (click)="goToFlooring()" [disabled]="!vin()">Next: Flooring <lucide-icon name="arrow-right" /></button>
+    </div>
+  </div>
+  }
+
+  <!-- ═══════ STEP 3: Flooring ═══════ -->
+  @if(step() === 3){
+  <div class="intake-card">
+    <h1 class="intake-title">Floor Plan</h1>
+    <p class="intake-subtitle">{{ year() }} {{ make() }} {{ model() }} — {{ purchasePrice() | currency:'USD':'symbol':'1.0-0' }}</p>
+
+    <div class="intake-floor-toggle">
+      <label class="intake-toggle">
+        <input type="checkbox" [ngModel]="floorVehicle()" (ngModelChange)="floorVehicle.set($event)" />
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="toggle-label">Floor this vehicle</span>
+    </div>
+
+    @if(floorVehicle()){
+    <div class="intake-floor-details">
+
+      <!-- Company + Amount -->
+      <div class="intake-field-row">
+        <div class="intake-field">
+          <label>Flooring Company</label>
+          <select [ngModel]="floorCompany()" (ngModelChange)="onCompanyChange($event)">
+            @for(c of floorCompanies; track c){
+            <option [value]="c">{{ c }}</option>
+            }
+          </select>
+        </div>
+        <div class="intake-field">
+          <label>Prime + Spread</label>
+          <div class="intake-rate-row">
+            <span class="rate-chip">{{ primeRate() }}%</span>
+            <span class="rate-plus">+</span>
+            <span class="rate-chip spread">{{ rateAbovePrime() }}%</span>
+            <span class="rate-equals">=</span>
+            <span class="rate-chip total">{{ floorInterestRate() }}%</span>
+          </div>
+        </div>
+        <div class="intake-field">
+          <label>Plan Length (days)</label>
+          <input type="number" [ngModel]="floorPlanLength()" (ngModelChange)="floorPlanLength.set($event)" />
+        </div>
+        <div class="intake-field">
+          <label>Maturity Date</label>
+          <input type="date" [ngModel]="maturityDate" disabled />
+        </div>
+      </div>
+
+      <!-- Amount Breakdown -->
+      <div class="intake-floor-breakdown">
+        <div class="floor-line">
+          <span>Purchase Price</span>
+          <span>{{ purchasePrice() | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="floor-line">
+          <label class="floor-fee-toggle">
+            <input type="checkbox" [ngModel]="includeBuyerFee()" (ngModelChange)="includeBuyerFee.set($event); checkHighline()" />
+            <span>Buyer Fee</span>
+          </label>
+          <span [class.muted]="!includeBuyerFee()">{{ buyerFee() | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="floor-line total">
+          <span>Amount Floored</span>
+          <span>{{ floorTotal | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <!-- Fees & Interest -->
+      <h3 class="floor-section-title">Est. Costs</h3>
+      <!-- One-Time Fees -->
+      <h3 class="floor-section-title">One-Time Fees</h3>
+      <div class="intake-floor-breakdown">
+        <div class="floor-line">
+          <span>Admin Fee</span>
+          <span>{{ floorAdminFee() | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="floor-line">
+          <label class="floor-fee-toggle">
+            <input type="checkbox" [ngModel]="includeDocProcessing()" (ngModelChange)="includeDocProcessing.set($event)" />
+            <span>Document Processing</span>
+          </label>
+          <span [class.muted]="!includeDocProcessing()">{{ docProcessingFee | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="floor-line">
+          <label class="floor-fee-toggle">
+            <input type="checkbox" [ngModel]="includeNonAuctionFee()" (ngModelChange)="includeNonAuctionFee.set($event)" />
+            <span>Non-Auction Purchase</span>
+          </label>
+          <span [class.muted]="!includeNonAuctionFee()">{{ nonAuctionFee | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="floor-line">
+          <label class="floor-fee-toggle">
+            <input type="checkbox" [ngModel]="includeLienPayoff()" (ngModelChange)="includeLienPayoff.set($event)" />
+            <span>Lienholder Payoff Service</span>
+          </label>
+          <span [class.muted]="!includeLienPayoff()">{{ lienPayoffFee | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        @if(floorTotal >= 50000){
+        <div class="floor-line">
+          <label class="floor-fee-toggle">
+            <input type="checkbox" [ngModel]="includeHighlineFee()" (ngModelChange)="includeHighlineFee.set($event)" />
+            <span>Highline Fee</span>
+          </label>
+          @if(includeHighlineFee()){
+            @if(floorCompany() === 'NextGear'){
+            <span>{{ highlineFeeAmount | currency:'USD':'symbol':'1.2-2' }} <small class="fee-note">(0.5%)</small></span>
+            }@else{
+            <div class="intake-dollar inline"><span>$</span><input type="number" [ngModel]="manualHighlineFee()" (ngModelChange)="manualHighlineFee.set($event)" placeholder="0.00" /></div>
+            }
+          }@else{
+          <span class="muted">$0.00</span>
+          }
+        </div>
+        }
+      </div>
+
+      <!-- Recurring Costs -->
+      <h3 class="floor-section-title">Recurring / Interest</h3>
+      <div class="intake-floor-breakdown">
+        <div class="floor-line">
+          <span>Curtailment Fees ({{ curtailmentTerms.length }} × ${{ curtailmentTerms[0]?.fee || 0 }})</span>
+          <span>{{ totalCurtailmentFees | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="floor-line">
+          <span>Est. Interest ({{ floorInterestRate() }}% × {{ floorPlanLength() }} days)</span>
+          <span>{{ estTotalInterest | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="floor-line subtle">
+          <span>Per Diem</span>
+          <span>{{ estDailyInterest | currency:'USD':'symbol':'1.4-4' }}/day</span>
+        </div>
+        <div class="floor-line total">
+          <span>Est. Total Flooring Cost</span>
+          <span>{{ estTotalFlooringCost | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <!-- Curtailment Schedule -->
+      <h3 class="floor-section-title">Curtailment Schedule</h3>
+      <div class="floor-curtailment">
+        <div class="floor-curt-header">
+          <span>Term</span>
+          <span>Day</span>
+          <span>Principal %</span>
+          <span>Amount Due</span>
+          <span>Fee</span>
+        </div>
+        @for(t of curtailmentTerms; track t.term){
+        <div class="floor-curt-row">
+          <span>{{ t.term }}</span>
+          <span>Day {{ t.days }}</span>
+          <span>{{ t.principalPct }}%</span>
+          <span>{{ t.curtailment | currency:'USD':'symbol':'1.2-2' }}</span>
+          <span>{{ t.fee | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        }
+      </div>
+
+    </div>
+    }
+
+    <div class="intake-actions">
+      <button class="intake-back-btn" (click)="backToReview()"><lucide-icon name="arrow-left" /> Back</button>
+      <button class="intake-save-btn" (click)="save()" [disabled]="saving()">
+        @if(saving()){ Saving… }@else{ <lucide-icon name="check" /> Save Vehicle }
+      </button>
+    </div>
+  </div>
+  }
+
+  <!-- ═══════ STEP 4: Done ═══════ -->
+  @if(step() === 4){
+  <div class="intake-card intake-done-card">
+    <lucide-icon name="circle-check" class="intake-done-icon" />
+    <h1 class="intake-title">Vehicle Added!</h1>
+    <p class="intake-subtitle">{{ year() }} {{ make() }} {{ model() }} {{ trim() }} has been added to inventory.</p>
+    <div class="intake-done-actions">
+      <button class="intake-next-btn" (click)="addAnother()"><lucide-icon name="plus" /> Add Another Vehicle</button>
+      <a routerLink="/admin/inventory" class="intake-back-btn">View Inventory</a>
+    </div>
+  </div>
+  }
+
+</div>

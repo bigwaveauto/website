@@ -1,0 +1,53 @@
+<div class="inv-list">
+
+  <div class="inv-header">
+    <h1 class="inv-title">Inventory</h1>
+    <div class="inv-search-wrap">
+      <lucide-icon name="search" class="inv-search-icon" />
+      <input class="inv-search" placeholder="Search stock #, VIN, make, model…" [ngModel]="search()" (ngModelChange)="onSearch($event)" />
+    </div>
+  </div>
+
+  <div class="inv-count">{{ filtered().length }} vehicles</div>
+
+  @if(loading()){
+  <div class="inv-loading">Loading inventory…</div>
+  }@else{
+  <div class="inv-table-wrap">
+    <table class="inv-table">
+      <thead>
+        <tr>
+          @for(col of columns; track col.key){
+          <th [style.min-width]="col.width" (click)="toggleSort(col.key)" class="sortable">
+            {{ col.label }}
+            @if(sortCol() === col.key){
+            <lucide-icon [name]="sortDir() === 'asc' ? 'chevron-up' : 'chevron-down'" class="sort-icon" />
+            }
+          </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for(v of filtered(); track v.vin){
+        <tr [routerLink]="'/admin/inventory/' + v.vin" class="inv-row">
+          <td class="mono">{{ v.stocknumber }}</td>
+          <td class="mono vin">{{ v.vin }}</td>
+          <td>{{ v.year }}</td>
+          <td>{{ v.make }}</td>
+          <td>{{ v.model }}</td>
+          <td class="trim">{{ v.trim }}</td>
+          <td>{{ v.dateinstock | date:'M/d/yyyy' }}</td>
+          <td class="r" [class.aging-warn]="v.daysinstock > 60" [class.aging-danger]="v.daysinstock > 90">{{ v.daysinstock }}</td>
+          <td class="r">{{ formatNumber(v.mileage) }}</td>
+          <td>{{ v.exteriorcolorstandard }}</td>
+          <td>{{ v.interiorcolorstandard }}</td>
+          <td class="r price">{{ formatCurrency(v.price) }}</td>
+          <td class="r cost">{{ formatCurrency(v.originalprice || v.price) }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+
+</div>

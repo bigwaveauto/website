@@ -1,0 +1,367 @@
+@if(loading()){
+<div class="det-loading">Loading vehicle…</div>
+}@else if(vehicle(); as v){
+<div class="det">
+
+  <!-- Top bar -->
+  <div class="det-topbar">
+    <div class="det-topbar-left">
+      <a routerLink="/admin/inventory" class="det-back"><lucide-icon name="arrow-left" /> Inventory</a>
+      <h1 class="det-vehicle-title">{{ v.year }} {{ v.make }} {{ v.model }} {{ v.trim }}</h1>
+    </div>
+    <div class="det-topbar-right">
+      @if(saved()){<span class="det-saved-badge"><lucide-icon name="circle-check" /> Saved</span>}
+      <button class="det-save-btn" (click)="save()" [disabled]="saving()">
+        @if(saving()){ Saving… }@else{ Save }
+      </button>
+    </div>
+  </div>
+
+  <!-- Quick Info Bar -->
+  <div class="det-quick">
+    <div class="det-quick-item"><span class="det-q-label">Stock #</span><span class="det-q-value mono">{{ v.stocknumber || v.stock_number }}</span></div>
+    <div class="det-quick-item"><span class="det-q-label">VIN</span><span class="det-q-value mono">{{ v.vin }}</span></div>
+    <div class="det-quick-item"><span class="det-q-label">Odometer</span><span class="det-q-value">{{ (v.mileage | number:'1.0-0') || '—' }}</span></div>
+    <div class="det-quick-item"><span class="det-q-label">Days in Stock</span><span class="det-q-value" [class.aging-warn]="daysInStock > 60" [class.aging-danger]="daysInStock > 90">{{ daysInStock }}</span></div>
+    <div class="det-quick-item">
+      <span class="det-q-label">Live Flooring</span>
+      <span class="det-q-value" [class.red]="totalLiveFlooring > 0">{{ totalLiveFlooring | currency:'USD':'symbol':'1.2-2' }}</span>
+    </div>
+    <div class="det-quick-item">
+      <span class="det-q-label">Potential Profit</span>
+      <span class="det-q-value" [class.green]="potentialProfit >= 0" [class.red]="potentialProfit < 0">{{ potentialProfit | currency:'USD':'symbol':'1.2-2' }}</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="det-tabs">
+    <button class="det-tab" [class.active]="activeTab() === 'overview'" (click)="activeTab.set('overview')">Overview</button>
+    <button class="det-tab" [class.active]="activeTab() === 'costs'" (click)="activeTab.set('costs')">Costs & Receipts</button>
+    <button class="det-tab" [class.active]="activeTab() === 'flooring'" (click)="activeTab.set('flooring')">Flooring</button>
+    <button class="det-tab" [class.active]="activeTab() === 'photos'" (click)="activeTab.set('photos')">Photos</button>
+    <button class="det-tab" [class.active]="activeTab() === 'description'" (click)="activeTab.set('description')">Description</button>
+  </div>
+
+  <!-- ═══ OVERVIEW TAB ═══ -->
+  @if(activeTab() === 'overview'){
+  <div class="det-grid">
+    <!-- Price Info -->
+    <div class="det-card">
+      <h2 class="det-card-title">Price Info</h2>
+      <div class="det-price-hero">
+        <label class="det-price-label">Retail Purchase Price</label>
+        <div class="det-price-big">
+          <span class="det-price-dollar">$</span>
+          <input type="text" class="det-price-input"
+                 [ngModel]="formatPrice(askingPrice())"
+                 (ngModelChange)="askingPrice.set(parsePrice($event))"
+                 (blur)="$any(null)" />
+        </div>
+      </div>
+      <div class="det-msrp-row">
+        <span class="det-msrp-label">MSRP</span>
+        <div class="det-input-dollar det-msrp-input">
+          <span>$</span>
+          <input type="number" [ngModel]="msrp()" (ngModelChange)="msrp.set($event)" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Cost Summary -->
+    <div class="det-card">
+      <h2 class="det-card-title">Cost Summary</h2>
+      <div class="det-summary-rows">
+        <div class="det-sum-row"><span>Vehicle Cost</span><span>{{ purchasePrice() | currency:'USD':'symbol':'1.2-2' }}</span></div>
+        <div class="det-sum-row"><span>Cost Adds ({{ costAdds().length }})</span><span>{{ totalCostAdds | currency:'USD':'symbol':'1.2-2' }}</span></div>
+        <div class="det-sum-row"><span>Live Flooring Cost</span><span class="red">{{ totalLiveFlooring | currency:'USD':'symbol':'1.2-2' }}</span></div>
+        <div class="det-sum-row total"><span>Est. Total Investment</span><span>{{ estTotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
+      </div>
+      <div class="det-profit-bar">
+        <div class="det-profit-item">
+          <span class="det-profit-label">Asking Price</span>
+          <span class="det-profit-value blue">{{ askingPrice() | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="det-profit-item">
+          <span class="det-profit-label">Potential Profit</span>
+          <span class="det-profit-value" [class.green]="potentialProfit >= 0" [class.red]="potentialProfit < 0">{{ potentialProfit | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vehicle Details -->
+  <div class="det-card">
+    <h2 class="det-card-title">Vehicle Details</h2>
+    <div class="det-details-grid">
+      <div class="det-detail-row"><span class="det-dl">VIN</span><input class="det-dv mono" [ngModel]="vin()" (ngModelChange)="vin.set($event)" /></div>
+      <div class="det-detail-row"><span class="det-dl">Stock Number</span><input class="det-dv" [ngModel]="stockNumber()" (ngModelChange)="stockNumber.set($event)" /></div>
+      <div class="det-detail-row"><span class="det-dl">Odometer</span><input class="det-dv" type="text" [ngModel]="formatPrice(mileage())" (ngModelChange)="mileage.set(parsePrice($event))" /></div>
+      <div class="det-detail-row">
+        <span class="det-dl">Status</span>
+        <select class="det-dv" [ngModel]="status()" (ngModelChange)="status.set($event)">
+          @for(s of statusOptions; track s){<option [value]="s">{{ s }}</option>}
+        </select>
+      </div>
+      <div class="det-detail-row"><span class="det-dl">Date in Stock</span><div class="det-dv-date"><input type="date" [ngModel]="dateInStock()" (ngModelChange)="dateInStock.set($event)" /><span class="det-days-badge">{{ daysInStock }} days</span></div></div>
+      <div class="det-detail-row"><span class="det-dl">Year</span><input class="det-dv" [ngModel]="year()" (ngModelChange)="year.set($event)" /></div>
+      <div class="det-detail-row"><span class="det-dl">Make</span><input class="det-dv" [ngModel]="make()" (ngModelChange)="make.set($event)" /></div>
+      <div class="det-detail-row"><span class="det-dl">Model</span><input class="det-dv" [ngModel]="model()" (ngModelChange)="model.set($event)" /></div>
+      <div class="det-detail-row"><span class="det-dl">Trim</span><input class="det-dv" [ngModel]="trim()" (ngModelChange)="trim.set($event)" /></div>
+      <div class="det-detail-row"><span class="det-dl">Body</span><input class="det-dv" [ngModel]="body()" (ngModelChange)="body.set($event)" /></div>
+      <div class="det-detail-row"><span class="det-dl">Exterior Color</span><input class="det-dv" [ngModel]="exteriorColor()" (ngModelChange)="exteriorColor.set($event)" /></div>
+      <div class="det-detail-row"><span class="det-dl">Interior Color</span><input class="det-dv" [ngModel]="interiorColor()" (ngModelChange)="interiorColor.set($event)" /></div>
+      <div class="det-detail-row"><span class="det-dl">Engine</span><input class="det-dv" [ngModel]="engine()" (ngModelChange)="engine.set($event)" /></div>
+      <div class="det-detail-row"><span class="det-dl">Transmission</span><input class="det-dv" [ngModel]="transmission()" (ngModelChange)="transmission.set($event)" /></div>
+      <div class="det-detail-row"><span class="det-dl">Drivetrain</span><input class="det-dv" [ngModel]="drivetrain()" (ngModelChange)="drivetrain.set($event)" /></div>
+      <div class="det-detail-row"><span class="det-dl">Fuel</span><input class="det-dv" [ngModel]="fuel()" (ngModelChange)="fuel.set($event)" /></div>
+      <div class="det-detail-row">
+        <span class="det-dl">Condition</span>
+        <select class="det-dv" [ngModel]="condition()" (ngModelChange)="condition.set($event)">
+          <option value="">—</option>
+          @for(c of conditionOptions; track c){<option [value]="c">{{ c }}</option>}
+        </select>
+      </div>
+      <div class="det-detail-row">
+        <span class="det-dl">Title Status</span>
+        <select class="det-dv" [ngModel]="titleStatus()" (ngModelChange)="titleStatus.set($event)">
+          @for(t of titleStatusOptions; track t){<option [value]="t">{{ t }}</option>}
+        </select>
+      </div>
+      <div class="det-detail-row">
+        <span class="det-dl">Title Brand</span>
+        <select class="det-dv" [ngModel]="titleBrand()" (ngModelChange)="titleBrand.set($event)">
+          <option value="">—</option>
+          @for(b of titleBrandOptions; track b){<option [value]="b">{{ b }}</option>}
+        </select>
+      </div>
+      <div class="det-detail-row"><span class="det-dl">Purchase Price</span><input class="det-dv" type="number" [ngModel]="purchasePrice()" (ngModelChange)="purchasePrice.set($event)" /></div>
+      <div class="det-detail-row"><span class="det-dl">Purchase Date</span><input class="det-dv" type="date" [ngModel]="purchaseDate()" (ngModelChange)="purchaseDate.set($event)" /></div>
+    </div>
+  </div>
+  }
+
+  <!-- ═══ COSTS TAB ═══ -->
+  @if(activeTab() === 'costs'){
+  <div class="det-card">
+    <div class="det-card-header">
+      <h2 class="det-card-title" style="margin:0;border:none;padding:0">Cost Adds</h2>
+      <div class="det-header-actions">
+        <button class="det-add-btn" (click)="addCostAdd()"><lucide-icon name="plus" /> Manual</button>
+      </div>
+    </div>
+
+    <!-- Receipt drop zone -->
+    <div class="det-receipt-drop" [class.dragover]="receiptDragOver()" [class.scanning]="scanningReceipt()"
+         (dragover)="onReceiptDragOver($event)" (dragleave)="onReceiptDragLeave()" (drop)="onReceiptDrop($event)"
+         (click)="receiptInput.click()">
+      <input #receiptInput type="file" accept="image/*,.pdf" (change)="onReceiptSelect($event)" hidden />
+      @if(scanningReceipt()){
+        <div class="det-mini-spinner"></div>
+        <span>Scanning receipt…</span>
+      }@else{
+        <lucide-icon name="file-text" />
+        <span>Drop a receipt to auto-fill — transport, repair, detail, inspection</span>
+      }
+    </div>
+
+    @if(costAdds().length > 0){
+    <div class="det-cost-table-wrap">
+      <table class="det-cost-table">
+        <thead>
+          <tr><th>Description</th><th>Category</th><th>Cost</th><th>Method</th><th>Vendor</th><th>Date</th><th>Memo</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for(add of costAdds(); track $index; let i = $index){
+          <tr>
+            <td><input [(ngModel)]="add.description" [ngModelOptions]="{standalone: true}" placeholder="Description" /></td>
+            <td><select [(ngModel)]="add.category" [ngModelOptions]="{standalone: true}"><option value="">—</option>@for(cat of costAddCategories; track cat){<option [value]="cat">{{ cat }}</option>}</select></td>
+            <td><input type="number" [(ngModel)]="add.cost" [ngModelOptions]="{standalone: true}" class="cost-input" /></td>
+            <td><select [(ngModel)]="add.payment_method" [ngModelOptions]="{standalone: true}"><option value="">—</option>@for(m of paymentMethods; track m){<option [value]="m">{{ m }}</option>}</select></td>
+            <td><input [(ngModel)]="add.vendor" [ngModelOptions]="{standalone: true}" placeholder="Vendor" /></td>
+            <td><input type="date" [(ngModel)]="add.date_added" [ngModelOptions]="{standalone: true}" /></td>
+            <td><input [(ngModel)]="add.memo" [ngModelOptions]="{standalone: true}" placeholder="Memo" /></td>
+            <td><button class="det-del-btn" (click)="removeCostAdd(i)"><lucide-icon name="x" /></button></td>
+          </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr><td colspan="2"><strong>Total</strong></td><td class="cost-input"><strong>{{ totalCostAdds | currency:'USD':'symbol':'1.2-2' }}</strong></td><td colspan="5"></td></tr>
+        </tfoot>
+      </table>
+    </div>
+    }@else{
+    <p class="det-empty">No cost adds yet. Drop a receipt or click Manual.</p>
+    }
+  </div>
+  }
+
+  <!-- ═══ FLOORING TAB ═══ -->
+  @if(activeTab() === 'flooring'){
+  <div class="det-card">
+    <div class="det-card-header">
+      <h2 class="det-card-title" style="margin:0;border:none;padding:0">Floor Plans</h2>
+      <button class="det-add-btn" (click)="addFloorPlan()"><lucide-icon name="plus" /> Add Floor Plan</button>
+    </div>
+
+    @if(floorPlans().length > 0){
+    <div class="det-floor-list">
+      @for(fp of floorPlans(); track $index; let i = $index){
+      <div class="det-floor-card" [class.paidoff]="fp.status === 'Paid Off'">
+        <div class="det-floor-top">
+          <div class="det-floor-top-left">
+            <span class="det-floor-lender">{{ fp.lender }}</span>
+            <span class="det-floor-status" [class.active]="fp.status === 'Active'" [class.paidoff]="fp.status === 'Paid Off'">{{ fp.status }}</span>
+          </div>
+          <div class="det-floor-live">
+            <span class="det-floor-live-label">Live Cost</span>
+            <span class="det-floor-live-value">{{ liveFlooringCost(fp) | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <!-- Calculated stats bar -->
+        <div class="det-floor-stat-bar">
+          <div class="det-floor-stat"><span class="fs-label">Balance</span><span class="fs-value">{{ principalBalance(fp) | currency:'USD':'symbol':'1.0-0' }}</span></div>
+          <div class="det-floor-stat"><span class="fs-label">Days</span><span class="fs-value" [class.aging-warn]="daysOnFloor(fp) > 60" [class.aging-danger]="daysOnFloor(fp) > 90">{{ daysOnFloor(fp) }}</span></div>
+          <div class="det-floor-stat"><span class="fs-label">Per Diem</span><span class="fs-value">{{ (fp.amount_floored * (fp.interest_rate || 8.25) / 100 / 365) | currency:'USD':'symbol':'1.2-2' }}</span></div>
+        </div>
+
+        <!-- Editable fields -->
+        <div class="det-floor-edit-grid">
+          <div class="det-detail-row"><span class="det-dl">Amount Floored</span><input class="det-dv" type="text" [ngModel]="formatPrice(fp.amount_floored)" (ngModelChange)="fp.amount_floored = parsePrice($event); touchFloorPlans()" [ngModelOptions]="{standalone: true}" /></div>
+          <div class="det-detail-row"><span class="det-dl">Date Floored</span><input class="det-dv" type="date" [(ngModel)]="fp.date_floored" [ngModelOptions]="{standalone: true}" (ngModelChange)="touchFloorPlans()" /></div>
+          <div class="det-detail-row"><span class="det-dl">Rate (%)</span><input class="det-dv" type="number" step="0.01" [(ngModel)]="fp.interest_rate" [ngModelOptions]="{standalone: true}" (ngModelChange)="touchFloorPlans()" /></div>
+          <div class="det-detail-row"><span class="det-dl">Plan (days)</span><input class="det-dv" type="number" [(ngModel)]="fp.plan_length" [ngModelOptions]="{standalone: true}" (ngModelChange)="touchFloorPlans()" /></div>
+          <div class="det-detail-row"><span class="det-dl">Maturity</span><input class="det-dv" type="date" [(ngModel)]="fp.maturity_date" [ngModelOptions]="{standalone: true}" /></div>
+          <div class="det-detail-row"><span class="det-dl">Admin Fee</span><input class="det-dv" type="text" [ngModel]="formatPrice(fp.admin_fee)" (ngModelChange)="fp.admin_fee = parsePrice($event); touchFloorPlans()" [ngModelOptions]="{standalone: true}" /></div>
+          <div class="det-detail-row"><span class="det-dl">Highline Fee</span><input class="det-dv" type="text" [ngModel]="formatPrice(fp.highline_fee)" (ngModelChange)="fp.highline_fee = parsePrice($event); touchFloorPlans()" [ngModelOptions]="{standalone: true}" /></div>
+          <div class="det-detail-row">
+            <span class="det-dl">Status</span>
+            <select class="det-dv" [(ngModel)]="fp.status" [ngModelOptions]="{standalone: true}" (ngModelChange)="touchFloorPlans()">
+              <option value="Active">Active</option>
+              <option value="Paid Off">Paid Off</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Payment history -->
+        @if(fp.payments?.length){
+        <div class="det-floor-payments">
+          <h4 class="det-floor-pay-title">Payments</h4>
+          @for(p of fp.payments; track $index){
+          <div class="det-floor-pay-row">
+            <span>{{ p.date }}</span>
+            <span class="pay-type">{{ p.type }}</span>
+            <span class="pay-amount">{{ p.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+            <span class="pay-notes">{{ p.notes }}</span>
+          </div>
+          }
+        </div>
+        }
+
+        <!-- Actions -->
+        @if(fp.status === 'Active'){
+        <div class="det-floor-actions">
+          <button class="det-pay-btn" (click)="openPaymentModal(i)"><lucide-icon name="landmark" /> Make Payment</button>
+          <button class="det-del-btn-text" (click)="removeFloorPlan(i)"><lucide-icon name="x" /> Remove</button>
+        </div>
+        }
+      </div>
+      }
+    </div>
+    }@else{
+    <p class="det-empty">No floor plans. Click "Add Floor Plan" to set one up.</p>
+    }
+  </div>
+  }
+
+  <!-- ═══ PHOTOS TAB ═══ -->
+  @if(activeTab() === 'photos'){
+  <div class="det-card">
+    <h2 class="det-card-title">Photos</h2>
+
+    <div class="det-photo-drop" [class.dragover]="photoDragOver()"
+         (dragover)="onPhotoDragOver($event)" (dragleave)="onPhotoDragLeave()" (drop)="onPhotoDrop($event)"
+         (click)="photoInput.click()">
+      <input #photoInput type="file" accept="image/*" multiple (change)="onPhotoSelect($event)" hidden />
+      @if(uploadingPhoto()){
+        <div class="det-mini-spinner"></div>
+        <span>Uploading…</span>
+      }@else{
+        <lucide-icon name="plus" />
+        <span>Drop photos here or click to upload</span>
+      }
+    </div>
+
+    @if(photos().length > 0){
+    <div class="det-photo-grid">
+      @for(photo of photos(); track $index; let i = $index){
+      <div class="det-photo-item">
+        <img [src]="photo.url" alt="Vehicle photo" />
+        <button class="det-photo-remove" (click)="removePhoto(i)"><lucide-icon name="x" /></button>
+      </div>
+      }
+    </div>
+    }@else{
+    <p class="det-empty">No photos yet. Drag and drop to upload.</p>
+    }
+  </div>
+  }
+
+  <!-- ═══ DESCRIPTION TAB ═══ -->
+  @if(activeTab() === 'description'){
+  <div class="det-card">
+    <div class="det-card-header">
+      <h2 class="det-card-title" style="margin:0;border:none;padding:0">Vehicle Description</h2>
+      <button class="det-add-btn" (click)="generateDescription()" [disabled]="generatingDesc()">
+        @if(generatingDesc()){ <div class="det-mini-spinner"></div> Generating… }@else{ <lucide-icon name="zap" /> AI Generate }
+      </button>
+    </div>
+    <textarea class="det-desc-textarea" [ngModel]="description()" (ngModelChange)="description.set($event)" rows="10" placeholder="Write or generate a vehicle description…"></textarea>
+  </div>
+  }
+
+</div>
+
+<!-- ═══ PAYMENT MODAL ═══ -->
+@if(paymentModalOpen()){
+<div class="det-modal-overlay" (click)="paymentModalOpen.set(false)">
+  <div class="det-modal" (click)="$event.stopPropagation()">
+    <div class="det-modal-header">
+      <h2>Record Payment</h2>
+      <button class="det-modal-close" (click)="paymentModalOpen.set(false)"><lucide-icon name="x" /></button>
+    </div>
+    <div class="det-modal-body">
+      <div class="det-field">
+        <label>Payment Type</label>
+        <select [ngModel]="paymentType()" (ngModelChange)="paymentType.set($event)">
+          <option value="curtailment">Curtailment</option>
+          <option value="payoff">Full Payoff</option>
+        </select>
+      </div>
+      <div class="det-field">
+        <label>Amount</label>
+        <div class="det-input-dollar"><span>$</span><input type="number" [ngModel]="paymentAmount()" (ngModelChange)="paymentAmount.set($event)" /></div>
+      </div>
+      <div class="det-field">
+        <label>Date</label>
+        <input type="date" [ngModel]="paymentDate()" (ngModelChange)="paymentDate.set($event)" />
+      </div>
+      <div class="det-field">
+        <label>Notes</label>
+        <input [ngModel]="paymentNotes()" (ngModelChange)="paymentNotes.set($event)" placeholder="Optional" />
+      </div>
+      @if(paymentType() === 'payoff'){
+      <div class="det-payoff-note">
+        <lucide-icon name="circle-check" />
+        <span>This will lock the flooring cost and add it as a vehicle expense.</span>
+      </div>
+      }
+      <button class="det-save-btn" style="width:100%;margin-top:8px" (click)="recordPayment()">Record Payment</button>
+    </div>
+  </div>
+</div>
+}
+
+}@else{
+<div class="det-loading">Vehicle not found.</div>
+}

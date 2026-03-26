@@ -1,0 +1,393 @@
+<header [floating]="true"></header>
+
+<div class="calc-page">
+
+  <!-- ── Hero ── -->
+  <section class="calc-hero">
+    <div class="calc-hero-breadcrumb">
+      <a routerLink="/" class="calc-hero-breadcrumb-link">Home</a>
+      <span class="calc-hero-breadcrumb-sep">/</span>
+      <a routerLink="/financing" class="calc-hero-breadcrumb-link">Financing</a>
+      <span class="calc-hero-breadcrumb-sep">/</span>
+      <span class="calc-hero-breadcrumb-current">Loan Calculator</span>
+    </div>
+    <div class="calc-hero-badge">🧮 Loan Calculator</div>
+    <h1 class="calc-hero-title">How much will it cost?</h1>
+    <p class="calc-hero-sub">Work through each step below to estimate your monthly payment and total cost of financing.</p>
+  </section>
+
+  <!-- ── Body ── -->
+  <div class="calc-body">
+
+    <!-- LEFT: Step Cards -->
+    <div class="calc-form-col">
+
+      <!-- Step 1: Your Vehicle -->
+      <div class="calc-step-card" [class.open]="stepOpen()[0]">
+        <button class="calc-step-header" (click)="toggleStep(0)" type="button">
+          <div class="calc-step-num s1">1</div>
+          <div class="calc-step-title-wrap">
+            <span class="calc-step-eyebrow">Step 1</span>
+            <h3 class="calc-step-title">🚗 Your Vehicle</h3>
+          </div>
+          @if (!stepOpen()[0]) {
+            <span class="calc-step-preview">
+              @if (mode() === 'price') { ${{ autoPrice | number }} }
+              @else { ${{ desiredPayment | number }}/mo }
+            </span>
+          }
+          <lucide-icon name="chevron-down" class="calc-step-chevron" />
+        </button>
+        @if (stepOpen()[0]) {
+        <div class="calc-step-body">
+          <p class="calc-step-hint">How do you want to shop?</p>
+          <div class="calc-mode-toggle">
+            <button class="calc-mode-btn" [class.active]="mode() === 'price'" (click)="mode.set('price')" type="button">
+              <span class="mode-icon">🏷️</span>
+              <span class="mode-label">Purchase Price</span>
+            </button>
+            <button class="calc-mode-btn" [class.active]="mode() === 'payment'" (click)="mode.set('payment')" type="button">
+              <span class="mode-icon">💳</span>
+              <span class="mode-label">Monthly Payment</span>
+            </button>
+          </div>
+          @if (mode() === 'price') {
+            <div class="calc-field-row">
+              <label class="calc-field-label">Vehicle Price</label>
+              <div class="calc-input-wrap">
+                <span class="calc-input-prefix">$</span>
+                <input class="calc-input" type="number" min="0" [(ngModel)]="autoPrice" placeholder="35000" />
+              </div>
+            </div>
+          }
+          @if (mode() === 'payment') {
+            <div class="calc-field-row">
+              <label class="calc-field-label">Desired Monthly Payment</label>
+              <div class="calc-input-wrap">
+                <span class="calc-input-prefix">$</span>
+                <input class="calc-input" type="number" min="0" [(ngModel)]="desiredPayment" placeholder="600" />
+              </div>
+            </div>
+          }
+        </div>
+        }
+      </div>
+
+      <!-- Step 2: The Bank -->
+      <div class="calc-step-card" [class.open]="stepOpen()[1]">
+        <button class="calc-step-header" (click)="toggleStep(1)" type="button">
+          <div class="calc-step-num s2">2</div>
+          <div class="calc-step-title-wrap">
+            <span class="calc-step-eyebrow">Step 2</span>
+            <h3 class="calc-step-title">🏦 The Bank</h3>
+          </div>
+          @if (!stepOpen()[1]) {
+            <span class="calc-step-preview">{{ interestRate }}% · {{ loanTerm }} mo</span>
+          }
+          <lucide-icon name="chevron-down" class="calc-step-chevron" />
+        </button>
+        @if (stepOpen()[1]) {
+        <div class="calc-step-body">
+          <div class="calc-two-col">
+            <div class="calc-field-stack">
+              <label class="calc-field-label">APR</label>
+              <div class="calc-input-wrap">
+                <input class="calc-input" type="number" min="0" max="100" step="0.1" [(ngModel)]="interestRate" placeholder="6.9" />
+                <span class="calc-input-suffix">%</span>
+              </div>
+            </div>
+            <div class="calc-field-stack">
+              <label class="calc-field-label">Loan Term</label>
+              <div class="calc-input-wrap">
+                <input class="calc-input" type="number" min="1" max="360" [(ngModel)]="loanTerm" placeholder="60" />
+                <span class="calc-input-suffix">mo</span>
+              </div>
+            </div>
+          </div>
+          <div class="calc-term-pills">
+            @for (t of termOptions; track t) {
+              <button class="calc-term-pill" [class.active]="loanTerm === t" (click)="loanTerm = t" type="button">{{ t }} mo</button>
+            }
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Step 3: Trading In? -->
+      <div class="calc-step-card" [class.open]="stepOpen()[2]">
+        <button class="calc-step-header" (click)="toggleStep(2)" type="button">
+          <div class="calc-step-num s3">3</div>
+          <div class="calc-step-title-wrap">
+            <span class="calc-step-eyebrow">Step 3</span>
+            <h3 class="calc-step-title">🔄 Trading In?</h3>
+          </div>
+          @if (!stepOpen()[2]) {
+            <span class="calc-step-preview">
+              @if (tradeInValue > 0) { ${{ tradeInValue | number }} trade } @else { None }
+            </span>
+          }
+          <lucide-icon name="chevron-down" class="calc-step-chevron" />
+        </button>
+        @if (stepOpen()[2]) {
+        <div class="calc-step-body">
+          <p class="calc-step-hint">Leave at $0 if you're not trading a vehicle.</p>
+          <div class="calc-field-row">
+            <label class="calc-field-label">Trade Allowance</label>
+            <div class="calc-input-wrap">
+              <span class="calc-input-prefix">$</span>
+              <input class="calc-input" type="number" min="0" [(ngModel)]="tradeInValue" placeholder="0" />
+            </div>
+          </div>
+          <div class="calc-field-row">
+            <label class="calc-field-label">Amount Owed on Trade</label>
+            <div class="calc-input-wrap">
+              <span class="calc-input-prefix">$</span>
+              <input class="calc-input" type="number" min="0" [(ngModel)]="amountOwedTrade" placeholder="0" />
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Step 4: Cash Down -->
+      <div class="calc-step-card" [class.open]="stepOpen()[3]">
+        <button class="calc-step-header" (click)="toggleStep(3)" type="button">
+          <div class="calc-step-num s4">4</div>
+          <div class="calc-step-title-wrap">
+            <span class="calc-step-eyebrow">Step 4</span>
+            <h3 class="calc-step-title">💵 Cash Down</h3>
+          </div>
+          @if (!stepOpen()[3]) {
+            <span class="calc-step-preview">
+              @if (downPayment > 0) { ${{ downPayment | number }} down } @else { None }
+            </span>
+          }
+          <lucide-icon name="chevron-down" class="calc-step-chevron" />
+        </button>
+        @if (stepOpen()[3]) {
+        <div class="calc-step-body">
+          <div class="calc-field-row">
+            <label class="calc-field-label">
+              <lucide-icon name="piggy-bank" class="calc-label-icon" />
+              Down Payment
+            </label>
+            <div class="calc-input-wrap">
+              <span class="calc-input-prefix">$</span>
+              <input class="calc-input" type="number" min="0" [(ngModel)]="downPayment" placeholder="0" />
+            </div>
+          </div>
+          <div class="calc-field-row">
+            <label class="calc-field-label">
+              <lucide-icon name="tag" class="calc-label-icon" />
+              Cash Incentives
+            </label>
+            <div class="calc-input-wrap">
+              <span class="calc-input-prefix">$</span>
+              <input class="calc-input" type="number" min="0" [(ngModel)]="cashIncentives" placeholder="0" />
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Step 5: Taxes & Fees -->
+      <div class="calc-step-card" [class.open]="stepOpen()[4]">
+        <button class="calc-step-header" (click)="toggleStep(4)" type="button">
+          <div class="calc-step-num s5">5</div>
+          <div class="calc-step-title-wrap">
+            <span class="calc-step-eyebrow">Step 5</span>
+            <h3 class="calc-step-title">🏛️ Taxes &amp; Fees</h3>
+          </div>
+          @if (!stepOpen()[4]) {
+            <span class="calc-step-preview">{{ selectedState }} · {{ salesTaxPct }}%</span>
+          }
+          <lucide-icon name="chevron-down" class="calc-step-chevron" />
+        </button>
+        @if (stepOpen()[4]) {
+        <div class="calc-step-body">
+          <div class="calc-field-row">
+            <label class="calc-field-label">State</label>
+            <select class="calc-select" [(ngModel)]="selectedState" (ngModelChange)="onStateChange()">
+              @for (state of states; track state) {
+                <option [value]="state">{{ state }}</option>
+              }
+            </select>
+          </div>
+          <div class="calc-field-row">
+            <label class="calc-field-label">
+              Sales Tax
+              <span class="calc-auto-badge">auto</span>
+            </label>
+            <div class="calc-input-wrap">
+              <input class="calc-input" type="number" min="0" max="25" step="0.1" [(ngModel)]="salesTaxPct" placeholder="5.5" />
+              <span class="calc-input-suffix">%</span>
+            </div>
+          </div>
+          <div class="calc-field-row">
+            <label class="calc-field-label">
+              <lucide-icon name="file-text" class="calc-label-icon" />
+              Registration &amp; Other Fees
+            </label>
+            <div class="calc-input-wrap">
+              <span class="calc-input-prefix">$</span>
+              <input class="calc-input" type="number" min="0" [(ngModel)]="otherFees" placeholder="1200" />
+            </div>
+          </div>
+          <div class="calc-checkbox-row">
+            <input type="checkbox" id="taxInLoan" [(ngModel)]="includeTaxInLoan" />
+            <label for="taxInLoan">Include taxes &amp; fees in loan amount</label>
+          </div>
+        </div>
+        }
+      </div>
+
+      <button class="calc-btn-calculate" (click)="calculate()">
+        Calculate My Payment
+      </button>
+
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div class="calc-result-col">
+
+      <!-- Monthly Payment Hero -->
+      <div class="calc-result-header">
+        <span class="calc-result-label">
+          @if (mode() === 'price') { Estimated Monthly Payment }
+          @else { Estimated Vehicle Price }
+        </span>
+        <span class="calc-result-payment">
+          @if (result()) { {{ result()!.monthlyPayment | currency:'USD':'symbol':'1.2-2' }} }
+          @else { — }
+        </span>
+        <span class="calc-result-term">for {{ loanTerm }} months at {{ interestRate }}% APR</span>
+      </div>
+
+      <!-- Summary rows -->
+      <div class="calc-summary">
+        <div class="calc-summary-row">
+          <span class="calc-summary-label">Total Loan Amount</span>
+          <span class="calc-summary-value">{{ result() ? (result()!.loanAmount | currency) : '—' }}</span>
+        </div>
+        <div class="calc-summary-row">
+          <span class="calc-summary-label">Sales Tax ({{ salesTaxPct }}%)</span>
+          <span class="calc-summary-value">{{ result() ? (result()!.salesTaxAmount | currency) : '—' }}</span>
+        </div>
+        <div class="calc-summary-row">
+          <span class="calc-summary-label">Upfront Payment</span>
+          <span class="calc-summary-value">{{ result() ? (result()!.upfrontPayment | currency) : '—' }}</span>
+        </div>
+        <div class="calc-summary-row">
+          <span class="calc-summary-label">Total of {{ loanTerm }} Payments</span>
+          <span class="calc-summary-value">{{ result() ? (result()!.totalPayments | currency) : '—' }}</span>
+        </div>
+        <div class="calc-summary-row">
+          <span class="calc-summary-label">Total Interest Paid</span>
+          <span class="calc-summary-value calc-summary-value--interest">{{ result() ? (result()!.totalInterest | currency) : '—' }}</span>
+        </div>
+        <div class="calc-summary-row calc-summary-row--total">
+          <span class="calc-summary-label">Total Cost of Vehicle</span>
+          <span class="calc-summary-value calc-summary-value--total">{{ result() ? (result()!.totalCost | currency) : '—' }}</span>
+        </div>
+      </div>
+
+      <!-- Donut Chart -->
+      <div class="calc-donut-section">
+        <h3 class="calc-donut-title">Payment Breakdown</h3>
+        <div class="calc-donut-wrap">
+          <svg viewBox="0 0 160 160" width="160" height="160" class="calc-donut-svg">
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#e8edf3" stroke-width="22" />
+            @if (result()) {
+            <path [attr.d]="donutPath(result()!.principalPct, 60, 80, 80, principalStartAngle)"
+              fill="none" stroke="#1a78c2" stroke-width="22" stroke-linecap="butt" />
+            <path [attr.d]="donutPath(result()!.interestPct, 60, 80, 80, interestStartAngle)"
+              fill="none" stroke="#22c55e" stroke-width="22" stroke-linecap="butt" />
+            <text x="80" y="74" text-anchor="middle" font-size="13" font-weight="700" fill="#111" font-family="Barlow, sans-serif">Principal</text>
+            <text x="80" y="92" text-anchor="middle" font-size="18" font-weight="800" fill="#1a78c2" font-family="Barlow, sans-serif">{{ result()!.principalPct }}%</text>
+            } @else {
+            <text x="80" y="86" text-anchor="middle" font-size="12" fill="#aaa" font-family="Barlow, sans-serif">Calculate</text>
+            }
+          </svg>
+
+          <div class="calc-donut-legend">
+            <div class="calc-legend-item">
+              <span class="calc-legend-dot calc-legend-dot--blue"></span>
+              <div class="calc-legend-text">
+                <span class="calc-legend-name">Principal</span>
+                <span class="calc-legend-val">
+                  @if (result()) { {{ result()!.principalPct }}% · {{ result()!.loanAmount | currency }} }
+                  @else { — }
+                </span>
+              </div>
+            </div>
+            <div class="calc-legend-item">
+              <span class="calc-legend-dot calc-legend-dot--green"></span>
+              <div class="calc-legend-text">
+                <span class="calc-legend-name">Interest</span>
+                <span class="calc-legend-val">
+                  @if (result()) { {{ result()!.interestPct }}% · {{ result()!.totalInterest | currency }} }
+                  @else { — }
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amortization Schedule -->
+      <div class="calc-schedule-section">
+        <div class="calc-schedule-header">
+          <h3 class="calc-schedule-title">Amortization Schedule</h3>
+          @if (result()) {
+          <div class="calc-schedule-toggle">
+            <button class="calc-schedule-tab" [class.active]="scheduleView() === 'monthly'" (click)="scheduleView.set('monthly')">Monthly</button>
+            <button class="calc-schedule-tab" [class.active]="scheduleView() === 'annual'"  (click)="scheduleView.set('annual')">Annual</button>
+          </div>
+          }
+        </div>
+
+        @if (result()) {
+        <div class="calc-table-wrap">
+          @if (scheduleView() === 'monthly') {
+            <table class="calc-table">
+              <thead><tr><th>Month</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Balance</th></tr></thead>
+              <tbody>
+                @for (row of result()!.schedule; track row.month) {
+                  <tr>
+                    <td>{{ row.month }}</td>
+                    <td>{{ row.payment | currency }}</td>
+                    <td class="td-interest">{{ row.interest | currency }}</td>
+                    <td class="td-principal">{{ row.principal | currency }}</td>
+                    <td>{{ row.balance | currency }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+          @if (scheduleView() === 'annual') {
+            <table class="calc-table">
+              <thead><tr><th>Year</th><th>Interest</th><th>Principal</th><th>Ending Balance</th></tr></thead>
+              <tbody>
+                @for (row of annualSchedule(result()!.schedule); track row.year) {
+                  <tr>
+                    <td>Year {{ row.year }}</td>
+                    <td class="td-interest">{{ row.interest | currency }}</td>
+                    <td class="td-principal">{{ row.principal | currency }}</td>
+                    <td>{{ row.balance | currency }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+        } @else {
+        <div class="calc-schedule-empty">Enter your details and hit Calculate to generate the full schedule.</div>
+        }
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<footer></footer>

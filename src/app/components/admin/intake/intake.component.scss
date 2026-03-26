@@ -1,0 +1,409 @@
+$blue: #2563eb;
+$border: rgba(0,0,0,0.07);
+$text-muted: rgba(0,0,0,0.45);
+
+.intake {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Step indicator ── */
+.intake-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 8px 0;
+}
+
+.intake-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .step-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    background: #e5e7eb; color: #999;
+    transition: all 0.3s;
+  }
+  .step-label { font-size: 13px; font-weight: 500; color: #999; }
+
+  &.active {
+    .step-num { background: $blue; color: white; }
+    .step-label { color: #111; font-weight: 600; }
+  }
+  &.done {
+    .step-num { background: #16a34a; color: white; }
+    .step-label { color: #16a34a; }
+  }
+}
+
+.step-line {
+  width: 40px; height: 2px; background: #e5e7eb; margin: 0 8px;
+  transition: background 0.3s;
+  &.done { background: #16a34a; }
+}
+
+/* ── Card ── */
+.intake-card {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.intake-title { font-size: 24px; font-weight: 800; color: #111; margin: 0; }
+.intake-subtitle { font-size: 15px; color: $text-muted; margin: 6px 0 0; }
+
+.intake-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.intake-decoded-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; color: #16a34a;
+  background: #dcfce7; padding: 6px 14px; border-radius: 999px;
+  lucide-icon { width: 16px; height: 16px; }
+}
+
+/* ── Dropzone ── */
+.intake-upload-card { text-align: center; }
+
+.intake-dropzone {
+  margin: 28px 0 16px;
+  padding: 60px 40px;
+  border: 2px dashed rgba(0,0,0,0.15);
+  border-radius: 16px;
+  background: #fafbfc;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s;
+
+  &:hover, &.dragover {
+    border-color: $blue;
+    background: #f0f4ff;
+  }
+
+  &.scanning {
+    border-color: $blue;
+    background: #f0f4ff;
+    cursor: wait;
+  }
+}
+
+.intake-drop-icon { width: 48px; height: 48px; color: rgba(0,0,0,0.2); }
+.intake-drop-text { font-size: 17px; font-weight: 700; color: #111; }
+.intake-drop-sub { font-size: 13px; color: $text-muted; }
+
+.intake-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #ddd; border-top-color: $blue;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.intake-error {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px; background: #fef2f2; border-radius: 10px;
+  color: #dc2626; font-size: 14px;
+  lucide-icon { width: 18px; height: 18px; }
+}
+
+.intake-or {
+  margin: 20px 0; color: $text-muted; font-size: 13px;
+  display: flex; align-items: center; gap: 16px;
+  &::before, &::after { content: ''; flex: 1; height: 1px; background: $border; }
+}
+
+.intake-manual-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 24px; background: transparent; border: 1.5px solid rgba(0,0,0,0.15);
+  border-radius: 10px; font-size: 14px; font-weight: 600;
+  font-family: inherit; cursor: pointer; color: #555;
+  lucide-icon { width: 18px; height: 18px; }
+  &:hover { border-color: $blue; color: $blue; }
+}
+
+/* ── Sections ── */
+.intake-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid $border;
+}
+
+.intake-section-title {
+  font-size: 14px; font-weight: 700; color: $blue;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin: 0 0 16px;
+}
+
+/* ── Fields ── */
+.intake-field-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+
+  @media (max-width: 700px) { grid-template-columns: repeat(2, 1fr); }
+}
+
+.intake-field {
+  display: flex; flex-direction: column; gap: 4px;
+
+  &.wide { grid-column: span 2; }
+
+  label { font-size: 12px; font-weight: 600; color: $text-muted; }
+
+  input, select, textarea {
+    border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px;
+    padding: 10px 12px; font-size: 14px; font-family: inherit;
+    color: #111; background: #fafafa; outline: none;
+    &:focus { border-color: $blue; background: white; }
+    &::placeholder { color: rgba(0,0,0,0.25); }
+  }
+
+  textarea { resize: vertical; }
+}
+
+.intake-vin-row {
+  display: flex; gap: 8px;
+  input { flex: 1; }
+}
+
+.intake-decode-btn {
+  padding: 10px 16px; background: $blue; color: white;
+  border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+  font-family: inherit; cursor: pointer; white-space: nowrap;
+  &:hover { background: darken($blue, 8%); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.intake-dollar {
+  display: flex; align-items: center;
+  border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px;
+  background: #fafafa; overflow: hidden;
+  &:focus-within { border-color: $blue; background: white; }
+
+  span { padding: 10px 0 10px 12px; font-size: 14px; font-weight: 700; color: $text-muted; }
+
+  input {
+    flex: 1; border: none !important; background: transparent !important;
+    padding: 10px 12px 10px 4px; outline: none;
+    &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { -webkit-appearance: none; }
+    -moz-appearance: textfield;
+  }
+}
+
+.mono { font-family: 'SF Mono', 'Consolas', monospace; letter-spacing: 0.5px; }
+
+/* ── Actions ── */
+.intake-actions {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 28px; padding-top: 20px; border-top: 1px solid $border;
+}
+
+.intake-back-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 12px 20px; background: transparent; border: 1.5px solid rgba(0,0,0,0.12);
+  border-radius: 10px; font-size: 14px; font-weight: 600;
+  font-family: inherit; cursor: pointer; color: #555; text-decoration: none;
+  lucide-icon { width: 18px; height: 18px; }
+  &:hover { border-color: rgba(0,0,0,0.3); }
+}
+
+.intake-next-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 24px; background: $blue; color: white;
+  border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+  lucide-icon { width: 18px; height: 18px; }
+  &:hover { background: darken($blue, 8%); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.intake-save-btn {
+  @extend .intake-next-btn;
+  background: #16a34a;
+  &:hover { background: darken(#16a34a, 8%); }
+}
+
+/* ── Flooring ── */
+.intake-floor-toggle {
+  display: flex; align-items: center; gap: 14px;
+  margin: 28px 0 20px;
+}
+
+.intake-toggle {
+  position: relative; width: 48px; height: 26px; cursor: pointer;
+
+  input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: #ddd; border-radius: 999px;
+    transition: background 0.2s;
+
+    &::before {
+      content: ''; position: absolute;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: white; left: 3px; top: 3px;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+  }
+
+  input:checked + .toggle-slider {
+    background: $blue;
+    &::before { transform: translateX(22px); }
+  }
+}
+
+.toggle-label { font-size: 16px; font-weight: 600; color: #111; }
+
+.intake-floor-details { margin-bottom: 12px; }
+
+.intake-floor-breakdown {
+  margin-top: 16px;
+  background: #f8f9fb;
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.floor-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #555;
+
+  .muted { color: #ccc; text-decoration: line-through; }
+
+  &.total {
+    border-top: 2px solid rgba(0,0,0,0.08);
+    padding-top: 10px;
+    margin-top: 4px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #111;
+  }
+}
+
+.floor-fee-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #555;
+
+  input { accent-color: $blue; width: 16px; height: 16px; cursor: pointer; }
+}
+
+.fee-note { color: $text-muted; font-size: 11px; }
+
+.intake-dollar.inline {
+  display: inline-flex;
+  width: 120px;
+  border-radius: 6px;
+
+  input { font-size: 13px !important; padding: 6px 8px 6px 2px !important; }
+  span { padding: 6px 0 6px 8px; font-size: 13px; }
+}
+
+.floor-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: $blue;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 20px 0 8px;
+}
+
+.floor-line.subtle {
+  font-size: 12px;
+  color: #999;
+}
+
+/* ── Curtailment schedule ── */
+.floor-curtailment {
+  background: #f8f9fb;
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.floor-curt-header {
+  display: grid;
+  grid-template-columns: 50px 70px 1fr 1fr 80px;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #eef0f4;
+  font-weight: 700;
+  color: $text-muted;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.floor-curt-row {
+  display: grid;
+  grid-template-columns: 50px 70px 1fr 1fr 80px;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  color: #333;
+
+  &:last-child { border-bottom: none; }
+}
+
+/* ── Rate display ── */
+.intake-rate-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 6px;
+}
+
+.rate-chip {
+  padding: 6px 12px;
+  background: #f0f2f5;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #555;
+
+  &.spread { background: #fef3c7; color: #92400e; }
+  &.total { background: $blue; color: white; }
+}
+
+.rate-plus, .rate-equals {
+  font-size: 14px;
+  font-weight: 700;
+  color: #999;
+}
+
+/* ── Done ── */
+.intake-done-card {
+  text-align: center;
+  padding: 60px 32px;
+}
+
+.intake-done-icon { width: 64px; height: 64px; color: #16a34a; margin-bottom: 16px; }
+
+.intake-done-actions {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin-top: 28px;
+}

@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, computed, inject, input, OnInit, signal } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
+import { LucideAngularModule } from 'lucide-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDividerModule } from '@angular/material/divider';
@@ -27,7 +27,7 @@ import { FooterComponent } from '../footer/footer.component';
   standalone: true,
   imports: [
     CommonModule,
-    MatIconModule,
+    LucideAngularModule,
     MatButtonModule,
     MatToolbarModule,
     FlexLayoutModule,
@@ -171,10 +171,18 @@ export class InventoryComponent implements OnInit {
           return this.inventoryService.searchInventoryWithFilters(parammap).pipe(tap((response) => {
             this.inventory.set(response.inventory);
             this.filterTypes
+            let results = response.inventory.results;
+
+            // Client-side mileage filter (Overfuel API doesn't support mileage_max)
+            const mileageMax = parammap.get('mileage_max');
+            if (mileageMax) {
+              results = results.filter((v: any) => v.mileage <= Number(mileageMax));
+            }
+
             if (this.featured()) {
-              this.getFeaturedVehicles(response.inventory.results);
+              this.getFeaturedVehicles(results);
             } else {
-              this.vehicles.set(response.inventory.results.sort((a, b) => b.price - a.price));
+              this.vehicles.set(results.sort((a, b) => b.price - a.price));
             }
             this.filters.set(response.filters.results);
             this.setPriceRange(response.filters.results.filters, parammap, false)
@@ -224,6 +232,21 @@ export class InventoryComponent implements OnInit {
       this.searchInventory(newParams);
     }
 
+  }
+
+  toggleMakeFilter(makeKey: string) {
+    const curr = { ...this.currParams() };
+    if (this.optionSelected({ type: 'make[]', value: makeKey })) {
+      // removeMakeAndModels calls searchInventory internally
+      this.removeMakeAndModels(curr, makeKey, this.filters()?.filters.modelgroups);
+    } else {
+      if (curr['make[]']) {
+        curr['make[]'] = [...(Array.isArray(curr['make[]']) ? curr['make[]'] : [curr['make[]']]), makeKey];
+      } else {
+        curr['make[]'] = [makeKey];
+      }
+      this.searchInventory(curr);
+    }
   }
 
   removeMakeAndModels(params: any, makeToRemove: string, makeModelMap: any) {

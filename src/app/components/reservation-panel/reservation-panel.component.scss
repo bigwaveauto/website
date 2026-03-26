@@ -1,0 +1,435 @@
+$green: #22c55e;
+
+.rp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 800;
+  backdrop-filter: blur(2px);
+}
+
+.rp-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 420px;
+  max-width: 100vw;
+  height: 100dvh;
+  background: white;
+  z-index: 801;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 40px rgba(0,0,0,0.15);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+/* ── Header ── */
+.rp-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 2;
+}
+
+.rp-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+  flex: 1;
+  text-align: center;
+}
+
+.rp-close {
+  background: #f2f2f2;
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #555;
+  lucide-icon { width: 18px; height: 18px; }
+  &:hover { background: #e4e4e4; }
+}
+
+.rp-back {
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  lucide-icon { width: 22px; height: 22px; }
+  &:hover { color: #111; }
+}
+
+/* ── Vehicle tag ── */
+.rp-vehicle-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #f7f8fa;
+  font-size: 14px;
+  color: #555;
+  border-bottom: 1px solid #f0f0f0;
+
+  lucide-icon { width: 18px; height: 18px; color: #2563eb; }
+}
+
+.rp-vehicle-price {
+  margin-left: auto;
+  font-weight: 700;
+  color: #111;
+}
+
+/* ── Steps list (overview) ── */
+.rp-steps-list {
+  flex: 1;
+  padding: 8px 0;
+}
+
+.rp-step-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 18px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.15s;
+
+  &:hover { background: #fafafa; }
+  &:last-child { border-bottom: none; }
+}
+
+.rp-step-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e8e8e8;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+
+  lucide-icon { width: 18px; height: 18px; color: white; }
+
+  &.complete {
+    background: $green;
+  }
+}
+
+.rp-step-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rp-step-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+}
+
+.rp-step-sub {
+  font-size: 13px;
+  color: #888;
+}
+
+.rp-step-chevron {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #bbb;
+}
+
+/* ── Bottom actions (overview) ── */
+.rp-submit-wrap {
+  padding: 16px 24px 0;
+}
+
+.rp-submit-btn {
+  width: 100%;
+  padding: 15px;
+  background: #111;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+  &:hover { background: #333; }
+}
+
+.rp-cancel-btn {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #e53e3e;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 20px 24px 28px;
+  text-align: center;
+  transition: color 0.2s;
+  &:hover { color: #c53030; }
+}
+
+/* ── Step body (inner steps) ── */
+.rp-step-body {
+  padding: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.rp-section-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: -4px;
+}
+
+.rp-step-intro {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.rp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 13px;
+    color: #888;
+    font-weight: 500;
+  }
+
+  input {
+    padding: 13px 14px;
+    background: #f2f2f2;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    color: #111;
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+    width: 100%;
+    transition: background 0.2s;
+    &:focus { background: #e8e8e8; }
+  }
+}
+
+.rp-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.rp-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 60px 90px;
+  gap: 10px;
+}
+
+.rp-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #444;
+  cursor: pointer;
+
+  input { width: 16px; height: 16px; cursor: pointer; accent-color: #111; }
+}
+
+.rp-step-submit {
+  width: 100%;
+  padding: 15px;
+  background: #111;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 8px;
+  transition: background 0.2s, opacity 0.2s;
+  &:hover { background: #333; }
+  &:disabled { opacity: 0.35; cursor: not-allowed; }
+}
+
+/* ── Coverage cards ── */
+.rp-coverage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rp-coverage-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px;
+  background: white;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+
+  &.selected { border-color: #111; background: #fafafa; }
+  &:hover { border-color: #aaa; }
+}
+
+.rp-coverage-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.rp-coverage-label { font-size: 15px; font-weight: 600; color: #111; }
+.rp-coverage-sub   { font-size: 13px; color: #888; }
+.rp-coverage-price { font-size: 15px; font-weight: 700; color: #111; white-space: nowrap; }
+
+.rp-coverage-check {
+  opacity: 0;
+  transition: opacity 0.2s;
+  lucide-icon { width: 20px; height: 20px; color: $green; }
+  &.visible { opacity: 1; }
+}
+
+/* ── Delivery cards ── */
+.rp-delivery-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rp-delivery-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 18px 20px;
+  background: white;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color 0.2s;
+
+  &.selected { border-color: #111; }
+  &:hover { border-color: #aaa; }
+}
+
+.rp-delivery-info { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.rp-delivery-label { font-size: 15px; font-weight: 600; color: #111; }
+.rp-delivery-sub   { font-size: 13px; color: #888; }
+.rp-delivery-price { font-size: 15px; font-weight: 700; color: #111; white-space: nowrap; }
+
+.rp-change-link {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  margin-top: 4px;
+  text-decoration: underline;
+}
+
+/* ── Persona / Verify ── */
+.rp-verify-heading {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111;
+  text-align: center;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.rp-persona-box {
+  background: #f7f8fa;
+  border-radius: 16px;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.rp-persona-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.rp-persona-icon {
+  background: white;
+  border-radius: 16px;
+  padding: 20px 28px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+
+  lucide-icon {
+    width: 48px;
+    height: 48px;
+    color: #aaa;
+    display: block;
+  }
+}
+
+.rp-verify-help {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #f7f8fa;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 13px;
+
+  lucide-icon { width: 20px; height: 20px; color: $green; flex-shrink: 0; margin-top: 2px; }
+
+  div { display: flex; flex-direction: column; gap: 2px; }
+  b   { font-size: 14px; font-weight: 700; color: #111; }
+  span { color: #666; }
+}
+
+.rp-verify-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 0;
+
+  lucide-icon { width: 48px; height: 48px; color: $green; }
+  p { font-size: 16px; font-weight: 600; color: #111; margin: 0; }
+}

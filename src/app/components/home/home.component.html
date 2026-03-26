@@ -158,52 +158,33 @@
               <b class="trust-card-title">Inspected by experts</b>
               <p class="trust-card-sub">Battery health + 150-point checks</p>
             </div>
-            <div class="trust-card">
-              <div class="trust-badge trust-badge--carfax">
-                <img src="/Carfax/CAD_flatLogo1.png" alt="Carfax" width="48">
+            <!-- Carfax card with Car Fox peeking behind -->
+            <div class="trust-card-fox-wrap">
+              <img src="/Carfax/Car_Fox_flag-waving_us.png" alt="Car Fox" class="trust-carfox-behind">
+              <div class="trust-card trust-card--carfax">
+                <div class="trust-badge trust-badge--carfax">
+                  <img src="/Carfax/CAD_flatLogo1.png" alt="Carfax" width="100">
+                </div>
+                <b class="trust-card-title">Carfax history report</b>
+                <p class="trust-card-sub">Know the full story</p>
               </div>
-              <b class="trust-card-title">Carfax history report</b>
-              <p class="trust-card-sub">Know the full story</p>
             </div>
           </div>
         </div>
 
         <!-- ── Sell Your Car ── -->
-        <div class="section-light" fxLayout="column" fxLayoutAlign="start center">
-            <div class="section-inner" fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="64px" style="width:100%">
-
-                <div fxFlex fxLayout="column" fxLayoutAlign="center start">
-                    <p class="section-eyebrow">Trade or Sell</p>
-                    <h2 class="section-heading-dark" style="line-height:1.2;">Sell Your Car.<br>Skip the Stress.</h2>
-                    <p class="section-body-text">We make it simple to sell your vehicle — no hassle, no lowball offers, no waiting around.</p>
-                    <a routerLink="/sell" class="btn-primary" style="margin-top:8px;">Get Your Offer</a>
-                </div>
-
-                <div fxFlex fxLayout="column" fxLayoutGap="28px">
-                    <div fxLayout="row" fxLayoutGap="20px" fxLayoutAlign="start start" class="float-in" floatInOnScroll [direction]="'right'">
-                        <div class="step-bubble">1</div>
-                        <div fxLayout="column">
-                            <b class="step-title">Share Your Vehicle Details</b>
-                            <p class="step-body">Tell us about your car and provide your contact info. Takes less than 2 minutes.</p>
-                        </div>
-                    </div>
-                    <div fxLayout="row" fxLayoutGap="20px" fxLayoutAlign="start start" class="float-in" floatInOnScroll [direction]="'right'">
-                        <div class="step-bubble">2</div>
-                        <div fxLayout="column">
-                            <b class="step-title">Receive a Real Offer</b>
-                            <p class="step-body">Our team reviews your submission and sends a genuine, competitive offer.</p>
-                        </div>
-                    </div>
-                    <div fxLayout="row" fxLayoutGap="20px" fxLayoutAlign="start start" class="float-in" floatInOnScroll [direction]="'right'">
-                        <div class="step-bubble">3</div>
-                        <div fxLayout="column">
-                            <b class="step-title">Schedule Drop-Off or Pickup</b>
-                            <p class="step-body">Choose what works for you. We'll handle the rest — it's that easy.</p>
-                        </div>
-                    </div>
-                </div>
-
+        <div class="sell-float-wrap">
+          <div class="sell-float-card">
+            <div class="sell-float-left">
+              <p class="sell-float-eyebrow">Trade or Sell</p>
+              <h2 class="sell-float-heading">Sell Your Car.<br>Skip the Stress.</h2>
+              <p class="sell-float-body">We make it simple to sell your vehicle — no hassle, no lowball offers, no waiting around.</p>
+              <a routerLink="/sell" class="sell-float-btn">Get Your Offer</a>
             </div>
+            <div class="sell-float-right">
+              <img src="/_SLC0212-2.jpg" alt="Big Wave Auto showroom" class="sell-float-img">
+            </div>
+          </div>
         </div>
 
         <!-- ── Contact ── -->
@@ -223,7 +204,7 @@
                         </div>
                         <div fxLayout="row" fxLayoutGap="12px" fxLayoutAlign="start center">
                             <span class="contact-icon">&#x1F4DE;</span>
-                            <span class="contact-text">(262) 281-1295</span>
+                            <span class="contact-text">(262) 592-4795</span>
                         </div>
                         <div fxLayout="row" fxLayoutGap="12px" fxLayoutAlign="start center">
                             <span class="contact-icon">&#x2709;</span>

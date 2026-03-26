@@ -1,7 +1,7 @@
 <!-- ── Announcement bar ── -->
 <div class="announcement-bar">
     <span>Now open in Sussex, WI &nbsp;·&nbsp; By appointment Mon–Sat, 9AM–6PM &nbsp;·&nbsp;
-        <a routerLink="/contact" class="announcement-link">Get in touch →</a>
+        <button class="announcement-link announcement-link--btn" (click)="openContact()">Get in touch →</button>
     </span>
 </div>
 
@@ -22,7 +22,7 @@
         <div class="nav-inventory-wrap"
              (mouseenter)="openInventoryMenu()"
              (mouseleave)="closeInventoryMenu()">
-          <a routerLink="/showroom" routerLinkActive="nav-link-active" class="nav-link nav-cta-btn">Shop</a>
+          <a routerLink="/showroom" [queryParams]="{}" queryParamsHandling="" routerLinkActive="nav-link-active" class="nav-link nav-cta-btn" (click)="inventoryMenuOpen.set(false)">Shop</a>
 
           @if(inventoryMenuOpen()){
           <div class="mega-menu" (mouseenter)="openInventoryMenu()" (mouseleave)="closeInventoryMenu()">
@@ -44,11 +44,11 @@
                 <span class="mega-card-label">Tesla</span>
               </a>
               <a routerLink="/showroom" [queryParams]="{'fuel[]': 'Electric'}" class="mega-card" (click)="inventoryMenuOpen.set(false)">
-                <div class="mega-card-img mega-card-icon"><mat-icon>bolt</mat-icon></div>
+                <div class="mega-card-img mega-card-icon"><lucide-icon name="zap" /></div>
                 <span class="mega-card-label">EV</span>
               </a>
               <a routerLink="/showroom" [queryParams]="{mileage_max: 50000}" class="mega-card" (click)="inventoryMenuOpen.set(false)">
-                <div class="mega-card-img mega-card-icon"><mat-icon>speed</mat-icon></div>
+                <div class="mega-card-img mega-card-icon"><lucide-icon name="gauge" /></div>
                 <span class="mega-card-label">Low Miles</span>
               </a>
             </div>
@@ -56,21 +56,74 @@
           }
         </div>
         <a routerLink="/sell"      routerLinkActive="nav-link-active" class="nav-link">Sell or Trade</a>
-        <a routerLink="/financing" routerLinkActive="nav-link-active" class="nav-link">Financing</a>
+        <div class="nav-financing-wrap"
+             (mouseenter)="openFinancingMenu()"
+             (mouseleave)="closeFinancingMenu()">
+          <a routerLink="/financing" routerLinkActive="nav-link-active" class="nav-link">Financing</a>
+          @if(financingMenuOpen()){
+          <div class="fin-dropdown" (mouseenter)="openFinancingMenu()" (mouseleave)="closeFinancingMenu()">
+            <a routerLink="/financing" class="fin-dropdown-item" (click)="financingMenuOpen.set(false)">
+              <lucide-icon name="file-text" />
+              <div>
+                <strong>Get Approved</strong>
+                <span>Apply for financing online</span>
+              </div>
+            </a>
+            <a routerLink="/calculator" class="fin-dropdown-item" (click)="financingMenuOpen.set(false)">
+              <lucide-icon name="calculator" />
+              <div>
+                <strong>Loan Calculator</strong>
+                <span>Estimate your monthly payment</span>
+              </div>
+            </a>
+          </div>
+          }
+        </div>
         <a routerLink="/about"     routerLinkActive="nav-link-active" class="nav-link">About</a>
     </div>
 
     <!-- Right: Icon actions -->
     <div class="header-col-right">
         <button class="header-icon-btn" (click)="toggleLocation()" title="Our Location" fxHide.lt-md>
-            <mat-icon>location_on</mat-icon>
+            <lucide-icon name="map-pin" />
         </button>
-        <a routerLink="/account" class="header-icon-btn" title="My Account" fxHide.lt-md>
-            <mat-icon>person</mat-icon>
-        </a>
+
+        <!-- Share referral link -->
+        <button class="header-referral-btn" fxHide.lt-md (click)="shareReferral()">
+          🌊 Share Big Wave
+        </button>
+
+        <!-- Account icon / avatar -->
+        @if(authService.isLoggedIn()){
+        <div class="acct-menu-wrap" fxHide.lt-md>
+          <button class="acct-avatar-btn" (click)="authService.toggleAccountMenu()" title="My Account">
+            @if(authService.user()?.user_metadata?.['avatar_url']){
+              <img [src]="authService.user()?.user_metadata?.['avatar_url']" class="acct-avatar-img" alt="Account" />
+            }@else{
+              <span class="acct-avatar-initial">{{ (authService.user()?.user_metadata?.['first_name'] || authService.user()?.email || 'U')[0].toUpperCase() }}</span>
+            }
+          </button>
+          @if(authService.accountMenuOpen()){
+          <div class="acct-dropdown">
+            <a routerLink="/account" [queryParams]="{tab:'reservations'}" class="acct-menu-item" (click)="authService.closeAccountMenu()"><lucide-icon name="list-checks" /> My Reservations</a>
+            <a routerLink="/account" [queryParams]="{tab:'offers'}"       class="acct-menu-item" (click)="authService.closeAccountMenu()"><lucide-icon name="tag" /> My Offers</a>
+            <a routerLink="/account" [queryParams]="{tab:'saved'}"        class="acct-menu-item" (click)="authService.closeAccountMenu()"><lucide-icon name="heart" /> Saved Vehicles</a>
+            <a routerLink="/account" [queryParams]="{tab:'searches'}"     class="acct-menu-item" (click)="authService.closeAccountMenu()"><lucide-icon name="bell" /> Saved Searches</a>
+            <div class="acct-menu-divider"></div>
+            <a routerLink="/account" [queryParams]="{tab:'settings'}"     class="acct-menu-item" (click)="authService.closeAccountMenu()"><lucide-icon name="settings" /> Account Settings</a>
+            <button class="acct-menu-item acct-signout" (click)="authService.signOut()"><lucide-icon name="log-out" /> Sign out</button>
+          </div>
+          }
+        </div>
+        }@else{
+        <button class="header-icon-btn" (click)="authService.openAuthModal()" title="Sign In" fxHide.lt-md>
+            <lucide-icon name="user" />
+        </button>
+        }
+
         <div class="header-icon-divider" fxHide.lt-md></div>
         <button class="header-icon-btn" (click)="toggleMenu()" title="Menu">
-            <mat-icon>{{ menuOpen() ? 'close' : 'menu' }}</mat-icon>
+            <lucide-icon [name]="menuOpen() ? 'x' : 'menu'" />
         </button>
     </div>
 
@@ -83,7 +136,7 @@
     <div class="location-panel-header">
         <span class="location-panel-title">Find Us</span>
         <button class="panel-close-btn" (click)="closeLocation()">
-            <mat-icon>close</mat-icon>
+            <lucide-icon name="x" />
         </button>
     </div>
 
@@ -99,20 +152,20 @@
 
     <div class="location-details">
         <div class="location-detail-row">
-            <mat-icon>directions_car</mat-icon>
+            <lucide-icon name="car" />
             <span>Pre-owned vehicle dealership</span>
         </div>
         <div class="location-detail-row">
-            <mat-icon>drive_eta</mat-icon>
+            <lucide-icon name="car-front" />
             <span>Test drives available by appointment</span>
         </div>
         <div class="location-detail-row">
-            <mat-icon>email</mat-icon>
+            <lucide-icon name="mail" />
             <span>dave&#64;bigwaveauto.com</span>
         </div>
         <div class="location-detail-row">
-            <mat-icon>phone</mat-icon>
-            <span>(262) 281-1295</span>
+            <lucide-icon name="phone" />
+            <span>(262) 592-4795</span>
         </div>
     </div>
 
@@ -137,13 +190,99 @@
 </div>
 }
 
+<!-- ── Contact panel ── -->
+@if (contactOpen()) {
+<div class="modal-overlay" (click)="closeContact()"></div>
+<div class="contact-panel">
+    <div class="contact-panel-header">
+        <span class="contact-panel-title">Contact</span>
+        <button class="panel-close-btn" (click)="closeContact()">
+            <lucide-icon name="x" />
+        </button>
+    </div>
+
+    @if (!contactSubmitted()) {
+    <h2 class="contact-panel-heading">We're here to help</h2>
+    <p class="contact-panel-sub">Fill out the form below, and one of our experts will contact you shortly.</p>
+
+    <form [formGroup]="contactForm" (ngSubmit)="submitContact()" class="contact-panel-form">
+
+        <div class="cpf-field">
+            <select formControlName="topic" class="cpf-select">
+                <option value="">What can we help you with?</option>
+                <option>Buying a vehicle</option>
+                <option>Selling / Trading in</option>
+                <option>Financing</option>
+                <option>General question</option>
+                <option>Other</option>
+            </select>
+        </div>
+
+        <div class="cpf-field">
+            <div class="cpf-label-row">
+                <label>Phone</label>
+                <span class="cpf-optional">Optional</span>
+            </div>
+            <div class="cpf-input-wrap">
+                <lucide-icon name="smartphone" class="cpf-input-icon" />
+                <input formControlName="phone" type="tel" placeholder="Enter your phone number" class="cpf-input cpf-input--icon">
+            </div>
+        </div>
+
+        <div class="cpf-field">
+            <label>Email</label>
+            <div class="cpf-input-wrap">
+                <lucide-icon name="mail" class="cpf-input-icon" />
+                <input formControlName="email" type="email" placeholder="Enter your email" class="cpf-input cpf-input--icon">
+            </div>
+        </div>
+
+        <div class="cpf-field">
+            <label>How would you like us to reach you?</label>
+            <select formControlName="preferredMethod" class="cpf-select">
+                <option value="">Preferred contact method</option>
+                <option>Text</option>
+                <option>Email</option>
+                <option>Call</option>
+                <option>Any</option>
+            </select>
+        </div>
+
+        <div class="cpf-field">
+            <div class="cpf-label-row">
+                <label>Message</label>
+                <span class="cpf-optional">Optional</span>
+            </div>
+            <textarea formControlName="message" placeholder="How can we help?" rows="5" maxlength="300"
+                class="cpf-textarea" (input)="onMessageInput($event)"></textarea>
+            <div class="cpf-char-row">
+                <span class="cpf-hint">Please include as much detail as possible.</span>
+                <span class="cpf-chars">{{ 300 - charCount() }} characters left</span>
+            </div>
+        </div>
+
+        <button type="submit" class="cpf-submit" [disabled]="contactForm.invalid || contactSubmitting()">
+            {{ contactSubmitting() ? 'Sending...' : 'Send' }}
+        </button>
+    </form>
+    } @else {
+    <div class="contact-panel-success">
+        <lucide-icon name="circle-check" class="contact-success-icon" />
+        <h3>Message sent!</h3>
+        <p>We'll be in touch shortly.</p>
+        <button class="cpf-submit" (click)="closeContact()">Close</button>
+    </div>
+    }
+</div>
+}
+
 <!-- ── Slide-out drawer ── -->
 @if (menuOpen()) {
 <div class="modal-overlay" (click)="closeMenu()"></div>
 <div class="drawer-panel">
     <div class="drawer-header">
         <button class="panel-close-btn" (click)="closeMenu()">
-            <mat-icon>close</mat-icon>
+            <lucide-icon name="x" />
         </button>
     </div>
     <nav class="drawer-nav">
@@ -155,13 +294,13 @@
     <div class="drawer-divider"></div>
     <nav class="drawer-secondary">
         <button class="drawer-secondary-link" (click)="closeMenu(); toggleLocation()">
-            <mat-icon>location_on</mat-icon> Find Us
+            <lucide-icon name="map-pin" /> Find Us
         </button>
-        <a routerLink="/contact" class="drawer-secondary-link" (click)="closeMenu()">
-            <mat-icon>help_outline</mat-icon> Contact
-        </a>
+        <button class="drawer-secondary-link" (click)="closeMenu(); openContact()">
+            <lucide-icon name="circle-help" /> Contact
+        </button>
         <a routerLink="/account" class="drawer-secondary-link" (click)="closeMenu()">
-            <mat-icon>person</mat-icon> Account
+            <lucide-icon name="user" /> Account
         </a>
     </nav>
 </div>

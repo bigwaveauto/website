@@ -1,26 +1,67 @@
 <header [floating]="true"></header>
 
-<!-- Banner -->
-<div class="fin-banner">
-  <div class="fin-banner-content">
-    <h1 class="fin-banner-title">Auto Financing in Sussex, WI</h1>
-    <div class="fin-breadcrumb">
-      <a routerLink="/" class="fin-breadcrumb-link">Home</a>
-      <span class="fin-breadcrumb-sep">/</span>
-      <span class="fin-breadcrumb-current">Financing</span>
-    </div>
-  </div>
-</div>
-
 <div class="fin-page">
 
-  <!-- Intro -->
-  <section class="fin-intro">
-    <h2 class="fin-section-title">Apply Online For A Car Loan At Big Wave Auto</h2>
-    <div class="fin-divider"></div>
-    <p>At Big Wave Auto, we make financing your next vehicle simple and stress-free. Whether you're purchasing your first car or upgrading to something newer, our finance team is here to help you secure a loan that works for your budget—no matter your credit history.</p>
-    <p>We proudly partner with multiple local and national credit unions, giving you access to competitive rates, flexible terms, and lending options that fit your unique situation. From excellent credit to first-time buyers or those rebuilding their credit, we'll work hard to match you with the right plan—sometimes with as little as $0 down.</p>
-    <p>Fill out the form below and lock in the best auto loan rate regardless of your credit history.</p>
+  <!-- Hero -->
+  <section class="fin-hero">
+    <div class="fin-hero-left">
+      <div class="fin-hero-breadcrumb">
+        <a routerLink="/" class="fin-hero-breadcrumb-link">Home</a>
+        <span class="fin-hero-breadcrumb-sep">/</span>
+        <span class="fin-hero-breadcrumb-current">Financing</span>
+      </div>
+      <div class="fin-hero-badge">🌊 Big Wave Financing</div>
+      <h2 class="fin-hero-title">Partnering with local &amp; national credit unions to deliver the best rates on the market.</h2>
+      <div class="fin-hero-stats">
+        <div class="fin-hero-stat">
+          <span class="fin-hero-stat-num">10+</span>
+          <span class="fin-hero-stat-label">Lending Partners</span>
+        </div>
+        <div class="fin-hero-stat-divider"></div>
+        <div class="fin-hero-stat">
+          <span class="fin-hero-stat-num">$0</span>
+          <span class="fin-hero-stat-label">Down Options</span>
+        </div>
+        <div class="fin-hero-stat-divider"></div>
+        <div class="fin-hero-stat">
+          <span class="fin-hero-stat-num">Same Day</span>
+          <span class="fin-hero-stat-label">Pre-Approvals &amp; Decisions</span>
+        </div>
+      </div>
+    </div>
+    <div class="fin-hero-right">
+      <div class="fin-rate-card">
+        <span class="fin-rate-eyebrow">Rates as low as</span>
+        <span class="fin-rate-num">{{ lowestRate }}</span>
+        <span class="fin-rate-term">APR · {{ lowestRateTerm }}</span>
+        <div class="fin-rate-divider"></div>
+        <span class="fin-rate-note">Subject to credit approval. Rate based on qualified buyers.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature cards -->
+  <section class="fin-feature-strip">
+    <div class="fin-feature-card fin-feature-card--blue">
+      <div class="fin-feature-icon">🤝</div>
+      <strong>Local Credit Unions</strong>
+      <span>Real relationships built right here in Wisconsin</span>
+    </div>
+    <div class="fin-feature-card fin-feature-card--teal">
+      <div class="fin-feature-icon">🇺🇸</div>
+      <strong>National Lenders</strong>
+      <span>Access to the most competitive rates nationwide</span>
+    </div>
+    <div class="fin-feature-card fin-feature-card--green">
+      <div class="fin-feature-icon">💪</div>
+      <strong>We Fight for Your Rate</strong>
+      <span>We pitch your deal to multiple lenders to get you the best offer</span>
+    </div>
+    <div class="fin-feature-card fin-feature-card--purple">
+      <div class="fin-feature-icon">🚀</div>
+      <strong>Fast &amp; Simple</strong>
+      <span>Apply in minutes, hear back within 1 business day</span>
+    </div>
   </section>
 
   <!-- Wizard -->
@@ -33,7 +74,7 @@
       <div class="fin-step" [class.active]="step() === s.number" [class.done]="step() > s.number">
         <div class="fin-step-circle">
           @if(step() > s.number){
-          <mat-icon>check</mat-icon>
+          <lucide-icon name="check" />
           }@else{
           {{ s.number }}
           }
@@ -59,10 +100,10 @@
         <p>Are you applying for financing for yourself, or jointly with a co-borrower?</p>
         <div class="fin-borrower-btns">
           <button class="fin-borrower-btn" (click)="selectBorrower(false)">
-            <mat-icon>person</mat-icon> For myself
+            <lucide-icon name="user" /> For myself
           </button>
           <button class="fin-borrower-btn" (click)="selectBorrower(true)">
-            <mat-icon>group</mat-icon> With a co-borrower
+            <lucide-icon name="users" /> With a co-borrower
           </button>
         </div>
       </div>
@@ -91,6 +132,10 @@
           <div class="fin-field">
             <label>Date of Birth</label>
             <input formControlName="dob" type="date">
+          </div>
+          <div class="fin-field">
+            <label>Social Security Number</label>
+            <input formControlName="ssn" type="password" placeholder="XXX-XX-XXXX" maxlength="11" autocomplete="off">
           </div>
         </div>
       </form>
@@ -207,7 +252,7 @@
       <div class="fin-form-nav">
         @if(step() > 1){
         <button class="fin-btn-back" (click)="prevStep()">
-          <mat-icon>arrow_back</mat-icon> Back
+          <lucide-icon name="arrow-left" /> Back
         </button>
         }@else{
         <span></span>
@@ -215,11 +260,11 @@
 
         @if(step() < totalSteps){
         <button class="fin-btn-next" (click)="nextStep()" [disabled]="!currentStepValid()">
-          Continue <mat-icon>arrow_forward</mat-icon>
+          Continue <lucide-icon name="arrow-right" />
         </button>
         }@else{
         <button class="fin-btn-submit" (click)="submitForm()" [disabled]="!currentStepValid()">
-          Submit Application <mat-icon>send</mat-icon>
+          Submit Application <lucide-icon name="send" />
         </button>
         }
       </div>
@@ -230,28 +275,14 @@
   <!-- Success state -->
   <section class="fin-success">
     <div class="fin-success-card">
-      <mat-icon class="fin-success-icon">check_circle</mat-icon>
+      <lucide-icon name="circle-check" class="fin-success-icon" />
       <h2>Application Submitted!</h2>
       <p>Thank you for applying. A member of our finance team will reach out within 1 business day to discuss your options.</p>
-      <a routerLink="/showroom" class="fin-btn-next">Browse Inventory <mat-icon>arrow_forward</mat-icon></a>
+      <a routerLink="/showroom" class="fin-btn-next">Browse Inventory <lucide-icon name="arrow-right" /></a>
     </div>
   </section>
   }
 
-  <!-- Benefits -->
-  <section class="fin-benefits">
-    <h2 class="fin-section-title">Online Car Financing Is Fast And Secure</h2>
-    <div class="fin-divider"></div>
-    <div class="fin-benefits-grid">
-      @for(b of benefits; track b.title){
-      <div class="fin-benefit-card">
-        <mat-icon class="fin-benefit-icon">{{ b.icon }}</mat-icon>
-        <h4>{{ b.title }}</h4>
-        <p>{{ b.desc }}</p>
-      </div>
-      }
-    </div>
-  </section>
 
 </div>
 
