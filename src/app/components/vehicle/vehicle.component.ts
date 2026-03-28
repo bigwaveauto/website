@@ -150,7 +150,12 @@ export class VehicleComponent implements OnInit, OnDestroy {
   selectGalleryPhoto(index: number) { this.selectedPhotoIndex.set(index); }
   openLightbox() { this.lightboxOpen.set(true); }
   closeLightbox() { this.lightboxOpen.set(false); this.singlePhotoOpen.set(false); }
-  openSinglePhoto(index: number) { this.selectedPhotoIndex.set(index); this.singlePhotoOpen.set(true); this.zoomLevel.set(1); }
+  openSinglePhoto(index: number) {
+    this.selectedPhotoIndex.set(index);
+    this.singlePhotoOpen.set(true);
+    this.zoomLevel.set(1);
+    setTimeout(() => document.querySelector<HTMLElement>('.vdp-single-overlay')?.focus(), 50);
+  }
   closeSinglePhoto() { this.singlePhotoOpen.set(false); }
   prevPhoto(total: number) { this.selectedPhotoIndex.update(i => (i - 1 + total) % total); this.zoomLevel.set(1); }
   nextPhoto(total: number) { this.selectedPhotoIndex.update(i => (i + 1) % total); this.zoomLevel.set(1); }

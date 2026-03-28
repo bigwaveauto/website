@@ -1,0 +1,423 @@
+$blue: #2563eb;
+$green: #16a34a;
+$teal: #0d9488;
+$purple: #7c3aed;
+$red: #dc2626;
+$card-bg: #fff;
+$border: rgba(0,0,0,0.07);
+$text-muted: rgba(0,0,0,0.45);
+
+.leads {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Header ── */
+.leads-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.leads-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #111;
+  margin: 0;
+}
+
+.leads-subtitle {
+  font-size: 14px;
+  color: $text-muted;
+  margin: 4px 0 0;
+}
+
+.leads-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: $card-bg;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 16px;
+  min-width: 280px;
+
+  lucide-icon { width: 18px; height: 18px; color: $text-muted; flex-shrink: 0; }
+
+  input {
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-family: inherit;
+    color: #111;
+    flex: 1;
+    background: transparent;
+
+    &::placeholder { color: $text-muted; }
+  }
+}
+
+/* ── Type tabs ── */
+.leads-types {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.leads-type-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid $border;
+  background: $card-bg;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  lucide-icon { width: 16px; height: 16px; }
+
+  &:hover { border-color: #bbb; color: #111; }
+
+  &.active {
+    background: $blue;
+    color: white;
+    border-color: $blue;
+    font-weight: 600;
+
+    .leads-type-badge {
+      background: white;
+      color: $red;
+    }
+  }
+}
+
+.leads-type-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: $red;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* ── Status pills ── */
+.leads-status-bar {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.leads-status-pill {
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  color: $text-muted;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover { background: rgba(0,0,0,0.04); color: #111; }
+  &.active { background: rgba($blue, 0.08); color: $blue; font-weight: 600; }
+}
+
+/* ── Loading / Empty ── */
+.leads-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 0;
+  color: $text-muted;
+  font-size: 14px;
+}
+
+.leads-spinner {
+  width: 24px; height: 24px;
+  border: 3px solid #ddd;
+  border-top-color: $blue;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.leads-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+  gap: 8px;
+
+  h3 { font-size: 18px; font-weight: 700; color: #111; margin: 0; }
+  p { font-size: 14px; color: $text-muted; margin: 0; }
+}
+
+.leads-empty-icon {
+  width: 48px;
+  height: 48px;
+  color: rgba(0,0,0,0.12);
+  margin-bottom: 4px;
+}
+
+/* ── Leads list ── */
+.leads-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leads-card {
+  background: $card-bg;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+
+  &.expanded {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
+}
+
+.leads-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+  gap: 16px;
+
+  &:hover { background: rgba(0,0,0,0.015); }
+}
+
+.leads-card-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.leads-card-type-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba($blue, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  lucide-icon { width: 20px; height: 20px; color: $blue; }
+}
+
+.leads-card-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.leads-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leads-card-meta {
+  font-size: 13px;
+  color: $text-muted;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leads-card-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.leads-card-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &[data-color="blue"]   { background: rgba($blue, 0.1);   color: $blue; }
+  &[data-color="teal"]   { background: rgba($teal, 0.1);   color: $teal; }
+  &[data-color="purple"] { background: rgba($purple, 0.1); color: $purple; }
+  &[data-color="green"]  { background: rgba($green, 0.1);  color: $green; }
+  &[data-color="red"]    { background: rgba($red, 0.1);    color: $red; }
+}
+
+.leads-card-time {
+  font-size: 12px;
+  color: $text-muted;
+  min-width: 60px;
+  text-align: right;
+}
+
+.leads-card-chevron {
+  width: 18px;
+  height: 18px;
+  color: $text-muted;
+}
+
+/* ── Detail panel ── */
+.leads-card-detail {
+  padding: 0 20px 20px;
+  border-top: 1px solid $border;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 20px;
+}
+
+.leads-detail-section {
+  h4 {
+    font-size: 12px;
+    font-weight: 700;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 10px;
+  }
+}
+
+.leads-detail-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leads-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #333;
+
+  lucide-icon { width: 16px; height: 16px; color: $text-muted; flex-shrink: 0; }
+
+  a {
+    color: $blue;
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.leads-detail-message {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  padding: 12px 16px;
+  background: #f8f9fb;
+  border-radius: 8px;
+
+  &.muted { color: $text-muted; font-style: italic; }
+}
+
+/* ── Status selector ── */
+.leads-detail-actions {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 20px;
+
+  @media (max-width: 700px) { grid-template-columns: 1fr; }
+}
+
+.leads-status-select {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.leads-status-opt {
+  padding: 6px 14px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #555;
+
+  &:hover { border-color: #999; }
+
+  &.active {
+    &[data-color="blue"]   { background: $blue;   color: white; border-color: $blue; }
+    &[data-color="teal"]   { background: $teal;   color: white; border-color: $teal; }
+    &[data-color="purple"] { background: $purple; color: white; border-color: $purple; }
+    &[data-color="green"]  { background: $green;  color: white; border-color: $green; }
+    &[data-color="red"]    { background: $red;    color: white; border-color: $red; }
+  }
+}
+
+.leads-notes-section {
+  textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #111;
+    resize: vertical;
+    box-sizing: border-box;
+
+    &:focus { outline: none; border-color: $blue; box-shadow: 0 0 0 3px rgba($blue, 0.1); }
+    &::placeholder { color: $text-muted; }
+  }
+}
+
+.leads-notes-save {
+  margin-top: 8px;
+  padding: 8px 18px;
+  background: #111;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #333; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+/* ── Footer ── */
+.leads-detail-footer {
+  padding-top: 12px;
+  border-top: 1px solid $border;
+}
+
+.leads-detail-date {
+  font-size: 12px;
+  color: $text-muted;
+}

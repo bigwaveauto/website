@@ -52,11 +52,11 @@ export const routes: Routes = [
       { path: 'intake', loadComponent: () => import('../components/admin/intake/intake.component').then(m => m.IntakeComponent) },
       { path: 'inventory', loadComponent: () => import('../components/admin/inventory/inventory-list.component').then(m => m.AdminInventoryListComponent) },
       { path: 'inventory/:vin', loadComponent: () => import('../components/admin/inventory/inventory-detail.component').then(m => m.AdminInventoryDetailComponent) },
-      { path: 'customers', loadComponent: () => import('../components/admin/stub/stub.component').then(m => m.AdminStubComponent), data: { title: 'Customer' } },
+      { path: 'customers', loadComponent: () => import('../components/admin/leads/leads.component').then(m => m.AdminLeadsComponent) },
       { path: 'deals', loadComponent: () => import('../components/admin/stub/stub.component').then(m => m.AdminStubComponent), data: { title: 'Deal' } },
       { path: 'marketing', loadComponent: () => import('../components/admin/stub/stub.component').then(m => m.AdminStubComponent), data: { title: 'Marketing' } },
       { path: 'accounting', loadComponent: () => import('../components/admin/stub/stub.component').then(m => m.AdminStubComponent), data: { title: 'Accounting' } },
-      { path: 'settings', loadComponent: () => import('../components/admin/stub/stub.component').then(m => m.AdminStubComponent), data: { title: 'Settings' } },
+      { path: 'settings', loadComponent: () => import('../components/admin/settings/settings.component').then(m => m.AdminSettingsComponent) },
     ],
   },
 ];

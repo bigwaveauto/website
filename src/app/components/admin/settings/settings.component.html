@@ -1,0 +1,175 @@
+<div class="settings">
+
+  <!-- Header -->
+  <div class="settings-header">
+    <h1 class="settings-title">Website Settings</h1>
+    <p class="settings-subtitle">Manage your dealership website configuration</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="settings-tabs">
+    @for(tab of tabs; track tab.key){
+    <button
+      class="settings-tab"
+      [class.active]="activeTab() === tab.key"
+      (click)="setTab(tab.key)">
+      <lucide-icon [name]="tab.icon" />
+      <span>{{ tab.label }}</span>
+    </button>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if(loading()){
+  <div class="settings-loading">
+    <div class="settings-spinner"></div>
+    <span>Loading settings...</span>
+  </div>
+  }@else{
+
+  <!-- Finance Tab -->
+  @if(activeTab() === 'finance'){
+  <div class="settings-panel">
+
+    <!-- Advertised Rate Card -->
+    <div class="settings-card">
+      <div class="settings-card-header">
+        <lucide-icon name="percent" />
+        <div>
+          <h3>Advertised Rate</h3>
+          <p>The lowest rate shown on the Financing page hero section</p>
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div class="settings-row">
+          <div class="settings-field">
+            <label>Lowest Rate</label>
+            <input type="text" [(ngModel)]="finance.lowestRate" placeholder="6.9%">
+            <span class="settings-hint">e.g. "6.9%" — displayed as the headline rate</span>
+          </div>
+          <div class="settings-field">
+            <label>Rate Term</label>
+            <input type="text" [(ngModel)]="finance.lowestRateTerm" placeholder="60-month term">
+            <span class="settings-hint">e.g. "60-month term" — shown below the rate</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero Stats -->
+    <div class="settings-card">
+      <div class="settings-card-header">
+        <lucide-icon name="bar-chart-3" />
+        <div>
+          <h3>Hero Stats</h3>
+          <p>The three stat badges on the Financing page hero</p>
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div class="settings-row settings-row--3">
+          <div class="settings-field">
+            <label>Lending Partners</label>
+            <input type="text" [(ngModel)]="finance.lendingPartnerCount" placeholder="10+">
+          </div>
+          <div class="settings-field">
+            <label>Down Options</label>
+            <input type="text" [(ngModel)]="finance.downOptions" placeholder="$0">
+          </div>
+          <div class="settings-field">
+            <label>Pre-Approval Speed</label>
+            <input type="text" [(ngModel)]="finance.preApprovalSpeed" placeholder="Same Day">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calculator Defaults -->
+    <div class="settings-card">
+      <div class="settings-card-header">
+        <lucide-icon name="calculator" />
+        <div>
+          <h3>Calculator Defaults</h3>
+          <p>Default values pre-filled in the loan calculator</p>
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div class="settings-row settings-row--3">
+          <div class="settings-field">
+            <label>Default Interest Rate (%)</label>
+            <input type="number" [(ngModel)]="finance.defaultInterestRate" step="0.1" min="0" max="30">
+          </div>
+          <div class="settings-field">
+            <label>Default Loan Term</label>
+            <select [(ngModel)]="finance.defaultLoanTerm">
+              @for(t of termOptions; track t){
+              <option [ngValue]="t">{{ t }} months</option>
+              }
+            </select>
+          </div>
+          <div class="settings-field">
+            <label>Other Fees ($)</label>
+            <input type="number" [(ngModel)]="finance.defaultOtherFees" step="50" min="0">
+            <span class="settings-hint">Doc fees, title, registration, etc.</span>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-field">
+            <label>Default State (for tax rate)</label>
+            <input type="text" [(ngModel)]="finance.defaultState" placeholder="Wisconsin">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="settings-card">
+      <div class="settings-card-header">
+        <lucide-icon name="bell" />
+        <div>
+          <h3>Notifications</h3>
+          <p>Where financing application alerts are sent</p>
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div class="settings-row">
+          <div class="settings-field">
+            <label>Notification Email</label>
+            <input type="email" [(ngModel)]="finance.notificationEmail" placeholder="dave@bigwaveauto.com">
+            <span class="settings-hint">New financing applications will be emailed here</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save -->
+    <div class="settings-actions">
+      <button class="settings-save" (click)="saveFinance()" [disabled]="saving()">
+        @if(saving()){
+        <div class="settings-btn-spinner"></div> Saving...
+        }@else{
+        <lucide-icon name="save" /> Save Finance Settings
+        }
+      </button>
+      @if(saved()){
+      <span class="settings-saved">
+        <lucide-icon name="circle-check" /> Settings saved
+      </span>
+      }
+    </div>
+
+  </div>
+  }
+
+  <!-- Stub tabs -->
+  @if(activeTab() === 'general' || activeTab() === 'leads' || activeTab() === 'seo'){
+  <div class="settings-panel">
+    <div class="settings-stub">
+      <lucide-icon name="wrench" class="settings-stub-icon" />
+      <h3>{{ activeTab() | titlecase }} Settings</h3>
+      <p>This section is under construction. Coming soon.</p>
+    </div>
+  </div>
+  }
+
+  }
+</div>

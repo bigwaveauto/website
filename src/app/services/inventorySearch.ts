@@ -10,13 +10,12 @@ import { environment } from '../../environments/environment';
 export class InventoryService {
     private http = inject(HttpClient);
 
-    // Browser: proxy through our Express server to avoid CORS.
-    // Server (SSR): call Overfuel directly — no CORS restriction server-to-server.
+    // vAuto-powered inventory served from our own backend
     private get apiUrl(): string {
       const isBrowser = typeof window !== 'undefined';
       return isBrowser
-        ? `/api/dealers/${environment.dealerId}`
-        : `${environment.externalApi}/${environment.dealerId}`;
+        ? '/api/inventory'
+        : `http://localhost:${process.env?.['PORT'] || 4000}/api/inventory`;
     }
   
     public buildParams(params: InventoryQueryParams): HttpParams {

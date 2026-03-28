@@ -169,9 +169,9 @@
         </div>
     </div>
 
-    <a routerLink="/contact" class="location-cta-btn" (click)="closeLocation()">
+    <button class="location-cta-btn" (click)="closeLocation(); openAppointment()">
         Request Appointment
-    </a>
+    </button>
 
     <div class="location-hours">
         <div class="location-hours-header">
@@ -286,10 +286,10 @@
         </button>
     </div>
     <nav class="drawer-nav">
-        <a routerLink="/showroom"  class="drawer-link" (click)="closeMenu()">Shop</a>
-        <a routerLink="/sell"      class="drawer-link" (click)="closeMenu()">Sell or Trade</a>
-        <a routerLink="/financing" class="drawer-link" (click)="closeMenu()">Financing</a>
-        <a routerLink="/about"     class="drawer-link" (click)="closeMenu()">About</a>
+        <a class="drawer-link" (click)="drawerNav('/showroom')">Shop</a>
+        <a class="drawer-link" (click)="drawerNav('/sell')">Sell or Trade</a>
+        <a class="drawer-link" (click)="drawerNav('/financing')">Financing</a>
+        <a class="drawer-link" (click)="drawerNav('/about')">About</a>
     </nav>
     <div class="drawer-divider"></div>
     <nav class="drawer-secondary">
@@ -299,9 +299,88 @@
         <button class="drawer-secondary-link" (click)="closeMenu(); openContact()">
             <lucide-icon name="circle-help" /> Contact
         </button>
-        <a routerLink="/account" class="drawer-secondary-link" (click)="closeMenu()">
+        <a class="drawer-secondary-link" (click)="drawerNav('/account')">
             <lucide-icon name="user" /> Account
         </a>
     </nav>
+</div>
+}
+
+<!-- ── Appointment Modal ── -->
+@if(appointmentOpen()){
+<div class="vdp-modal-overlay" (click)="closeAppointment()">
+  <div class="vdp-modal" (click)="$event.stopPropagation()">
+    <div class="vdp-modal-header">
+      <div>
+        <h2 class="vdp-modal-title">Request Appointment</h2>
+        <p class="vdp-modal-subtitle">Schedule a visit at Big Wave Auto</p>
+      </div>
+      <button class="vdp-modal-close" (click)="closeAppointment()"><lucide-icon name="x" /></button>
+    </div>
+
+    @if(appointmentSubmitted()){
+    <div class="vdp-modal-success">
+      <lucide-icon name="circle-check" class="vdp-success-icon" />
+      <h3>You're All Set!</h3>
+      <p>We'll reach out shortly to confirm your appointment. See you soon!</p>
+      <button class="vdp-modal-btn" (click)="closeAppointment()">Close</button>
+    </div>
+    }@else{
+    <form [formGroup]="appointmentForm" (ngSubmit)="submitAppointment()" class="vdp-modal-form">
+      <div class="vdp-form-field">
+        <label>Reason for Visit</label>
+        <select formControlName="reason">
+          <option>Test Drive</option>
+          <option>View a Vehicle</option>
+          <option>Trade-In Appraisal</option>
+          <option>Financing</option>
+          <option>General Inquiry</option>
+        </select>
+      </div>
+      <div class="vdp-form-row">
+        <div class="vdp-form-field">
+          <label>First Name *</label>
+          <input formControlName="firstname" placeholder="John" />
+        </div>
+        <div class="vdp-form-field">
+          <label>Last Name *</label>
+          <input formControlName="lastname" placeholder="Doe" />
+        </div>
+      </div>
+      <div class="vdp-form-row">
+        <div class="vdp-form-field">
+          <label>Email *</label>
+          <input formControlName="email" type="email" placeholder="john@example.com" />
+        </div>
+        <div class="vdp-form-field">
+          <label>Phone *</label>
+          <input formControlName="phone" type="tel" placeholder="(262) 555-1234" />
+        </div>
+      </div>
+      <div class="vdp-form-row">
+        <div class="vdp-form-field">
+          <label>Preferred Date</label>
+          <input formControlName="preferred_date" type="date" />
+        </div>
+        <div class="vdp-form-field">
+          <label>Preferred Time</label>
+          <select formControlName="preferred_time">
+            <option value="">Select a time</option>
+            @for(t of timeSlots; track t){
+            <option [value]="t">{{ t }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="vdp-form-field">
+        <label>Notes</label>
+        <textarea formControlName="notes" rows="3" placeholder="Anything we should know? Vehicle of interest, questions, etc."></textarea>
+      </div>
+      <button type="submit" class="vdp-modal-submit" [disabled]="appointmentForm.invalid || appointmentSubmitting()">
+        @if(appointmentSubmitting()){ Sending… }@else{ <lucide-icon name="car" /> Schedule Appointment }
+      </button>
+    </form>
+    }
+  </div>
 </div>
 }

@@ -39,8 +39,8 @@ export class AdminInventoryListComponent implements OnInit {
   ];
 
   ngOnInit() {
-    // Fetch from both Overfuel and Supabase, merge results
-    let overfuelVehicles: any[] = [];
+    // Fetch from vAuto feed and Supabase, merge results
+    let vautoVehicles: any[] = [];
     let supabaseVehicles: any[] = [];
     let loaded = 0;
 
@@ -64,14 +64,14 @@ export class AdminInventoryListComponent implements OnInit {
             : 0,
           _source: 'supabase',
         })),
-        ...overfuelVehicles
+        ...vautoVehicles
           .filter(v => !supaVins.has(v.vin))
           .map(v => ({
             ...v,
-            daysinstock: v.dateinstock
+            daysinstock: v.age || (v.dateinstock
               ? Math.floor((Date.now() - new Date(v.dateinstock).getTime()) / 86400000)
-              : 0,
-            _source: 'overfuel',
+              : 0),
+            _source: 'vauto',
           })),
       ];
       this.vehicles.set(combined);
@@ -79,8 +79,8 @@ export class AdminInventoryListComponent implements OnInit {
       this.loading.set(false);
     };
 
-    this.http.get<any>('/api/dealers/1367/vehicles?rows=200').subscribe({
-      next: (data) => { overfuelVehicles = data?.results || []; merge(); },
+    this.http.get<any>('/api/admin/vauto/inventory').subscribe({
+      next: (data) => { vautoVehicles = data?.results || []; merge(); },
       error: () => merge(),
     });
 

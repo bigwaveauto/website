@@ -55,6 +55,7 @@ export class HeaderComponent {
 
     toggleMenu() { this.menuOpen.update(v => !v); this.locationOpen.set(false); this.contactOpen.set(false); }
     closeMenu()  { this.menuOpen.set(false); }
+    drawerNav(path: string) { this.menuOpen.set(false); setTimeout(() => this.router.navigateByUrl(path), 50); }
 
     toggleLocation() { this.locationOpen.update(v => !v); this.menuOpen.set(false); this.contactOpen.set(false); }
     closeLocation()  { this.locationOpen.set(false); }
@@ -72,6 +73,40 @@ export class HeaderComponent {
         this.http.post('/api/leads/contact', this.contactForm.value).subscribe({
             next: () => { this.contactSubmitted.set(true); this.contactSubmitting.set(false); },
             error: () => { this.contactSubmitting.set(false); alert('Something went wrong. Please try again.'); }
+        });
+    }
+
+    // ── Appointment Modal ──
+    appointmentOpen = signal(false);
+    appointmentSubmitted = signal(false);
+    appointmentSubmitting = signal(false);
+
+    appointmentForm: FormGroup = this.fb.group({
+        firstname:      ['', Validators.required],
+        lastname:       ['', Validators.required],
+        email:          ['', [Validators.required, Validators.email]],
+        phone:          ['', Validators.required],
+        preferred_date: [''],
+        preferred_time: [''],
+        reason:         ['Test Drive'],
+        notes:          [''],
+    });
+
+    timeSlots = [
+        '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
+        '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM',
+        '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM',
+    ];
+
+    openAppointment() { this.appointmentOpen.set(true); this.appointmentSubmitted.set(false); this.appointmentForm.reset({ reason: 'Test Drive' }); }
+    closeAppointment() { this.appointmentOpen.set(false); }
+
+    submitAppointment() {
+        if (this.appointmentForm.invalid || this.appointmentSubmitting()) return;
+        this.appointmentSubmitting.set(true);
+        this.http.post('/api/leads/test-drive', this.appointmentForm.value).subscribe({
+            next: () => { this.appointmentSubmitted.set(true); this.appointmentSubmitting.set(false); },
+            error: () => { this.appointmentSubmitting.set(false); alert('Something went wrong. Please try again.'); },
         });
     }
 

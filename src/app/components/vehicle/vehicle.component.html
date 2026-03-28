@@ -195,7 +195,7 @@
 
 <!-- ── Single Photo Fullscreen ── -->
 @if(singlePhotoOpen()){
-<div class="vdp-single-overlay">
+<div class="vdp-single-overlay" tabindex="0" #singleOverlay (keydown.arrowLeft)="prevPhoto(total)" (keydown.arrowRight)="nextPhoto(total)" (keydown.escape)="closeLightbox()">
   <div class="vdp-single-bar">
     <button class="vdp-single-back" (click)="closeSinglePhoto()">
       <lucide-icon name="arrow-left" /> All photos

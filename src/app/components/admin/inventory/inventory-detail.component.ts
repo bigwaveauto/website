@@ -180,7 +180,7 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
     // Tick every minute for live cost updates
     this.tickInterval = setInterval(() => this.now.set(Date.now()), 60000);
 
-    // Fetch vehicle — try Supabase first, fall back to Overfuel
+    // Fetch vehicle — try Supabase first, fall back to vAuto
     this.http.get<any>(`/api/admin/vehicles/${vin}`).subscribe({
       next: (v) => {
         if (v) {
@@ -188,10 +188,10 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
           this.populateFields(v, 'supabase');
           this.loading.set(false);
         } else {
-          this.fetchFromOverfuel(vin);
+          this.fetchFromVauto(vin);
         }
       },
-      error: () => this.fetchFromOverfuel(vin),
+      error: () => this.fetchFromVauto(vin),
     });
 
     // Fetch internal data
@@ -216,13 +216,13 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
     if (this.tickInterval) clearInterval(this.tickInterval);
   }
 
-  private fetchFromOverfuel(vin: string) {
-    this.http.get<any>(`/api/dealers/1367/vehicles?vin=${vin}`).subscribe({
+  private fetchFromVauto(vin: string) {
+    this.http.get<any>('/api/admin/vauto/inventory').subscribe({
       next: (data) => {
-        const v = data?.results?.[0];
+        const v = (data?.results || []).find((veh: any) => veh.vin.toLowerCase() === vin.toLowerCase());
         if (v) {
           this.vehicle.set(v);
-          this.populateFields(v, 'overfuel');
+          this.populateFields(v, 'vauto');
         }
         this.loading.set(false);
       },
@@ -230,7 +230,7 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  private populateFields(v: any, source: 'supabase' | 'overfuel') {
+  private populateFields(v: any, source: 'supabase' | 'vauto') {
     if (source === 'supabase') {
       this.stockNumber.set(v.stock_number || '');
       this.vin.set(v.vin || '');
@@ -276,7 +276,7 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
       this.msrp.set(v.msrp || 0);
       this.purchasePrice.set(v.originalprice || v.price || 0);
       this.purchaseDate.set(v.dateinstock || '');
-      this.description.set(v.vehicledescription || v.notes || '');
+      this.description.set(v.description || v.vehicledescription || v.notes || '');
     }
   }
 

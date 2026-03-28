@@ -11,6 +11,15 @@ interface InventoryAgeRow {
   totalPrice: number;
 }
 
+interface VautoStatus {
+  dirExists: boolean;
+  directory: string;
+  fileCount: number;
+  latestFile: string | null;
+  latestModified: string | null;
+  vehicleCount: number;
+}
+
 interface DashboardData {
   inventory: {
     ageRows: InventoryAgeRow[];
@@ -41,6 +50,7 @@ export class DashboardComponent implements OnInit {
   private http = inject(HttpClient);
 
   data = signal<DashboardData | null>(null);
+  vauto = signal<VautoStatus | null>(null);
   loading = signal(true);
   selectedPeriod = signal('last_30');
   today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -56,6 +66,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
     this.loadDashboard();
+    this.loadVautoStatus();
   }
 
   loadDashboard() {
@@ -64,6 +75,24 @@ export class DashboardComponent implements OnInit {
       next: (data) => { this.data.set(data); this.loading.set(false); },
       error: () => { this.loading.set(false); },
     });
+  }
+
+  loadVautoStatus() {
+    this.http.get<VautoStatus>('/api/admin/vauto/status').subscribe({
+      next: (status) => this.vauto.set(status),
+      error: () => {},
+    });
+  }
+
+  vautoTimeAgo(): string {
+    const v = this.vauto();
+    if (!v?.latestModified) return '';
+    const diff = Date.now() - new Date(v.latestModified).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
   }
 
   selectPeriod(key: string) {

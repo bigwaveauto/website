@@ -26,7 +26,7 @@ export class AdminComponent implements OnInit {
     { label: 'Add Vehicle', icon: 'plus',       route: '/admin/intake' },
     { label: 'Reports',    icon: 'file-text',   route: '/admin/reports' },
     { label: 'Inventory',  icon: 'car',         route: '/admin/inventory' },
-    { label: 'Customer',   icon: 'users',       route: '/admin/customers' },
+    { label: 'Leads',      icon: 'users',       route: '/admin/customers' },
     { label: 'Deal',       icon: 'list-checks', route: '/admin/deals' },
     { label: 'Marketing',  icon: 'tag',         route: '/admin/marketing' },
     { label: 'Accounting', icon: 'landmark',    route: '/admin/accounting' },

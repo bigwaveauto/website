@@ -37,6 +37,34 @@
     </div>
   </div>
 
+  <!-- vAuto Feed Status -->
+  @if(vauto(); as v){
+  <div class="dash-card dash-vauto">
+    <div class="dash-vauto-row">
+      <div class="dash-vauto-left">
+        <div class="dash-vauto-indicator" [class.active]="v.fileCount > 0" [class.inactive]="v.fileCount === 0"></div>
+        <div>
+          <span class="dash-vauto-title">vAuto Inventory Feed</span>
+          @if(v.fileCount > 0){
+          <span class="dash-vauto-detail">{{ v.vehicleCount }} vehicles &middot; {{ v.latestFile }} &middot; Updated {{ vautoTimeAgo() }}</span>
+          }@else{
+          <span class="dash-vauto-detail dash-vauto-waiting">Waiting for first file from vAuto...</span>
+          }
+        </div>
+      </div>
+      <div class="dash-vauto-right">
+        @if(v.fileCount > 0){
+        <span class="dash-vauto-badge active">Active</span>
+        }@else if(v.dirExists){
+        <span class="dash-vauto-badge pending">Pending</span>
+        }@else{
+        <span class="dash-vauto-badge inactive">Not Configured</span>
+        }
+      </div>
+    </div>
+  </div>
+  }
+
   <!-- Inventory + Top Sellers row -->
   <div class="dash-row">
 

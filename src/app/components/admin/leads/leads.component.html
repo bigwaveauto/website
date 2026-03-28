@@ -1,0 +1,281 @@
+<div class="leads">
+
+  <!-- Header -->
+  <div class="leads-header">
+    <div>
+      <h1 class="leads-title">Leads</h1>
+      <p class="leads-subtitle">{{ filteredLeads().length }} leads · {{ newCount() }} new</p>
+    </div>
+    <div class="leads-search">
+      <lucide-icon name="search" />
+      <input type="text" placeholder="Search name, email, phone, VIN..." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)">
+    </div>
+  </div>
+
+  <!-- Type filter tabs -->
+  <div class="leads-types">
+    @for(t of types; track t.key){
+    <button class="leads-type-btn" [class.active]="selectedType() === t.key" (click)="setType(t.key)">
+      <lucide-icon [name]="t.icon" />
+      <span>{{ t.label }}</span>
+      @if(newCountByType(t.key) > 0){
+      <span class="leads-type-badge">{{ newCountByType(t.key) }}</span>
+      }
+    </button>
+    }
+  </div>
+
+  <!-- Status filter pills -->
+  <div class="leads-status-bar">
+    @for(s of statuses; track s.key){
+    <button class="leads-status-pill" [class.active]="selectedStatus() === s.key" (click)="setStatus(s.key)">
+      {{ s.label }}
+    </button>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if(loading()){
+  <div class="leads-loading">
+    <div class="leads-spinner"></div>
+    <span>Loading leads...</span>
+  </div>
+  }@else if(filteredLeads().length === 0){
+  <div class="leads-empty">
+    <lucide-icon name="inbox" class="leads-empty-icon" />
+    <h3>No leads found</h3>
+    <p>Try adjusting your filters or search query.</p>
+  </div>
+  }@else{
+
+  <!-- Leads list -->
+  <div class="leads-list">
+    @for(lead of filteredLeads(); track lead.id + lead._type){
+    <div class="leads-card" [class.expanded]="expandedId() === lead.id">
+
+      <!-- Row summary -->
+      <div class="leads-card-row" (click)="toggleExpand(lead.id)">
+        <div class="leads-card-left">
+          <div class="leads-card-type-icon">
+            <lucide-icon [name]="typeIcon(lead._type)" />
+          </div>
+          <div class="leads-card-info">
+            <span class="leads-card-name">{{ lead._name }}</span>
+            <span class="leads-card-meta">
+              {{ typeLabel(lead._type) }}
+              @if(lead.year && lead.make){
+              · {{ lead.year }} {{ lead.make }} {{ lead.model }}
+              }
+              @if(lead.offer_amount){
+              · {{ lead.offer_amount | currency:'USD':'symbol':'1.0-0' }} offer
+              }
+              @if(lead.topic){
+              · {{ lead.topic }}
+              }
+            </span>
+          </div>
+        </div>
+        <div class="leads-card-right">
+          <span class="leads-card-badge" [attr.data-color]="statusColor(lead.status || 'new')">
+            {{ statusLabel(lead.status || 'new') }}
+          </span>
+          <span class="leads-card-time">{{ timeAgo(lead.created_at) }}</span>
+          <lucide-icon [name]="expandedId() === lead.id ? 'chevron-up' : 'chevron-down'" class="leads-card-chevron" />
+        </div>
+      </div>
+
+      <!-- Expanded detail -->
+      @if(expandedId() === lead.id){
+      <div class="leads-card-detail">
+
+        <!-- Contact info -->
+        <div class="leads-detail-section">
+          <h4>Contact</h4>
+          <div class="leads-detail-grid">
+            <div class="leads-detail-item">
+              <lucide-icon name="user" />
+              <span>{{ lead._name }}</span>
+            </div>
+            @if(lead._email){
+            <div class="leads-detail-item">
+              <lucide-icon name="mail" />
+              <a href="mailto:{{ lead._email }}">{{ lead._email }}</a>
+            </div>
+            }
+            @if(lead._phone){
+            <div class="leads-detail-item">
+              <lucide-icon name="phone" />
+              <a href="tel:{{ lead._phone }}">{{ lead._phone }}</a>
+            </div>
+            }
+            @if(lead.preferred_method){
+            <div class="leads-detail-item">
+              <lucide-icon name="message-circle" />
+              <span>Prefers: {{ lead.preferred_method }}</span>
+            </div>
+            }
+          </div>
+        </div>
+
+        <!-- Type-specific details -->
+        @if(lead._type === 'financing'){
+        <div class="leads-detail-section">
+          <h4>Financing Details</h4>
+          <div class="leads-detail-grid">
+            @if(lead.street){
+            <div class="leads-detail-item">
+              <lucide-icon name="map-pin" />
+              <span>{{ lead.street }}, {{ lead.city }}, {{ lead.state }} {{ lead.zip }}</span>
+            </div>
+            }
+            @if(lead.employment_status){
+            <div class="leads-detail-item">
+              <lucide-icon name="briefcase" />
+              <span>{{ lead.employment_status }} at {{ lead.employer_name }}</span>
+            </div>
+            }
+            @if(lead.monthly_income){
+            <div class="leads-detail-item">
+              <lucide-icon name="banknote" />
+              <span>Monthly income: {{ lead.monthly_income }}</span>
+            </div>
+            }
+            @if(lead.coborrower !== undefined){
+            <div class="leads-detail-item">
+              <lucide-icon name="users" />
+              <span>Co-borrower: {{ lead.coborrower ? 'Yes' : 'No' }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if(lead._type === 'offer'){
+        <div class="leads-detail-section">
+          <h4>Offer Details</h4>
+          <div class="leads-detail-grid">
+            <div class="leads-detail-item">
+              <lucide-icon name="car" />
+              <span>{{ lead.year }} {{ lead.make }} {{ lead.model }} · VIN: {{ lead.vin }}</span>
+            </div>
+            @if(lead.offer_amount){
+            <div class="leads-detail-item">
+              <lucide-icon name="tag" />
+              <span>Offer: {{ lead.offer_amount | currency:'USD':'symbol':'1.0-0' }} (Listed: {{ lead.listed_price | currency:'USD':'symbol':'1.0-0' }})</span>
+            </div>
+            }
+            @if(lead.financing){
+            <div class="leads-detail-item">
+              <lucide-icon name="landmark" />
+              <span>Needs financing: {{ lead.financing }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if(lead._type === 'test-drive'){
+        <div class="leads-detail-section">
+          <h4>Test Drive</h4>
+          <div class="leads-detail-grid">
+            <div class="leads-detail-item">
+              <lucide-icon name="car" />
+              <span>{{ lead.year }} {{ lead.make }} {{ lead.model }}@if(lead.stock){ · Stock #{{ lead.stock }}}</span>
+            </div>
+            @if(lead.preferred_date){
+            <div class="leads-detail-item">
+              <lucide-icon name="calendar" />
+              <span>{{ lead.preferred_date }} {{ lead.preferred_time }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if(lead._type === 'trade-in'){
+        <div class="leads-detail-section">
+          <h4>Trade-In Vehicle</h4>
+          <div class="leads-detail-grid">
+            <div class="leads-detail-item">
+              <lucide-icon name="car" />
+              <span>{{ lead.year }} {{ lead.make }} {{ lead.model }}</span>
+            </div>
+            @if(lead.mileage){
+            <div class="leads-detail-item">
+              <lucide-icon name="gauge" />
+              <span>{{ lead.mileage | number }} miles · {{ lead.condition }}</span>
+            </div>
+            }
+            @if(lead.vin){
+            <div class="leads-detail-item">
+              <lucide-icon name="hash" />
+              <span>VIN: {{ lead.vin }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if(lead._type === 'contact'){
+        <div class="leads-detail-section">
+          <h4>Message</h4>
+          @if(lead.message){
+          <p class="leads-detail-message">{{ lead.message }}</p>
+          }@else{
+          <p class="leads-detail-message muted">No message provided</p>
+          }
+        </div>
+        }
+
+        <!-- Notes from the customer -->
+        @if(lead.notes){
+        <div class="leads-detail-section">
+          <h4>Customer Notes</h4>
+          <p class="leads-detail-message">{{ lead.notes }}</p>
+        </div>
+        }
+
+        <!-- Status + Admin notes -->
+        <div class="leads-detail-actions">
+          <div class="leads-detail-section">
+            <h4>Status</h4>
+            <div class="leads-status-select">
+              @for(s of statuses; track s.key){
+              @if(s.key !== 'all'){
+              <button
+                class="leads-status-opt"
+                [class.active]="(lead.status || 'new') === s.key"
+                [attr.data-color]="statusColor(s.key)"
+                (click)="updateStatus(lead, s.key)">
+                {{ s.label }}
+              </button>
+              }
+              }
+            </div>
+          </div>
+          <div class="leads-detail-section leads-notes-section">
+            <h4>Internal Notes</h4>
+            <textarea
+              [(ngModel)]="lead.admin_notes"
+              placeholder="Add notes about this lead..."
+              rows="3"></textarea>
+            <button class="leads-notes-save" (click)="saveNotes(lead)" [disabled]="savingNotes()">
+              @if(savingNotes()){ Saving... }@else{ Save Notes }
+            </button>
+          </div>
+        </div>
+
+        <div class="leads-detail-footer">
+          <span class="leads-detail-date">Submitted {{ lead.created_at | date:'MMM d, y h:mm a' }}</span>
+        </div>
+
+      </div>
+      }
+
+    </div>
+    }
+  </div>
+
+  }
+
+</div>
