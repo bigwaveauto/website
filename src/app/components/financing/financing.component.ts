@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -14,13 +14,28 @@ import { FooterComponent } from '../footer/footer.component';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink, HeaderComponent, FooterComponent]
 })
-export class FinancingComponent {
+export class FinancingComponent implements OnInit {
   private http = inject(HttpClient);
 
-  // ── Business-configurable rate ──────────────────────────────────────────
+  // ── Business-configurable rate (defaults, overridden by admin settings) ──
   lowestRate = '6.9%';
   lowestRateTerm = '60-month term';
-  // ────────────────────────────────────────────────────────────────────────
+  lendingPartnerCount = '10+';
+  downOptions = '$0';
+  preApprovalSpeed = 'Same Day';
+
+  ngOnInit() {
+    this.http.get<any>('/api/settings/finance').subscribe({
+      next: (s) => {
+        if (s.lowestRate) this.lowestRate = s.lowestRate;
+        if (s.lowestRateTerm) this.lowestRateTerm = s.lowestRateTerm;
+        if (s.lendingPartnerCount) this.lendingPartnerCount = s.lendingPartnerCount;
+        if (s.downOptions) this.downOptions = s.downOptions;
+        if (s.preApprovalSpeed) this.preApprovalSpeed = s.preApprovalSpeed;
+      },
+      error: () => {}, // use defaults
+    });
+  }
 
   step = signal(1);
   totalSteps = 4;

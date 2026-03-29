@@ -1483,6 +1483,23 @@ app.post('/api/admin/settings', async (req, res) => {
 });
 
 /**
+ * Public site settings — read-only, no auth required
+ */
+app.get('/api/settings/:category', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('settings')
+      .eq('category', req.params['category'])
+      .maybeSingle();
+    if (error) { res.status(500).json({ error: 'Failed to load' }); return; }
+    res.json(data?.settings || {});
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/**
  * Proxy Overfuel API requests to avoid CORS restrictions.
  * Browser calls /api/dealers/... → this server forwards to api.overfuel.com
  */
