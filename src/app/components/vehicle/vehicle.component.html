@@ -11,9 +11,9 @@
 
     <!-- Gallery: main photo + vertical strip side by side -->
     @if(total > 0){
-    <div class="vdp-gallery">
+    <div class="vdp-gallery" (click)="openSinglePhoto(selectedPhotoIndex())">
       <!-- Main photo -->
-      <div class="vdp-gallery-main" (click)="openSinglePhoto(selectedPhotoIndex())">
+      <div class="vdp-gallery-main">
         <img [src]="v.photos[selectedPhotoIndex()].large" [alt]="v.title" />
       </div>
       <!-- Vertical thumbnail strip -->
@@ -21,10 +21,10 @@
       <div class="vdp-vstrip">
         @for(photo of v.photos | slice:0:4; track $index; let i = $index){
         <div class="vdp-vthumb" [class.active]="i === selectedPhotoIndex()"
-             (click)="$event.stopPropagation(); selectGalleryPhoto(i)">
+             (mouseenter)="selectGalleryPhoto(i)">
           <img [src]="photo.large" [alt]="v.title" />
           @if(i === 3 && total > 4){
-          <div class="vdp-vmore" (click)="$event.stopPropagation(); openLightbox()">
+          <div class="vdp-vmore">
             +{{ total - 3 }} more
           </div>}
         </div>
@@ -176,46 +176,75 @@
 
 </div><!-- /vdp-shell -->
 
-<!-- ── Photo Grid Lightbox ── -->
-@if(lightboxOpen() && !singlePhotoOpen()){
-<div class="vdp-lgrid-overlay" (click)="closeLightbox()">
-  <div class="vdp-lgrid-modal" (click)="$event.stopPropagation()">
-    <div class="vdp-lgrid-header">
-      <span class="vdp-lgrid-title">Photo Gallery</span>
-      <button class="vdp-lgrid-close" (click)="closeLightbox()"><lucide-icon name="x" /></button>
-    </div>
-    <div class="vdp-lgrid-body">
-      @for(photo of v.photos; track $index; let i = $index){
-      <div class="vdp-lgrid-item" (click)="openSinglePhoto(i)">
-        <img [src]="photo.large" [alt]="v.title" />
-      </div>}
-    </div>
-  </div>
-</div>}
+<!-- ── Photo Gallery Lightbox ── -->
+@if(lightboxOpen()){
+<div class="vdp-lb" tabindex="0" (keydown.arrowLeft)="prevPhoto(total)" (keydown.arrowRight)="nextPhoto(total)" (keydown.escape)="closeLightbox()">
 
-<!-- ── Single Photo Fullscreen ── -->
-@if(singlePhotoOpen()){
-<div class="vdp-single-overlay" tabindex="0" #singleOverlay (keydown.arrowLeft)="prevPhoto(total)" (keydown.arrowRight)="nextPhoto(total)" (keydown.escape)="closeLightbox()">
-  <div class="vdp-single-bar">
-    <button class="vdp-single-back" (click)="closeSinglePhoto()">
-      <lucide-icon name="arrow-left" /> All photos
-    </button>
-    <span class="vdp-single-counter">{{ selectedPhotoIndex() + 1 }} / {{ total }}</span>
-    <div class="vdp-single-zoom">
-      <button class="vdp-single-zoom-btn" (click)="zoomOut()" [disabled]="zoomLevel() <= 1"><lucide-icon name="zoom-out" /></button>
-      <button class="vdp-single-zoom-btn" (click)="zoomIn()" [disabled]="zoomLevel() >= 3"><lucide-icon name="zoom-in" /></button>
-      <button class="vdp-single-zoom-btn" (click)="closeLightbox()"><lucide-icon name="x" /></button>
+  <!-- Header -->
+  <div class="vdp-lb-header">
+    <div class="vdp-lb-title">
+      <span class="vdp-lb-ymm">{{ v.year }} {{ v.make }} {{ v.model }}</span>
+      <span class="vdp-lb-trim">{{ v.trim }}</span>
+    </div>
+    <button class="vdp-lb-close" (click)="closeLightbox()"><lucide-icon name="x" /></button>
+  </div>
+
+  <div class="vdp-lb-body">
+    <!-- Main photo area -->
+    <div class="vdp-lb-main">
+      <div class="vdp-lb-img-wrap">
+        <img [src]="v.photos[selectedPhotoIndex()].large" [alt]="v.title"
+             class="vdp-lb-img" [style.transform]="'scale(' + zoomLevel() + ')'" />
+        <!-- Zoom controls -->
+        <div class="vdp-lb-zoom">
+          <button (click)="zoomOut()" [disabled]="zoomLevel() <= 1"><lucide-icon name="zoom-out" /></button>
+          <button (click)="zoomIn()" [disabled]="zoomLevel() >= 3"><lucide-icon name="zoom-in" /></button>
+        </div>
+      </div>
+      <!-- Bottom bar -->
+      <div class="vdp-lb-nav">
+        <span class="vdp-lb-counter">{{ selectedPhotoIndex() + 1 }} of {{ total }}</span>
+        <span class="vdp-lb-cat-label">{{ getPhotoCategory(selectedPhotoIndex()) }} Photo</span>
+        @if(total > 1){
+        <div class="vdp-lb-arrows">
+          <button (click)="prevPhoto(total)"><lucide-icon name="chevron-left" /></button>
+          <button (click)="nextPhoto(total)"><lucide-icon name="chevron-right" /></button>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Right sidebar: categories + thumbnails -->
+    <div class="vdp-lb-sidebar">
+      <!-- Category tabs -->
+      <div class="vdp-lb-cats">
+        @for(cat of galleryCategories(); track cat.key){
+        <button class="vdp-lb-cat" [class.active]="galleryCategory() === cat.key"
+                (click)="setGalleryCategory(cat.key)">
+          {{ cat.key }} ({{ cat.count }})
+        </button>
+        }
+      </div>
+
+      <!-- Thumbnail grid -->
+      <div class="vdp-lb-thumbs">
+        @for(p of filteredPhotos(); track p.index){
+        <div class="vdp-lb-thumb" [class.active]="p.index === selectedPhotoIndex()"
+             (click)="selectGalleryPhoto(p.index)">
+          <img [src]="p.photo.large" [alt]="v.title" />
+          @if(p.index === selectedPhotoIndex()){
+          <div class="vdp-lb-viewing">
+            <lucide-icon name="eye" /> Viewing
+          </div>
+          }
+        </div>
+        }
+      </div>
     </div>
   </div>
-  <div class="vdp-single-img-wrap">
-    <img [src]="v.photos[selectedPhotoIndex()].large" [alt]="v.title"
-         class="vdp-single-img" [style.transform]="'scale(' + zoomLevel() + ')'">
-  </div>
-  @if(total > 1){
-  <button class="vdp-single-arrow left" (click)="prevPhoto(total)"><lucide-icon name="chevron-left" /></button>
-  <button class="vdp-single-arrow right" (click)="nextPhoto(total)"><lucide-icon name="chevron-right" /></button>
-  }
-</div>}
+
+</div>
+}
 
 <!-- ── Test Drive Modal ── -->
 @if(testDriveOpen()){

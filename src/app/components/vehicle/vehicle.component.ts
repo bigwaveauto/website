@@ -52,6 +52,11 @@ export class VehicleComponent implements OnInit, OnDestroy {
   singlePhotoOpen = signal(false);
   zoomLevel = signal(1);
 
+  // Photo gallery categories
+  galleryCategory = signal('All');
+  galleryCategories = signal<{ key: string; count: number }[]>([]);
+  photoCategories = signal<Record<number, string>>({});
+
   // ── Modal state ──
   testDriveOpen = signal(false);
   makeOfferOpen = signal(false);
@@ -148,19 +153,77 @@ export class VehicleComponent implements OnInit, OnDestroy {
   }
 
   selectGalleryPhoto(index: number) { this.selectedPhotoIndex.set(index); }
-  openLightbox() { this.lightboxOpen.set(true); }
-  closeLightbox() { this.lightboxOpen.set(false); this.singlePhotoOpen.set(false); }
+
+  openLightbox() {
+    this.lightboxOpen.set(true);
+    this.galleryCategory.set('All');
+    this.buildPhotoCategories();
+    setTimeout(() => document.querySelector<HTMLElement>('.vdp-lb')?.focus(), 50);
+  }
+
+  closeLightbox() { this.lightboxOpen.set(false); }
+
   openSinglePhoto(index: number) {
     this.selectedPhotoIndex.set(index);
-    this.singlePhotoOpen.set(true);
-    this.zoomLevel.set(1);
-    setTimeout(() => document.querySelector<HTMLElement>('.vdp-single-overlay')?.focus(), 50);
+    this.openLightbox();
   }
-  closeSinglePhoto() { this.singlePhotoOpen.set(false); }
+
   prevPhoto(total: number) { this.selectedPhotoIndex.update(i => (i - 1 + total) % total); this.zoomLevel.set(1); }
   nextPhoto(total: number) { this.selectedPhotoIndex.update(i => (i + 1) % total); this.zoomLevel.set(1); }
   zoomIn() { this.zoomLevel.update(z => Math.min(z + 0.5, 3)); }
   zoomOut() { this.zoomLevel.update(z => Math.max(z - 0.5, 1)); }
+
+  setGalleryCategory(cat: string) {
+    this.galleryCategory.set(cat);
+    // Select first photo in the new category
+    if (cat === 'All') return;
+    const cats = this.photoCategories();
+    const first = Object.entries(cats).find(([_, c]) => c === cat);
+    if (first) this.selectedPhotoIndex.set(Number(first[0]));
+  }
+
+  filteredPhotos(): { index: number; photo: any }[] {
+    const v = this.fullVehicle()?.results;
+    if (!v) return [];
+    const cat = this.galleryCategory();
+    const cats = this.photoCategories();
+    return v.photos
+      .map((photo: any, index: number) => ({ index, photo }))
+      .filter(p => cat === 'All' || cats[p.index] === cat);
+  }
+
+  getPhotoCategory(index: number): string {
+    return this.photoCategories()[index] || 'Exterior';
+  }
+
+  private buildPhotoCategories() {
+    const v = this.fullVehicle()?.results;
+    if (!v) return;
+    const total = v.photos.length;
+    const cats: Record<number, string> = {};
+
+    // Auto-categorize by position — typical dealer photo order:
+    // First ~60% exterior, next ~30% interior, last ~10% mechanical/other
+    const extEnd = Math.ceil(total * 0.55);
+    const intEnd = Math.ceil(total * 0.85);
+
+    for (let i = 0; i < total; i++) {
+      if (i < extEnd) cats[i] = 'Exterior';
+      else if (i < intEnd) cats[i] = 'Interior';
+      else cats[i] = 'Mechanical';
+    }
+
+    this.photoCategories.set(cats);
+
+    // Build category list with counts
+    const counts: Record<string, number> = {};
+    Object.values(cats).forEach(c => counts[c] = (counts[c] || 0) + 1);
+    const order = ['All', 'Exterior', 'Interior', 'Mechanical'];
+    const list = order
+      .map(key => ({ key, count: key === 'All' ? total : (counts[key] || 0) }))
+      .filter(c => c.count > 0);
+    this.galleryCategories.set(list);
+  }
 
   reserveVehicle(v: any) {
     if (!this.auth.isLoggedIn()) {
