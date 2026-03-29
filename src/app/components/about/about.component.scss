@@ -407,24 +407,23 @@ $radius:    14px;
 }
 
 .abt-brand-rank-logo {
-  height: 24px;
-  width: 60px;
+  height: 36px;
+  width: 72px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
   flex-shrink: 0;
 }
 
 .abt-brand-rank-name-only {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: #fff;
-  width: 60px;
-  text-align: left;
+  width: 72px;
+  text-align: center;
   flex-shrink: 0;
 }
 
 .abt-brand-rank-count {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 800;
   color: #38bdf8;
   width: 36px;
