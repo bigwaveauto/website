@@ -25,8 +25,11 @@ export class AuthCallbackComponent implements OnInit {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.auth.handleOAuthCallback();
     const vin = sessionStorage.getItem('reserve_vin');
+    const returnTo = sessionStorage.getItem('auth_return_to');
     sessionStorage.removeItem('reserve_vin');
+    sessionStorage.removeItem('auth_return_to');
     if (vin) this.router.navigate(['/reserve', vin]);
-    else     this.router.navigate(['/']);
+    else if (returnTo) this.router.navigate([returnTo]);
+    else this.router.navigate(['/']);
   }
 }

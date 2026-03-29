@@ -65,6 +65,9 @@ export class AdminComponent implements OnInit {
 
   async adminSignIn() {
     this.loginError.set('');
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('auth_return_to', '/admin');
+    }
     await this.auth.signInWithGoogle();
   }
 
