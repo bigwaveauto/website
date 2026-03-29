@@ -173,13 +173,13 @@
             <div class="inv-card-img-wrap" [routerLink]="[pathRoot(), auto.vin]">
               @if(focusedimg !== 0){
               <button class="inv-img-arrow left show-on-parent-hover"
-                (click)="$event.stopPropagation(); setFocusedImage(auto.vin, -1)">
+                (click)="$event.stopPropagation(); $event.preventDefault(); setFocusedImage(auto.vin, -1)">
                 <lucide-icon name="chevron-left" />
               </button>
               }
               @if(focusedimg !== (photoslen - 1)){
               <button class="inv-img-arrow right show-on-parent-hover"
-                (click)="$event.stopPropagation(); setFocusedImage(auto.vin, 1)">
+                (click)="$event.stopPropagation(); $event.preventDefault(); setFocusedImage(auto.vin, 1)">
                 <lucide-icon name="chevron-right" />
               </button>
               }

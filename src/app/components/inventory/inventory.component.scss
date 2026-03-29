@@ -404,6 +404,10 @@ $text-muted: rgba(0,0,0,0.45);
   &.right { right: 8px; }
 }
 
+.hover-parent:hover .show-on-parent-hover {
+  visibility: visible;
+}
+
 .inv-img-track {
   display: flex;
   height: 100%;
