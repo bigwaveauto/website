@@ -244,6 +244,17 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
         if (v) {
           this.vehicle.set(v);
           this.populateFields(v, 'vauto');
+          // Auto-load vAuto photos if no saved categories exist yet
+          if (!this.photos().length && v.photos?.length) {
+            const feedPhotos: VehiclePhoto[] = v.photos
+              .filter((url: any) => typeof url === 'string')
+              .map((url: string, i: number) => ({
+                url,
+                sort_order: i,
+                category: 'Exterior',
+              }));
+            this.photos.set(feedPhotos);
+          }
         }
         this.loading.set(false);
       },
