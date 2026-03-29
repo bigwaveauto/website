@@ -202,15 +202,25 @@ export class VehicleComponent implements OnInit, OnDestroy {
     const total = v.photos.length;
     const cats: Record<number, string> = {};
 
-    // Auto-categorize by position — typical dealer photo order:
-    // First ~60% exterior, next ~30% interior, last ~10% mechanical/other
-    const extEnd = Math.ceil(total * 0.55);
-    const intEnd = Math.ceil(total * 0.85);
+    // Check if API returned real categories
+    const hasRealCats = v.photos.some((p: any) => p.category);
 
-    for (let i = 0; i < total; i++) {
-      if (i < extEnd) cats[i] = 'Exterior';
-      else if (i < intEnd) cats[i] = 'Interior';
-      else cats[i] = 'Mechanical';
+    if (hasRealCats) {
+      // Use real categories from admin-assigned data
+      for (let i = 0; i < total; i++) {
+        cats[i] = v.photos[i].category || 'Exterior';
+      }
+    } else {
+      // Auto-categorize by position — typical dealer photo order:
+      // First ~55% exterior, next ~30% interior, last ~15% mechanical/other
+      const extEnd = Math.ceil(total * 0.55);
+      const intEnd = Math.ceil(total * 0.85);
+
+      for (let i = 0; i < total; i++) {
+        if (i < extEnd) cats[i] = 'Exterior';
+        else if (i < intEnd) cats[i] = 'Interior';
+        else cats[i] = 'Mechanical';
+      }
     }
 
     this.photoCategories.set(cats);
@@ -218,7 +228,7 @@ export class VehicleComponent implements OnInit, OnDestroy {
     // Build category list with counts
     const counts: Record<string, number> = {};
     Object.values(cats).forEach(c => counts[c] = (counts[c] || 0) + 1);
-    const order = ['All', 'Exterior', 'Interior', 'Mechanical'];
+    const order = ['All', 'Exterior', 'Interior', 'Mechanical', 'Damage', 'Miscellaneous'];
     const list = order
       .map(key => ({ key, count: key === 'All' ? total : (counts[key] || 0) }))
       .filter(c => c.count > 0);

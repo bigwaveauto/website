@@ -45,7 +45,10 @@ interface VehiclePhoto {
   id?: string;
   url: string;
   sort_order: number;
+  category?: string;
 }
+
+const PHOTO_CATEGORIES = ['Exterior', 'Interior', 'Mechanical', 'Damage', 'Miscellaneous'];
 
 @Component({
   selector: 'admin-inventory-detail',
@@ -117,6 +120,10 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   photos = signal<VehiclePhoto[]>([]);
   uploadingPhoto = signal(false);
   photoDragOver = signal(false);
+  photoCategories = PHOTO_CATEGORIES;
+  photoCatFilter = signal('All');
+  savingPhotoCats = signal(false);
+  photoCatsSaved = signal(false);
 
   // Description
   description = signal('');
@@ -206,6 +213,20 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
           this.specialPrice.set(data.pricing.special_price ?? this.specialPrice());
           this.purchasePrice.set(data.pricing.purchase_price ?? this.purchasePrice());
           this.minDown.set(data.pricing.min_down ?? 0);
+        }
+      },
+      error: () => {},
+    });
+
+    // Fetch saved photo categories
+    this.http.get<any>(`/api/admin/vehicle/photos/categories/${vin}`).subscribe({
+      next: (data) => {
+        if (data.photos?.length) {
+          this.photos.set(data.photos.map((p: any) => ({
+            url: p.url,
+            sort_order: p.sort_order,
+            category: p.category,
+          })));
         }
       },
       error: () => {},
@@ -448,6 +469,79 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
 
   removePhoto(index: number) {
     this.photos.update(list => list.filter((_, i) => i !== index));
+  }
+
+  // ── Import vAuto photos ──
+  importVautoPhotos() {
+    const v = this.vehicle();
+    if (!v) return;
+    // vAuto vehicles have photos as string[] on the raw vehicle object
+    const rawPhotos: string[] = v.photos || [];
+    if (!rawPhotos.length) return;
+
+    const existing = new Set(this.photos().map(p => p.url));
+    const newPhotos: VehiclePhoto[] = rawPhotos
+      .filter((url: string) => typeof url === 'string' && !existing.has(url))
+      .map((url: string, i: number) => ({
+        url,
+        sort_order: this.photos().length + i,
+        category: 'Exterior', // default, user can re-categorize
+      }));
+
+    if (newPhotos.length === 0) {
+      alert('All photos are already imported.');
+      return;
+    }
+
+    this.photos.update(list => [...list, ...newPhotos]);
+  }
+
+  setPhotoCategory(index: number, category: string) {
+    this.photos.update(list =>
+      list.map((p, i) => i === index ? { ...p, category } : p)
+    );
+  }
+
+  filteredPhotos(): { photo: VehiclePhoto; index: number }[] {
+    const cat = this.photoCatFilter();
+    return this.photos()
+      .map((photo, index) => ({ photo, index }))
+      .filter(p => cat === 'All' || (p.photo.category || 'Exterior') === cat);
+  }
+
+  photoCategoryCounts(): { key: string; count: number }[] {
+    const all = this.photos();
+    const counts: Record<string, number> = {};
+    all.forEach(p => {
+      const c = p.category || 'Exterior';
+      counts[c] = (counts[c] || 0) + 1;
+    });
+    return [
+      { key: 'All', count: all.length },
+      ...PHOTO_CATEGORIES.map(c => ({ key: c, count: counts[c] || 0 })).filter(c => c.count > 0),
+    ];
+  }
+
+  savePhotoCategories() {
+    this.savingPhotoCats.set(true);
+    this.photoCatsSaved.set(false);
+    const vin = this.vin();
+    const photos = this.photos().map((p, i) => ({
+      url: p.url,
+      sort_order: i,
+      category: p.category || 'Exterior',
+    }));
+    this.http.post('/api/admin/vehicle/photos/categories', { vin, photos }).subscribe({
+      next: () => {
+        this.savingPhotoCats.set(false);
+        this.photoCatsSaved.set(true);
+        setTimeout(() => this.photoCatsSaved.set(false), 3000);
+      },
+      error: () => {
+        this.savingPhotoCats.set(false);
+        alert('Failed to save photo categories.');
+      },
+    });
   }
 
   // ── AI Description ──

@@ -277,7 +277,22 @@
   <!-- ═══ PHOTOS TAB ═══ -->
   @if(activeTab() === 'photos'){
   <div class="det-card">
-    <h2 class="det-card-title">Photos</h2>
+    <div class="det-card-header-row">
+      <h2 class="det-card-title">Photos</h2>
+      <div class="det-photo-actions">
+        <button class="det-btn-outline" (click)="importVautoPhotos()">
+          <lucide-icon name="download" /> Import from Feed
+        </button>
+        @if(photos().length > 0){
+        <button class="det-btn-primary" (click)="savePhotoCategories()" [disabled]="savingPhotoCats()">
+          @if(savingPhotoCats()){ Saving… }@else{ <lucide-icon name="save" /> Save Categories }
+        </button>
+        }
+        @if(photoCatsSaved()){
+        <span class="det-saved-inline"><lucide-icon name="circle-check" /> Saved</span>
+        }
+      </div>
+    </div>
 
     <div class="det-photo-drop" [class.dragover]="photoDragOver()"
          (dragover)="onPhotoDragOver($event)" (dragleave)="onPhotoDragLeave()" (drop)="onPhotoDrop($event)"
@@ -293,16 +308,33 @@
     </div>
 
     @if(photos().length > 0){
+    <!-- Category filter tabs -->
+    <div class="det-photo-cats">
+      @for(cat of photoCategoryCounts(); track cat.key){
+      <button class="det-photo-cat" [class.active]="photoCatFilter() === cat.key"
+              (click)="photoCatFilter.set(cat.key)">
+        {{ cat.key }} ({{ cat.count }})
+      </button>
+      }
+    </div>
+
     <div class="det-photo-grid">
-      @for(photo of photos(); track $index; let i = $index){
+      @for(p of filteredPhotos(); track p.index){
       <div class="det-photo-item">
-        <img [src]="photo.url" alt="Vehicle photo" />
-        <button class="det-photo-remove" (click)="removePhoto(i)"><lucide-icon name="x" /></button>
+        <img [src]="p.photo.url" alt="Vehicle photo" />
+        <div class="det-photo-controls">
+          <select [ngModel]="p.photo.category || 'Exterior'" (ngModelChange)="setPhotoCategory(p.index, $event)">
+            @for(cat of photoCategories; track cat){
+            <option [value]="cat">{{ cat }}</option>
+            }
+          </select>
+          <button class="det-photo-remove" (click)="removePhoto(p.index)"><lucide-icon name="x" /></button>
+        </div>
       </div>
       }
     </div>
     }@else{
-    <p class="det-empty">No photos yet. Drag and drop to upload.</p>
+    <p class="det-empty">No photos yet. Click "Import from Feed" to pull in vAuto photos, or drag and drop to upload.</p>
     }
   </div>
   }

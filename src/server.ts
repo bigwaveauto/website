@@ -774,6 +774,48 @@ app.post('/api/admin/vehicle/save', async (req, res) => {
 });
 
 /**
+ * Photo categories — save/load per-vehicle photo categorization
+ */
+app.post('/api/admin/vehicle/photos/categories', async (req, res) => {
+  try {
+    const { vin, photos } = req.body;
+    if (!vin || !photos) { res.status(400).json({ error: 'vin and photos required' }); return; }
+
+    // Delete existing categories for this VIN, then insert new ones
+    await supabase.from('vehicle_photo_categories').delete().eq('vin', vin);
+    if (photos.length > 0) {
+      const rows = photos.map((p: any, i: number) => ({
+        vin,
+        url: p.url,
+        sort_order: p.sort_order ?? i,
+        category: p.category || 'Exterior',
+      }));
+      const { error } = await supabase.from('vehicle_photo_categories').insert(rows);
+      if (error) { console.error(error); res.status(500).json({ error: 'Failed to save' }); return; }
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/admin/vehicle/photos/categories/:vin', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('vehicle_photo_categories')
+      .select('*')
+      .eq('vin', req.params['vin'])
+      .order('sort_order');
+    if (error) { console.error(error); res.status(500).json({ error: 'Failed to load' }); return; }
+    res.json({ photos: data || [] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/**
  * vAuto CSV inventory feed
  * vAuto pushes CSV files to /home/vauto/inventory/ via FTP.
  * These endpoints read and parse those files.
@@ -1128,11 +1170,20 @@ app.get('/api/inventory/:vin', async (req, res) => {
     const v = vehicles.find(v => v.vin.toLowerCase() === req.params['vin'].toLowerCase());
     if (!v) { res.status(404).json({ error: 'Vehicle not found' }); return; }
 
+    // Load saved photo categories if available
+    const { data: savedCats } = await supabase
+      .from('vehicle_photo_categories')
+      .select('url, category, sort_order')
+      .eq('vin', v.vin)
+      .order('sort_order');
+    const catMap = new Map((savedCats || []).map((c: any) => [c.url, c.category]));
+
     const photos = v.photos.map((url: string, i: number) => ({
       id: i + 1,
       large: url,
       thumbnail: url,
       sortorder: i,
+      category: catMap.get(url) || undefined,
     }));
 
     // Categorize features into highlight groups

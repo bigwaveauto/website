@@ -133,6 +133,7 @@ export interface VehiclePhoto {
   large: string;
   thumbnail: string | null;
   sortorder: number;
+  category?: string;
 }
 
 export interface VehicleVideo {
