@@ -24,10 +24,13 @@ export class AuthCallbackComponent implements OnInit {
   async ngOnInit() {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.auth.handleOAuthCallback();
+
+    // Check for returnTo in URL query params (survives OAuth redirect)
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get('returnTo');
     const vin = sessionStorage.getItem('reserve_vin');
-    const returnTo = sessionStorage.getItem('auth_return_to');
     sessionStorage.removeItem('reserve_vin');
-    sessionStorage.removeItem('auth_return_to');
+
     if (vin) this.router.navigate(['/reserve', vin]);
     else if (returnTo) this.router.navigate([returnTo]);
     else this.router.navigate(['/']);

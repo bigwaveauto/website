@@ -75,9 +75,18 @@ export class AuthService {
   async signInWithGoogle(redirectVin?: string) {
     if (!this.supabase) return;
     if (redirectVin) sessionStorage.setItem('reserve_vin', redirectVin);
+    const origin = typeof window !== 'undefined' ? window.location.origin : environment.startupUrl;
     await this.supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${typeof window !== 'undefined' ? window.location.origin : environment.startupUrl}/auth/callback` },
+      options: { redirectTo: `${origin}/auth/callback` },
+    });
+  }
+
+  async signInWithGoogleTo(redirectUrl: string) {
+    if (!this.supabase) return;
+    await this.supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: redirectUrl },
     });
   }
 
