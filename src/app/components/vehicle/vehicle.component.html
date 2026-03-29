@@ -230,8 +230,8 @@
       <div class="vdp-lb-thumbs">
         @for(p of filteredPhotos(); track p.index){
         <div class="vdp-lb-thumb" [class.active]="p.index === selectedPhotoIndex()"
-             [style.background-image]="'url(' + p.photo.large + ')'"
              (click)="selectGalleryPhoto(p.index)">
+          <img [src]="p.photo.large" alt="" loading="eager" decoding="sync" fetchpriority="high" />
           @if(p.index === selectedPhotoIndex()){
           <div class="vdp-lb-viewing">
             <lucide-icon name="eye" /> Viewing
