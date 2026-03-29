@@ -5,7 +5,7 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import { join } from 'node:path';
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
@@ -14,6 +14,9 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import Anthropic from '@anthropic-ai/sdk';
 import { parse as csvParse } from 'csv-parse/sync';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import cors from 'cors';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -54,161 +57,286 @@ function decrypt(encrypted: string): string {
 }
 
 /**
- * Lead form submissions
+ * Security middleware
  */
+app.use(helmet({
+  contentSecurityPolicy: false, // Angular handles its own CSP
+  crossOriginEmbedderPolicy: false, // Allow loading external images
+}));
+
+app.use(cors({
+  origin: [
+    'https://bigwaveauto.com',
+    'https://www.bigwaveauto.com',
+    'http://104.236.238.131',
+    'http://localhost:4000',
+    'http://localhost:4200',
+  ],
+  credentials: true,
+}));
+
 app.use(express.json());
 
-app.post('/api/leads/financing', async (req, res) => {
+// Rate limiters
+const leadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 submissions per 15 min per IP
+  message: { error: 'Too many submissions. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const adminLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 60, // 60 requests per minute
+  message: { error: 'Too many requests.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 10, // 10 AI requests per minute
+  message: { error: 'Too many AI requests. Please wait.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// HTML escape helper to prevent injection in emails
+function escHtml(str: string): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Whitelist of admin emails
+const ADMIN_EMAILS = ['dave@bigwaveauto.com', 'dlucas589@gmail.com'];
+
+// Server-side admin auth middleware — validates Supabase JWT and checks email whitelist
+async function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Authentication required' });
+    return;
+  }
+  const token = authHeader.slice(7);
   try {
-    const data = req.body;
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user?.email) {
+      res.status(401).json({ error: 'Invalid or expired token' });
+      return;
+    }
+    if (!ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+      res.status(403).json({ error: 'Access denied' });
+      return;
+    }
+    (req as any).adminUser = user;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Authentication failed' });
+  }
+}
+
+// Input validation helpers
+function validateEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || '');
+}
+
+function pickFields(data: any, allowed: string[]): any {
+  const result: any = {};
+  for (const key of allowed) {
+    if (data[key] !== undefined) result[key] = data[key];
+  }
+  return result;
+}
+
+/**
+ * Lead form submissions
+ */
+
+app.post('/api/leads/financing', leadLimiter, async (req, res) => {
+  try {
+    const data = pickFields(req.body, [
+      'firstname', 'lastname', 'email', 'phone', 'dob', 'ssn',
+      'street', 'city', 'state', 'zip', 'yearsAtAddress', 'housingStatus',
+      'employerName', 'employmentStatus', 'monthlyIncome', 'yearsEmployed', 'coborrower',
+    ]);
+    if (!data.firstname || !data.email || !validateEmail(data.email)) {
+      res.status(400).json({ error: 'Valid name and email required' }); return;
+    }
     const lastFour = (data.ssn || '').slice(-4);
-    // Encrypt SSN before storing
     if (data.ssn) data.ssn = encrypt(data.ssn);
     const { error } = await supabase.from('financing_leads').insert(data);
-    if (error) { console.error(error); res.status(500).json({ error: 'Failed to save' }); return; }
+    if (error) { console.error('Lead save error'); res.status(500).json({ error: 'Failed to save' }); return; }
 
     await resend.emails.send({
       from: FROM_EMAIL,
       to: NOTIFY_EMAIL,
-      subject: `New Financing Application — ${data.firstname} ${data.lastname}`,
+      subject: `New Financing Application — ${escHtml(data.firstname)} ${escHtml(data.lastname)}`,
       html: `
         <h2>New Financing Application</h2>
-        <p><b>Name:</b> ${data.firstname} ${data.lastname}</p>
-        <p><b>Email:</b> ${data.email}</p>
-        <p><b>Phone:</b> ${data.phone}</p>
-        <p><b>DOB:</b> ${data.dob}</p>
-        <p><b>SSN:</b> ***-**-${lastFour || 'N/A'}</p>
-        <p><b>Address:</b> ${data.street}, ${data.city}, ${data.state} ${data.zip}</p>
-        <p><b>Housing:</b> ${data.housing_status} (${data.years_at_address})</p>
-        <p><b>Employment:</b> ${data.employment_status} at ${data.employer_name}</p>
-        <p><b>Monthly Income:</b> ${data.monthly_income}</p>
+        <p><b>Name:</b> ${escHtml(data.firstname)} ${escHtml(data.lastname)}</p>
+        <p><b>Email:</b> ${escHtml(data.email)}</p>
+        <p><b>Phone:</b> ${escHtml(data.phone)}</p>
+        <p><b>DOB:</b> ${escHtml(data.dob)}</p>
+        <p><b>SSN:</b> ***-**-${escHtml(lastFour) || 'N/A'}</p>
+        <p><b>Address:</b> ${escHtml(data.street)}, ${escHtml(data.city)}, ${escHtml(data.state)} ${escHtml(data.zip)}</p>
+        <p><b>Employment:</b> ${escHtml(data.employmentStatus)} at ${escHtml(data.employerName)}</p>
+        <p><b>Monthly Income:</b> ${escHtml(data.monthlyIncome)}</p>
         <p><b>Co-borrower:</b> ${data.coborrower ? 'Yes' : 'No'}</p>
       `
     });
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error('Financing lead error');
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-app.post('/api/leads/trade-in', async (req, res) => {
+app.post('/api/leads/trade-in', leadLimiter, async (req, res) => {
   try {
-    const data = req.body;
+    const data = pickFields(req.body, [
+      'firstname', 'lastname', 'email', 'phone', 'year', 'make', 'model',
+      'mileage', 'condition', 'vin', 'notes',
+    ]);
+    if (!data.email || !validateEmail(data.email)) {
+      res.status(400).json({ error: 'Valid email required' }); return;
+    }
     const { error } = await supabase.from('trade_in_leads').insert(data);
-    if (error) { console.error(error); res.status(500).json({ error: 'Failed to save' }); return; }
+    if (error) { console.error('Lead save error'); res.status(500).json({ error: 'Failed to save' }); return; }
 
     await resend.emails.send({
       from: FROM_EMAIL,
       to: NOTIFY_EMAIL,
-      subject: `New Trade-In Submission — ${data.year} ${data.make} ${data.model}`,
+      subject: `New Trade-In Submission — ${escHtml(data.year)} ${escHtml(data.make)} ${escHtml(data.model)}`,
       html: `
         <h2>New Trade-In / Sell Submission</h2>
-        <p><b>Vehicle:</b> ${data.year} ${data.make} ${data.model}</p>
-        <p><b>Mileage:</b> ${data.mileage}</p>
-        <p><b>Condition:</b> ${data.condition}</p>
-        <p><b>VIN:</b> ${data.vin || 'Not provided'}</p>
-        <p><b>Name:</b> ${data.firstname} ${data.lastname}</p>
-        <p><b>Email:</b> ${data.email}</p>
-        <p><b>Phone:</b> ${data.phone}</p>
-        <p><b>Notes:</b> ${data.notes || 'None'}</p>
+        <p><b>Vehicle:</b> ${escHtml(data.year)} ${escHtml(data.make)} ${escHtml(data.model)}</p>
+        <p><b>Mileage:</b> ${escHtml(data.mileage)}</p>
+        <p><b>Condition:</b> ${escHtml(data.condition)}</p>
+        <p><b>VIN:</b> ${escHtml(data.vin) || 'Not provided'}</p>
+        <p><b>Name:</b> ${escHtml(data.firstname)} ${escHtml(data.lastname)}</p>
+        <p><b>Email:</b> ${escHtml(data.email)}</p>
+        <p><b>Phone:</b> ${escHtml(data.phone)}</p>
+        <p><b>Notes:</b> ${escHtml(data.notes) || 'None'}</p>
       `
     });
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error('Trade-in lead error');
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-app.post('/api/leads/test-drive', async (req, res) => {
+app.post('/api/leads/test-drive', leadLimiter, async (req, res) => {
   try {
-    const data = req.body;
+    const data = pickFields(req.body, [
+      'firstname', 'lastname', 'email', 'phone', 'year', 'make', 'model',
+      'vin', 'stock', 'preferred_date', 'preferred_time', 'notes',
+    ]);
+    if (!data.email || !validateEmail(data.email)) {
+      res.status(400).json({ error: 'Valid email required' }); return;
+    }
     const { error } = await supabase.from('test_drive_leads').insert(data);
-    if (error) { console.error(error); res.status(500).json({ error: 'Failed to save' }); return; }
+    if (error) { console.error('Lead save error'); res.status(500).json({ error: 'Failed to save' }); return; }
 
     await resend.emails.send({
       from: FROM_EMAIL,
       to: NOTIFY_EMAIL,
-      subject: `Test Drive Request — ${data.year} ${data.make} ${data.model}`,
+      subject: `Test Drive Request — ${escHtml(data.year)} ${escHtml(data.make)} ${escHtml(data.model)}`,
       html: `
         <h2>New Test Drive Request</h2>
-        <p><b>Vehicle:</b> ${data.year} ${data.make} ${data.model}</p>
-        <p><b>VIN:</b> ${data.vin || 'N/A'}</p>
-        <p><b>Stock #:</b> ${data.stock || 'N/A'}</p>
-        <p><b>Name:</b> ${data.firstname} ${data.lastname}</p>
-        <p><b>Email:</b> ${data.email}</p>
-        <p><b>Phone:</b> ${data.phone}</p>
-        <p><b>Preferred Date:</b> ${data.preferred_date || 'Not specified'}</p>
-        <p><b>Preferred Time:</b> ${data.preferred_time || 'Not specified'}</p>
-        <p><b>Notes:</b> ${data.notes || 'None'}</p>
+        <p><b>Vehicle:</b> ${escHtml(data.year)} ${escHtml(data.make)} ${escHtml(data.model)}</p>
+        <p><b>VIN:</b> ${escHtml(data.vin) || 'N/A'}</p>
+        <p><b>Stock #:</b> ${escHtml(data.stock) || 'N/A'}</p>
+        <p><b>Name:</b> ${escHtml(data.firstname)} ${escHtml(data.lastname)}</p>
+        <p><b>Email:</b> ${escHtml(data.email)}</p>
+        <p><b>Phone:</b> ${escHtml(data.phone)}</p>
+        <p><b>Preferred Date:</b> ${escHtml(data.preferred_date) || 'Not specified'}</p>
+        <p><b>Preferred Time:</b> ${escHtml(data.preferred_time) || 'Not specified'}</p>
+        <p><b>Notes:</b> ${escHtml(data.notes) || 'None'}</p>
       `
     });
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error('Test drive lead error');
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-app.post('/api/leads/make-offer', async (req, res) => {
+app.post('/api/leads/make-offer', leadLimiter, async (req, res) => {
   try {
-    const data = req.body;
+    const data = pickFields(req.body, [
+      'firstname', 'lastname', 'email', 'phone', 'year', 'make', 'model',
+      'vin', 'stock', 'offer_amount', 'listed_price', 'financing', 'notes',
+    ]);
+    if (!data.email || !validateEmail(data.email)) {
+      res.status(400).json({ error: 'Valid email required' }); return;
+    }
     const { error } = await supabase.from('offer_leads').insert(data);
-    if (error) { console.error(error); res.status(500).json({ error: 'Failed to save' }); return; }
+    if (error) { console.error('Lead save error'); res.status(500).json({ error: 'Failed to save' }); return; }
 
     await resend.emails.send({
       from: FROM_EMAIL,
       to: NOTIFY_EMAIL,
-      subject: `New Offer — $${data.offer_amount} on ${data.year} ${data.make} ${data.model}`,
+      subject: `New Offer — $${escHtml(String(data.offer_amount))} on ${escHtml(data.year)} ${escHtml(data.make)} ${escHtml(data.model)}`,
       html: `
         <h2>New Offer Received</h2>
-        <p><b>Vehicle:</b> ${data.year} ${data.make} ${data.model}</p>
-        <p><b>VIN:</b> ${data.vin || 'N/A'}</p>
-        <p><b>Listed Price:</b> $${data.listed_price || 'N/A'}</p>
-        <p><b>Offer Amount:</b> $${data.offer_amount}</p>
-        <p><b>Financing:</b> ${data.financing}</p>
-        <p><b>Name:</b> ${data.firstname} ${data.lastname}</p>
-        <p><b>Email:</b> ${data.email}</p>
-        <p><b>Phone:</b> ${data.phone}</p>
-        <p><b>Notes:</b> ${data.notes || 'None'}</p>
+        <p><b>Vehicle:</b> ${escHtml(data.year)} ${escHtml(data.make)} ${escHtml(data.model)}</p>
+        <p><b>VIN:</b> ${escHtml(data.vin) || 'N/A'}</p>
+        <p><b>Listed Price:</b> $${escHtml(String(data.listed_price || 'N/A'))}</p>
+        <p><b>Offer Amount:</b> $${escHtml(String(data.offer_amount))}</p>
+        <p><b>Financing:</b> ${escHtml(data.financing)}</p>
+        <p><b>Name:</b> ${escHtml(data.firstname)} ${escHtml(data.lastname)}</p>
+        <p><b>Email:</b> ${escHtml(data.email)}</p>
+        <p><b>Phone:</b> ${escHtml(data.phone)}</p>
+        <p><b>Notes:</b> ${escHtml(data.notes) || 'None'}</p>
       `
     });
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error('Offer lead error');
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-app.post('/api/leads/contact', async (req, res) => {
+app.post('/api/leads/contact', leadLimiter, async (req, res) => {
   try {
-    const data = req.body;
+    const data = pickFields(req.body, ['name', 'email', 'phone', 'topic', 'preferred_method', 'message']);
+    if (!data.email || !validateEmail(data.email)) {
+      res.status(400).json({ error: 'Valid email required' }); return;
+    }
     const { error } = await supabase.from('contact_leads').insert(data);
-    if (error) { console.error(error); res.status(500).json({ error: 'Failed to save' }); return; }
+    if (error) { console.error('Lead save error'); res.status(500).json({ error: 'Failed to save' }); return; }
 
     await resend.emails.send({
       from: FROM_EMAIL,
       to: NOTIFY_EMAIL,
-      subject: `New Contact Message — ${data.name}`,
+      subject: `New Contact Message — ${escHtml(data.name)}`,
       html: `
         <h2>New Contact Message</h2>
-        <p><b>Name:</b> ${data.name}</p>
-        <p><b>Email:</b> ${data.email}</p>
-        <p><b>Phone:</b> ${data.phone || 'Not provided'}</p>
-        <p><b>Message:</b> ${data.message}</p>
+        <p><b>Name:</b> ${escHtml(data.name)}</p>
+        <p><b>Email:</b> ${escHtml(data.email)}</p>
+        <p><b>Phone:</b> ${escHtml(data.phone) || 'Not provided'}</p>
+        <p><b>Message:</b> ${escHtml(data.message)}</p>
       `
     });
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error('Contact lead error');
     res.status(500).json({ error: 'Server error' });
   }
 });
 
 /**
- * Admin dashboard API
+ * Admin routes — all protected by auth middleware + rate limiting
  */
+app.use('/api/admin', adminLimiter, requireAdmin);
+
 app.get('/api/admin/dashboard', async (_req, res) => {
   try {
     // Fetch inventory from vAuto CSV feed
@@ -410,13 +538,21 @@ app.post('/api/admin/leads/:type/:id/notes', async (req, res) => {
   }
 });
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_MIMES.includes(file.mimetype)) { cb(null, true); }
+    else { cb(new Error('File type not allowed. Use JPEG, PNG, WebP, GIF, or PDF.')); }
+  },
+});
 
 /**
  * AI Document Scanner — Bill of Sale
  * Extracts: VIN, purchase price, seller name/address, auction/source, date, odometer
  */
-app.post('/api/admin/scan/bill-of-sale', upload.single('file'), async (req: any, res) => {
+app.post('/api/admin/scan/bill-of-sale', aiLimiter, upload.single('file'), async (req: any, res) => {
   try {
     if (!req.file) { res.status(400).json({ error: 'No file uploaded' }); return; }
 
@@ -490,7 +626,7 @@ Return ONLY the JSON, no other text.` },
  * AI Document Scanner — Receipt (transport, repair, detail, etc.)
  * Extracts: vendor, amount, description, category, date
  */
-app.post('/api/admin/scan/receipt', upload.single('file'), async (req: any, res) => {
+app.post('/api/admin/scan/receipt', aiLimiter, upload.single('file'), async (req: any, res) => {
   try {
     if (!req.file) { res.status(400).json({ error: 'No file uploaded' }); return; }
 
@@ -545,7 +681,7 @@ Return ONLY the JSON, no other text.`;
 /**
  * AI Vehicle Description Generator
  */
-app.post('/api/admin/generate-description', async (req, res) => {
+app.post('/api/admin/generate-description', aiLimiter, async (req, res) => {
   try {
     const v = req.body;
     const msg = await anthropic.messages.create({
@@ -947,7 +1083,7 @@ app.get('/api/admin/vauto/status', async (_req, res) => {
 
     res.json({
       dirExists,
-      directory: VAUTO_DIR,
+      directoryConfigured: dirExists,
       fileCount: csvFiles.length,
       latestFile,
       latestModified,

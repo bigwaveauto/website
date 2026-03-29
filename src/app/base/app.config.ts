@@ -4,6 +4,7 @@ import { provideRouter, withRouterConfig } from '@angular/router';
 import { routes } from '../routes/app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { authInterceptor } from '../services/auth.interceptor';
 import {
   LUCIDE_ICONS, LucideIconProvider,
   MapPin, User, Users, UserPlus, X, Menu, ArrowRight, ArrowLeft,
@@ -19,7 +20,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideHttpClient(withFetch()),
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     {
       provide: LUCIDE_ICONS, multi: true,
       useValue: new LucideIconProvider({
