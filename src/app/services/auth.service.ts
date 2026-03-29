@@ -77,7 +77,7 @@ export class AuthService {
     if (redirectVin) sessionStorage.setItem('reserve_vin', redirectVin);
     await this.supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${environment.startupUrl}/auth/callback` },
+      options: { redirectTo: `${typeof window !== 'undefined' ? window.location.origin : environment.startupUrl}/auth/callback` },
     });
   }
 
