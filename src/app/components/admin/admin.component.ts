@@ -33,6 +33,8 @@ export class AdminComponent implements OnInit {
     { label: 'Settings',   icon: 'settings',    route: '/admin/settings' },
   ];
 
+  loginError = signal('');
+
   async ngOnInit() {
     // Wait for auth to initialize
     await new Promise<void>(resolve => {
@@ -43,13 +45,32 @@ export class AdminComponent implements OnInit {
       check();
     });
 
+    this.checkAccess();
+  }
+
+  private checkAccess() {
     const email = this.auth.user()?.email?.toLowerCase();
-    console.log('[Admin] Auth check — email:', email, '| logged in:', this.auth.isLoggedIn());
     if (email && this.adminEmails.includes(email)) {
       this.authorized.set(true);
+      this.loginError.set('');
+    } else if (email) {
+      // Logged in but not authorized
+      this.authorized.set(false);
+      this.loginError.set(`${email} is not authorized for admin access.`);
     } else {
       this.authorized.set(false);
     }
+    this.checking.set(false);
+  }
+
+  async adminSignIn() {
+    this.loginError.set('');
+    await this.auth.signInWithGoogle();
+  }
+
+  async adminSignOut() {
+    await this.auth.signOut();
+    this.authorized.set(false);
     this.checking.set(false);
   }
 }

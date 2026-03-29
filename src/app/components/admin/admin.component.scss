@@ -7,8 +7,8 @@ $text-muted: rgba(255,255,255,0.45);
 
 :host { display: block; min-height: 100vh; background: #f1f3f9; }
 
-/* ── Loading / Denied ── */
-.adm-loading, .adm-denied {
+/* ── Loading ── */
+.adm-loading {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -28,15 +28,84 @@ $text-muted: rgba(255,255,255,0.45);
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.adm-denied-icon { width: 64px; height: 64px; color: #ef4444; }
-.adm-denied h1 { font-size: 28px; font-weight: 800; color: #111; margin: 0; }
-.adm-denied p { color: #777; margin: 0; }
-.adm-denied-btn {
-  margin-top: 12px; padding: 12px 28px;
-  background: $active-bg; color: white;
-  border-radius: 10px; text-decoration: none;
-  font-weight: 600; font-size: 14px;
-  &:hover { background: darken($active-bg, 8%); }
+/* ── Admin Login ── */
+.adm-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: $sidebar-bg;
+}
+
+.adm-login-card {
+  background: white;
+  border-radius: 16px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.adm-login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.adm-login-wave { font-size: 48px; margin-bottom: 12px; }
+
+.adm-login-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111;
+}
+
+.adm-login-sub {
+  font-size: 14px;
+  color: rgba(0,0,0,0.45);
+  margin-top: 4px;
+}
+
+.adm-login-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #dc2626;
+  lucide-icon { width: 18px; height: 18px; flex-shrink: 0; }
+}
+
+.adm-login-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 24px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: white;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    background: #f9fafb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
 }
 
 /* ── Shell ── */
