@@ -7,28 +7,28 @@
 
   <!-- Stat Cards -->
   <div class="dash-stats">
-    <div class="dash-stat-card">
+    <div class="dash-stat-card clickable" (click)="router.navigate(['/admin/inventory'])">
       <div class="dash-stat-icon blue"><lucide-icon name="car" /></div>
       <div>
         <span class="dash-stat-value">{{ data()?.inventory?.totalVehicles ?? '—' }}</span>
         <span class="dash-stat-label">Units in Stock</span>
       </div>
     </div>
-    <div class="dash-stat-card">
+    <div class="dash-stat-card clickable" (click)="router.navigate(['/admin/customers'])">
       <div class="dash-stat-icon green"><lucide-icon name="users" /></div>
       <div>
         <span class="dash-stat-value">{{ data()?.leads?.total ?? '—' }}</span>
         <span class="dash-stat-label">Total Leads</span>
       </div>
     </div>
-    <div class="dash-stat-card">
+    <div class="dash-stat-card clickable" (click)="router.navigate(['/admin/customers'])">
       <div class="dash-stat-icon teal"><lucide-icon name="bell" /></div>
       <div>
         <span class="dash-stat-value">{{ data()?.leads?.newToday ?? '—' }}</span>
         <span class="dash-stat-label">New Today</span>
       </div>
     </div>
-    <div class="dash-stat-card">
+    <div class="dash-stat-card clickable" (click)="router.navigate(['/admin/customers'])">
       <div class="dash-stat-icon purple"><lucide-icon name="tag" /></div>
       <div>
         <span class="dash-stat-value">{{ data()?.leads?.offers ?? '—' }}</span>

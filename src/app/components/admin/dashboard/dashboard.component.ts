@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 
 interface InventoryAgeRow {
@@ -48,6 +49,7 @@ interface DashboardData {
 })
 export class DashboardComponent implements OnInit {
   private http = inject(HttpClient);
+  readonly router = inject(Router);
 
   data = signal<DashboardData | null>(null);
   vauto = signal<VautoStatus | null>(null);
