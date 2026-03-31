@@ -135,13 +135,29 @@ $text-muted: rgba(0,0,0,0.45);
 /* ── Right: Scrolling content ── */
 .vdp-right {
   padding: 32px 40px 60px;
+  margin: 20px 20px 20px -50px;
+  max-width: calc(100% - 40px);
   display: flex;
   flex-direction: column;
   gap: 24px;
   overflow-y: auto;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  align-self: flex-start;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100dvh - 40px);
+  z-index: 2;
 
   @media (max-width: 1024px) {
     padding: 24px 20px 40px;
+    margin: 0;
+    max-width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    position: static;
+    max-height: none;
   }
 }
 
