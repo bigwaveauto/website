@@ -12,115 +12,132 @@ $text-muted: rgba(0,0,0,0.45);
   color: #111;
 }
 
-/* ── Page shell ── */
+/* ── Page shell: fixed photo left, scrolling right ── */
 .vdp-shell {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  max-width: 1500px;
-  margin: 0 auto;
-  width: 100%;
-  box-sizing: border-box;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
   }
 }
 
-/* ── Left column ── */
-.vdp-main {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  padding-top: 20px;
-}
-
-/* ── Gallery: photo + vertical strip ── */
-.vdp-gallery {
-  display: grid;
-  grid-template-columns: 1fr 130px;
-  margin: 0 20px;
-  border-radius: 14px;
+/* ── Left: Fixed photo ── */
+.vdp-photo-fixed {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  background: #f0f1f3;
   overflow: hidden;
-  background: #1a1a1a;
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-
-  @media (max-width: 600px) {
-    margin: 0 12px;
-    border-radius: 10px;
+  @media (max-width: 1024px) {
+    position: relative;
+    height: 50vh;
+    min-height: 300px;
   }
 }
 
-/* ── Main photo ── */
-.vdp-gallery-main {
-  overflow: hidden;
-  cursor: zoom-in;
+.vdp-photo-main {
+  width: 100%;
+  height: 100%;
   position: relative;
+  cursor: pointer;
 
   img {
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: contain;
     display: block;
-    transition: transform 0.3s ease;
   }
-
-  &:hover img { transform: scale(1.015); }
 }
 
-.vdp-no-photo-wrap {
-  margin: 0 20px;
-  border-radius: 14px;
-  height: 320px;
+.vdp-photo-expand {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.5);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255,255,255,0.4);
-  font-size: 18px;
-  background: #1a1a1a;
-}
-
-/* Mobile horizontal strip */
-.vdp-hstrip {
-  display: none;
-  gap: 4px;
-  padding: 6px 20px 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
-
-  @media (max-width: 1024px) {
-    display: flex;
-  }
-}
-
-.vdp-hthumb {
-  flex-shrink: 0;
-  width: 90px;
-  height: 62px;
-  border-radius: 6px;
-  overflow: hidden;
   cursor: pointer;
-  border: 2px solid transparent;
-  transition: border-color 0.2s, opacity 0.2s;
-  opacity: 0.55;
-
-  img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  &:hover { opacity: 0.85; }
-  &.active { border-color: #1a8fc2; opacity: 1; }
+  transition: background 0.15s;
+  lucide-icon { width: 20px; height: 20px; }
+  &:hover { background: rgba(0,0,0,0.7); }
 }
 
-/* Content area below photo */
-.vdp-content-body {
-  padding: 28px 24px 60px;
+.vdp-photo-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+  lucide-icon { width: 22px; height: 22px; }
+  &:hover { background: rgba(0,0,0,0.7); }
+  &.left { left: 16px; }
+  &.right { right: 16px; }
+}
+
+.vdp-photo-dots {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vdp-photo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  cursor: pointer;
+  transition: background 0.15s;
+  &.active { background: white; }
+  &:hover { background: rgba(255,255,255,0.8); }
+}
+
+.vdp-photo-dot-more {
+  font-size: 10px;
+  color: rgba(255,255,255,0.6);
+}
+
+.vdp-no-photo-wrap {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0,0,0,0.3);
+  font-size: 18px;
+  background: #f0f1f3;
+}
+
+/* ── Right: Scrolling content ── */
+.vdp-right {
+  padding: 32px 40px 60px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
+  overflow-y: auto;
 
-  @media (max-width: 600px) {
-    padding: 20px 16px 40px;
-    gap: 24px;
+  @media (max-width: 1024px) {
+    padding: 24px 20px 40px;
   }
 }
 
@@ -136,45 +153,46 @@ $text-muted: rgba(0,0,0,0.45);
 .vdp-bc-current { color: rgba(0,0,0,0.7); font-weight: 500; }
 
 /* Title block */
-.vdp-title-block { display: flex; flex-direction: column; gap: 10px; }
+.vdp-title-block { display: flex; flex-direction: column; gap: 4px; }
 
-.vdp-make-model {
-  font-size: 13px;
+.vdp-year-label {
+  font-size: 14px;
   font-weight: 600;
-  color: $blue;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 0;
+  color: $text-muted;
 }
 
 .vdp-title {
-  font-size: clamp(26px, 4vw, 42px);
+  font-size: clamp(24px, 3vw, 36px);
   font-weight: 800;
   color: #111;
   margin: 0;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
-.vdp-trim { font-size: 16px; color: $text-muted; margin: 0; }
-
-.vdp-specs-pills {
+/* Key stats bar */
+.vdp-key-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 4px 16px;
+  font-size: 14px;
+  color: #555;
+
+  span {
+    display: flex;
+    align-items: center;
+    &:not(:last-child)::after {
+      content: '|';
+      margin-left: 16px;
+      color: rgba(0,0,0,0.15);
+    }
+  }
 }
 
-.vdp-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 13px;
-  color: rgba(0,0,0,0.65);
-  background: white;
-  border: 1px solid $border;
-  padding: 6px 14px;
-  border-radius: 999px;
-  lucide-icon { width: 15px; height: 15px; color: $blue; }
+/* Price section */
+.vdp-price-section {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
 }
 
 /* Carfax */
@@ -222,19 +240,10 @@ $text-muted: rgba(0,0,0,0.45);
   white-space: pre-wrap;
 }
 
-/* Specs table */
-.vdp-specs-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 48px;
-  background: white;
-  border-radius: 12px;
-  padding: 8px 16px;
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
+/* Specs inline */
+.vdp-specs-section {
+  border-top: 1px solid $border;
+  padding-top: 16px;
 }
 
 .vdp-spec-row {
@@ -243,127 +252,69 @@ $text-muted: rgba(0,0,0,0.45);
   align-items: baseline;
   gap: 16px;
   padding: 10px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.07);
+  border-bottom: 1px solid rgba(0,0,0,0.05);
   &:last-child { border-bottom: none; }
 }
 
-.vdp-spec-label { font-size: 14px; font-weight: 700; color: #111; flex-shrink: 0; }
-.vdp-spec-value { font-size: 14px; color: #444; text-align: right; }
+.vdp-spec-label { font-size: 14px; font-weight: 500; color: #111; flex-shrink: 0; }
+.vdp-spec-value { font-size: 14px; color: #555; text-align: right; }
 
-/* ── Vertical thumbnail strip (inside gallery) ── */
-.vdp-vstrip {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  background: #111;
-  padding: 3px 3px 3px 3px;
+/* Price */
+.vdp-price { font-size: 32px; font-weight: 800; color: #111; line-height: 1; }
+.vdp-msrp { font-size: 14px; color: $text-muted; text-decoration: line-through; }
 
-  @media (max-width: 768px) {
-    display: none;
-  }
-}
-
-.vdp-vthumb {
-  flex: 1;
-  min-height: 80px;
-  overflow: hidden;
-  cursor: pointer;
-  position: relative;
-  border: 2px solid transparent;
-  transition: border-color 0.2s, opacity 0.2s;
-  opacity: 0.55;
-
-  img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  &:hover { opacity: 0.85; }
-  &.active { border-color: white; opacity: 1; }
-}
-
-.vdp-vmore {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  color: white;
-  font-size: 13px;
-  font-weight: 700;
+/* Payment row */
+.vdp-payment-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  &:hover { background: rgba(0,0,0,0.75); }
-}
-
-/* ── Right rail ── */
-.vdp-rail {
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 20px;
-  max-height: calc(100dvh - 40px);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0,0,0,0.1) transparent;
-  padding: 0 0 20px;
-  align-self: flex-start;
-
-  @media (max-width: 1024px) {
-    position: static;
-    height: auto;
-    overflow-y: visible;
-    padding: 0 20px 40px;
-  }
-
-  @media (max-width: 600px) {
-    padding: 0 12px 32px;
-  }
-}
-
-/* Price card */
-.vdp-price-card {
-  background: $card-bg;
-  border: 1px solid $border;
-  border-radius: 16px;
-  margin: 0 20px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-  overflow: hidden;
-
-  @media (max-width: 1024px) {
-    margin: 16px 0 0;
-  }
-}
-
-.vdp-price-header {
-  padding: 24px 24px 16px;
-  border-bottom: 1px solid $border;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.vdp-price-row { display: flex; align-items: baseline; gap: 12px; }
-.vdp-price { font-size: 36px; font-weight: 800; color: #111; line-height: 1; }
-.vdp-msrp { font-size: 14px; color: $text-muted; text-decoration: line-through; }
-.vdp-monthly-est { font-size: 14px; color: $text-muted; }
-
-.vdp-stock-row {
-  padding: 12px 24px;
-  display: flex;
   justify-content: space-between;
+  padding: 14px 20px;
+  background: #f8f9fb;
+  border-radius: 10px;
+  border: 1px solid $border;
+}
+
+.vdp-payment-est {
+  display: flex;
+  flex-direction: column;
+}
+
+.vdp-payment-label {
   font-size: 12px;
   color: $text-muted;
-  border-bottom: 1px solid $border;
-  flex-wrap: wrap;
-  gap: 4px;
 }
-.vdp-vin-text { font-size: 11px; color: rgba(0,0,0,0.3); word-break: break-all; }
 
+.vdp-payment-amount {
+  font-size: 20px;
+  font-weight: 800;
+  color: #111;
+}
+
+.vdp-calc-toggle {
+  padding: 8px 18px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.15s;
+  &:hover { border-color: #999; background: #f3f4f6; }
+}
+
+/* CTAs */
 .vdp-cta-stack {
-  padding: 20px 24px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  border-bottom: 1px solid $border;
+}
+
+.vdp-cta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 .vdp-btn-reserve {
@@ -372,9 +323,9 @@ $text-muted: rgba(0,0,0,0.45);
   background: #111;
   color: white;
   text-align: center;
-  padding: 16px;
-  border-radius: 12px;
-  font-size: 16px;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 15px;
   font-weight: 700;
   border: none;
   cursor: pointer;
@@ -385,16 +336,19 @@ $text-muted: rgba(0,0,0,0.45);
 
 .vdp-btn-primary {
   display: block;
-  background: #1a8fc2;
+  background: $blue;
   color: white;
   text-align: center;
-  padding: 15px;
-  border-radius: 12px;
-  font-size: 15px;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 14px;
   font-weight: 700;
   text-decoration: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
   transition: background 0.2s;
-  &:hover { background: #1478a8; }
+  &:hover { background: darken($blue, 8%); }
 }
 
 .vdp-btn-outline {
@@ -402,30 +356,24 @@ $text-muted: rgba(0,0,0,0.45);
   background: transparent;
   color: #111;
   text-align: center;
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 15px;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 13px;
   font-weight: 600;
   text-decoration: none;
-  border: 1.5px solid rgba(0,0,0,0.2);
+  border: 1.5px solid rgba(0,0,0,0.15);
+  cursor: pointer;
+  font-family: inherit;
   transition: border-color 0.2s, background 0.2s;
-  &:hover { border-color: rgba(0,0,0,0.45); background: rgba(0,0,0,0.03); }
-}
-
-.vdp-btn-ghost {
-  display: block;
-  color: $blue;
-  text-align: center;
-  padding: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  &:hover { text-decoration: underline; }
+  &:hover { border-color: rgba(0,0,0,0.4); background: rgba(0,0,0,0.02); }
 }
 
 /* ── Deal Calculator ── */
 .vdp-deal {
-  border-top: 1px solid $border;
+  border: 1px solid $border;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
 }
 
 .vdp-deal-tabs {

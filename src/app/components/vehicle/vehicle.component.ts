@@ -52,6 +52,7 @@ export class VehicleComponent implements OnInit, OnDestroy {
   lightboxOpen = signal(false);
   singlePhotoOpen = signal(false);
   zoomLevel = signal(1);
+  calcOpen = signal(false);
 
   // Photo gallery categories
   galleryCategory = signal('All');
