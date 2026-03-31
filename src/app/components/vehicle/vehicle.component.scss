@@ -302,7 +302,7 @@ $text-muted: rgba(0,0,0,0.45);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(0,0,0,0.1) transparent;
-  padding-top: 20px;
+  padding: 20px 0 40px;
 
   @media (max-width: 1024px) {
     position: static;
