@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, computed } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -6,7 +6,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { FlexLayoutModule } from 'ngx-flexible-layout';
 import { ActivatedRoute, ParamMap, RouterLink, RouterOutlet } from '@angular/router';
 import { CommonModule, SlicePipe, UpperCasePipe } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, of, Subject, switchMap, takeUntil, tap } from 'rxjs';
 import { VehicleService } from '../../services/vehicleSearch';
@@ -25,6 +25,7 @@ import { ReservationService } from '../../services/reservation.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     LucideAngularModule,
     MatButtonModule,
     MatToolbarModule,
@@ -66,9 +67,78 @@ export class VehicleComponent implements OnInit, OnDestroy {
   makeOfferSubmitting = signal(false);
 
   // ── Offer protection ──
-  // Minimum acceptable offer as % of listed price (will be configurable from DMS)
   offerFloorPct = 0.75;
   offerTooLow = signal(false);
+
+  // ── Deal Calculator ──
+  dealTab = signal<'cash' | 'finance'>('finance');
+  dealTitleFee = signal(214.50);
+  dealLicenseFee = signal(85);
+  dealLienFee = signal(10);
+  dealDocFee = signal(299);
+  dealTaxRate = signal(5.43); // WI default
+  dealZip = signal('53089');
+  dealDownPayment = signal(0);
+  dealTradeIn = signal(0);
+  dealCreditTier = signal('good');
+  dealTerm = signal(60);
+
+  readonly creditTiers = [
+    { key: 'excellent', label: 'Excellent', range: '750+', rate: 5.49 },
+    { key: 'good', label: 'Good', range: '700–749', rate: 7.49 },
+    { key: 'fair', label: 'Fair', range: '600–699', rate: 10.99 },
+  ];
+
+  readonly termOptions = [36, 48, 60, 72, 84];
+
+  // WI county tax rates by zip prefix
+  readonly zipTaxRates: Record<string, number> = {
+    '530': 5.5, '531': 5.5, '532': 5.5, '534': 5.5, '535': 5.0,
+    '537': 5.5, '538': 5.0, '539': 5.5, '540': 5.5, '541': 5.5,
+    '542': 5.5, '543': 5.5, '544': 5.0, '545': 5.5, '546': 5.0,
+    '547': 5.5, '548': 5.0, '549': 5.5,
+  };
+
+  get selectedRate(): number {
+    return this.creditTiers.find(t => t.key === this.dealCreditTier())?.rate || 7.49;
+  }
+
+  get dealFees(): number {
+    return this.dealTitleFee() + this.dealLicenseFee() + this.dealDocFee() +
+      (this.dealTab() === 'finance' ? this.dealLienFee() : 0);
+  }
+
+  get dealSubtotal(): number {
+    const v = this.fullVehicle()?.results;
+    return (v?.price || 0) + this.dealFees;
+  }
+
+  get dealTaxAmount(): number {
+    const v = this.fullVehicle()?.results;
+    return (v?.price || 0) * (this.dealTaxRate() / 100);
+  }
+
+  get dealTotal(): number {
+    return this.dealSubtotal + this.dealTaxAmount;
+  }
+
+  get dealAmountFinanced(): number {
+    return Math.max(0, this.dealTotal - this.dealDownPayment() - this.dealTradeIn());
+  }
+
+  get dealMonthly(): number {
+    const principal = this.dealAmountFinanced;
+    const r = (this.selectedRate / 100) / 12;
+    const n = this.dealTerm();
+    if (r === 0) return principal / n;
+    return principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  }
+
+  onZipChange() {
+    const prefix = this.dealZip().substring(0, 3);
+    const rate = this.zipTaxRates[prefix];
+    if (rate) this.dealTaxRate.set(rate);
+  }
 
   testDriveForm: FormGroup = this.fb.group({
     firstname:      ['', Validators.required],

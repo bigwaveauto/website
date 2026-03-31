@@ -422,27 +422,206 @@ $text-muted: rgba(0,0,0,0.45);
   &:hover { text-decoration: underline; }
 }
 
-.vdp-finance-breakdown {
-  padding: 16px 24px;
+/* ── Deal Calculator ── */
+.vdp-deal {
+  border-top: 1px solid $border;
+}
+
+.vdp-deal-tabs {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
   border-bottom: 1px solid $border;
 }
 
-.vdp-finance-row {
+.vdp-deal-tab {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: $text-muted;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+
+  &:hover { color: #333; }
+  &.active { color: $blue; border-bottom-color: $blue; }
+}
+
+.vdp-deal-lines {
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vdp-deal-line {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
+
   span:first-child { color: $text-muted; }
   span:last-child { color: #111; font-weight: 500; }
+
+  &.sub {
+    padding-left: 12px;
+    span:first-child { color: rgba(0,0,0,0.3); }
+    span:last-child { color: #555; font-weight: 400; font-size: 12px; }
+  }
+
+  &.total {
+    padding-top: 10px;
+    border-top: 2px solid #111;
+    margin-top: 4px;
+    span { font-size: 15px; font-weight: 800; color: #111 !important; }
+  }
+
+  &.financed {
+    padding-top: 8px;
+    border-top: 1px solid $border;
+    span:last-child { font-weight: 700; }
+  }
 }
 
-.vdp-finance-disclaimer {
+.vdp-deal-zip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  label {
+    font-size: 12px;
+    color: $text-muted;
+  }
+
+  input {
+    width: 80px;
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    text-align: center;
+    &:focus { outline: none; border-color: $blue; }
+  }
+}
+
+.vdp-deal-finance {
+  padding: 0 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vdp-deal-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.vdp-deal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  input {
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    &:focus { outline: none; border-color: $blue; }
+  }
+}
+
+.vdp-deal-tiers {
+  display: flex;
+  gap: 6px;
+}
+
+.vdp-deal-tier {
+  flex: 1;
+  padding: 8px 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.15s;
+
+  &:hover { border-color: #999; }
+
+  &.active {
+    border-color: $blue;
+    background: rgba($blue, 0.04);
+  }
+}
+
+.vdp-deal-tier-label { font-size: 11px; font-weight: 700; color: #111; }
+.vdp-deal-tier-range { font-size: 10px; color: $text-muted; }
+.vdp-deal-tier-rate { font-size: 10px; font-weight: 600; color: $blue; }
+
+.vdp-deal-terms {
+  display: flex;
+  gap: 4px;
+}
+
+.vdp-deal-term {
+  flex: 1;
+  padding: 8px 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { border-color: #999; }
+  &.active { border-color: $blue; background: $blue; color: white; font-weight: 600; }
+}
+
+.vdp-deal-monthly {
+  background: #f8f9fb;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.vdp-deal-monthly-label {
+  display: block;
+  font-size: 12px;
+  color: $text-muted;
+  margin-bottom: 4px;
+}
+
+.vdp-deal-monthly-amount {
+  font-size: 28px;
+  font-weight: 800;
+  color: #111;
+  small { font-size: 14px; font-weight: 500; color: $text-muted; }
+}
+
+.vdp-deal-disclaimer {
   font-size: 11px;
   color: rgba(0,0,0,0.25);
   line-height: 1.5;
-  margin-top: 4px;
+  padding: 12px 24px;
+  margin: 0;
+  border-top: 1px solid $border;
 }
 
 .vdp-dealer-info {

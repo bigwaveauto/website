@@ -146,7 +146,7 @@
           @if(v.msrp && v.msrp > v.price){
           <span class="vdp-msrp">MSRP {{ v.msrp | currency:'USD':'symbol':'1.0-0' }}</span>}
         </div>
-        <span class="vdp-monthly-est">Est. {{ v.finance.monthly_payment | currency:'USD':'symbol':'1.0-0' }}/mo</span>
+        <span class="vdp-monthly-est">Est. {{ dealMonthly | currency:'USD':'symbol':'1.0-0' }}/mo</span>
       </div>
       <div class="vdp-stock-row">
         <span>Stock #{{ v.stocknumber }}</span>
@@ -158,12 +158,85 @@
         <button class="vdp-btn-outline" (click)="openMakeOffer()">Make an Offer</button>
         <a routerLink="/financing" class="vdp-btn-ghost">Apply for Financing →</a>
       </div>
-      <div class="vdp-finance-breakdown">
-        <div class="vdp-finance-row"><span>Est. Monthly</span><span>{{ v.finance.monthly_payment | currency:'USD':'symbol':'1.0-0' }}/mo</span></div>
-        <div class="vdp-finance-row"><span>Down Payment</span><span>{{ v.finance.down_payment | currency:'USD':'symbol':'1.0-0' }}</span></div>
-        <div class="vdp-finance-row"><span>Loan Term</span><span>{{ v.finance.loan_months }} months</span></div>
-        <div class="vdp-finance-row"><span>Interest Rate</span><span>{{ v.finance.interest_rate_formatted }}%</span></div>
-        <p class="vdp-finance-disclaimer">Estimated payment for well-qualified buyers. Actual terms may vary.</p>
+      <!-- Deal Calculator -->
+      <div class="vdp-deal">
+        <div class="vdp-deal-tabs">
+          <button class="vdp-deal-tab" [class.active]="dealTab() === 'cash'" (click)="dealTab.set('cash')">Cash</button>
+          <button class="vdp-deal-tab" [class.active]="dealTab() === 'finance'" (click)="dealTab.set('finance')">Finance</button>
+        </div>
+
+        <!-- Price breakdown -->
+        <div class="vdp-deal-lines">
+          <div class="vdp-deal-line"><span>Purchase Price</span><span>{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span></div>
+          <div class="vdp-deal-line sub"><span>Title Fee</span><span>{{ dealTitleFee() | currency:'USD':'symbol':'1.2-2' }}</span></div>
+          <div class="vdp-deal-line sub"><span>License Fee</span><span>{{ dealLicenseFee() | currency:'USD':'symbol':'1.0-0' }}</span></div>
+          @if(dealTab() === 'finance'){
+          <div class="vdp-deal-line sub"><span>Lien Fee</span><span>{{ dealLienFee() | currency:'USD':'symbol':'1.0-0' }}</span></div>
+          }
+          <div class="vdp-deal-line sub"><span>Doc Fee</span><span>{{ dealDocFee() | currency:'USD':'symbol':'1.0-0' }}</span></div>
+          <div class="vdp-deal-line"><span>Subtotal</span><span>{{ dealSubtotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
+
+          <!-- Tax -->
+          <div class="vdp-deal-line">
+            <span>Sales Tax ({{ dealTaxRate() | number:'1.1-2' }}%)</span>
+            <span>{{ dealTaxAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="vdp-deal-zip">
+            <label>Your ZIP Code</label>
+            <input type="text" [ngModel]="dealZip()" (ngModelChange)="dealZip.set($event); onZipChange()" maxlength="5" placeholder="53089" />
+          </div>
+
+          <div class="vdp-deal-line total"><span>Total</span><span>{{ dealTotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
+        </div>
+
+        <!-- Finance section -->
+        @if(dealTab() === 'finance'){
+        <div class="vdp-deal-finance">
+          <div class="vdp-deal-field-row">
+            <div class="vdp-deal-field">
+              <label>Down Payment</label>
+              <input type="number" [ngModel]="dealDownPayment()" (ngModelChange)="dealDownPayment.set($event)" min="0" step="500" />
+            </div>
+            <div class="vdp-deal-field">
+              <label>Trade-In Value</label>
+              <input type="number" [ngModel]="dealTradeIn()" (ngModelChange)="dealTradeIn.set($event)" min="0" step="500" />
+            </div>
+          </div>
+
+          <div class="vdp-deal-field">
+            <label>Credit Score</label>
+            <div class="vdp-deal-tiers">
+              @for(tier of creditTiers; track tier.key){
+              <button class="vdp-deal-tier" [class.active]="dealCreditTier() === tier.key"
+                      (click)="dealCreditTier.set(tier.key)">
+                <span class="vdp-deal-tier-label">{{ tier.label }}</span>
+                <span class="vdp-deal-tier-range">{{ tier.range }}</span>
+                <span class="vdp-deal-tier-rate">{{ tier.rate }}% APR</span>
+              </button>
+              }
+            </div>
+          </div>
+
+          <div class="vdp-deal-field">
+            <label>Loan Term</label>
+            <div class="vdp-deal-terms">
+              @for(t of termOptions; track t){
+              <button class="vdp-deal-term" [class.active]="dealTerm() === t"
+                      (click)="dealTerm.set(t)">{{ t }} mo</button>
+              }
+            </div>
+          </div>
+
+          <div class="vdp-deal-line financed"><span>Amount Financed</span><span>{{ dealAmountFinanced | currency:'USD':'symbol':'1.0-0' }}</span></div>
+
+          <div class="vdp-deal-monthly">
+            <span class="vdp-deal-monthly-label">Est. Monthly Payment</span>
+            <span class="vdp-deal-monthly-amount">{{ dealMonthly | currency:'USD':'symbol':'1.0-0' }}<small>/mo</small></span>
+          </div>
+        </div>
+        }
+
+        <p class="vdp-deal-disclaimer">Estimated figures. Actual terms subject to credit approval. Taxes based on ZIP code.</p>
       </div>
       <div class="vdp-dealer-info">
         <div class="vdp-dealer-row"><lucide-icon name="map-pin" /><span>N69W25055 Indian Grass Lane, Unit H<br>Sussex, WI 53089</span></div>
