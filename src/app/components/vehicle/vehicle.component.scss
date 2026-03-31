@@ -15,8 +15,12 @@ $text-muted: rgba(0,0,0,0.45);
 /* ── Page shell: fixed photo left, scrolling right ── */
 .vdp-shell {
   display: grid;
-  grid-template-columns: 3fr 2fr;
+  grid-template-columns: 1fr 20vw;
   min-height: 100vh;
+
+  @media (max-width: 1280px) {
+    grid-template-columns: 1fr 30vw;
+  }
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
@@ -30,11 +34,15 @@ $text-muted: rgba(0,0,0,0.45);
   height: 100dvh;
   background: #e8eaed;
   overflow: hidden;
+  margin: 16px 0 16px 16px;
+  border-radius: 16px;
+  height: calc(100dvh - 32px);
 
   @media (max-width: 1024px) {
     position: relative;
     height: 50vh;
     min-height: 300px;
+    margin: 12px 12px 0;
   }
 }
 
