@@ -72,16 +72,20 @@ export class VehicleComponent implements OnInit, OnDestroy {
 
   // ── Deal Calculator ──
   dealTab = signal<'cash' | 'finance'>('finance');
+  dealDocFee = signal(299);
   dealTitleFee = signal(214.50);
   dealLicenseFee = signal(85);
   dealLienFee = signal(10);
-  dealDocFee = signal(299);
   dealTaxRate = signal(5.43); // WI default
   dealZip = signal('53089');
   dealDownPayment = signal(0);
   dealTradeIn = signal(0);
   dealCreditTier = signal('good');
   dealTerm = signal(60);
+  dealPlateTransfer = signal(false);
+  dealTransport = signal(false);
+  dealTransportMiles = signal(0);
+  dealTransportRate = 1.00; // $/mile
 
   readonly creditTiers = [
     { key: 'excellent', label: 'Excellent', range: '750+', rate: 5.49 },
@@ -103,23 +107,35 @@ export class VehicleComponent implements OnInit, OnDestroy {
     return this.creditTiers.find(t => t.key === this.dealCreditTier())?.rate || 7.49;
   }
 
-  get dealFees(): number {
-    return this.dealTitleFee() + this.dealLicenseFee() + this.dealDocFee() +
+  get dealLicenseActual(): number {
+    return this.dealPlateTransfer() ? 0 : this.dealLicenseFee();
+  }
+
+  get dealNonTaxFees(): number {
+    return this.dealTitleFee() + this.dealLicenseActual +
       (this.dealTab() === 'finance' ? this.dealLienFee() : 0);
   }
 
-  get dealSubtotal(): number {
+  get dealTransportCost(): number {
+    return this.dealTransport() ? this.dealTransportMiles() * this.dealTransportRate : 0;
+  }
+
+  get dealTaxableAmount(): number {
     const v = this.fullVehicle()?.results;
-    return (v?.price || 0) + this.dealFees;
+    return (v?.price || 0) + this.dealDocFee() + this.dealTransportCost;
   }
 
   get dealTaxAmount(): number {
-    const v = this.fullVehicle()?.results;
-    return (v?.price || 0) * (this.dealTaxRate() / 100);
+    if (!this.isWisconsinZip) return 0;
+    return this.dealTaxableAmount * (this.dealTaxRate() / 100);
   }
 
   get dealTotal(): number {
-    return this.dealSubtotal + this.dealTaxAmount;
+    if (!this.isWisconsinZip) {
+      // Out-of-state: just purchase price + service fee
+      return this.dealTaxableAmount;
+    }
+    return this.dealTaxableAmount + this.dealTaxAmount + this.dealNonTaxFees;
   }
 
   get dealAmountFinanced(): number {
@@ -134,10 +150,60 @@ export class VehicleComponent implements OnInit, OnDestroy {
     return principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
   }
 
-  onZipChange() {
+  get isWisconsinZip(): boolean {
     const prefix = this.dealZip().substring(0, 3);
+    return !!this.zipTaxRates[prefix];
+  }
+
+  onZipChange() {
+    const zip = this.dealZip();
+    const prefix = zip.substring(0, 3);
     const rate = this.zipTaxRates[prefix];
     if (rate) this.dealTaxRate.set(rate);
+    // Estimate distance from Sussex, WI (53089) for transport
+    if (zip.length === 5) this.estimateDistance(zip);
+  }
+
+  private estimateDistance(zip: string) {
+    // Use the free ZIP code distance API
+    const from = '53089';
+    if (zip === from) { this.dealTransportMiles.set(0); return; }
+    // Approximate using lat/lon lookup from ZIP prefix centroids
+    // For now use a rough estimation based on ZIP prefix regions
+    const fromLat = 43.17, fromLon = -88.22; // Sussex, WI
+    const zipLats: Record<string, [number, number]> = {
+      '530': [43.0, -89.4], '531': [42.7, -87.8], '532': [42.6, -88.6], '534': [44.5, -88.0],
+      '535': [43.8, -89.8], '537': [43.1, -89.4], '538': [43.8, -91.2], '539': [44.9, -89.6],
+      '540': [44.5, -88.0], '541': [45.0, -87.6], '542': [44.3, -90.1], '543': [46.7, -92.1],
+      '544': [44.8, -91.5], '545': [44.9, -89.6], '546': [46.0, -89.5], '547': [45.8, -88.1],
+      '548': [43.3, -90.9], '549': [45.6, -89.4],
+      // Major US metro areas
+      '100': [40.7, -74.0], '101': [40.7, -74.0], '606': [41.9, -87.6], '600': [41.9, -87.6],
+      '900': [34.1, -118.2], '330': [25.8, -80.2], '770': [29.8, -95.4], '852': [33.4, -112.0],
+      '802': [39.7, -105.0], '981': [47.6, -122.3], '303': [33.7, -84.4], '021': [42.4, -71.1],
+      '481': [42.3, -83.0], '553': [44.9, -93.3], '631': [38.6, -90.2], '462': [39.8, -86.2],
+      '432': [40.0, -83.0], '372': [36.2, -86.8], '278': [35.8, -78.6], '231': [36.8, -76.0],
+      '191': [40.0, -75.2], '850': [33.4, -112.0], '787': [30.3, -97.7], '801': [39.7, -105.0],
+      '641': [41.6, -93.6], '681': [41.3, -96.0], '672': [39.1, -94.6], '402': [38.3, -85.8],
+    };
+    const prefix = zip.substring(0, 3);
+    const dest = zipLats[prefix];
+    if (!dest) {
+      // Very rough: use first digit for general region distance
+      const regionMiles: Record<string, number> = {
+        '0': 1000, '1': 850, '2': 800, '3': 900, '4': 500,
+        '5': 300, '6': 200, '7': 1000, '8': 1400, '9': 1800,
+      };
+      this.dealTransportMiles.set(regionMiles[zip[0]] || 500);
+      return;
+    }
+    // Haversine distance
+    const R = 3959; // miles
+    const dLat = (dest[0] - fromLat) * Math.PI / 180;
+    const dLon = (dest[1] - fromLon) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(fromLat*Math.PI/180) * Math.cos(dest[0]*Math.PI/180) * Math.sin(dLon/2)**2;
+    const miles = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    this.dealTransportMiles.set(Math.round(miles * 1.2)); // 1.2x for road vs straight-line
   }
 
   testDriveForm: FormGroup = this.fb.group({

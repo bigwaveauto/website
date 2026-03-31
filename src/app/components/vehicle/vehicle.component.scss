@@ -297,12 +297,13 @@ $text-muted: rgba(0,0,0,0.45);
   display: flex;
   flex-direction: column;
   position: sticky;
-  top: 0;
-  height: 100dvh;
+  top: 20px;
+  max-height: calc(100dvh - 40px);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(0,0,0,0.1) transparent;
-  padding: 20px 0 40px;
+  padding: 0 0 20px;
+  align-self: flex-start;
 
   @media (max-width: 1024px) {
     position: static;
@@ -481,6 +482,100 @@ $text-muted: rgba(0,0,0,0.45);
     padding-top: 8px;
     border-top: 1px solid $border;
     span:last-child { font-weight: 700; }
+  }
+}
+
+.vdp-deal-license {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vdp-deal-waived {
+  font-size: 12px;
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.vdp-deal-transfer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: $text-muted;
+  cursor: pointer;
+  white-space: nowrap;
+
+  input { width: 14px; height: 14px; cursor: pointer; }
+}
+
+.license-row {
+  align-items: flex-start;
+}
+
+.transport-row {
+  align-items: flex-start !important;
+}
+
+.vdp-deal-transport-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vdp-deal-transport-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+
+  input { width: 14px; height: 14px; cursor: pointer; }
+  span { font-size: 12px; color: rgba(0,0,0,0.3); }
+}
+
+.vdp-deal-transport-detail {
+  font-size: 10px;
+  color: $text-muted;
+  padding-left: 20px;
+}
+
+.vdp-deal-transport-off {
+  color: rgba(0,0,0,0.15) !important;
+  font-weight: 400 !important;
+}
+
+.vdp-deal-zip-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-bottom: 1px solid $border;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  input {
+    width: 90px;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    text-align: center;
+    font-weight: 600;
+    &:focus { outline: none; border-color: $blue; }
+  }
+}
+
+.vdp-deal-line.out-of-state {
+  span:last-child {
+    font-size: 11px;
+    font-style: italic;
+    color: $text-muted !important;
+    font-weight: 400 !important;
   }
 }
 

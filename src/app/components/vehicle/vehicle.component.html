@@ -148,10 +148,6 @@
         </div>
         <span class="vdp-monthly-est">Est. {{ dealMonthly | currency:'USD':'symbol':'1.0-0' }}/mo</span>
       </div>
-      <div class="vdp-stock-row">
-        <span>Stock #{{ v.stocknumber }}</span>
-        <span class="vdp-vin-text">VIN: {{ v.vin }}</span>
-      </div>
       <div class="vdp-cta-stack">
         <button class="vdp-btn-reserve" (click)="reserveVehicle(v)">Reserve This Vehicle</button>
         <button class="vdp-btn-primary" (click)="openTestDrive()">Request a Test Drive</button>
@@ -165,26 +161,68 @@
           <button class="vdp-deal-tab" [class.active]="dealTab() === 'finance'" (click)="dealTab.set('finance')">Finance</button>
         </div>
 
+        <!-- ZIP code at top -->
+        <div class="vdp-deal-zip-top">
+          <label>Your ZIP Code</label>
+          <input type="text" [ngModel]="dealZip()" (ngModelChange)="dealZip.set($event); onZipChange()" maxlength="5" placeholder="53089" />
+        </div>
+
         <!-- Price breakdown -->
         <div class="vdp-deal-lines">
           <div class="vdp-deal-line"><span>Purchase Price</span><span>{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span></div>
-          <div class="vdp-deal-line sub"><span>Title Fee</span><span>{{ dealTitleFee() | currency:'USD':'symbol':'1.2-2' }}</span></div>
-          <div class="vdp-deal-line sub"><span>License Fee</span><span>{{ dealLicenseFee() | currency:'USD':'symbol':'1.0-0' }}</span></div>
-          @if(dealTab() === 'finance'){
-          <div class="vdp-deal-line sub"><span>Lien Fee</span><span>{{ dealLienFee() | currency:'USD':'symbol':'1.0-0' }}</span></div>
-          }
-          <div class="vdp-deal-line sub"><span>Doc Fee</span><span>{{ dealDocFee() | currency:'USD':'symbol':'1.0-0' }}</span></div>
-          <div class="vdp-deal-line"><span>Subtotal</span><span>{{ dealSubtotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
+          <div class="vdp-deal-line sub"><span>Service Fee</span><span>{{ dealDocFee() | currency:'USD':'symbol':'1.0-0' }}</span></div>
+
+          <!-- Transportation -->
+          <div class="vdp-deal-line sub transport-row">
+            <div class="vdp-deal-transport-label">
+              <label class="vdp-deal-transport-check">
+                <input type="checkbox" [ngModel]="dealTransport()" (ngModelChange)="dealTransport.set($event)" />
+                <span>Transportation</span>
+              </label>
+              @if(dealTransport() && dealTransportMiles() > 0){
+              <span class="vdp-deal-transport-detail">{{ dealTransportMiles() }} mi × ${{ dealTransportRate }}/mi</span>
+              }
+            </div>
+            @if(dealTransport()){
+            <span>{{ dealTransportCost | currency:'USD':'symbol':'1.0-0' }}</span>
+            }@else{
+            <span class="vdp-deal-transport-off">—</span>
+            }
+          </div>
 
           <!-- Tax -->
+          @if(isWisconsinZip){
           <div class="vdp-deal-line">
             <span>Sales Tax ({{ dealTaxRate() | number:'1.1-2' }}%)</span>
             <span>{{ dealTaxAmount | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
-          <div class="vdp-deal-zip">
-            <label>Your ZIP Code</label>
-            <input type="text" [ngModel]="dealZip()" (ngModelChange)="dealZip.set($event); onZipChange()" maxlength="5" placeholder="53089" />
+          }@else{
+          <div class="vdp-deal-line out-of-state"><span>Sales Tax</span><span>Paid by Buyer to Home State</span></div>
+          }
+
+          <!-- Non-taxable fees -->
+          @if(isWisconsinZip){
+          <div class="vdp-deal-line sub"><span>Title Fee</span><span>{{ dealTitleFee() | currency:'USD':'symbol':'1.2-2' }}</span></div>
+          <div class="vdp-deal-line sub license-row">
+            <span>License Fee</span>
+            <div class="vdp-deal-license">
+              @if(!dealPlateTransfer()){
+              <span>{{ dealLicenseFee() | currency:'USD':'symbol':'1.0-0' }}</span>
+              }@else{
+              <span class="vdp-deal-waived">$0 (transfer)</span>
+              }
+              <label class="vdp-deal-transfer">
+                <input type="checkbox" [ngModel]="dealPlateTransfer()" (ngModelChange)="dealPlateTransfer.set($event)" />
+                <span>Plate transfer</span>
+              </label>
+            </div>
           </div>
+          @if(dealTab() === 'finance'){
+          <div class="vdp-deal-line sub"><span>Lien Fee</span><span>{{ dealLienFee() | currency:'USD':'symbol':'1.0-0' }}</span></div>
+          }
+          }@else{
+          <div class="vdp-deal-line out-of-state"><span>Title / License / Lien</span><span>Paid by Buyer to Home State</span></div>
+          }
 
           <div class="vdp-deal-line total"><span>Total</span><span>{{ dealTotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
         </div>
