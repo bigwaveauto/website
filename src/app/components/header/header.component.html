@@ -6,9 +6,9 @@
 </div>
 
 <!-- ── Nav bar ── -->
-<div [ngClass.gt-sm]="'nav-bar-lg' + (floating() ? ' floating-nav-bar' : ' fixed-nav-bar')"
-     ngClass.lt-md="nav-bar-sm fixed-nav-bar"
-     class="header-wrap">
+<div class="header-wrap" [class.floating-nav-bar]="floating()"
+     [ngClass.gt-sm]="'nav-bar-lg' + (floating() ? '' : ' fixed-nav-bar')"
+     ngClass.lt-md="nav-bar-sm fixed-nav-bar">
 
     <!-- Left: Logo -->
     <div class="header-col-left">
