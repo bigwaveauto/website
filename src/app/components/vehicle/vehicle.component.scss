@@ -5,26 +5,16 @@ $border: rgba(0,0,0,0.08);
 $text-muted: rgba(0,0,0,0.45);
 
 :host {
-  display: flex;
-  flex-direction: column;
+  display: block;
   background: $page-bg;
-  height: 100dvh;
-  overflow: hidden;
+  min-height: 100vh;
   color: #111;
-
-  @media (max-width: 1024px) {
-    height: auto;
-    min-height: 100vh;
-    overflow: visible;
-  }
 }
 
-/* ── Page shell: fixed photo left, scrolling right ── */
+/* ── Page shell: photo left, specs right ── */
 .vdp-shell {
   display: grid;
   grid-template-columns: 1fr calc(20vw + 10px);
-  flex: 1;
-  min-height: 0;
 
   @media (max-width: 1280px) {
     grid-template-columns: 1fr 30vw;
@@ -32,19 +22,21 @@ $text-muted: rgba(0,0,0,0.45);
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
-    flex: none;
   }
 }
 
-/* ── Left: Fixed photo ── */
+/* ── Left: Sticky photo ── */
 .vdp-photo-fixed {
-  height: 100%;
+  position: sticky;
+  top: 0;
+  height: 100vh;
   background: #111;
   overflow: hidden;
   border-radius: 0 20px 20px 0;
   z-index: 0;
 
   @media (max-width: 1024px) {
+    position: relative;
     height: 50vh;
     min-height: 300px;
     border-radius: 0;
@@ -155,23 +147,11 @@ $text-muted: rgba(0,0,0,0.45);
   z-index: 2;
   grid-column: 2;
   position: relative;
-  overflow-y: auto;
 
   @media (max-width: 1024px) {
     padding: 24px 20px 40px;
     grid-column: 1;
-    overflow-y: visible;
   }
-}
-
-.vdp-outer-footer {
-  @media (min-width: 1025px) {
-    display: none;
-  }
-}
-
-.vdp-right-footer {
-  margin: 0 -32px -60px;
 }
 
 /* Breadcrumb */
