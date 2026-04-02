@@ -765,6 +765,61 @@ app.post('/api/admin/vehicle/photo', upload.single('file'), async (req: any, res
 });
 
 /**
+ * Admin — upload window sticker / Monroney label
+ */
+app.post('/api/admin/vehicle/window-sticker', upload.single('file'), async (req: any, res) => {
+  try {
+    if (!req.file) { res.status(400).json({ error: 'No file' }); return; }
+    const vin = req.body.vin;
+    if (!vin) { res.status(400).json({ error: 'VIN required' }); return; }
+    const ext = req.file.originalname.split('.').pop() || 'pdf';
+    const fileName = `${vin}/window-sticker.${ext}`;
+
+    // Remove old file if exists
+    await supabase.storage.from('vehicle-documents').remove([fileName]);
+
+    const { error: uploadError } = await supabase.storage
+      .from('vehicle-documents')
+      .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      res.status(500).json({ error: 'Upload failed' });
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('vehicle-documents')
+      .getPublicUrl(fileName);
+
+    // Upsert into vehicle_documents table
+    await supabase.from('vehicle_documents').upsert(
+      { vin, type: 'window_sticker', url: urlData.publicUrl, updated_at: new Date().toISOString() },
+      { onConflict: 'vin,type' }
+    );
+
+    res.json({ url: urlData.publicUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Window sticker upload failed' });
+  }
+});
+
+/**
+ * Admin — delete window sticker
+ */
+app.delete('/api/admin/vehicle/window-sticker/:vin', async (req, res) => {
+  try {
+    const { vin } = req.params;
+    await supabase.from('vehicle_documents').delete().eq('vin', vin).eq('type', 'window_sticker');
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Delete failed' });
+  }
+});
+
+/**
  * Admin — list all vehicles from Supabase
  */
 app.get('/api/admin/vehicles', async (_req, res) => {
@@ -853,11 +908,12 @@ app.get('/api/admin/vehicle/:vin', async (req, res) => {
   try {
     const { vin } = req.params;
 
-    const [pricing, costAdds, floorPlans, photos] = await Promise.all([
+    const [pricing, costAdds, floorPlans, photos, windowSticker] = await Promise.all([
       supabase.from('vehicle_pricing').select('*').eq('vin', vin).maybeSingle(),
       supabase.from('vehicle_cost_adds').select('*').eq('vin', vin).order('date_added', { ascending: true }),
       supabase.from('vehicle_floor_plans').select('*').eq('vin', vin).order('date_floored', { ascending: true }),
       supabase.from('vehicle_photos').select('*').eq('vin', vin).order('sort_order', { ascending: true }),
+      supabase.from('vehicle_documents').select('url').eq('vin', vin).eq('type', 'window_sticker').maybeSingle().catch(() => ({ data: null })),
     ]);
 
     res.json({
@@ -865,6 +921,7 @@ app.get('/api/admin/vehicle/:vin', async (req, res) => {
       costAdds: costAdds.data || [],
       floorPlans: floorPlans.data || [],
       photos: photos.data || [],
+      windowSticker: (windowSticker as any)?.data?.url || null,
     });
   } catch (err) {
     console.error(err);
@@ -1306,12 +1363,16 @@ app.get('/api/inventory/:vin', async (req, res) => {
     const v = vehicles.find(v => v.vin.toLowerCase() === req.params['vin'].toLowerCase());
     if (!v) { res.status(404).json({ error: 'Vehicle not found' }); return; }
 
-    // Load saved photo categories if available
-    const { data: savedCats } = await supabase
-      .from('vehicle_photo_categories')
+    // Load window sticker + saved photo categories
+    const [wsResult, catsResult] = await Promise.all([
+      supabase.from('vehicle_documents').select('url').eq('vin', v.vin).eq('type', 'window_sticker').maybeSingle().catch(() => ({ data: null })),
+      supabase.from('vehicle_photo_categories')
       .select('url, category, sort_order')
       .eq('vin', v.vin)
-      .order('sort_order');
+      .order('sort_order'),
+    ]);
+    const wsDoc = wsResult?.data;
+    const savedCats = catsResult?.data;
     const catMap = new Map((savedCats || []).map((c: any) => [c.url, c.category]));
 
     const photos = v.photos.map((url: string, i: number) => ({
@@ -1408,7 +1469,7 @@ app.get('/api/inventory/:vin', async (req, res) => {
       carfaxaccidenticon: '',
       carfaxsnapshotkey: '',
       autocheck: null,
-      monroneysticker: null,
+      monroneysticker: wsDoc?.url || null,
       notes: '',
       tags: null,
       highlights: highlightCategories,

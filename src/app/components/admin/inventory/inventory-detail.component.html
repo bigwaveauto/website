@@ -336,6 +336,32 @@
     }@else{
     <p class="det-empty">No photos yet. Click "Import from Feed" to pull in vAuto photos, or drag and drop to upload.</p>
     }
+
+    <!-- Window Sticker / Build Sheet -->
+    <div class="det-card-header" style="margin-top:24px">
+      <h2 class="det-card-title" style="margin:0;border:none;padding:0">Window Sticker / Build Sheet</h2>
+    </div>
+    @if(windowStickerUrl()){
+    <div class="det-sticker-preview">
+      <a [href]="windowStickerUrl()" target="_blank" class="det-sticker-link">
+        <lucide-icon name="file-text" /> View Window Sticker
+      </a>
+      <button class="det-btn-danger-sm" (click)="removeSticker()">
+        <lucide-icon name="trash-2" /> Remove
+      </button>
+    </div>
+    }@else{
+    <div class="det-photo-drop" (click)="stickerInput.click()">
+      <input #stickerInput type="file" accept="image/*,application/pdf" (change)="onStickerSelect($event)" hidden />
+      @if(uploadingSticker()){
+        <div class="det-mini-spinner"></div>
+        <span>Uploading…</span>
+      }@else{
+        <lucide-icon name="plus" />
+        <span>Upload window sticker (image or PDF)</span>
+      }
+    </div>
+    }
   </div>
   }
 

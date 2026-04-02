@@ -82,6 +82,11 @@
         <button class="vdp-btn-outline" (click)="openMakeOffer()">Make an Offer</button>
         <a routerLink="/financing" class="vdp-btn-outline">Apply for Financing</a>
       </div>
+      @if(v.monroneysticker){
+      <a [href]="v.monroneysticker" target="_blank" rel="noopener" class="vdp-btn-sticker">
+        <lucide-icon name="file-text" /> Window Sticker / Build Sheet
+      </a>
+      }
     </div>
 
     <!-- Vehicle Details (specs inline) -->

@@ -382,6 +382,27 @@ $text-muted: rgba(0,0,0,0.45);
   &:hover { border-color: rgba(0,0,0,0.4); background: rgba(0,0,0,0.02); }
 }
 
+.vdp-btn-sticker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #f8fafc;
+  color: #374151;
+  text-align: center;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1.5px solid rgba(0,0,0,0.1);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s, background 0.2s;
+  lucide-icon { width: 16px; height: 16px; }
+  &:hover { border-color: rgba(0,0,0,0.3); background: #f1f5f9; }
+}
+
 /* ── Deal Calculator ── */
 .vdp-deal {
   border: 1px solid $border;

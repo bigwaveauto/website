@@ -125,6 +125,10 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   savingPhotoCats = signal(false);
   photoCatsSaved = signal(false);
 
+  // Window sticker
+  windowStickerUrl = signal<string | null>(null);
+  uploadingSticker = signal(false);
+
   // Description
   description = signal('');
   generatingDesc = signal(false);
@@ -207,6 +211,7 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
         if (data.costAdds?.length) this.costAdds.set(data.costAdds);
         if (data.floorPlans?.length) this.floorPlans.set(data.floorPlans.map((fp: any) => ({ ...fp, payments: fp.payments || [] })));
         if (data.photos?.length) this.photos.set(data.photos);
+        if (data.windowSticker) this.windowStickerUrl.set(data.windowSticker);
         if (data.pricing) {
           this.askingPrice.set(data.pricing.asking_price ?? this.askingPrice());
           this.advertisingPrice.set(data.pricing.advertising_price ?? this.advertisingPrice());
@@ -480,6 +485,35 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
 
   removePhoto(index: number) {
     this.photos.update(list => list.filter((_, i) => i !== index));
+  }
+
+  // ── Window Sticker ──
+  onStickerSelect(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (input.files?.[0]) this.uploadSticker(input.files[0]);
+  }
+
+  uploadSticker(file: File) {
+    this.uploadingSticker.set(true);
+    const vin = this.vehicle()?.vin;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('vin', vin);
+
+    this.http.post<any>('/api/admin/vehicle/window-sticker', formData).subscribe({
+      next: (res) => {
+        if (res.url) this.windowStickerUrl.set(res.url);
+        this.uploadingSticker.set(false);
+      },
+      error: () => this.uploadingSticker.set(false),
+    });
+  }
+
+  removeSticker() {
+    const vin = this.vehicle()?.vin;
+    this.http.delete(`/api/admin/vehicle/window-sticker/${vin}`).subscribe({
+      next: () => this.windowStickerUrl.set(null),
+    });
   }
 
   // ── Import vAuto photos ──

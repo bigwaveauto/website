@@ -547,6 +547,27 @@ select.det-dv {
   &:hover { color: #ef4444; }
 }
 
+/* ── Window Sticker ── */
+.det-sticker-preview {
+  display: flex; align-items: center; gap: 12px; padding: 12px 0;
+}
+
+.det-sticker-link {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 14px; font-weight: 600; color: $blue; text-decoration: none;
+  lucide-icon { width: 18px; height: 18px; }
+  &:hover { text-decoration: underline; }
+}
+
+.det-btn-danger-sm {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 12px; border: none; border-radius: 6px;
+  background: #fef2f2; font-size: 12px; font-weight: 600; font-family: inherit;
+  color: #ef4444; cursor: pointer; transition: background 0.15s;
+  lucide-icon { width: 14px; height: 14px; }
+  &:hover { background: #fee2e2; }
+}
+
 /* ── Description ── */
 .det-desc-textarea {
   width: 100%; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 10px;
