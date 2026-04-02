@@ -28,8 +28,9 @@ $text-muted: rgba(0,0,0,0.45);
 /* ── Left: Sticky photo ── */
 .vdp-photo-fixed {
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: 10px;
+  height: calc(100vh - 20px);
+  margin: 10px 0;
   background: #111;
   overflow: hidden;
   border-radius: 0 20px 20px 0;
