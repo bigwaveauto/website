@@ -913,7 +913,7 @@ app.get('/api/admin/vehicle/:vin', async (req, res) => {
       supabase.from('vehicle_cost_adds').select('*').eq('vin', vin).order('date_added', { ascending: true }),
       supabase.from('vehicle_floor_plans').select('*').eq('vin', vin).order('date_floored', { ascending: true }),
       supabase.from('vehicle_photos').select('*').eq('vin', vin).order('sort_order', { ascending: true }),
-      supabase.from('vehicle_documents').select('url').eq('vin', vin).eq('type', 'window_sticker').maybeSingle().catch(() => ({ data: null })),
+      supabase.from('vehicle_documents').select('url').eq('vin', vin).eq('type', 'window_sticker').maybeSingle().then(r => r.data).catch(() => null),
     ]);
 
     res.json({
@@ -921,7 +921,7 @@ app.get('/api/admin/vehicle/:vin', async (req, res) => {
       costAdds: costAdds.data || [],
       floorPlans: floorPlans.data || [],
       photos: photos.data || [],
-      windowSticker: (windowSticker as any)?.data?.url || null,
+      windowSticker: (windowSticker as any)?.url || null,
     });
   } catch (err) {
     console.error(err);
@@ -1365,13 +1365,13 @@ app.get('/api/inventory/:vin', async (req, res) => {
 
     // Load window sticker + saved photo categories
     const [wsResult, catsResult] = await Promise.all([
-      supabase.from('vehicle_documents').select('url').eq('vin', v.vin).eq('type', 'window_sticker').maybeSingle().catch(() => ({ data: null })),
+      supabase.from('vehicle_documents').select('url').eq('vin', v.vin).eq('type', 'window_sticker').maybeSingle().then(r => r.data).catch(() => null),
       supabase.from('vehicle_photo_categories')
       .select('url, category, sort_order')
       .eq('vin', v.vin)
       .order('sort_order'),
     ]);
-    const wsDoc = wsResult?.data;
+    const wsDoc = wsResult;
     const savedCats = catsResult?.data;
     const catMap = new Map((savedCats || []).map((c: any) => [c.url, c.category]));
 
