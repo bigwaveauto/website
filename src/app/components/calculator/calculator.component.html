@@ -219,10 +219,11 @@
               <span class="calc-auto-badge">auto</span>
             </label>
             <div class="calc-input-wrap">
-              <input class="calc-input" type="number" min="0" max="25" step="0.1" [(ngModel)]="salesTaxPct" placeholder="5.5" />
+              <input class="calc-input" type="number" min="0" max="25" step="0.1" [(ngModel)]="salesTaxPct" placeholder="5.0" />
               <span class="calc-input-suffix">%</span>
             </div>
           </div>
+          <p class="calc-step-hint" style="margin-top:-4px">State rate only. Adjust upward for your county/city taxes if applicable.</p>
           <div class="calc-field-row">
             <label class="calc-field-label">
               <lucide-icon name="file-text" class="calc-label-icon" />

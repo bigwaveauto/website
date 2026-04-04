@@ -20,7 +20,7 @@ const STATE_TAX_RATES: Record<string, number> = {
   'Oregon': 0, 'Pennsylvania': 6.34, 'Rhode Island': 7.0, 'South Carolina': 7.44,
   'South Dakota': 6.4, 'Tennessee': 9.55, 'Texas': 8.2, 'Utah': 7.19,
   'Vermont': 6.22, 'Virginia': 5.75, 'Washington': 9.23, 'West Virginia': 6.55,
-  'Wisconsin': 5.43, 'Wyoming': 5.36, 'District of Columbia': 6.0,
+  'Wisconsin': 5.0, 'Wyoming': 5.36, 'District of Columbia': 6.0,
 };
 
 interface AmortizationRow {
@@ -65,7 +65,7 @@ export class CalculatorComponent {
   downPayment      = 0;
   tradeInValue     = 0;
   amountOwedTrade  = 0;
-  salesTaxPct      = 5.43;
+  salesTaxPct      = 5.0;
   otherFees        = 1200;
   includeTaxInLoan = false;
 
