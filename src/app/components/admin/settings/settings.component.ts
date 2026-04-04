@@ -4,6 +4,25 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { LucideAngularModule } from 'lucide-angular';
 
+const US_STATES = new Set([
+  'AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA',
+  'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM',
+  'NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA',
+  'WV','WI','WY',
+]);
+
+const STATE_NAMES: Record<string, string> = {
+  AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',
+  CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',
+  HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',
+  LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',
+  MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',
+  NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',
+  OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',
+  SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',
+  WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',
+};
+
 interface FinanceSettings {
   lowestRate: string;
   lowestRateTerm: string;
@@ -34,6 +53,7 @@ export class AdminSettingsComponent implements OnInit {
 
   tabs = [
     { key: 'finance',  label: 'Finance',  icon: 'banknote' },
+    { key: 'sales',    label: 'Sales Stats', icon: 'bar-chart-3' },
     { key: 'general',  label: 'General',  icon: 'globe' },
     { key: 'leads',    label: 'Leads',    icon: 'mail' },
     { key: 'seo',      label: 'SEO',      icon: 'search' },
@@ -56,6 +76,7 @@ export class AdminSettingsComponent implements OnInit {
 
   ngOnInit() {
     this.loadSettings();
+    this.loadSalesStats();
   }
 
   setTab(key: string) {
@@ -91,6 +112,128 @@ export class AdminSettingsComponent implements OnInit {
       error: () => {
         this.saving.set(false);
         alert('Failed to save settings. Please try again.');
+      },
+    });
+  }
+
+  // ── Sales Stats ──
+  salesReportText = '';
+  salesByState = signal<Record<string, number>>({});
+  totalSales = signal(0);
+  salesParsed = signal(false);
+  savingSales = signal(false);
+  salesSaved = signal(false);
+
+  readonly brandLogos: Record<string, string> = {
+    'Tesla': '/brands/tesla-logo.svg',
+    'Rivian': '/brands/rivian-logo.svg',
+    'BMW': '/brands/bmw-logo-2022.svg',
+    'Porsche': '/brands/porsche-logo.svg',
+    'Mercedes-Benz': '/brands/mercedes-logo.svg',
+    'Audi': '/brands/audi-logo.svg',
+    'Lexus': '/brands/lexus-logo.svg',
+    'Ford': '/brands/ford-logo.svg',
+    'Chevrolet': '/brands/chevrolet-logo.svg',
+    'Toyota': '/brands/toyota-logo.svg',
+  };
+  topBrands = signal<{ name: string; count: number; logo: string }[]>([]);
+  brandReportText = '';
+
+  get salesStateList() {
+    return Object.entries(this.salesByState())
+      .map(([code, count]) => ({ code, name: STATE_NAMES[code] || code, count }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  loadSalesStats() {
+    this.http.get<any>('/api/sales-stats').subscribe({
+      next: (data) => {
+        if (!data) return;
+        if (data.sales_by_state) {
+          this.salesByState.set(data.sales_by_state);
+          this.totalSales.set(data.total_sales || 0);
+          this.salesParsed.set(true);
+        }
+        if (data.top_brands?.length) this.topBrands.set(data.top_brands);
+      },
+    });
+  }
+
+  parseSalesReport() {
+    const text = this.salesReportText.trim();
+    if (!text) return;
+
+    const stateCount: Record<string, number> = {};
+    // Try to find 2-letter state codes in the text
+    // Supports formats like: "WI 81", "WI,81", "WI: 81", "Wisconsin 81", or just state codes per line
+    const lines = text.split(/\n/);
+    for (const line of lines) {
+      // Try to match "STATE_CODE number" or "STATE_CODE, number"
+      const match = line.match(/\b([A-Z]{2})\b[^A-Za-z0-9]*(\d+)/);
+      if (match && US_STATES.has(match[1])) {
+        stateCount[match[1]] = (stateCount[match[1]] || 0) + parseInt(match[2], 10);
+        continue;
+      }
+      // Try to find full state names
+      for (const [code, name] of Object.entries(STATE_NAMES)) {
+        const re = new RegExp(`\\b${name}\\b[^A-Za-z0-9]*(\\d+)`, 'i');
+        const nameMatch = line.match(re);
+        if (nameMatch) {
+          stateCount[code] = (stateCount[code] || 0) + parseInt(nameMatch[1], 10);
+        }
+      }
+      // If no number paired with state, just count state mentions
+      if (!Object.keys(stateCount).length || !line.match(/\d/)) {
+        const codeMatch = line.match(/\b([A-Z]{2})\b/g);
+        if (codeMatch) {
+          for (const code of codeMatch) {
+            if (US_STATES.has(code)) stateCount[code] = (stateCount[code] || 0) + 1;
+          }
+        }
+      }
+    }
+
+    const total = Object.values(stateCount).reduce((s, n) => s + n, 0);
+    this.salesByState.set(stateCount);
+    this.totalSales.set(total);
+    this.salesParsed.set(true);
+  }
+
+  parseBrandReport() {
+    const text = this.brandReportText.trim();
+    if (!text) return;
+    const brandCount: Record<string, number> = {};
+    const lines = text.split(/\n/);
+    for (const line of lines) {
+      const match = line.match(/(.+?)[,:\t]\s*(\d+)/);
+      if (match) {
+        const name = match[1].trim();
+        brandCount[name] = (brandCount[name] || 0) + parseInt(match[2], 10);
+      }
+    }
+    const brands = Object.entries(brandCount)
+      .map(([name, count]) => ({ name, count, logo: this.brandLogos[name] || '' }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+    this.topBrands.set(brands);
+  }
+
+  saveSalesStats() {
+    this.savingSales.set(true);
+    this.salesSaved.set(false);
+    this.http.post('/api/admin/sales-stats', {
+      salesByState: this.salesByState(),
+      totalSales: this.totalSales(),
+      topBrands: this.topBrands(),
+    }).subscribe({
+      next: () => {
+        this.savingSales.set(false);
+        this.salesSaved.set(true);
+        setTimeout(() => this.salesSaved.set(false), 3000);
+      },
+      error: () => {
+        this.savingSales.set(false);
+        alert('Failed to save sales stats.');
       },
     });
   }

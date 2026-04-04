@@ -160,6 +160,107 @@
   </div>
   }
 
+  <!-- Sales Stats Tab -->
+  @if(activeTab() === 'sales'){
+  <div class="settings-panel">
+
+    <!-- Paste Sales Report -->
+    <div class="settings-card">
+      <div class="settings-card-header">
+        <lucide-icon name="file-text" />
+        <div>
+          <h3>Sales by State</h3>
+          <p>Paste your monthly report data. Accepts formats like "WI 81", "WI, 81", "Wisconsin: 81", or one state per line.</p>
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div class="settings-field" style="max-width:100%">
+          <label>Paste Report Data</label>
+          <textarea [(ngModel)]="salesReportText" rows="8" placeholder="WI 81&#10;IL 12&#10;TX 3&#10;NJ 2&#10;..." style="width:100%;font-family:monospace;font-size:13px;padding:12px;border:1.5px solid rgba(0,0,0,0.1);border-radius:8px;resize:vertical"></textarea>
+        </div>
+        <button class="settings-save" style="margin-top:12px" (click)="parseSalesReport()">
+          <lucide-icon name="scan-search" /> Parse Report
+        </button>
+
+        @if(salesParsed()){
+        <div style="margin-top:20px">
+          <div class="settings-row">
+            <div class="settings-field">
+              <label>Total Vehicles Sold</label>
+              <input type="number" [ngModel]="totalSales()" (ngModelChange)="totalSales.set($event)" min="0">
+              <span class="settings-hint">Auto-calculated from parsed data, but you can override</span>
+            </div>
+          </div>
+          <div style="margin-top:16px">
+            <label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:8px">Parsed States ({{ salesStateList.length }})</label>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px">
+              @for(s of salesStateList; track s.code){
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f8f9fb;border-radius:6px;font-size:13px">
+                <span style="font-weight:600">{{ s.code }}</span>
+                <span style="color:#555">{{ s.count }}</span>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Top Brands -->
+    <div class="settings-card">
+      <div class="settings-card-header">
+        <lucide-icon name="trophy" />
+        <div>
+          <h3>Top Brands Sold</h3>
+          <p>Paste brand data, one per line: "Brand, Count" (e.g. "Tesla, 34")</p>
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div class="settings-field" style="max-width:100%">
+          <label>Paste Brand Data</label>
+          <textarea [(ngModel)]="brandReportText" rows="6" placeholder="Tesla, 34&#10;Rivian, 25&#10;BMW, 24&#10;Porsche, 10&#10;Toyota, 10" style="width:100%;font-family:monospace;font-size:13px;padding:12px;border:1.5px solid rgba(0,0,0,0.1);border-radius:8px;resize:vertical"></textarea>
+        </div>
+        <button class="settings-save" style="margin-top:12px" (click)="parseBrandReport()">
+          <lucide-icon name="scan-search" /> Parse Brands
+        </button>
+
+        @if(topBrands().length){
+        <div style="margin-top:16px">
+          <label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:8px">Parsed Brands</label>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            @for(b of topBrands(); track b.name){
+            <div style="display:flex;align-items:center;gap:12px;padding:6px 10px;background:#f8f9fb;border-radius:6px;font-size:13px">
+              <span style="font-weight:600;width:120px">{{ b.name }}</span>
+              <span style="color:#555">{{ b.count }} sold</span>
+              @if(b.logo){<span style="color:#999;font-size:11px">{{ b.logo }}</span>}
+            </div>
+            }
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Save -->
+    <div class="settings-actions">
+      <button class="settings-save" (click)="saveSalesStats()" [disabled]="savingSales()">
+        @if(savingSales()){
+        <div class="settings-btn-spinner"></div> Saving...
+        }@else{
+        <lucide-icon name="save" /> Save Sales Stats
+        }
+      </button>
+      @if(salesSaved()){
+      <span class="settings-saved">
+        <lucide-icon name="circle-check" /> Stats saved — About page will update on next load
+      </span>
+      }
+    </div>
+
+  </div>
+  }
+
   <!-- Stub tabs -->
   @if(activeTab() === 'general' || activeTab() === 'leads' || activeTab() === 'seo'){
   <div class="settings-panel">
