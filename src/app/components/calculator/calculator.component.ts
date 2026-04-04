@@ -66,7 +66,7 @@ export class CalculatorComponent {
   tradeInValue     = 0;
   amountOwedTrade  = 0;
   salesTaxPct      = 5.0;
-  otherFees        = 1200;
+  otherFees        = 504.50;
   includeTaxInLoan = false;
 
   scheduleView = signal<'monthly' | 'annual'>('monthly');

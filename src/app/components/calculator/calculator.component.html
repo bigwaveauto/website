@@ -227,13 +227,14 @@
           <div class="calc-field-row">
             <label class="calc-field-label">
               <lucide-icon name="file-text" class="calc-label-icon" />
-              Registration &amp; Other Fees
+              Title, Plate, Lien &amp; Other Fees
             </label>
             <div class="calc-input-wrap">
               <span class="calc-input-prefix">$</span>
-              <input class="calc-input" type="number" min="0" [(ngModel)]="otherFees" placeholder="1200" />
+              <input class="calc-input" type="number" min="0" [(ngModel)]="otherFees" placeholder="504.50" />
             </div>
           </div>
+          <p class="calc-step-hint" style="margin-top:-4px">WI default: Title $214.50 + Plate $85 + Lien $10 + EV surcharge $175 + Wheel tax $20</p>
           <div class="calc-checkbox-row">
             <input type="checkbox" id="taxInLoan" [(ngModel)]="includeTaxInLoan" />
             <label for="taxInLoan">Include taxes &amp; fees in loan amount</label>
