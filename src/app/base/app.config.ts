@@ -2,7 +2,7 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessC
 import { provideRouter, withRouterConfig } from '@angular/router';
 
 import { routes } from '../routes/app.routes';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { provideClientHydration } from '@angular/platform-browser';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from '../services/auth.interceptor';
 import {
@@ -33,6 +33,6 @@ export const appConfig: ApplicationConfig = {
         Calculator, Search, ChevronUp, Home,
       }),
     },
-    provideRouter(routes, withRouterConfig({ onSameUrlNavigation: 'reload' })), provideClientHydration(withEventReplay())
+    provideRouter(routes, withRouterConfig({ onSameUrlNavigation: 'reload' })), provideClientHydration()
   ]
 };
