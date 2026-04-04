@@ -29,7 +29,7 @@ $text-muted: rgba(0,0,0,0.45);
 .vdp-photo-fixed {
   position: sticky;
   top: 10px;
-  height: calc(100vh - 20px);
+  height: calc(100dvh - 24px);
   margin: 10px 0 10px 10px;
   background: #111;
   overflow: hidden;
