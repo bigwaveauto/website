@@ -1,8 +1,8 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withRouterConfig } from '@angular/router';
 
 import { routes } from '../routes/app.routes';
-// hydration removed — zoneless + hydration causes multi-click issues
+import { provideClientHydration } from '@angular/platform-browser';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from '../services/auth.interceptor';
 import {
@@ -19,7 +19,7 @@ import {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideZonelessChangeDetection(),
+    provideZoneChangeDetection({ eventCoalescing: true }),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     {
       provide: LUCIDE_ICONS, multi: true,
@@ -33,6 +33,7 @@ export const appConfig: ApplicationConfig = {
         Calculator, Search, ChevronUp, Home,
       }),
     },
-    provideRouter(routes, withRouterConfig({ onSameUrlNavigation: 'reload' }))
+    provideRouter(routes, withRouterConfig({ onSameUrlNavigation: 'reload' })),
+    provideClientHydration(),
   ]
 };
