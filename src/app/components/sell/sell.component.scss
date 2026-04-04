@@ -13,7 +13,6 @@ $radius: 14px;
 .sell-page {
   background: $bg;
   min-height: 100vh;
-  padding: 20px 20px 80px;
 }
 
 /* ── Hero ── */
@@ -22,8 +21,8 @@ $radius: 14px;
   background-image: radial-gradient(ellipse at 75% 50%, rgba(26,120,194,0.22) 0%, transparent 65%);
   border-radius: 20px;
   padding: 56px 48px;
-  margin: 0 auto 24px;
-  max-width: 960px;
+  margin: 20px 20px 24px;
+  max-width: none;
   display: flex;
   align-items: center;
   gap: 48px;
@@ -237,10 +236,13 @@ $radius: 14px;
 /* ── Feature cards ── */
 .sell-feature-strip {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin: 0 auto 40px;
-  max-width: 960px;
+  max-width: 1200px;
+  padding: 0 20px;
+
+  @media (max-width: 860px) { grid-template-columns: repeat(2, 1fr); }
 
   @media (max-width: 500px) { grid-template-columns: 1fr; }
 }
@@ -270,8 +272,9 @@ $radius: 14px;
 
 /* ── Form ── */
 .sell-main {
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 0 20px 80px;
 }
 
 .sell-form-card {
