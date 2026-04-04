@@ -47,7 +47,7 @@ export class AdminSettingsComponent implements OnInit {
   private http = inject(HttpClient);
 
   activeTab = signal<string>('finance');
-  loading = signal(true);
+  loading = signal(false);
   saving = signal(false);
   saved = signal(false);
 
@@ -85,7 +85,6 @@ export class AdminSettingsComponent implements OnInit {
   }
 
   loadSettings() {
-    this.loading.set(true);
     this.http.get<{ settings: Record<string, any> }>('/api/admin/settings').subscribe({
       next: (res) => {
         if (res.settings?.['finance']) {

@@ -1,5 +1,5 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, signal, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../services/auth.service';
@@ -14,6 +14,7 @@ import { AuthService } from '../../services/auth.service';
 export class AdminComponent implements OnInit {
   readonly auth = inject(AuthService);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
 
   // Whitelisted admin emails — add your team members here
   readonly adminEmails = ['dave@bigwaveauto.com', 'dlucas589@gmail.com'];
@@ -36,10 +37,13 @@ export class AdminComponent implements OnInit {
   loginError = signal('');
 
   async ngOnInit() {
-    // Wait for auth to initialize
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Wait for auth to initialize (max 5s)
+    let attempts = 0;
     await new Promise<void>(resolve => {
       const check = () => {
-        if (!this.auth.loading()) { resolve(); return; }
+        if (!this.auth.loading() || attempts++ > 50) { resolve(); return; }
         setTimeout(check, 100);
       };
       check();
