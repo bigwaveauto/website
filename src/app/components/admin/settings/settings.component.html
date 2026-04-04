@@ -19,14 +19,6 @@
     }
   </div>
 
-  <!-- Loading -->
-  @if(loading()){
-  <div class="settings-loading">
-    <div class="settings-spinner"></div>
-    <span>Loading settings...</span>
-  </div>
-  }@else{
-
   <!-- Finance Tab -->
   @if(activeTab() === 'finance'){
   <div class="settings-panel">
@@ -288,5 +280,4 @@
   </div>
   }
 
-  }
 </div>
