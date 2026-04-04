@@ -250,12 +250,12 @@
       <div class="calc-result-header">
         <span class="calc-result-label">
           @if (mode() === 'price') { Estimated Monthly Payment }
-          @else { Total Amount I Can Spend }
+          @else { MAX Car List Price + Dealer Adds }
         </span>
         <span class="calc-result-payment">
           @if (result()) {
             @if (mode() === 'price') { {{ result()!.monthlyPayment | currency:'USD':'symbol':'1.2-2' }} }
-            @else { {{ result()!.vehiclePrice | currency:'USD':'symbol':'1.2-2' }} }
+            @else { {{ roundDown100(result()!.vehiclePrice) | currency:'USD':'symbol':'1.0-0' }} }
           } @else { — }
         </span>
         <span class="calc-result-term">for {{ loanTerm }} months at {{ interestRate }}% APR</span>

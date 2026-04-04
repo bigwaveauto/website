@@ -168,6 +168,10 @@ export class CalculatorComponent {
     return years;
   }
 
+  roundDown100(val: number): number {
+    return Math.floor(val / 100) * 100;
+  }
+
   donutPath(pct: number, radius: number, cx: number, cy: number, startAngle = 0): string {
     const angle    = (pct / 100) * 2 * Math.PI;
     const endAngle = startAngle + angle;
