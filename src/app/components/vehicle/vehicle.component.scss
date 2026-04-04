@@ -9,6 +9,8 @@ $text-muted: rgba(0,0,0,0.45);
   background: $page-bg;
   min-height: 100vh;
   color: #111;
+  position: relative;
+  z-index: 101;
 }
 
 /* ── Page shell: photo left, specs right ── */
@@ -329,7 +331,7 @@ $text-muted: rgba(0,0,0,0.45);
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.4);
-  z-index: 900;
+  z-index: 9000;
   backdrop-filter: blur(2px);
 }
 
@@ -341,7 +343,7 @@ $text-muted: rgba(0,0,0,0.45);
   max-width: 100vw;
   height: 100dvh;
   background: white;
-  z-index: 901;
+  z-index: 9001;
   display: flex;
   flex-direction: column;
   box-shadow: -8px 0 32px rgba(0,0,0,0.12);
