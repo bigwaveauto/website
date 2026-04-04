@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, signal, inject, OnInit, PLATFORM_ID, ChangeDetectorRef, afterNextRender } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
@@ -9,12 +9,14 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
   standalone: true,
+  host: { ngSkipHydration: 'true' },
   imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, LucideAngularModule],
 })
 export class AdminComponent implements OnInit {
   readonly auth = inject(AuthService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  private cdr = inject(ChangeDetectorRef);
 
   // Whitelisted admin emails — add your team members here
   readonly adminEmails = ['dave@bigwaveauto.com', 'dlucas589@gmail.com'];
@@ -36,21 +38,19 @@ export class AdminComponent implements OnInit {
 
   loginError = signal('');
 
-  async ngOnInit() {
-    if (!isPlatformBrowser(this.platformId)) return;
-
-    // Wait for auth to initialize (max 5s)
-    let attempts = 0;
-    await new Promise<void>(resolve => {
-      const check = () => {
-        if (!this.auth.loading() || attempts++ > 50) { resolve(); return; }
-        setTimeout(check, 100);
-      };
-      check();
+  constructor() {
+    afterNextRender(async () => {
+      // Wait for auth to initialize (max 5s)
+      for (let i = 0; i < 50; i++) {
+        if (!this.auth.loading()) break;
+        await new Promise(r => setTimeout(r, 100));
+      }
+      this.checkAccess();
+      this.cdr.markForCheck();
     });
-
-    this.checkAccess();
   }
+
+  ngOnInit() {}
 
   private checkAccess() {
     const email = this.auth.user()?.email?.toLowerCase();
