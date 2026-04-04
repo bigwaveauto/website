@@ -1356,6 +1356,41 @@ app.get('/api/inventory/filters', async (req, res) => {
   }
 });
 
+/**
+ * Public — sales stats for about page
+ */
+app.get('/api/sales-stats', async (_req, res) => {
+  try {
+    const { data } = await supabase.from('sales_stats').select('*').order('updated_at', { ascending: false }).limit(1).maybeSingle();
+    if (data) {
+      res.json(data);
+    } else {
+      res.json(null);
+    }
+  } catch {
+    res.json(null);
+  }
+});
+
+/**
+ * Admin — update sales stats from monthly report
+ * Body: { salesByState: { WI: 81, IL: 12, ... }, topBrands: [...], totalSales: 174 }
+ */
+app.post('/api/admin/sales-stats', async (req, res) => {
+  try {
+    const { salesByState, topBrands, totalSales } = req.body;
+    if (!salesByState) { res.status(400).json({ error: 'salesByState required' }); return; }
+    await supabase.from('sales_stats').upsert(
+      { id: 'current', sales_by_state: salesByState, top_brands: topBrands || [], total_sales: totalSales || 0, updated_at: new Date().toISOString() },
+      { onConflict: 'id' }
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to save sales stats' });
+  }
+});
+
 // Single vehicle detail (Overfuel-compatible response)
 app.get('/api/inventory/:vin', async (req, res) => {
   try {

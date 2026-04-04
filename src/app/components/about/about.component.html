@@ -100,10 +100,11 @@
   <section class="abt-map-section">
     <div class="abt-map-inner">
       <p class="abt-eyebrow abt-eyebrow--light">Our Reach</p>
+      <p class="abt-growing-tag">Small Dealership. Rapidly Growing.</p>
       <h2 class="abt-section-title abt-section-title--white">Cars Delivered Across America</h2>
       <div class="abt-map-stats-row">
         <div class="abt-map-stat">
-          <span class="abt-map-stat-num">174+</span>
+          <span class="abt-map-stat-num">{{ totalSales }}+</span>
           <span class="abt-map-stat-label">Vehicles Sold</span>
         </div>
         <div class="abt-map-stat">
@@ -111,7 +112,7 @@
           <span class="abt-map-stat-label">States Reached</span>
         </div>
         <div class="abt-map-stat">
-          <span class="abt-map-stat-num">81</span>
+          <span class="abt-map-stat-num">{{ salesByState['WI'] || 0 }}</span>
           <span class="abt-map-stat-label">Sold in Wisconsin</span>
         </div>
       </div>

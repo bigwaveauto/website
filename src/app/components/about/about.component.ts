@@ -1,5 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { LucideAngularModule } from 'lucide-angular';
 import { RouterLink } from '@angular/router';
 import { HeaderComponent } from '../header/header.component';
@@ -13,14 +14,16 @@ import { US_STATE_PATHS } from './us-state-paths';
   standalone: true,
   imports: [CommonModule, LucideAngularModule, RouterLink, HeaderComponent, FooterComponent]
 })
-export class AboutComponent {
-  // Sales data by state (from sales tax report)
+export class AboutComponent implements OnInit {
+  private http = inject(HttpClient);
+
+  // Sales data by state — defaults, overwritten by API
   salesByState: Record<string, number> = {
     WI: 81, IL: 12, TX: 3, NJ: 2, KY: 2, MO: 2, MD: 2,
     CO: 1, MA: 1, ND: 1, FL: 1, AZ: 1, PA: 1, IN: 1, GA: 1, WA: 1, NY: 1, MN: 1,
   };
 
-  totalSales = 115; // known-state sales
+  totalSales = 174;
   statesReached = Object.keys(this.salesByState).length;
 
   // All US state paths for SVG map
@@ -69,12 +72,26 @@ export class AboutComponent {
     this.tooltipVisible.set(false);
   }
 
-  // Top brands sold
-  topBrands = [
+  // Top brands sold — defaults, overwritten by API
+  topBrands: { name: string; count: number; logo: string }[] = [
     { name: 'Tesla', count: 34, logo: '/brands/tesla-logo.svg' },
     { name: 'Rivian', count: 25, logo: '/brands/rivian-logo.svg' },
     { name: 'BMW', count: 24, logo: '/brands/bmw-logo-2022.svg' },
     { name: 'Porsche', count: 10, logo: '/brands/porsche-logo.svg' },
     { name: 'Toyota', count: 10, logo: '' },
   ];
+
+  ngOnInit() {
+    this.http.get<any>('/api/sales-stats').subscribe({
+      next: (data) => {
+        if (!data) return;
+        if (data.sales_by_state) {
+          this.salesByState = data.sales_by_state;
+          this.statesReached = Object.keys(this.salesByState).length;
+        }
+        if (data.total_sales) this.totalSales = data.total_sales;
+        if (data.top_brands?.length) this.topBrands = data.top_brands;
+      },
+    });
+  }
 }
