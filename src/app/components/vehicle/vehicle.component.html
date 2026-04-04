@@ -64,14 +64,22 @@
       <span class="vdp-msrp">MSRP {{ v.msrp | currency:'USD':'symbol':'1.0-0' }}</span>}
     </div>
 
-    <div class="vdp-payment-row">
-      <div class="vdp-payment-est">
-        <span class="vdp-payment-label">Est. payment</span>
-        <span class="vdp-payment-amount">{{ dealMonthly | currency:'USD':'symbol':'1.0-0' }}/mo</span>
+    <div class="vdp-cost-card" (click)="calcOpen.set(true)">
+      <div class="vdp-cost-header">
+        <span class="vdp-cost-title">What does this really cost?</span>
+        <lucide-icon name="chevron-right" class="vdp-cost-chevron" />
       </div>
-      <button class="vdp-calc-toggle" (click)="calcOpen.set(!calcOpen())">
-        {{ calcOpen() ? 'Hide calculator' : 'View calculator' }}
-      </button>
+      <div class="vdp-cost-summary">
+        <div class="vdp-cost-item">
+          <span class="vdp-cost-item-label">Est. Monthly</span>
+          <span class="vdp-cost-item-value">{{ dealMonthly | currency:'USD':'symbol':'1.0-0' }}/mo</span>
+        </div>
+        <div class="vdp-cost-divider"></div>
+        <div class="vdp-cost-item">
+          <span class="vdp-cost-item-label">Out-the-Door</span>
+          <span class="vdp-cost-item-value">{{ dealTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+      </div>
     </div>
 
     <!-- CTAs -->
@@ -89,22 +97,32 @@
       }
     </div>
 
-    <!-- Vehicle Details (specs inline) -->
-    <div class="vdp-specs-section">
-      @for(item of detailsItems; track $index){
-        @let val = $any(v)[item.datacol];
-        @if(val){
-        <div class="vdp-spec-row">
-          <span class="vdp-spec-label">{{ item.displayName }}</span>
-          <span class="vdp-spec-value">{{ val }}</span>
+    <!-- Vehicle Details -->
+    <div class="vdp-details-card">
+      <h2 class="vdp-details-title">Vehicle Details</h2>
+      <div class="vdp-details-grid">
+        @for(item of detailsItems; track $index){
+          @let val = $any(v)[item.datacol];
+          @if(val){
+          <div class="vdp-detail-item">
+            <span class="vdp-detail-label">{{ item.displayName }}</span>
+            <span class="vdp-detail-value">{{ val }}</span>
+          </div>}
+        }
+        @if(v.mpgcity && v.mpghwy){
+        <div class="vdp-detail-item">
+          <span class="vdp-detail-label">Fuel Economy</span>
+          <span class="vdp-detail-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</span>
         </div>}
-      }
-      @if(v.mpgcity && v.mpghwy){
-      <div class="vdp-spec-row">
-        <span class="vdp-spec-label">Fuel Economy</span>
-        <span class="vdp-spec-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</span>
-      </div>}
+      </div>
     </div>
+
+    <!-- Description -->
+    @if(v.vehicledescription || v.notes){
+    <div class="vdp-details-card">
+      <h2 class="vdp-details-title">About This Vehicle</h2>
+      <p class="vdp-description">{{ v.vehicledescription || v.notes }}</p>
+    </div>}
 
     <!-- Carfax -->
     @if(v.carfaxurl){
@@ -127,34 +145,28 @@
     </div>
     }
 
-    <!-- Description -->
-    @if(v.vehicledescription || v.notes){
-    <div class="vdp-section">
-      <h2 class="vdp-section-title">About This Vehicle</h2>
-      <p class="vdp-description">{{ v.vehicledescription || v.notes }}</p>
-    </div>}
-
-    <!-- Deal Calculator (collapsible) -->
+    <!-- Deal Calculator Slide-out Panel -->
     @if(calcOpen()){
-      <!-- Deal Calculator -->
-      <div class="vdp-deal">
+    <div class="vdp-calc-overlay" (click)="calcOpen.set(false)"></div>
+    <div class="vdp-calc-panel">
+      <div class="vdp-calc-panel-header">
+        <h2 class="vdp-calc-panel-title">What does this really cost?</h2>
+        <button class="vdp-calc-panel-close" (click)="calcOpen.set(false)"><lucide-icon name="x" /></button>
+      </div>
+      <div class="vdp-calc-panel-body">
         <div class="vdp-deal-tabs">
           <button class="vdp-deal-tab" [class.active]="dealTab() === 'cash'" (click)="dealTab.set('cash')">Cash</button>
           <button class="vdp-deal-tab" [class.active]="dealTab() === 'finance'" (click)="dealTab.set('finance')">Finance</button>
         </div>
 
-        <!-- ZIP code at top -->
         <div class="vdp-deal-zip-top">
           <label>Your ZIP Code</label>
           <input type="text" [ngModel]="dealZip()" (ngModelChange)="dealZip.set($event); onZipChange()" maxlength="5" placeholder="53089" />
         </div>
 
-        <!-- Price breakdown -->
         <div class="vdp-deal-lines">
           <div class="vdp-deal-line"><span>Purchase Price</span><span>{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span></div>
           <div class="vdp-deal-line sub"><span>Service Fee</span><span>{{ dealDocFee() | currency:'USD':'symbol':'1.0-0' }}</span></div>
-
-          <!-- Transportation -->
           <div class="vdp-deal-line sub transport-row">
             <div class="vdp-deal-transport-label">
               <label class="vdp-deal-transport-check">
@@ -171,64 +183,38 @@
             <span class="vdp-deal-transport-off">—</span>
             }
           </div>
-
-          <!-- Tax -->
           @if(isWisconsinZip){
-          <div class="vdp-deal-line">
-            <span>Sales Tax ({{ dealTaxRate() | number:'1.1-2' }}%)</span>
-            <span>{{ dealTaxAmount | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
+          <div class="vdp-deal-line"><span>Sales Tax ({{ dealTaxRate() | number:'1.1-2' }}%)</span><span>{{ dealTaxAmount | currency:'USD':'symbol':'1.2-2' }}</span></div>
           }@else{
           <div class="vdp-deal-line out-of-state"><span>Sales Tax</span><span>Paid by Buyer to Home State</span></div>
           }
-
-          <!-- Non-taxable fees -->
           @if(isWisconsinZip){
           <div class="vdp-deal-line sub"><span>Title Fee</span><span>{{ dealTitleFee() | currency:'USD':'symbol':'1.2-2' }}</span></div>
           <div class="vdp-deal-line sub license-row">
             <span>License Fee</span>
             <div class="vdp-deal-license">
-              @if(!dealPlateTransfer()){
-              <span>{{ dealLicenseFee() | currency:'USD':'symbol':'1.0-0' }}</span>
-              }@else{
-              <span class="vdp-deal-waived">$0 (transfer)</span>
-              }
-              <label class="vdp-deal-transfer">
-                <input type="checkbox" [ngModel]="dealPlateTransfer()" (ngModelChange)="dealPlateTransfer.set($event)" />
-                <span>Plate transfer</span>
-              </label>
+              @if(!dealPlateTransfer()){<span>{{ dealLicenseFee() | currency:'USD':'symbol':'1.0-0' }}</span>}@else{<span class="vdp-deal-waived">$0 (transfer)</span>}
+              <label class="vdp-deal-transfer"><input type="checkbox" [ngModel]="dealPlateTransfer()" (ngModelChange)="dealPlateTransfer.set($event)" /><span>Plate transfer</span></label>
             </div>
           </div>
-          @if(dealTab() === 'finance'){
-          <div class="vdp-deal-line sub"><span>Lien Fee</span><span>{{ dealLienFee() | currency:'USD':'symbol':'1.0-0' }}</span></div>
-          }
+          @if(dealTab() === 'finance'){<div class="vdp-deal-line sub"><span>Lien Fee</span><span>{{ dealLienFee() | currency:'USD':'symbol':'1.0-0' }}</span></div>}
           }@else{
           <div class="vdp-deal-line out-of-state"><span>Title / License / Lien</span><span>Paid by Buyer to Home State</span></div>
           }
-
           <div class="vdp-deal-line total"><span>Total</span><span>{{ dealTotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
         </div>
 
-        <!-- Finance section -->
         @if(dealTab() === 'finance'){
         <div class="vdp-deal-finance">
           <div class="vdp-deal-field-row">
-            <div class="vdp-deal-field">
-              <label>Down Payment</label>
-              <input type="number" [ngModel]="dealDownPayment()" (ngModelChange)="dealDownPayment.set($event)" min="0" step="500" />
-            </div>
-            <div class="vdp-deal-field">
-              <label>Trade-In Value</label>
-              <input type="number" [ngModel]="dealTradeIn()" (ngModelChange)="dealTradeIn.set($event)" min="0" step="500" />
-            </div>
+            <div class="vdp-deal-field"><label>Down Payment</label><input type="number" [ngModel]="dealDownPayment()" (ngModelChange)="dealDownPayment.set($event)" min="0" step="500" /></div>
+            <div class="vdp-deal-field"><label>Trade-In Value</label><input type="number" [ngModel]="dealTradeIn()" (ngModelChange)="dealTradeIn.set($event)" min="0" step="500" /></div>
           </div>
-
           <div class="vdp-deal-field">
             <label>Credit Score</label>
             <div class="vdp-deal-tiers">
               @for(tier of creditTiers; track tier.key){
-              <button class="vdp-deal-tier" [class.active]="dealCreditTier() === tier.key"
-                      (click)="dealCreditTier.set(tier.key)">
+              <button class="vdp-deal-tier" [class.active]="dealCreditTier() === tier.key" (click)="dealCreditTier.set(tier.key)">
                 <span class="vdp-deal-tier-label">{{ tier.label }}</span>
                 <span class="vdp-deal-tier-range">{{ tier.range }}</span>
                 <span class="vdp-deal-tier-rate">{{ tier.rate }}% APR</span>
@@ -236,19 +222,13 @@
               }
             </div>
           </div>
-
           <div class="vdp-deal-field">
             <label>Loan Term</label>
             <div class="vdp-deal-terms">
-              @for(t of termOptions; track t){
-              <button class="vdp-deal-term" [class.active]="dealTerm() === t"
-                      (click)="dealTerm.set(t)">{{ t }} mo</button>
-              }
+              @for(t of termOptions; track t){<button class="vdp-deal-term" [class.active]="dealTerm() === t" (click)="dealTerm.set(t)">{{ t }} mo</button>}
             </div>
           </div>
-
           <div class="vdp-deal-line financed"><span>Amount Financed</span><span>{{ dealAmountFinanced | currency:'USD':'symbol':'1.0-0' }}</span></div>
-
           <div class="vdp-deal-monthly">
             <span class="vdp-deal-monthly-label">Est. Monthly Payment</span>
             <span class="vdp-deal-monthly-amount">{{ dealMonthly | currency:'USD':'symbol':'1.0-0' }}<small>/mo</small></span>
@@ -258,6 +238,7 @@
 
         <p class="vdp-deal-disclaimer">Estimated figures. Actual terms subject to credit approval. Taxes based on ZIP code.</p>
       </div>
+    </div>
     }
 
     <!-- Dealer info -->

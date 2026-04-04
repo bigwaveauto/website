@@ -247,63 +247,201 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-description {
-  font-size: 15px;
-  color: rgba(0,0,0,0.65);
-  line-height: 1.8;
+  font-size: 14px;
+  color: rgba(0,0,0,0.6);
+  line-height: 1.7;
   margin: 0;
   white-space: pre-wrap;
 }
 
-/* Specs inline */
-.vdp-specs-section {
-  border-top: 1px solid $border;
-  padding-top: 16px;
-}
-
-.vdp-spec-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 16px;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  &:last-child { border-bottom: none; }
-}
-
-.vdp-spec-label { font-size: 14px; font-weight: 500; color: #111; flex-shrink: 0; }
-.vdp-spec-value { font-size: 14px; color: #555; text-align: right; }
+/* (specs now use .vdp-details-grid) */
 
 /* Price */
 .vdp-price { font-size: 32px; font-weight: 800; color: #111; line-height: 1; }
 .vdp-msrp { font-size: 14px; color: $text-muted; text-decoration: line-through; }
 
-/* Payment row */
-.vdp-payment-row {
+/* "What does this really cost?" card */
+.vdp-cost-card {
+  padding: 18px 20px;
+  background: #f8f9fb;
+  border-radius: 12px;
+  border: 1px solid $border;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  &:hover { border-color: rgba(0,0,0,0.2); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+}
+
+.vdp-cost-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
-  background: #f8f9fb;
-  border-radius: 10px;
-  border: 1px solid $border;
+  margin-bottom: 14px;
 }
 
-.vdp-payment-est {
-  display: flex;
-  flex-direction: column;
-}
-
-.vdp-payment-label {
-  font-size: 12px;
-  color: $text-muted;
-}
-
-.vdp-payment-amount {
-  font-size: 20px;
-  font-weight: 800;
+.vdp-cost-title {
+  font-size: 14px;
+  font-weight: 700;
   color: #111;
 }
 
+.vdp-cost-chevron {
+  width: 18px;
+  height: 18px;
+  color: $text-muted;
+}
+
+.vdp-cost-summary {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.vdp-cost-item {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.vdp-cost-item-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.vdp-cost-item-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111;
+  line-height: 1.2;
+}
+
+.vdp-cost-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+
+/* ── Calculator slide-out panel ── */
+.vdp-calc-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 900;
+  backdrop-filter: blur(2px);
+}
+
+.vdp-calc-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 440px;
+  max-width: 100vw;
+  height: 100dvh;
+  background: white;
+  z-index: 901;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 32px rgba(0,0,0,0.12);
+  animation: slideInRight 0.25s ease;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.vdp-calc-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid $border;
+  flex-shrink: 0;
+}
+
+.vdp-calc-panel-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111;
+  margin: 0;
+}
+
+.vdp-calc-panel-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #555;
+  lucide-icon { width: 18px; height: 18px; }
+  &:hover { background: #e4e4e4; }
+}
+
+.vdp-calc-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Details card */
+.vdp-details-card {
+  background: #fafbfc;
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.vdp-details-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid $border;
+}
+
+.vdp-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vdp-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+}
+
+.vdp-detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.vdp-detail-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111;
+}
+
+/* Legacy — keep for calc panel internals */
 .vdp-calc-toggle {
   padding: 8px 18px;
   border: 1px solid #d1d5db;
@@ -403,13 +541,7 @@ $text-muted: rgba(0,0,0,0.45);
   &:hover { border-color: rgba(0,0,0,0.3); background: #f1f5f9; }
 }
 
-/* ── Deal Calculator ── */
-.vdp-deal {
-  border: 1px solid $border;
-  border-radius: 12px;
-  overflow: hidden;
-  background: white;
-}
+/* ── Deal Calculator (now inside slide-out panel) ── */
 
 .vdp-deal-tabs {
   display: flex;
