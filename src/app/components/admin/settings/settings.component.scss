@@ -217,6 +217,28 @@ $text-muted: rgba(0,0,0,0.45);
   &:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 
+.settings-drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 28px 20px;
+  border: 2px dashed rgba(0,0,0,0.15);
+  border-radius: 12px;
+  background: #fafbfc;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 4px;
+
+  lucide-icon { width: 24px; height: 24px; color: #bbb; }
+
+  &:hover { border-color: rgba(0,0,0,0.3); background: #f4f5f7; }
+  &.dragover { border-color: $blue; background: #eff6ff; }
+}
+
 .settings-btn-spinner {
   width: 16px; height: 16px;
   border: 2px solid rgba(255,255,255,0.3);

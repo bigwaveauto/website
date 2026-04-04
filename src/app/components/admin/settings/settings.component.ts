@@ -118,6 +118,8 @@ export class AdminSettingsComponent implements OnInit {
 
   // ── Sales Stats ──
   salesReportText = '';
+  xlsDragOver = signal(false);
+  xlsUploading = signal(false);
   salesByState = signal<Record<string, number>>({});
   totalSales = signal(0);
   salesParsed = signal(false);
@@ -155,6 +157,42 @@ export class AdminSettingsComponent implements OnInit {
           this.salesParsed.set(true);
         }
         if (data.top_brands?.length) this.topBrands.set(data.top_brands);
+      },
+    });
+  }
+
+  onXlsDragOver(e: DragEvent) { e.preventDefault(); this.xlsDragOver.set(true); }
+
+  onXlsDrop(e: DragEvent) {
+    e.preventDefault();
+    this.xlsDragOver.set(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) this.uploadXls(file);
+  }
+
+  onXlsSelect(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (input.files?.[0]) this.uploadXls(input.files[0]);
+  }
+
+  uploadXls(file: File) {
+    this.xlsUploading.set(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    this.http.post<any>('/api/admin/sales-stats/upload', formData).subscribe({
+      next: (res) => {
+        if (res.salesByState) {
+          this.salesByState.set(res.salesByState);
+          this.totalSales.set(res.totalSales || 0);
+          this.salesParsed.set(true);
+        }
+        if (res.topBrands?.length) this.topBrands.set(res.topBrands);
+        this.xlsUploading.set(false);
+      },
+      error: () => {
+        this.xlsUploading.set(false);
+        alert('Failed to parse spreadsheet. Make sure it contains state codes or names with counts.');
       },
     });
   }

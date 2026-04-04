@@ -14,6 +14,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import Anthropic from '@anthropic-ai/sdk';
 import { parse as csvParse } from 'csv-parse/sync';
+import * as XLSX from 'xlsx';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -1388,6 +1389,110 @@ app.post('/api/admin/sales-stats', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to save sales stats' });
+  }
+});
+
+const VALID_STATES = new Set([
+  'AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA',
+  'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM',
+  'NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA',
+  'WV','WI','WY',
+]);
+
+const STATE_NAME_TO_CODE: Record<string, string> = {
+  'alabama':'AL','alaska':'AK','arizona':'AZ','arkansas':'AR','california':'CA','colorado':'CO',
+  'connecticut':'CT','delaware':'DE','district of columbia':'DC','florida':'FL','georgia':'GA',
+  'hawaii':'HI','idaho':'ID','illinois':'IL','indiana':'IN','iowa':'IA','kansas':'KS',
+  'kentucky':'KY','louisiana':'LA','maine':'ME','maryland':'MD','massachusetts':'MA',
+  'michigan':'MI','minnesota':'MN','mississippi':'MS','missouri':'MO','montana':'MT',
+  'nebraska':'NE','nevada':'NV','new hampshire':'NH','new jersey':'NJ','new mexico':'NM',
+  'new york':'NY','north carolina':'NC','north dakota':'ND','ohio':'OH','oklahoma':'OK',
+  'oregon':'OR','pennsylvania':'PA','rhode island':'RI','south carolina':'SC','south dakota':'SD',
+  'tennessee':'TN','texas':'TX','utah':'UT','vermont':'VT','virginia':'VA','washington':'WA',
+  'west virginia':'WV','wisconsin':'WI','wyoming':'WY',
+};
+
+/**
+ * Admin — upload XLS/XLSX sales report and parse state data
+ */
+app.post('/api/admin/sales-stats/upload', upload.single('file'), async (req: any, res) => {
+  try {
+    if (!req.file) { res.status(400).json({ error: 'No file' }); return; }
+
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const stateCount: Record<string, number> = {};
+    const brandCount: Record<string, number> = {};
+
+    for (const sheetName of workbook.SheetNames) {
+      const sheet = workbook.Sheets[sheetName];
+      const rows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+      // Find which columns contain state and count data
+      // Look through all cells for state codes/names
+      for (const row of rows) {
+        if (!row || !row.length) continue;
+        for (let c = 0; c < row.length; c++) {
+          const cell = String(row[c] || '').trim();
+          if (!cell) continue;
+
+          // Check if cell is a state code
+          const upper = cell.toUpperCase();
+          if (VALID_STATES.has(upper) && upper.length === 2) {
+            // Look for a count in adjacent cells
+            for (let adj = 0; adj < row.length; adj++) {
+              if (adj === c) continue;
+              const val = Number(row[adj]);
+              if (!isNaN(val) && val > 0 && Number.isInteger(val)) {
+                stateCount[upper] = (stateCount[upper] || 0) + val;
+                break;
+              }
+            }
+            // If no adjacent number, just count as 1
+            if (!stateCount[upper]) stateCount[upper] = (stateCount[upper] || 0) + 1;
+            continue;
+          }
+
+          // Check if cell is a full state name
+          const lower = cell.toLowerCase();
+          const code = STATE_NAME_TO_CODE[lower];
+          if (code) {
+            for (let adj = 0; adj < row.length; adj++) {
+              if (adj === c) continue;
+              const val = Number(row[adj]);
+              if (!isNaN(val) && val > 0 && Number.isInteger(val)) {
+                stateCount[code] = (stateCount[code] || 0) + val;
+                break;
+              }
+            }
+            if (!stateCount[code]) stateCount[code] = (stateCount[code] || 0) + 1;
+            continue;
+          }
+
+          // Check if cell could be a brand name (non-numeric, non-state, > 2 chars)
+          if (cell.length > 2 && isNaN(Number(cell)) && !VALID_STATES.has(upper)) {
+            for (let adj = 0; adj < row.length; adj++) {
+              if (adj === c) continue;
+              const val = Number(row[adj]);
+              if (!isNaN(val) && val > 0 && Number.isInteger(val)) {
+                brandCount[cell] = (brandCount[cell] || 0) + val;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const totalSales = Object.values(stateCount).reduce((s, n) => s + n, 0);
+    const topBrands = Object.entries(brandCount)
+      .map(([name, count]) => ({ name, count, logo: '' }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
+    res.json({ salesByState: stateCount, totalSales, topBrands });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to parse spreadsheet' });
   }
 });
 
