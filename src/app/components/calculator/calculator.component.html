@@ -88,21 +88,15 @@
         </button>
         @if (stepOpen()[1]) {
         <div class="calc-step-body">
-          <div class="calc-two-col">
-            <div class="calc-field-stack">
-              <label class="calc-field-label">APR</label>
-              <div class="calc-input-wrap">
-                <input class="calc-input" type="number" min="0" max="100" step="0.1" [(ngModel)]="interestRate" placeholder="6.9" />
-                <span class="calc-input-suffix">%</span>
-              </div>
+          <div class="calc-field-row">
+            <label class="calc-field-label">APR</label>
+            <div class="calc-input-wrap">
+              <input class="calc-input" type="number" min="0" max="100" step="0.1" [(ngModel)]="interestRate" placeholder="6.9" />
+              <span class="calc-input-suffix">%</span>
             </div>
-            <div class="calc-field-stack">
-              <label class="calc-field-label">Loan Term</label>
-              <div class="calc-input-wrap">
-                <input class="calc-input" type="number" min="1" max="360" [(ngModel)]="loanTerm" placeholder="60" />
-                <span class="calc-input-suffix">mo</span>
-              </div>
-            </div>
+          </div>
+          <div class="calc-field-row">
+            <label class="calc-field-label">Loan Term</label>
           </div>
           <div class="calc-term-pills">
             @for (t of termOptions; track t) {
