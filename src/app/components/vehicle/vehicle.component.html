@@ -3,10 +3,10 @@
 @if(fullVehicle()?.results; as v){
 @let total = v.photos.length;
 
-<!-- ── Page shell: fixed photo left, scrolling right ── -->
+<!-- ── Top: Photo + Buy Box ── -->
 <div class="vdp-shell">
 
-  <!-- ── Left: Fixed photo ── -->
+  <!-- ── Left: Sticky photo ── -->
   <div class="vdp-photo-fixed">
     @if(total > 0){
     <div class="vdp-photo-main" (click)="openSinglePhoto(selectedPhotoIndex())">
@@ -31,130 +31,140 @@
     }
   </div>
 
-  <!-- ── Right: Scrolling content ── -->
+  <!-- ── Right: Buy Box ── -->
   <div class="vdp-right">
+    <div class="vdp-buy-box">
 
-    <!-- Breadcrumb -->
-    <div class="vdp-breadcrumb">
-      <a routerLink="/" class="vdp-bc-link">Home</a>
-      <span class="vdp-bc-sep">/</span>
-      <a routerLink="/showroom" class="vdp-bc-link">Inventory</a>
-      <span class="vdp-bc-sep">/</span>
-      <span class="vdp-bc-current">{{ v.year }} {{ v.make }} {{ v.model }}</span>
-    </div>
-
-    <!-- Title -->
-    <div class="vdp-title-block">
-      <span class="vdp-year-label">{{ v.year }}</span>
-      <h1 class="vdp-title">{{ v.make }} {{ v.model }} {{ v.trim }}</h1>
-    </div>
-
-    <!-- Key stats -->
-    <div class="vdp-key-stats">
-      <span>{{ v.mileage | number:'1.0-0' }} mi</span>
-      @if(v.fuel){<span>{{ v.fuel }}</span>}
-      @if(v.drivetrainstandard){<span>{{ v.drivetrainstandard }}</span>}
-      @if(v.maxhorsepower){<span>{{ v.maxhorsepower }} hp</span>}
-    </div>
-
-    <!-- Price + payment -->
-    <div class="vdp-price-section">
-      <span class="vdp-price">{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span>
-      @if(v.msrp && v.msrp > v.price){
-      <span class="vdp-msrp">MSRP {{ v.msrp | currency:'USD':'symbol':'1.0-0' }}</span>}
-    </div>
-
-    <div class="vdp-cost-card" (click)="calcOpen.set(true)">
-      <div class="vdp-cost-header">
-        <span class="vdp-cost-title">What does this really cost?</span>
-        <lucide-icon name="chevron-right" class="vdp-cost-chevron" />
+      <!-- Breadcrumb -->
+      <div class="vdp-breadcrumb">
+        <a routerLink="/" class="vdp-bc-link">Home</a>
+        <span class="vdp-bc-sep">/</span>
+        <a routerLink="/showroom" class="vdp-bc-link">Inventory</a>
+        <span class="vdp-bc-sep">/</span>
+        <span class="vdp-bc-current">{{ v.year }} {{ v.make }} {{ v.model }}</span>
       </div>
-      <div class="vdp-cost-summary">
-        <div class="vdp-cost-item">
-          <span class="vdp-cost-item-label">Est. Monthly</span>
-          <span class="vdp-cost-item-value">{{ dealMonthly | currency:'USD':'symbol':'1.0-0' }}/mo</span>
+
+      <!-- Title -->
+      <div class="vdp-title-block">
+        <span class="vdp-year-label">{{ v.year }}</span>
+        <h1 class="vdp-title">{{ v.make }} {{ v.model }} {{ v.trim }}</h1>
+      </div>
+
+      <!-- Key stats -->
+      <div class="vdp-key-stats">
+        <span>{{ v.mileage | number:'1.0-0' }} mi</span>
+        @if(v.fuel){<span>{{ v.fuel }}</span>}
+        @if(v.drivetrainstandard){<span>{{ v.drivetrainstandard }}</span>}
+        @if(v.maxhorsepower){<span>{{ v.maxhorsepower }} hp</span>}
+      </div>
+
+      <!-- Price -->
+      <div class="vdp-price-section">
+        <span class="vdp-price">{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span>
+        @if(v.msrp && v.msrp > v.price){
+        <span class="vdp-msrp">MSRP {{ v.msrp | currency:'USD':'symbol':'1.0-0' }}</span>}
+      </div>
+
+      <!-- Cost card -->
+      <div class="vdp-cost-card" (click)="calcOpen.set(true)">
+        <div class="vdp-cost-header">
+          <span class="vdp-cost-title">What does this really cost?</span>
+          <lucide-icon name="chevron-right" class="vdp-cost-chevron" />
         </div>
-        <div class="vdp-cost-divider"></div>
-        <div class="vdp-cost-item">
-          <span class="vdp-cost-item-label">Out-the-Door</span>
-          <span class="vdp-cost-item-value">{{ dealTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+        <div class="vdp-cost-summary">
+          <div class="vdp-cost-item">
+            <span class="vdp-cost-item-label">Est. Monthly</span>
+            <span class="vdp-cost-item-value">{{ dealMonthly | currency:'USD':'symbol':'1.0-0' }}/mo</span>
+          </div>
+          <div class="vdp-cost-divider"></div>
+          <div class="vdp-cost-item">
+            <span class="vdp-cost-item-label">Out-the-Door</span>
+            <span class="vdp-cost-item-value">{{ dealTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- CTAs -->
-    <div class="vdp-cta-stack">
-      <button class="vdp-btn-reserve" (click)="reserveVehicle(v)">Reserve This Vehicle</button>
-      <button class="vdp-btn-primary" (click)="openTestDrive()">Request a Test Drive</button>
-      <div class="vdp-cta-row">
-        <button class="vdp-btn-outline" (click)="openMakeOffer()">Make an Offer</button>
-        <a routerLink="/financing" class="vdp-btn-outline">Apply for Financing</a>
+      <!-- CTAs -->
+      <div class="vdp-cta-stack">
+        <button class="vdp-btn-reserve" (click)="reserveVehicle(v)">Reserve This Vehicle</button>
+        <button class="vdp-btn-primary" (click)="openTestDrive()">Request a Test Drive</button>
+        <div class="vdp-cta-row">
+          <button class="vdp-btn-outline" (click)="openMakeOffer()">Make an Offer</button>
+          <a routerLink="/financing" class="vdp-btn-outline">Apply for Financing</a>
+        </div>
       </div>
-      @if(v.monroneysticker){
-      <a [href]="v.monroneysticker" target="_blank" rel="noopener" class="vdp-btn-sticker">
-        <lucide-icon name="file-text" /> Window Sticker / Build Sheet
-      </a>
-      }
-    </div>
 
-    <!-- Vehicle Details -->
-    <div class="vdp-details-card">
-      <h2 class="vdp-details-title">Vehicle Details</h2>
-      <div class="vdp-details-grid">
-        @for(item of detailsItems; track $index){
-          @let val = $any(v)[item.datacol];
-          @if(val){
-          <div class="vdp-detail-item">
-            <span class="vdp-detail-label">{{ item.displayName }}</span>
-            <span class="vdp-detail-value">{{ val }}</span>
-          </div>}
-        }
-        @if(v.mpgcity && v.mpghwy){
-        <div class="vdp-detail-item">
-          <span class="vdp-detail-label">Fuel Economy</span>
-          <span class="vdp-detail-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</span>
-        </div>}
+      <!-- Dealer info -->
+      <div class="vdp-dealer-info">
+        <div class="vdp-dealer-row"><lucide-icon name="map-pin" /><span>N69W25055 Indian Grass Lane, Unit H<br>Sussex, WI 53089</span></div>
+        <div class="vdp-dealer-row"><lucide-icon name="phone" /><a href="tel:+12625924795">(262) 592-4795</a></div>
+        <div class="vdp-dealer-row"><lucide-icon name="clock" /><span>Mon–Sat, 9AM–6PM (By Appointment)</span></div>
       </div>
-    </div>
 
-    <!-- Description -->
-    @if(v.vehicledescription || v.notes){
-    <div class="vdp-details-card">
-      <h2 class="vdp-details-title">About This Vehicle</h2>
-      <p class="vdp-description">{{ v.vehicledescription || v.notes }}</p>
-    </div>}
-
-    <!-- Carfax -->
-    @if(v.carfaxurl){
-    <div class="vdp-carfax-card">
-      <a [href]="v.carfaxurl" target="_blank" rel="noopener" class="vdp-carfax-snapshot">
-        <img [src]="v.carfaxicon" [alt]="v.carfaxalt || 'Carfax Report'" class="vdp-carfax-snapshot-img" />
-      </a>
-      <div class="vdp-carfax-items">
-        @if(v.carfaxownerstext){
-        <div class="vdp-carfax-item">
-          @if(v.carfaxownersicon){<img [src]="v.carfaxownersicon" alt="" class="vdp-carfax-item-icon" />}
-          <span>{{ v.carfaxownerstext }}</span>
-        </div>}
-        @if(v.carfaxaccidenttext){
-        <div class="vdp-carfax-item">
-          @if(v.carfaxaccidenticon){<img [src]="v.carfaxaccidenticon" alt="" class="vdp-carfax-item-icon" />}
-          <span>{{ v.carfaxaccidenttext }}</span>
-        </div>}
-      </div>
-    </div>
-    }
-
-    <!-- Dealer info -->
-    <div class="vdp-dealer-info">
-      <div class="vdp-dealer-row"><lucide-icon name="map-pin" /><span>N69W25055 Indian Grass Lane, Unit H<br>Sussex, WI 53089</span></div>
-      <div class="vdp-dealer-row"><lucide-icon name="phone" /><a href="tel:+12625924795">(262) 592-4795</a></div>
-      <div class="vdp-dealer-row"><lucide-icon name="clock" /><span>Mon–Sat, 9AM–6PM (By Appointment)</span></div>
-    </div>
-
+    </div><!-- /vdp-buy-box -->
   </div><!-- /vdp-right -->
 
 </div><!-- /vdp-shell -->
+
+<!-- ── Below photo: Details section ── -->
+<div class="vdp-below">
+
+  <!-- Vehicle Details -->
+  <div class="vdp-details-card">
+    <h2 class="vdp-details-title">Vehicle Details</h2>
+    <div class="vdp-details-grid">
+      @for(item of detailsItems; track $index){
+        @let val = $any(v)[item.datacol];
+        @if(val){
+        <div class="vdp-detail-item">
+          <span class="vdp-detail-label">{{ item.displayName }}</span>
+          <span class="vdp-detail-value">{{ val }}</span>
+        </div>}
+      }
+      @if(v.mpgcity && v.mpghwy){
+      <div class="vdp-detail-item">
+        <span class="vdp-detail-label">Fuel Economy</span>
+        <span class="vdp-detail-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</span>
+      </div>}
+    </div>
+  </div>
+
+  <!-- Description -->
+  @if(v.vehicledescription || v.notes){
+  <div class="vdp-details-card">
+    <h2 class="vdp-details-title">About This Vehicle</h2>
+    <p class="vdp-description">{{ v.vehicledescription || v.notes }}</p>
+  </div>}
+
+  <!-- Carfax -->
+  @if(v.carfaxurl){
+  <div class="vdp-carfax-card">
+    <a [href]="v.carfaxurl" target="_blank" rel="noopener" class="vdp-carfax-snapshot">
+      <img [src]="v.carfaxicon" [alt]="v.carfaxalt || 'Carfax Report'" class="vdp-carfax-snapshot-img" />
+    </a>
+    <div class="vdp-carfax-items">
+      @if(v.carfaxownerstext){
+      <div class="vdp-carfax-item">
+        @if(v.carfaxownersicon){<img [src]="v.carfaxownersicon" alt="" class="vdp-carfax-item-icon" />}
+        <span>{{ v.carfaxownerstext }}</span>
+      </div>}
+      @if(v.carfaxaccidenttext){
+      <div class="vdp-carfax-item">
+        @if(v.carfaxaccidenticon){<img [src]="v.carfaxaccidenticon" alt="" class="vdp-carfax-item-icon" />}
+        <span>{{ v.carfaxaccidenttext }}</span>
+      </div>}
+    </div>
+  </div>
+  }
+
+  <!-- Window Sticker -->
+  @if(v.monroneysticker){
+  <a [href]="v.monroneysticker" target="_blank" rel="noopener" class="vdp-btn-sticker">
+    <lucide-icon name="file-text" /> Window Sticker / Build Sheet
+  </a>
+  }
+
+</div><!-- /vdp-below -->
 
 <!-- ── Deal Calculator Slide-out Panel ── -->
 @if(calcOpen()){
