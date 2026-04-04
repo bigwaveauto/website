@@ -32,6 +32,7 @@ interface AmortizationRow {
 }
 
 interface CalcResult {
+  vehiclePrice: number;
   monthlyPayment: number;
   loanAmount: number;
   salesTaxAmount: number;
@@ -91,37 +92,50 @@ export class CalculatorComponent {
   calculate() {
     const r = (this.interestRate / 100) / 12;
     const n = this.loanTerm;
-
-    let vehiclePrice = this.mode() === 'price' ? this.autoPrice : 0;
-    const taxAmt   = vehiclePrice * (this.salesTaxPct / 100);
-    const netTrade = this.tradeInValue - this.amountOwedTrade;
+    const taxRate = this.salesTaxPct / 100;
+    const netTrade = Math.max(0, this.tradeInValue - this.amountOwedTrade);
     const baseDown = this.downPayment + netTrade + this.cashIncentives;
 
+    let vehiclePrice: number;
     let loanAmount: number;
     let monthlyPayment: number;
+    let salesTaxAmount: number;
 
     if (this.mode() === 'price') {
+      // Known: vehicle price → solve for monthly payment
+      vehiclePrice = this.autoPrice;
+      salesTaxAmount = vehiclePrice * taxRate;
       loanAmount = vehiclePrice - baseDown;
-      if (this.includeTaxInLoan) loanAmount += taxAmt + this.otherFees;
+      if (this.includeTaxInLoan) loanAmount += salesTaxAmount + this.otherFees;
       loanAmount = Math.max(0, loanAmount);
       monthlyPayment = r === 0
         ? loanAmount / n
         : loanAmount * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
     } else {
+      // Known: desired monthly payment → solve for vehicle price
       monthlyPayment = this.desiredPayment;
-      loanAmount = r === 0
+      // First get the raw loan amount from the payment
+      const rawLoan = r === 0
         ? monthlyPayment * n
         : monthlyPayment * (Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n));
-      vehiclePrice = loanAmount + baseDown;
-      const taxAmtCalc = vehiclePrice * (this.salesTaxPct / 100);
-      if (this.includeTaxInLoan) loanAmount += taxAmtCalc + this.otherFees;
+
+      if (this.includeTaxInLoan) {
+        // rawLoan = (vehiclePrice - baseDown) + vehiclePrice * taxRate + otherFees
+        // rawLoan - otherFees + baseDown = vehiclePrice * (1 + taxRate)
+        vehiclePrice = (rawLoan - this.otherFees + baseDown) / (1 + taxRate);
+      } else {
+        vehiclePrice = rawLoan + baseDown;
+      }
+      vehiclePrice = Math.max(0, vehiclePrice);
+      salesTaxAmount = vehiclePrice * taxRate;
+      loanAmount = this.includeTaxInLoan ? rawLoan : Math.max(0, vehiclePrice - baseDown);
     }
 
     const totalPayments  = monthlyPayment * n;
-    const totalInterest  = totalPayments - loanAmount;
-    const upfrontPayment = baseDown + (this.includeTaxInLoan ? 0 : taxAmt + this.otherFees);
+    const totalInterest  = Math.max(0, totalPayments - loanAmount);
+    const upfrontPayment = baseDown + (this.includeTaxInLoan ? 0 : salesTaxAmount + this.otherFees);
     const totalCost      = upfrontPayment + totalPayments;
-    const principalPct   = Math.round((loanAmount / totalPayments) * 100);
+    const principalPct   = totalPayments > 0 ? Math.round((loanAmount / totalPayments) * 100) : 100;
 
     const schedule: AmortizationRow[] = [];
     let balance = loanAmount;
@@ -133,8 +147,8 @@ export class CalculatorComponent {
     }
 
     this.result.set({
-      monthlyPayment, loanAmount,
-      salesTaxAmount: taxAmt,
+      vehiclePrice, monthlyPayment, loanAmount,
+      salesTaxAmount,
       upfrontPayment, totalPayments, totalInterest, totalCost,
       principalPct, interestPct: 100 - principalPct, schedule,
     });

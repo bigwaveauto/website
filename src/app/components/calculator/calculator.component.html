@@ -242,7 +242,7 @@
       </div>
 
       <button class="calc-btn-calculate" (click)="calculate()">
-        Calculate My Payment
+        @if (mode() === 'price') { Calculate My Payment } @else { Calculate What I Can Spend }
       </button>
 
     </div>
@@ -250,21 +250,29 @@
     <!-- RIGHT: Results -->
     <div class="calc-result-col">
 
-      <!-- Monthly Payment Hero -->
+      <!-- Result Hero -->
       <div class="calc-result-header">
         <span class="calc-result-label">
           @if (mode() === 'price') { Estimated Monthly Payment }
-          @else { Estimated Vehicle Price }
+          @else { Total Amount I Can Spend }
         </span>
         <span class="calc-result-payment">
-          @if (result()) { {{ result()!.monthlyPayment | currency:'USD':'symbol':'1.2-2' }} }
-          @else { — }
+          @if (result()) {
+            @if (mode() === 'price') { {{ result()!.monthlyPayment | currency:'USD':'symbol':'1.2-2' }} }
+            @else { {{ result()!.vehiclePrice | currency:'USD':'symbol':'1.2-2' }} }
+          } @else { — }
         </span>
         <span class="calc-result-term">for {{ loanTerm }} months at {{ interestRate }}% APR</span>
       </div>
 
       <!-- Summary rows -->
       <div class="calc-summary">
+        @if (mode() === 'payment') {
+        <div class="calc-summary-row">
+          <span class="calc-summary-label">Monthly Payment</span>
+          <span class="calc-summary-value">{{ result() ? (result()!.monthlyPayment | currency) : '—' }}</span>
+        </div>
+        }
         <div class="calc-summary-row">
           <span class="calc-summary-label">Total Loan Amount</span>
           <span class="calc-summary-value">{{ result() ? (result()!.loanAmount | currency) : '—' }}</span>
