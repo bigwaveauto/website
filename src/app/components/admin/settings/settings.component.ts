@@ -127,16 +127,27 @@ export class AdminSettingsComponent implements OnInit {
   salesSaved = signal(false);
 
   readonly brandLogos: Record<string, string> = {
-    'Tesla': '/brands/tesla-logo.svg',
-    'Rivian': '/brands/rivian-logo.svg',
-    'BMW': '/brands/bmw-logo-2022.svg',
-    'Porsche': '/brands/porsche-logo.svg',
-    'Mercedes-Benz': '/brands/mercedes-logo.svg',
-    'Audi': '/brands/audi-logo.svg',
-    'Lexus': '/brands/lexus-logo.svg',
-    'Ford': '/brands/ford-logo.svg',
-    'Chevrolet': '/brands/chevrolet-logo.svg',
-    'Toyota': '/brands/toyota-logo.svg',
+    'Acura': '/brands/acura.png', 'Alfa Romeo': '/brands/alfa-romeo.png',
+    'Aston Martin': '/brands/aston-martin.png', 'Audi': '/brands/audi.png',
+    'Bentley': '/brands/bentley.png', 'BMW': '/brands/bmw.png',
+    'Buick': '/brands/buick.png', 'Cadillac': '/brands/cadillac.png',
+    'Chevrolet': '/brands/chevrolet.png', 'Chrysler': '/brands/chrysler.png',
+    'Dodge': '/brands/dodge.png', 'Ferrari': '/brands/ferrari.png',
+    'Ford': '/brands/ford.png', 'Genesis': '/brands/genesis.png',
+    'GMC': '/brands/gmc.png', 'Honda': '/brands/honda.png',
+    'Hyundai': '/brands/hyundai.png', 'Infiniti': '/brands/infiniti.png',
+    'Jaguar': '/brands/jaguar.png', 'Jeep': '/brands/jeep.png',
+    'Kia': '/brands/kia.png', 'Lamborghini': '/brands/lamborghini.png',
+    'Land Rover': '/brands/land-rover.png', 'Lexus': '/brands/lexus.png',
+    'Lincoln': '/brands/lincoln.png', 'Lucid': '/brands/lucid.png',
+    'Maserati': '/brands/maserati.png', 'Mazda': '/brands/mazda.png',
+    'Mercedes-Benz': '/brands/mercedes-benz.png', 'Mini': '/brands/mini.png',
+    'Mitsubishi': '/brands/mitsubishi.png', 'Nissan': '/brands/nissan.png',
+    'Polestar': '/brands/polestar.png', 'Porsche': '/brands/porsche.png',
+    'Ram': '/brands/ram.png', 'Rivian': '/brands/rivian.png',
+    'Rolls-Royce': '/brands/rolls-royce.png', 'Subaru': '/brands/subaru.png',
+    'Tesla': '/brands/tesla.png', 'Toyota': '/brands/toyota.png',
+    'Volkswagen': '/brands/volkswagen.png', 'Volvo': '/brands/volvo.png',
   };
   topBrands = signal<{ name: string; count: number; logo: string }[]>([]);
   brandReportText = '';

@@ -49,13 +49,28 @@ import { FooterComponent } from '../footer/footer.component';
 export class InventoryComponent implements OnInit {
 
   private readonly brandLogoMap: Record<string, string> = {
-    'audi':          '/brands/Audi_Logo.svg',
-    'bmw':           '/brands/bmw-logo-2022.svg',
-    'mercedes-benz': '/brands/mercedes-benz-logo.svg',
-    'mercedes':      '/brands/mercedes-benz-logo.svg',
-    'porsche':       '/brands/porsche-logo.svg',
-    'rivian':        '/brands/rivian-logo.svg',
-    'tesla':         '/brands/tesla-logo.svg',
+    'acura': '/brands/acura.png', 'alfa-romeo': '/brands/alfa-romeo.png',
+    'aston-martin': '/brands/aston-martin.png', 'audi': '/brands/audi.png',
+    'bentley': '/brands/bentley.png', 'bmw': '/brands/bmw.png',
+    'buick': '/brands/buick.png', 'cadillac': '/brands/cadillac.png',
+    'chevrolet': '/brands/chevrolet.png', 'chrysler': '/brands/chrysler.png',
+    'dodge': '/brands/dodge.png', 'ferrari': '/brands/ferrari.png',
+    'ford': '/brands/ford.png', 'genesis': '/brands/genesis.png',
+    'gmc': '/brands/gmc.png', 'honda': '/brands/honda.png',
+    'hyundai': '/brands/hyundai.png', 'infiniti': '/brands/infiniti.png',
+    'jaguar': '/brands/jaguar.png', 'jeep': '/brands/jeep.png',
+    'kia': '/brands/kia.png', 'lamborghini': '/brands/lamborghini.png',
+    'land rover': '/brands/land-rover.png', 'land-rover': '/brands/land-rover.png',
+    'lexus': '/brands/lexus.png', 'lincoln': '/brands/lincoln.png',
+    'lucid': '/brands/lucid.png', 'maserati': '/brands/maserati.png',
+    'mazda': '/brands/mazda.png', 'mercedes-benz': '/brands/mercedes-benz.png',
+    'mercedes': '/brands/mercedes-benz.png', 'mini': '/brands/mini.png',
+    'mitsubishi': '/brands/mitsubishi.png', 'nissan': '/brands/nissan.png',
+    'polestar': '/brands/polestar.png', 'porsche': '/brands/porsche.png',
+    'ram': '/brands/ram.png', 'rivian': '/brands/rivian.png',
+    'rolls-royce': '/brands/rolls-royce.png', 'subaru': '/brands/subaru.png',
+    'tesla': '/brands/tesla.png', 'toyota': '/brands/toyota.png',
+    'volkswagen': '/brands/volkswagen.png', 'volvo': '/brands/volvo.png',
   };
 
   getBrandLogo(makeKey: string): string | null {

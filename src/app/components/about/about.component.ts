@@ -74,11 +74,11 @@ export class AboutComponent implements OnInit {
 
   // Top brands sold — defaults, overwritten by API
   topBrands: { name: string; count: number; logo: string }[] = [
-    { name: 'Tesla', count: 34, logo: '/brands/tesla-logo.svg' },
-    { name: 'Rivian', count: 25, logo: '/brands/rivian-logo.svg' },
-    { name: 'BMW', count: 24, logo: '/brands/bmw-logo-2022.svg' },
-    { name: 'Porsche', count: 10, logo: '/brands/porsche-logo.svg' },
-    { name: 'Toyota', count: 10, logo: '' },
+    { name: 'Tesla', count: 34, logo: '/brands/tesla.png' },
+    { name: 'Rivian', count: 25, logo: '/brands/rivian.png' },
+    { name: 'BMW', count: 24, logo: '/brands/bmw.png' },
+    { name: 'Porsche', count: 10, logo: '/brands/porsche.png' },
+    { name: 'Toyota', count: 10, logo: '/brands/toyota.png' },
   ];
 
   ngOnInit() {
