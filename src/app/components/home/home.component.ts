@@ -1,4 +1,5 @@
-import { Component, inject, signal, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -62,7 +63,8 @@ export class HomeComponent implements OnDestroy {
   
   ];
   currentSlide = signal(0);
-  private slideInterval: ReturnType<typeof setInterval>;
+  private slideInterval: ReturnType<typeof setInterval> | undefined;
+  private platformId = inject(PLATFORM_ID);
 
   openSections = new BehaviorSubject<string[]>([]);
 
@@ -73,9 +75,11 @@ export class HomeComponent implements OnDestroy {
         this.closeAllPanels();
       });
 
-    this.slideInterval = setInterval(() => {
-      this.currentSlide.update(i => (i + 1) % this.heroPhotos.length);
-    }, 5000);
+    if (isPlatformBrowser(this.platformId)) {
+      this.slideInterval = setInterval(() => {
+        this.currentSlide.update(i => (i + 1) % this.heroPhotos.length);
+      }, 5000);
+    }
   }
 
   ngOnDestroy() {
