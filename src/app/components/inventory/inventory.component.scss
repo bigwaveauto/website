@@ -15,8 +15,8 @@ $text-muted: rgba(0,0,0,0.45);
 /* ── Banner ── */
 .inv-banner {
   position: relative;
-  height: 10vh;
-  min-height: 80px;
+  height: 12vh;
+  min-height: 100px;
   margin: 20px 20px 0;
   border-radius: 16px;
   background: #0e1523;
@@ -85,18 +85,18 @@ $text-muted: rgba(0,0,0,0.45);
 .inv-brands-track {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   min-width: max-content;
-  padding: 10px 0;
+  padding: 14px 0;
 }
 
 .inv-brand-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px 16px;
-  border-radius: 10px;
+  gap: 6px;
+  padding: 12px 20px;
+  border-radius: 12px;
   background: #fff;
   border: 2px solid $border;
   cursor: pointer;
@@ -125,8 +125,8 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .inv-brand-logo-wrap {
-  width: 48px;
-  height: 36px;
+  width: 60px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -138,8 +138,8 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .inv-brand-logo {
-  max-width: 48px;
-  max-height: 36px;
+  max-width: 60px;
+  max-height: 44px;
   object-fit: contain;
   opacity: 1;
   transition: transform 0.15s;
