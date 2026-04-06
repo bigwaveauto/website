@@ -14,6 +14,9 @@ import {
   ChevronDown, Landmark, IdCard, Shield, Leaf, Fuel, PiggyBank, Clock,
   Headphones, Waves, BadgeCheck, Lock, Wrench, ListChecks, FileText,
   Calculator, Search, ChevronUp, Home,
+  Palette, CircleDot, Hash, Fingerprint, Armchair, Cog, Trophy,
+  Activity, Droplets, GaugeCircle, Ruler, Eye, Maximize2, Upload,
+  BarChart3, Thermometer, Weight, Box,
 } from 'lucide-angular';
 
 export const appConfig: ApplicationConfig = {
@@ -31,6 +34,9 @@ export const appConfig: ApplicationConfig = {
         ChevronDown, Landmark, IdCard, Shield, Leaf, Fuel, PiggyBank, Clock,
         Headphones, Waves, BadgeCheck, Lock, Wrench, ListChecks, FileText,
         Calculator, Search, ChevronUp, Home,
+        Palette, CircleDot, Hash, Fingerprint, Armchair, Cog, Trophy,
+        Activity, Droplets, GaugeCircle, Ruler, Eye, Maximize2, Upload,
+        BarChart3, Thermometer, Weight, Box,
       }),
     },
     provideRouter(routes, withRouterConfig({ onSameUrlNavigation: 'reload' })),

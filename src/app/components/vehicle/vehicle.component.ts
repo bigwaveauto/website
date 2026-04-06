@@ -380,29 +380,22 @@ export class VehicleComponent implements OnInit, OnDestroy {
     this.reserve.open({ vin: v.vin, year: v.year, make: v.make, model: v.model, price: v.price });
   }
 
-  detailsItems: any = [
-    { displayName: 'Condition', datacol: 'condition' },
-    { displayName: 'Body Type', datacol: 'body' },
-    { displayName: 'Trim', datacol: 'trim' },
-    { displayName: 'Stock #', datacol: 'stocknumber' },
-    { displayName: 'VIN', datacol: 'vin' },
-    { displayName: 'Exterior Color', datacol: 'exteriorcolorstandard' },
-    { displayName: 'Interior Color', datacol: 'interiorcolorstandard' },
-    { displayName: 'Passengers', datacol: 'seatingcapacity' },
-    { displayName: 'Drivetrain', datacol: 'drivetrainstandard' },
-    { displayName: 'Horsepower', datacol: 'maxhorsepower' },
-    { displayName: 'Torque', datacol: 'maxtorque' },
-    { displayName: 'Fuel Type', datacol: 'fuel' },
-    { displayName: 'Fuel Capacity', datacol: 'fueltank' },
-    { displayName: 'Transmission', datacol: 'transmissionstandard' },
-    { displayName: 'Engine', datacol: 'engine' },
-    { displayName: 'Cylinders', datacol: 'cylinders' },
-    { displayName: 'Displacement', datacol: 'displacement' },
-    { displayName: 'Wheelbase', datacol: 'wheelbase' },
-    { displayName: 'Front Tire', datacol: 'fronttire' },
-    { displayName: 'Rear Tire', datacol: 'reartire' },
-
-  ]
+  detailsItems = [
+    { displayName: 'Mileage', datacol: 'mileage', icon: 'gauge', format: 'miles' },
+    { displayName: 'Drivetrain', datacol: 'drivetrainstandard', icon: 'cog' },
+    { displayName: 'Exterior Color', datacol: 'exteriorcolorstandard', icon: 'palette' },
+    { displayName: 'Interior Color', datacol: 'interiorcolorstandard', icon: 'armchair' },
+    { displayName: 'Body Type', datacol: 'body', icon: 'car' },
+    { displayName: 'Transmission', datacol: 'transmissionstandard', icon: 'settings' },
+    { displayName: 'Engine', datacol: 'engine', icon: 'zap' },
+    { displayName: 'Fuel Type', datacol: 'fuel', icon: 'fuel' },
+    { displayName: 'Horsepower', datacol: 'maxhorsepower', icon: 'activity', format: 'hp' },
+    { displayName: 'Torque', datacol: 'maxtorque', icon: 'gauge-circle', format: 'lb-ft' },
+    { displayName: 'Condition', datacol: 'condition', icon: 'badge-check' },
+    { displayName: 'Trim', datacol: 'trim', icon: 'tag' },
+    { displayName: 'VIN', datacol: 'vin', icon: 'fingerprint' },
+    { displayName: 'Stock #', datacol: 'stocknumber', icon: 'hash' },
+  ];
   private destroy$ = new Subject<void>();
 
 

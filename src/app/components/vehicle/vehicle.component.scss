@@ -418,52 +418,72 @@ $text-muted: rgba(0,0,0,0.45);
   gap: 20px;
 }
 
-/* Details card */
-.vdp-details-card {
-  background: #fafbfc;
-  border: 1px solid $border;
-  border-radius: 12px;
-  padding: 20px 24px;
+/* Highlights cards */
+.vdp-highlights-section {
+  padding: 0;
 }
 
-.vdp-details-title {
-  font-size: 15px;
-  font-weight: 700;
+.vdp-highlights-heading {
+  font-size: 22px;
+  font-weight: 800;
   color: #111;
-  margin: 0 0 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid $border;
+  margin: 0 0 20px;
 }
 
-.vdp-details-grid {
+.vdp-highlights-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
   @media (max-width: 480px) {
     grid-template-columns: 1fr;
   }
 }
 
-.vdp-detail-item {
+.vdp-highlight-card {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 14px;
+  padding: 22px 20px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 10px 0;
+  gap: 8px;
+  transition: box-shadow 0.2s;
+
+  &:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
 }
 
-.vdp-detail-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: $text-muted;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+.vdp-highlight-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #34d399;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
 }
 
-.vdp-detail-value {
-  font-size: 14px;
-  font-weight: 500;
+.vdp-highlight-icon {
+  width: 22px;
+  height: 22px;
+  color: #34d399;
+}
+
+.vdp-highlight-label {
+  font-size: 15px;
+  font-weight: 700;
   color: #111;
+}
+
+.vdp-highlight-value {
+  font-size: 14px;
+  color: rgba(0,0,0,0.5);
+  line-height: 1.4;
 }
 
 /* Legacy — keep for calc panel internals */
