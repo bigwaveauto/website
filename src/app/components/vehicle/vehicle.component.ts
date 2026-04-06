@@ -393,8 +393,6 @@ export class VehicleComponent implements OnInit, OnDestroy {
     { displayName: 'Torque', datacol: 'maxtorque', icon: 'gauge-circle', format: 'lb-ft' },
     { displayName: 'Condition', datacol: 'condition', icon: 'badge-check' },
     { displayName: 'Trim', datacol: 'trim', icon: 'tag' },
-    { displayName: 'VIN', datacol: 'vin', icon: 'fingerprint' },
-    { displayName: 'Stock #', datacol: 'stocknumber', icon: 'hash' },
   ];
   private destroy$ = new Subject<void>();
 

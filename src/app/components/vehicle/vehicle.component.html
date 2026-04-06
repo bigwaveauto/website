@@ -48,6 +48,10 @@
       <div class="vdp-title-block">
         <span class="vdp-year-label">{{ v.year }}</span>
         <h1 class="vdp-title">{{ v.make }} {{ v.model }} {{ v.trim }}</h1>
+        <div class="vdp-vin-stock">
+          @if(v.vin){<span>VIN: {{ v.vin }}</span>}
+          @if(v.stocknumber){<span>Stock #: {{ v.stocknumber }}</span>}
+        </div>
       </div>
 
       <!-- Key stats -->
