@@ -125,7 +125,7 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-photo-dot-more {
-  font-size: 10px;
+  font-size: 16px;
   color: rgba(255,255,255,0.6);
 }
 
@@ -185,7 +185,7 @@ $text-muted: rgba(0,0,0,0.45);
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 16px;
 }
 .vdp-bc-link { color: $text-muted; text-decoration: none; &:hover { color: #111; } }
 .vdp-bc-sep { color: rgba(0,0,0,0.2); }
@@ -197,13 +197,13 @@ $text-muted: rgba(0,0,0,0.45);
 .vdp-vin-stock {
   display: flex;
   gap: 16px;
-  font-size: 12px;
+  font-size: 16px;
   color: $text-muted;
   margin-top: 2px;
 }
 
 .vdp-year-label {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: $text-muted;
 }
@@ -221,7 +221,7 @@ $text-muted: rgba(0,0,0,0.45);
   display: flex;
   flex-wrap: wrap;
   gap: 4px 16px;
-  font-size: 14px;
+  font-size: 16px;
   color: #555;
 
   span {
@@ -260,7 +260,7 @@ $text-muted: rgba(0,0,0,0.45);
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 500;
   color: #111;
 }
@@ -280,7 +280,7 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-description {
-  font-size: 14px;
+  font-size: 16px;
   color: rgba(0,0,0,0.6);
   line-height: 1.7;
   margin: 0;
@@ -291,7 +291,7 @@ $text-muted: rgba(0,0,0,0.45);
 
 /* Price */
 .vdp-price { font-size: 32px; font-weight: 800; color: #111; line-height: 1; }
-.vdp-msrp { font-size: 14px; color: $text-muted; text-decoration: line-through; }
+.vdp-msrp { font-size: 16px; color: $text-muted; text-decoration: line-through; }
 
 /* "What does this really cost?" card */
 .vdp-cost-card {
@@ -312,7 +312,7 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-cost-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: #111;
 }
@@ -336,7 +336,7 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-cost-item-label {
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 500;
   color: $text-muted;
   text-transform: uppercase;
@@ -490,13 +490,13 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-highlight-label {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   color: #111;
 }
 
 .vdp-highlight-value {
-  font-size: 13px;
+  font-size: 16px;
   color: rgba(0,0,0,0.45);
   line-height: 1.3;
   white-space: nowrap;
@@ -510,7 +510,7 @@ $text-muted: rgba(0,0,0,0.45);
   border: 1px solid #d1d5db;
   border-radius: 8px;
   background: white;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   font-family: inherit;
   color: #333;
@@ -540,7 +540,7 @@ $text-muted: rgba(0,0,0,0.45);
   text-align: center;
   padding: 14px;
   border-radius: 10px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   border: none;
   cursor: pointer;
@@ -556,7 +556,7 @@ $text-muted: rgba(0,0,0,0.45);
   text-align: center;
   padding: 14px;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   text-decoration: none;
   border: none;
@@ -573,7 +573,7 @@ $text-muted: rgba(0,0,0,0.45);
   text-align: center;
   padding: 12px;
   border-radius: 10px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   text-decoration: none;
   border: 1.5px solid rgba(0,0,0,0.15);
@@ -593,7 +593,7 @@ $text-muted: rgba(0,0,0,0.45);
   text-align: center;
   padding: 12px;
   border-radius: 10px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   text-decoration: none;
   border: 1.5px solid rgba(0,0,0,0.1);
@@ -616,7 +616,7 @@ $text-muted: rgba(0,0,0,0.45);
   padding: 12px;
   border: none;
   background: transparent;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   font-family: inherit;
   color: $text-muted;
@@ -638,7 +638,7 @@ $text-muted: rgba(0,0,0,0.45);
 .vdp-deal-line {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 16px;
 
   span:first-child { color: $text-muted; }
   span:last-child { color: #111; font-weight: 500; }
@@ -646,14 +646,14 @@ $text-muted: rgba(0,0,0,0.45);
   &.sub {
     padding-left: 12px;
     span:first-child { color: rgba(0,0,0,0.3); }
-    span:last-child { color: #555; font-weight: 400; font-size: 12px; }
+    span:last-child { color: #555; font-weight: 400; font-size: 16px; }
   }
 
   &.total {
     padding-top: 10px;
     border-top: 2px solid #111;
     margin-top: 4px;
-    span { font-size: 15px; font-weight: 800; color: #111 !important; }
+    span { font-size: 16px; font-weight: 800; color: #111 !important; }
   }
 
   &.financed {
@@ -670,7 +670,7 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-deal-waived {
-  font-size: 12px;
+  font-size: 16px;
   color: #16a34a;
   font-weight: 500;
 }
@@ -679,7 +679,7 @@ $text-muted: rgba(0,0,0,0.45);
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: 16px;
   color: $text-muted;
   cursor: pointer;
   white-space: nowrap;
@@ -708,11 +708,11 @@ $text-muted: rgba(0,0,0,0.45);
   cursor: pointer;
 
   input { width: 14px; height: 14px; cursor: pointer; }
-  span { font-size: 12px; color: rgba(0,0,0,0.3); }
+  span { font-size: 16px; color: rgba(0,0,0,0.3); }
 }
 
 .vdp-deal-transport-detail {
-  font-size: 10px;
+  font-size: 16px;
   color: $text-muted;
   padding-left: 20px;
 }
@@ -730,7 +730,7 @@ $text-muted: rgba(0,0,0,0.45);
   border-bottom: 1px solid $border;
 
   label {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     color: #333;
   }
@@ -740,7 +740,7 @@ $text-muted: rgba(0,0,0,0.45);
     padding: 8px 12px;
     border: 1px solid #d1d5db;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 16px;
     font-family: inherit;
     text-align: center;
     font-weight: 600;
@@ -750,7 +750,7 @@ $text-muted: rgba(0,0,0,0.45);
 
 .vdp-deal-line.out-of-state {
   span:last-child {
-    font-size: 11px;
+    font-size: 16px;
     font-style: italic;
     color: $text-muted !important;
     font-weight: 400 !important;
@@ -764,7 +764,7 @@ $text-muted: rgba(0,0,0,0.45);
   gap: 8px;
 
   label {
-    font-size: 12px;
+    font-size: 16px;
     color: $text-muted;
   }
 
@@ -773,7 +773,7 @@ $text-muted: rgba(0,0,0,0.45);
     padding: 6px 10px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 16px;
     font-family: inherit;
     text-align: center;
     &:focus { outline: none; border-color: $blue; }
@@ -799,7 +799,7 @@ $text-muted: rgba(0,0,0,0.45);
   gap: 6px;
 
   label {
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 600;
     color: #333;
   }
@@ -808,7 +808,7 @@ $text-muted: rgba(0,0,0,0.45);
     padding: 8px 10px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 16px;
     font-family: inherit;
     &:focus { outline: none; border-color: $blue; }
   }
@@ -840,9 +840,9 @@ $text-muted: rgba(0,0,0,0.45);
   }
 }
 
-.vdp-deal-tier-label { font-size: 11px; font-weight: 700; color: #111; }
-.vdp-deal-tier-range { font-size: 10px; color: $text-muted; }
-.vdp-deal-tier-rate { font-size: 10px; font-weight: 600; color: $blue; }
+.vdp-deal-tier-label { font-size: 16px; font-weight: 700; color: #111; }
+.vdp-deal-tier-range { font-size: 16px; color: $text-muted; }
+.vdp-deal-tier-rate { font-size: 16px; font-weight: 600; color: $blue; }
 
 .vdp-deal-terms {
   display: flex;
@@ -855,7 +855,7 @@ $text-muted: rgba(0,0,0,0.45);
   border: 1px solid #d1d5db;
   border-radius: 6px;
   background: white;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 500;
   font-family: inherit;
   color: #555;
@@ -876,7 +876,7 @@ $text-muted: rgba(0,0,0,0.45);
 
 .vdp-deal-monthly-label {
   display: block;
-  font-size: 12px;
+  font-size: 16px;
   color: $text-muted;
   margin-bottom: 4px;
 }
@@ -885,11 +885,11 @@ $text-muted: rgba(0,0,0,0.45);
   font-size: 28px;
   font-weight: 800;
   color: #111;
-  small { font-size: 14px; font-weight: 500; color: $text-muted; }
+  small { font-size: 16px; font-weight: 500; color: $text-muted; }
 }
 
 .vdp-deal-disclaimer {
-  font-size: 11px;
+  font-size: 16px;
   color: rgba(0,0,0,0.25);
   line-height: 1.5;
   padding: 12px 24px;
@@ -908,7 +908,7 @@ $text-muted: rgba(0,0,0,0.45);
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 13px;
+  font-size: 16px;
   color: rgba(0,0,0,0.6);
   line-height: 1.5;
   lucide-icon { width: 18px; height: 18px; color: $text-muted; flex-shrink: 0; margin-top: 1px; }
@@ -947,7 +947,7 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-lb-trim {
-  font-size: 13px;
+  font-size: 16px;
   color: rgba(0,0,0,0.45);
 }
 
@@ -1038,13 +1038,13 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-lb-counter {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: #111;
 }
 
 .vdp-lb-cat-label {
-  font-size: 13px;
+  font-size: 16px;
   color: rgba(0,0,0,0.45);
 }
 
@@ -1099,7 +1099,7 @@ $text-muted: rgba(0,0,0,0.45);
   border: 1px solid #d1d5db;
   border-radius: 20px;
   background: white;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 500;
   font-family: inherit;
   color: #555;
@@ -1164,7 +1164,7 @@ $text-muted: rgba(0,0,0,0.45);
   right: 0;
   background: rgba(37, 99, 235, 0.9);
   color: white;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 600;
   padding: 4px 0;
   text-align: center;
@@ -1213,7 +1213,7 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-modal-title { font-size: 20px; font-weight: 800; color: #111; margin: 0; }
-.vdp-modal-subtitle { font-size: 14px; color: $text-muted; margin: 4px 0 0; }
+.vdp-modal-subtitle { font-size: 16px; color: $text-muted; margin: 4px 0 0; }
 
 .vdp-modal-close {
   background: none; border: none; cursor: pointer; color: #999; padding: 4px;
@@ -1242,7 +1242,7 @@ $text-muted: rgba(0,0,0,0.45);
   gap: 5px;
 
   label {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     color: #333;
   }
@@ -1251,7 +1251,7 @@ $text-muted: rgba(0,0,0,0.45);
     border: 1.5px solid rgba(0,0,0,0.12);
     border-radius: 10px;
     padding: 12px 14px;
-    font-size: 15px;
+    font-size: 16px;
     font-family: inherit;
     color: #111;
     background: #fafafa;
@@ -1274,7 +1274,7 @@ $text-muted: rgba(0,0,0,0.45);
   border-radius: 12px;
   border: 1.5px solid rgba($blue, 0.15);
 
-  label { font-size: 13px; font-weight: 600; color: #333; }
+  label { font-size: 16px; font-weight: 600; color: #333; }
 }
 
 .vdp-offer-input-row {
@@ -1315,7 +1315,7 @@ $text-muted: rgba(0,0,0,0.45);
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 16px;
   color: #333;
   cursor: pointer;
 
@@ -1355,7 +1355,7 @@ $text-muted: rgba(0,0,0,0.45);
   gap: 12px;
 
   h3 { font-size: 22px; font-weight: 800; color: #111; margin: 0; }
-  p { font-size: 15px; color: $text-muted; margin: 0; max-width: 300px; line-height: 1.6; }
+  p { font-size: 16px; color: $text-muted; margin: 0; max-width: 300px; line-height: 1.6; }
 }
 
 .vdp-success-icon { width: 56px; height: 56px; color: #22c55e; }
@@ -1366,7 +1366,7 @@ $text-muted: rgba(0,0,0,0.45);
   border: 1.5px solid rgba(0,0,0,0.15);
   border-radius: 10px;
   background: white;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -1383,7 +1383,7 @@ $text-muted: rgba(0,0,0,0.45);
 
 .vdp-too-low-msg {
   margin: 8px 0 0;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   color: #dc2626;
   animation: shake 0.4s ease;

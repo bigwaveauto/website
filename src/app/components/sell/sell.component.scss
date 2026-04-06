@@ -44,7 +44,7 @@ $radius: 14px;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 16px;
   margin-bottom: 16px;
 }
 .sell-hero-breadcrumb-link {
@@ -62,7 +62,7 @@ $radius: 14px;
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 999px;
   padding: 6px 18px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.5px;
   margin-bottom: 20px;
@@ -99,7 +99,7 @@ $radius: 14px;
 }
 
 .sell-hero-stat-label {
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 600;
   color: rgba(255,255,255,0.5);
   text-transform: uppercase;
@@ -135,13 +135,13 @@ $radius: 14px;
 }
 
 .sell-vin-card-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: $text;
 }
 
 .sell-vin-card-sub {
-  font-size: 12px;
+  font-size: 16px;
   color: $muted;
 }
 
@@ -155,7 +155,7 @@ $radius: 14px;
   padding: 10px 12px;
   border: 1.5px solid $border;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 16px;
   font-family: inherit;
   outline: none;
   text-transform: uppercase;
@@ -170,7 +170,7 @@ $radius: 14px;
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   flex-shrink: 0;
@@ -182,7 +182,7 @@ $radius: 14px;
 }
 
 .sell-vin-error {
-  font-size: 12px;
+  font-size: 16px;
   color: #ef4444;
   margin: 0;
 }
@@ -195,7 +195,7 @@ $radius: 14px;
   border: 1.5px solid #86efac;
   border-radius: 8px;
   padding: 10px 12px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   color: #166534;
   lucide-icon { width: 18px; height: 18px; color: $green; flex-shrink: 0; }
@@ -211,7 +211,7 @@ $radius: 14px;
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
@@ -223,7 +223,7 @@ $radius: 14px;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 11px;
+  font-size: 16px;
   color: $muted;
   &::before, &::after {
     content: '';
@@ -259,8 +259,8 @@ $radius: 14px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   border-top: 4px solid transparent;
 
-  strong { font-size: 15px; font-weight: 700; color: $text; }
-  span   { font-size: 13px; color: $muted; line-height: 1.6; }
+  strong { font-size: 16px; font-weight: 700; color: $text; }
+  span   { font-size: 16px; color: $muted; line-height: 1.6; }
 
   &--blue   { border-top-color: #1a78c2; }
   &--green  { border-top-color: #22c55e; }
@@ -299,7 +299,7 @@ $radius: 14px;
 .sell-form { padding: 24px 28px; display: flex; flex-direction: column; gap: 16px; }
 
 .sell-form-section-label {
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -320,13 +320,13 @@ $radius: 14px;
   gap: 6px;
   &--full { flex: 1 1 100%; }
 
-  label { font-size: 13px; font-weight: 600; color: #444; }
+  label { font-size: 16px; font-weight: 600; color: #444; }
 
   input, select, textarea {
     padding: 10px 14px;
     border: 1.5px solid $border;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 16px;
     color: $text;
     background: white;
     outline: none;
@@ -351,7 +351,7 @@ $radius: 14px;
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s, opacity 0.2s;
@@ -372,7 +372,7 @@ $radius: 14px;
   align-items: center;
   gap: 16px;
   h2 { font-size: 24px; font-weight: 700; margin: 0; color: $text; }
-  p  { color: $muted; font-size: 15px; line-height: 1.7; margin: 0; max-width: 400px; }
+  p  { color: $muted; font-size: 16px; line-height: 1.7; margin: 0; max-width: 400px; }
 }
 .sell-success-icon {
   font-size: 64px !important;
@@ -388,7 +388,7 @@ $radius: 14px;
   background: $blue;
   color: white;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   text-decoration: none;
   margin-top: 8px;

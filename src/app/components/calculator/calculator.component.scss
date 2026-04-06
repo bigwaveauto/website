@@ -41,7 +41,7 @@ $s5: #8b5cf6;   // purple
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 16px;
   margin-bottom: 18px;
 }
 
@@ -66,7 +66,7 @@ $s5: #8b5cf6;   // purple
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 999px;
   padding: 6px 18px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.5px;
   margin-bottom: 20px;
@@ -149,7 +149,7 @@ $s5: #8b5cf6;   // purple
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
   color: #fff;
   flex-shrink: 0;
@@ -169,7 +169,7 @@ $s5: #8b5cf6;   // purple
 }
 
 .calc-step-eyebrow {
-  font-size: 10px;
+  font-size: 16px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.2px;
@@ -187,7 +187,7 @@ $s5: #8b5cf6;   // purple
 .calc-step-preview {
   margin-left: auto;
   margin-right: 4px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   color: $blue;
   white-space: nowrap;
@@ -213,7 +213,7 @@ $s5: #8b5cf6;   // purple
 }
 
 .calc-step-hint {
-  font-size: 12px;
+  font-size: 16px;
   color: $muted;
   margin: 0;
   font-style: italic;
@@ -241,7 +241,7 @@ $s5: #8b5cf6;   // purple
   font-family: inherit;
 
   .mode-icon  { font-size: 22px; line-height: 1; }
-  .mode-label { font-size: 12px; font-weight: 600; color: $muted; transition: color 0.2s; }
+  .mode-label { font-size: 16px; font-weight: 600; color: $muted; transition: color 0.2s; }
 
   &.active {
     border-color: $blue;
@@ -288,7 +288,7 @@ $s5: #8b5cf6;   // purple
   border-radius: 999px;
   background: #fff;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 600;
   color: $muted;
   cursor: pointer;
@@ -316,7 +316,7 @@ $s5: #8b5cf6;   // purple
 }
 
 .calc-field-label {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   color: #444;
   flex: 1;
@@ -339,7 +339,7 @@ $s5: #8b5cf6;   // purple
   background: #e8f4ff;
   color: $blue;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.5px;
   padding: 1px 5px;
@@ -365,7 +365,7 @@ $s5: #8b5cf6;   // purple
 .calc-input-prefix,
 .calc-input-suffix {
   padding: 0 8px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   color: $muted;
   background: #f7f9fb;
@@ -388,7 +388,7 @@ $s5: #8b5cf6;   // purple
   padding: 9px 10px;
   border: none;
   outline: none;
-  font-size: 14px;
+  font-size: 16px;
   font-family: inherit;
   color: $text;
   background: #fff;
@@ -404,7 +404,7 @@ $s5: #8b5cf6;   // purple
   padding: 9px 10px;
   border: 1.5px solid $border;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 16px;
   font-family: inherit;
   color: $text;
   background: #fff;
@@ -429,7 +429,7 @@ $s5: #8b5cf6;   // purple
   }
 
   label {
-    font-size: 13px;
+    font-size: 16px;
     font-family: inherit;
     color: $text;
     cursor: pointer;
@@ -484,7 +484,7 @@ $s5: #8b5cf6;   // purple
 }
 
 .calc-result-label {
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -502,7 +502,7 @@ $s5: #8b5cf6;   // purple
 }
 
 .calc-result-term {
-  font-size: 13px;
+  font-size: 16px;
   color: rgba(255,255,255,0.55);
   font-weight: 600;
   font-family: inherit;
@@ -521,7 +521,7 @@ $s5: #8b5cf6;   // purple
   align-items: center;
   padding: 11px 28px;
   border-bottom: 1px solid $border;
-  font-size: 14px;
+  font-size: 16px;
 
   &:last-child { border-bottom: none; }
 
@@ -540,7 +540,7 @@ $s5: #8b5cf6;   // purple
 
 .calc-summary-value {
   font-weight: 800;
-  font-size: 15px;
+  font-size: 16px;
   font-family: inherit;
   color: $text;
 
@@ -556,7 +556,7 @@ $s5: #8b5cf6;   // purple
 }
 
 .calc-donut-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: $text;
   margin: 0 0 18px;
@@ -605,14 +605,14 @@ $s5: #8b5cf6;   // purple
 }
 
 .calc-legend-name {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   color: $text;
   font-family: inherit;
 }
 
 .calc-legend-val {
-  font-size: 12px;
+  font-size: 16px;
   color: $muted;
   font-family: inherit;
 }
@@ -631,7 +631,7 @@ $s5: #8b5cf6;   // purple
 }
 
 .calc-schedule-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: $text;
   margin: 0;
@@ -651,7 +651,7 @@ $s5: #8b5cf6;   // purple
   border: none;
   background: transparent;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   color: $muted;
   cursor: pointer;
@@ -664,7 +664,7 @@ $s5: #8b5cf6;   // purple
 .calc-schedule-empty {
   padding: 24px;
   text-align: center;
-  font-size: 13px;
+  font-size: 16px;
   color: $muted;
   background: #fafcfe;
   border-radius: 8px;
@@ -686,7 +686,7 @@ $s5: #8b5cf6;   // purple
 .calc-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 16px;
 
   thead tr {
     background: #f4f8fa;
@@ -698,7 +698,7 @@ $s5: #8b5cf6;   // purple
   th {
     padding: 10px 14px;
     text-align: right;
-    font-size: 11px;
+    font-size: 16px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.8px;
@@ -716,7 +716,7 @@ $s5: #8b5cf6;   // purple
     color: $text;
     border-bottom: 1px solid #f0f4f8;
     font-family: inherit;
-    font-size: 13px;
+    font-size: 16px;
     white-space: nowrap;
 
     &:first-child { text-align: left; font-weight: 600; }
