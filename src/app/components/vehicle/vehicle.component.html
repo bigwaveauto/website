@@ -113,13 +113,15 @@
           <div class="vdp-highlight-icon-wrap">
             <lucide-icon [name]="item.icon" class="vdp-highlight-icon" />
           </div>
-          <span class="vdp-highlight-label">{{ item.displayName }}</span>
-          <span class="vdp-highlight-value">
-            @if(item.format === 'miles'){ {{ val | number:'1.0-0' }} miles }
-            @else if(item.format === 'hp'){ {{ val }} hp }
-            @else if(item.format === 'lb-ft'){ {{ val }} lb-ft }
-            @else { {{ val }} }
-          </span>
+          <div class="vdp-highlight-text">
+            <span class="vdp-highlight-label">{{ item.displayName }}</span>
+            <span class="vdp-highlight-value">
+              @if(item.format === 'miles'){ {{ val | number:'1.0-0' }} miles }
+              @else if(item.format === 'hp'){ {{ val }} hp }
+              @else if(item.format === 'lb-ft'){ {{ val }} lb-ft }
+              @else { {{ val }} }
+            </span>
+          </div>
         </div>}
       }
       @if(v.mpgcity && v.mpghwy){
@@ -127,8 +129,10 @@
         <div class="vdp-highlight-icon-wrap">
           <lucide-icon name="leaf" class="vdp-highlight-icon" />
         </div>
-        <span class="vdp-highlight-label">Fuel Economy</span>
-        <span class="vdp-highlight-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</span>
+        <div class="vdp-highlight-text">
+          <span class="vdp-highlight-label">Fuel Economy</span>
+          <span class="vdp-highlight-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</span>
+        </div>
       </div>}
     </div>
   </div>
