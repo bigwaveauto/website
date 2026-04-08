@@ -353,6 +353,70 @@ $text-muted: rgba(0,0,0,0.45);
   }
 }
 
+/* "Get Approved" CTA card */
+.inv-cta-card {
+  background: white;
+  border: 1.5px solid #93c5fd;
+  border-radius: 12px;
+  padding: 32px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+
+  &:hover {
+    border-color: $blue;
+    box-shadow: 0 4px 16px rgba(37,99,235,0.12);
+    transform: translateY(-2px);
+  }
+}
+
+.inv-cta-icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: #60a5fa;
+
+  lucide-icon { width: 56px; height: 56px; }
+}
+
+.inv-cta-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111;
+  margin: 0 0 8px;
+}
+
+.inv-cta-text {
+  font-size: 16px;
+  color: rgba(0,0,0,0.55);
+  line-height: 1.5;
+  margin: 0 0 20px;
+  max-width: 200px;
+}
+
+.inv-cta-arrow {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #60a5fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  transition: background 0.2s;
+
+  lucide-icon { width: 24px; height: 24px; color: white; }
+
+  .inv-cta-card:hover & { background: $blue; }
+}
+
 /* ── Vehicle card ── */
 .inv-card {
   background: $card-bg;

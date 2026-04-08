@@ -232,6 +232,20 @@
             </div>
           </div>
 
+          <!-- Insert "Get Approved" CTA after the 7th vehicle -->
+          @if(i === 6){
+          <a routerLink="/financing" class="inv-cta-card">
+            <div class="inv-cta-icon">
+              <lucide-icon name="hand-coins" />
+            </div>
+            <h3 class="inv-cta-title">Get Approved</h3>
+            <p class="inv-cta-text">Save time with an online approval.</p>
+            <div class="inv-cta-arrow">
+              <lucide-icon name="chevron-right" />
+            </div>
+          </a>
+          }
+
         }
       }
     </div>

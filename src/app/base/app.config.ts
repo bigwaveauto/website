@@ -16,7 +16,7 @@ import {
   Calculator, Search, ChevronUp, Home,
   Palette, CircleDot, Hash, Fingerprint, Armchair, Cog, Trophy,
   Activity, Droplets, GaugeCircle, Ruler, Eye, Maximize2, Upload,
-  BarChart3, Thermometer, Weight, Box,
+  BarChart3, Thermometer, Weight, Box, HandCoins,
 } from 'lucide-angular';
 
 export const appConfig: ApplicationConfig = {
@@ -36,7 +36,7 @@ export const appConfig: ApplicationConfig = {
         Calculator, Search, ChevronUp, Home,
         Palette, CircleDot, Hash, Fingerprint, Armchair, Cog, Trophy,
         Activity, Droplets, GaugeCircle, Ruler, Eye, Maximize2, Upload,
-        BarChart3, Thermometer, Weight, Box,
+        BarChart3, Thermometer, Weight, Box, HandCoins,
       }),
     },
     provideRouter(routes, withRouterConfig({ onSameUrlNavigation: 'reload' })),
