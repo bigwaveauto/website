@@ -20,12 +20,13 @@ $radius: 14px;
   background: $navy;
   background-image: radial-gradient(ellipse at 75% 50%, rgba(26,120,194,0.22) 0%, transparent 65%);
   border-radius: 20px;
-  padding: 56px 48px;
+  padding: 56px 64px;
   margin: 20px 20px 24px;
   max-width: none;
   display: flex;
   align-items: center;
-  gap: 48px;
+  justify-content: space-between;
+  gap: 80px;
 
   @media (max-width: 860px) {
     flex-direction: column;
@@ -34,7 +35,7 @@ $radius: 14px;
   }
 }
 
-.sell-hero-left { flex: 1; }
+.sell-hero-left { flex: 0 1 auto; }
 .sell-hero-right {
   flex-shrink: 0;
   @media (max-width: 860px) { width: 100%; }
@@ -119,7 +120,7 @@ $radius: 14px;
   background: white;
   border-radius: 16px;
   padding: 28px;
-  width: 260px;
+  width: 340px;
   display: flex;
   flex-direction: column;
   gap: 14px;
