@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -14,7 +14,7 @@ import { FooterComponent } from '../footer/footer.component';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink, HeaderComponent, FooterComponent]
 })
-export class SellComponent {
+export class SellComponent implements OnInit {
   private http = inject(HttpClient);
   submitted  = signal(false);
   submitting = signal(false);
@@ -29,6 +29,12 @@ export class SellComponent {
   heroVinLoading = signal(false);
   heroVinError   = signal('');
   heroVinDecoded = signal<{ year: string; make: string; model: string } | null>(null);
+
+  // Make/Model dropdown data
+  makes        = signal<string[]>([]);
+  models       = signal<string[]>([]);
+  loadingMakes = signal(false);
+  loadingModels = signal(false);
 
   form: FormGroup;
   years      = Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i);
@@ -47,6 +53,58 @@ export class SellComponent {
       email:     ['', [Validators.required, Validators.email]],
       phone:     ['', Validators.required],
       notes:     [''],
+    });
+  }
+
+  ngOnInit() {
+    this.loadMakes();
+
+    // When year or make changes, reload models
+    this.form.get('year')?.valueChanges.subscribe(() => {
+      this.form.get('model')?.setValue('');
+      this.loadModels();
+    });
+    this.form.get('make')?.valueChanges.subscribe(() => {
+      this.form.get('model')?.setValue('');
+      this.loadModels();
+    });
+  }
+
+  private loadMakes() {
+    this.loadingMakes.set(true);
+    this.http.get<any>('https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/car?format=json').subscribe({
+      next: (res) => {
+        const makes = (res?.Results || [])
+          .map((m: any) => m.MakeName)
+          .filter((n: string) => !!n)
+          .sort();
+        // Dedupe
+        this.makes.set([...new Set<string>(makes)]);
+        this.loadingMakes.set(false);
+      },
+      error: () => this.loadingMakes.set(false),
+    });
+  }
+
+  private loadModels() {
+    const year = this.form.get('year')?.value;
+    const make = this.form.get('make')?.value;
+    if (!year || !make) {
+      this.models.set([]);
+      return;
+    }
+    this.loadingModels.set(true);
+    const url = `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/${encodeURIComponent(make)}/modelyear/${year}?format=json`;
+    this.http.get<any>(url).subscribe({
+      next: (res) => {
+        const models = (res?.Results || [])
+          .map((m: any) => m.Model_Name)
+          .filter((n: string) => !!n)
+          .sort();
+        this.models.set([...new Set<string>(models)]);
+        this.loadingModels.set(false);
+      },
+      error: () => this.loadingModels.set(false),
     });
   }
 

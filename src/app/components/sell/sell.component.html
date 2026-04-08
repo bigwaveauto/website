@@ -106,11 +106,25 @@
           </div>
           <div class="sell-field">
             <label>Make</label>
-            <input formControlName="make" placeholder="e.g. Toyota" type="text">
+            <select formControlName="make" [disabled]="loadingMakes()">
+              <option value="">{{ loadingMakes() ? 'Loading...' : 'Select Make' }}</option>
+              @for(m of makes(); track m) {
+              <option [value]="m">{{ m }}</option>
+              }
+            </select>
           </div>
           <div class="sell-field">
             <label>Model</label>
-            <input formControlName="model" placeholder="e.g. Camry" type="text">
+            <select formControlName="model" [disabled]="!form.get('year')?.value || !form.get('make')?.value || loadingModels()">
+              <option value="">
+                @if(!form.get('year')?.value || !form.get('make')?.value){ Select Year & Make first }
+                @else if(loadingModels()){ Loading... }
+                @else{ Select Model }
+              </option>
+              @for(m of models(); track m) {
+              <option [value]="m">{{ m }}</option>
+              }
+            </select>
           </div>
         </div>
 
