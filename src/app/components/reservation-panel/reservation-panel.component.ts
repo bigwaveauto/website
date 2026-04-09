@@ -1,6 +1,7 @@
 import { Component, inject, signal, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../services/auth.service';
@@ -18,9 +19,12 @@ export class ReservationPanelComponent {
   readonly auth    = inject(AuthService);
   readonly reserve = inject(ReservationService);
   private  fb      = inject(FormBuilder);
+  private  http    = inject(HttpClient);
   private  platformId = inject(PLATFORM_ID);
 
   personaLoading = signal(false);
+  submitting     = signal(false);
+  submitted      = signal(false);
 
   // ── Info form ──
   infoForm = this.fb.group({
@@ -85,6 +89,12 @@ export class ReservationPanelComponent {
 
   async startPersona() {
     if (!isPlatformBrowser(this.platformId)) return;
+    // If Persona template ID isn't configured, skip identity verification
+    // and mark this step complete so the reservation can be submitted.
+    if (!environment.personaTemplateId || environment.personaTemplateId.startsWith('REPLACE')) {
+      this.reserve.saveVerify('manual-verification-required');
+      return;
+    }
     this.personaLoading.set(true);
     try {
       const { default: Persona } = await import('persona') as any;
@@ -99,8 +109,29 @@ export class ReservationPanelComponent {
       });
     } catch (e) {
       this.personaLoading.set(false);
-      console.error('Persona load error', e);
     }
+  }
+
+  submitReservation() {
+    if (this.submitting()) return;
+    this.submitting.set(true);
+    const payload = {
+      vehicle:  this.reserve.vehicle(),
+      info:     this.reserve.infoData(),
+      coverage: this.reserve.coverageData(),
+      delivery: this.reserve.deliveryData(),
+      verifyId: this.reserve.inquiryId(),
+    };
+    this.http.post('/api/leads/reservation', payload).subscribe({
+      next: () => {
+        this.submitting.set(false);
+        this.submitted.set(true);
+      },
+      error: () => {
+        this.submitting.set(false);
+        alert('Sorry, something went wrong. Please call us at (262) 592-4795.');
+      },
+    });
   }
 
   get isTouched() { return (c: string) => this.infoForm.get(c)?.touched && this.infoForm.get(c)?.invalid; }

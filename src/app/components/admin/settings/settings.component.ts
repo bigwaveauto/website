@@ -55,9 +55,6 @@ export class AdminSettingsComponent implements OnInit {
   tabs = [
     { key: 'finance',  label: 'Finance',  icon: 'banknote' },
     { key: 'sales',    label: 'Sales Stats', icon: 'bar-chart-3' },
-    { key: 'general',  label: 'General',  icon: 'globe' },
-    { key: 'leads',    label: 'Leads',    icon: 'mail' },
-    { key: 'seo',      label: 'SEO',      icon: 'search' },
   ];
 
   finance: FinanceSettings = {

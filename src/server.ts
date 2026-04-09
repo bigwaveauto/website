@@ -270,6 +270,58 @@ app.post('/api/leads/test-drive', leadLimiter, async (req, res) => {
   }
 });
 
+app.post('/api/leads/reservation', leadLimiter, async (req, res) => {
+  try {
+    const { vehicle, info, coverage, delivery, verifyId } = req.body || {};
+    if (!info?.email || !validateEmail(info.email)) {
+      res.status(400).json({ error: 'Valid email required' }); return;
+    }
+    // Save to Supabase (best effort — table may not exist yet)
+    try {
+      await supabase.from('reservation_leads').insert({
+        vin: vehicle?.vin,
+        year: vehicle?.year,
+        make: vehicle?.make,
+        model: vehicle?.model,
+        price: vehicle?.price,
+        info, coverage, delivery,
+        verify_id: verifyId,
+      });
+    } catch {}
+
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: NOTIFY_EMAIL,
+      subject: `🎉 New Reservation — ${escHtml(vehicle?.year)} ${escHtml(vehicle?.make)} ${escHtml(vehicle?.model)}`,
+      html: `
+        <h2>New Vehicle Reservation</h2>
+        <p><b>Vehicle:</b> ${escHtml(vehicle?.year)} ${escHtml(vehicle?.make)} ${escHtml(vehicle?.model)}</p>
+        <p><b>VIN:</b> ${escHtml(vehicle?.vin)}</p>
+        <p><b>Price:</b> $${escHtml(vehicle?.price)}</p>
+        <hr>
+        <h3>Customer</h3>
+        <p><b>Name:</b> ${escHtml(info?.firstName)} ${escHtml(info?.lastName)}</p>
+        <p><b>Email:</b> ${escHtml(info?.email)}</p>
+        <p><b>Phone:</b> ${escHtml(info?.phone)}</p>
+        <p><b>Address:</b> ${escHtml(info?.street)}, ${escHtml(info?.city)}, ${escHtml(info?.state)} ${escHtml(info?.zip)}</p>
+        <hr>
+        <h3>Coverage</h3>
+        <p>${escHtml(coverage?.plan) || 'None'}</p>
+        <hr>
+        <h3>Delivery</h3>
+        <p><b>Method:</b> ${escHtml(delivery?.method)}</p>
+        ${delivery?.address ? `<p><b>Address:</b> ${escHtml(delivery.address.street)}, ${escHtml(delivery.address.city)}, ${escHtml(delivery.address.state)} ${escHtml(delivery.address.zip)}</p>` : ''}
+        <hr>
+        <p><b>Identity Verification:</b> ${escHtml(verifyId) || 'Manual verification required'}</p>
+      `
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Reservation lead error');
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 app.post('/api/leads/make-offer', leadLimiter, async (req, res) => {
   try {
     const data = pickFields(req.body, [

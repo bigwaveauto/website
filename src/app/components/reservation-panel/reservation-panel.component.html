@@ -39,9 +39,17 @@
     }
   </div>
 
-  @if(reserve.allComplete()){
+  @if(reserve.allComplete() && !submitted()){
   <div class="rp-submit-wrap">
-    <button class="rp-submit-btn">Submit Reservation</button>
+    <button class="rp-submit-btn" (click)="submitReservation()" [disabled]="submitting()">
+      @if(submitting()){ Submitting... }@else{ Submit Reservation }
+    </button>
+  </div>
+  }
+  @if(submitted()){
+  <div class="rp-submit-wrap" style="text-align:center;padding:24px">
+    <h3 style="color:#22c55e;margin:0 0 8px">Reservation Submitted!</h3>
+    <p style="color:#666;margin:0">We'll be in touch within 24 hours to confirm.</p>
   </div>
   }
 
