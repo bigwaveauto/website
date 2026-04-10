@@ -391,6 +391,25 @@ app.post('/api/leads/contact', leadLimiter, async (req, res) => {
  */
 const CALENDLY_URL = process.env['CALENDLY_URL'] || 'https://calendly.com/bigwaveauto/visit';
 
+// Chat-specific rate limiters
+const chatPerMinute = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 5, // 5 messages per minute per IP
+  message: { error: 'Slow down! Try again in a minute.' },
+  standardHeaders: true, legacyHeaders: false,
+});
+const chatPerHour = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 30, // 30 messages per hour per IP
+  message: { error: 'You\'ve reached the hourly limit. Please try again later or call us at (262) 592-4795.' },
+  standardHeaders: true, legacyHeaders: false,
+});
+
+// Daily token budget tracking
+let dailyTokensUsed = 0;
+let dailyTokensDate = new Date().toDateString();
+const DAILY_TOKEN_BUDGET = 500_000; // ~$1.50/day at Sonnet pricing
+
 const chatTools: any[] = [
   {
     name: 'search_inventory',
@@ -486,10 +505,28 @@ async function executeToolCall(toolName: string, toolInput: any, inventory: any[
   return JSON.stringify({ error: 'Unknown tool' });
 }
 
-app.post('/api/chat', aiLimiter, async (req, res) => {
+app.post('/api/chat', chatPerMinute, chatPerHour, async (req, res) => {
   try {
     const { messages } = req.body;
     if (!messages?.length) { res.status(400).json({ error: 'Messages required' }); return; }
+
+    // Max conversation length
+    if (messages.length > 40) {
+      res.status(400).json({ error: 'Conversation too long. Please start a new chat or call us at (262) 592-4795.' }); return;
+    }
+
+    // Max input length on latest message
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg?.content?.length > 500) {
+      res.status(400).json({ error: 'Message too long. Please keep it under 500 characters.' }); return;
+    }
+
+    // Daily token budget check
+    const today = new Date().toDateString();
+    if (today !== dailyTokensDate) { dailyTokensUsed = 0; dailyTokensDate = today; }
+    if (dailyTokensUsed > DAILY_TOKEN_BUDGET) {
+      res.status(429).json({ error: 'Our AI assistant is resting for the day. Please call us at (262) 592-4795 or try again tomorrow.' }); return;
+    }
 
     const inventory = await readVautoCsv();
     const inventorySummary = inventory.map(v => (
@@ -559,6 +596,10 @@ Rules:
       }
 
       // If the response ended with tool_use, loop to get the follow-up text
+      // Track token usage
+      if (response.usage) {
+        dailyTokensUsed += (response.usage.input_tokens || 0) + (response.usage.output_tokens || 0);
+      }
       continueLoop = response.stop_reason === 'tool_use';
     }
 

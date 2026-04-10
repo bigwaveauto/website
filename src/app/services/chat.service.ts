@@ -28,6 +28,13 @@ export class ChatService {
   async send(text: string) {
     if (!isPlatformBrowser(this.platformId) || !text.trim()) return;
 
+    // Client-side session limit
+    const userMsgCount = this.messages().filter(m => m.role === 'user').length;
+    if (userMsgCount >= 20) {
+      this.appendAssistant('You\'ve reached the message limit for this session. Please call us at (262) 592-4795 or refresh to start a new conversation.');
+      return;
+    }
+
     // Add user message
     const userMsg: ChatMessage = { role: 'user', content: text.trim() };
     this.messages.update(msgs => [...msgs, userMsg]);
