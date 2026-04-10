@@ -42,10 +42,13 @@ $text-muted: rgba(0,0,0,0.45);
   gap: 24px;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 20px 80px;
+  padding: 24px 20px 40px;
+  height: calc(100dvh - 280px);
+  min-height: 400px;
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
+    height: auto;
   }
 }
 
@@ -53,7 +56,8 @@ $text-muted: rgba(0,0,0,0.45);
 .search-info {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 20px;
+  overflow-y: auto;
 }
 
 .search-how {
@@ -176,7 +180,7 @@ $text-muted: rgba(0,0,0,0.45);
 
 /* Right: Chat box */
 .search-chat {
-  min-height: 500px;
+  min-height: 0;
 }
 
 .search-chat-box {
@@ -185,7 +189,7 @@ $text-muted: rgba(0,0,0,0.45);
   border: 1px solid $border;
   display: flex;
   flex-direction: column;
-  height: 600px;
+  height: 100%;
   overflow: hidden;
 
   @media (max-width: 900px) {
