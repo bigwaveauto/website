@@ -1,0 +1,130 @@
+<header [floating]="true"></header>
+
+<div class="search-page">
+
+  <!-- Hero banner -->
+  <div class="search-banner">
+    <h1 class="search-banner-title">Find Your Perfect Vehicle</h1>
+    <p class="search-banner-sub">Tell our AI assistant what you're looking for — it searches our inventory in real time.</p>
+  </div>
+
+  <!-- Main content -->
+  <div class="search-body">
+
+    <!-- Left: How it works -->
+    <div class="search-info">
+      <div class="search-how">
+        <h2 class="search-how-title">How It Works</h2>
+        <div class="search-steps">
+          <div class="search-step">
+            <div class="search-step-num">1</div>
+            <div>
+              <strong>Describe what you want</strong>
+              <p>Type naturally — budget, vehicle type, features, color, anything.</p>
+            </div>
+          </div>
+          <div class="search-step">
+            <div class="search-step-num">2</div>
+            <div>
+              <strong>Get instant matches</strong>
+              <p>Our AI searches live inventory and shows you vehicles that fit.</p>
+            </div>
+          </div>
+          <div class="search-step">
+            <div class="search-step-num">3</div>
+            <div>
+              <strong>Schedule a visit</strong>
+              <p>Found something you like? Book a test drive right from the chat.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick searches -->
+      <div class="search-quick">
+        <h3 class="search-quick-title">Try asking</h3>
+        <div class="search-quick-chips">
+          @for(q of quickSearches; track q){
+          <button class="search-quick-chip" (click)="sendMessage(q)">{{ q }}</button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Chat -->
+    <div class="search-chat">
+      <div class="search-chat-box">
+
+        <!-- Messages -->
+        <div class="search-messages" #messagesContainer>
+
+          @if(!chat.messages().length){
+          <div class="chat-bubble assistant">
+            Hey! I'm your Big Wave assistant. Tell me what you're looking for — budget, type, features — and I'll search our inventory for you.
+          </div>
+          }
+
+          @for(msg of chat.messages(); track $index){
+          <div class="chat-bubble" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
+            <span class="chat-bubble-text">{{ msg.content }}</span>
+
+            @if(msg.vehicles?.length){
+            <div class="chat-vehicles">
+              @for(v of msg.vehicles; track v.vin){
+              <a [routerLink]="v.url" class="chat-vehicle-card">
+                @if(v.photo){
+                <img [src]="v.photo" [alt]="v.year + ' ' + v.make + ' ' + v.model" class="chat-vehicle-img" />
+                }
+                <div class="chat-vehicle-info">
+                  <span class="chat-vehicle-title">{{ v.year }} {{ v.make }} {{ v.model }}</span>
+                  <span class="chat-vehicle-trim">{{ v.trim }}</span>
+                  <span class="chat-vehicle-price">{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span>
+                  <span class="chat-vehicle-miles">{{ v.mileage | number:'1.0-0' }} mi</span>
+                </div>
+              </a>
+              }
+            </div>
+            }
+
+            @if(msg.schedulingUrl){
+            <a [href]="msg.schedulingUrl" target="_blank" rel="noopener" class="chat-schedule-btn">
+              <lucide-icon name="calendar" /> Schedule a Visit
+            </a>
+            }
+          </div>
+          }
+
+          @if(chat.isLoading()){
+          <div class="chat-bubble assistant">
+            <div class="chat-typing">
+              <span class="chat-dot"></span>
+              <span class="chat-dot"></span>
+              <span class="chat-dot"></span>
+            </div>
+          </div>
+          }
+
+        </div>
+
+        <!-- Input -->
+        <div class="search-input-area">
+          <input
+            [(ngModel)]="userInput"
+            (keydown.enter)="sendMessage()"
+            placeholder="What are you looking for?"
+            class="search-input"
+            [disabled]="chat.isLoading()"
+          />
+          <button class="search-send-btn" (click)="sendMessage()" [disabled]="!userInput.trim() || chat.isLoading()">
+            <lucide-icon name="send" />
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<footer></footer>

@@ -1,0 +1,334 @@
+$blue: #2563eb;
+$navy: #0e1523;
+$bg: #e8eaed;
+$border: rgba(0,0,0,0.08);
+$text-muted: rgba(0,0,0,0.45);
+
+.search-page {
+  min-height: 100vh;
+  background: $bg;
+}
+
+/* Banner */
+.search-banner {
+  background: $navy;
+  border-radius: 20px;
+  margin: 20px 20px 0;
+  padding: 48px 48px 40px;
+
+  @media (max-width: 768px) {
+    padding: 32px 24px 28px;
+  }
+}
+
+.search-banner-title {
+  font-size: clamp(24px, 4vw, 44px);
+  font-weight: 800;
+  color: white;
+  margin: 0 0 8px;
+}
+
+.search-banner-sub {
+  font-size: 17px;
+  color: rgba(255,255,255,0.55);
+  margin: 0;
+  max-width: 500px;
+}
+
+/* Body layout */
+.search-body {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Left: info */
+.search-info {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.search-how {
+  background: white;
+  border-radius: 14px;
+  padding: 24px;
+  border: 1px solid $border;
+}
+
+.search-how-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111;
+  margin: 0 0 20px;
+}
+
+.search-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.search-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+
+  strong {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  p {
+    font-size: 14px;
+    color: rgba(0,0,0,0.5);
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.search-step-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: $blue;
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Quick searches */
+.search-quick {
+  background: white;
+  border-radius: 14px;
+  padding: 20px 24px;
+  border: 1px solid $border;
+}
+
+.search-quick-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 12px;
+}
+
+.search-quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.search-quick-chip {
+  padding: 8px 14px;
+  border: 1.5px solid rgba(0,0,0,0.1);
+  border-radius: 999px;
+  background: #f8f9fb;
+  font-size: 13px;
+  font-weight: 500;
+  color: #444;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s, background 0.2s;
+
+  &:hover {
+    border-color: $blue;
+    background: #eff6ff;
+    color: $blue;
+  }
+}
+
+/* Right: Chat box */
+.search-chat {
+  min-height: 500px;
+}
+
+.search-chat-box {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid $border;
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  overflow: hidden;
+
+  @media (max-width: 900px) {
+    height: 500px;
+  }
+}
+
+/* Messages area */
+.search-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Bubbles */
+.chat-bubble {
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.5;
+  word-wrap: break-word;
+
+  &.assistant {
+    background: #f4f5f7;
+    color: #111;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+  }
+
+  &.user {
+    background: $blue;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+}
+
+.chat-bubble-text { white-space: pre-wrap; }
+
+/* Vehicle cards */
+.chat-vehicles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.chat-vehicle-card {
+  display: flex;
+  gap: 10px;
+  background: white;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
+  padding: 8px;
+  text-decoration: none;
+  color: #111;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    border-color: $blue;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.1);
+  }
+}
+
+.chat-vehicle-img {
+  width: 80px;
+  height: 60px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.chat-vehicle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.chat-vehicle-title {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-vehicle-trim { font-size: 12px; color: rgba(0,0,0,0.45); }
+.chat-vehicle-price { font-size: 15px; font-weight: 800; color: #111; }
+.chat-vehicle-miles { font-size: 12px; color: rgba(0,0,0,0.4); }
+
+/* Schedule button */
+.chat-schedule-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 16px;
+  background: $blue;
+  color: white;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s;
+  lucide-icon { width: 16px; height: 16px; }
+  &:hover { background: #1d4ed8; }
+}
+
+/* Typing indicator */
+.chat-typing { display: flex; gap: 4px; padding: 4px 0; }
+
+.chat-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(0,0,0,0.25);
+  animation: chatBounce 1.4s infinite;
+  &:nth-child(2) { animation-delay: 0.2s; }
+  &:nth-child(3) { animation-delay: 0.4s; }
+}
+
+@keyframes chatBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
+}
+
+/* Input area */
+.search-input-area {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid $border;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  padding: 14px 18px;
+  border: 1.5px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+  &:focus { border-color: $blue; }
+  &::placeholder { color: rgba(0,0,0,0.35); }
+}
+
+.search-send-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: none;
+  background: $blue;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  lucide-icon { width: 20px; height: 20px; }
+  &:hover { background: #1d4ed8; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}

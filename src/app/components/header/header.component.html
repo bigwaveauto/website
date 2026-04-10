@@ -80,13 +80,11 @@
           }
         </div>
         <a routerLink="/about"     routerLinkActive="nav-link-active" class="nav-link">About</a>
+        <a routerLink="/search"   routerLinkActive="nav-link-active" class="nav-link">Search</a>
     </div>
 
     <!-- Right: Icon actions -->
     <div class="header-col-right">
-        <button class="header-icon-btn" (click)="chatService.open()" title="Search with AI" fxHide.lt-md>
-            <lucide-icon name="search" />
-        </button>
         <button class="header-icon-btn" (click)="toggleLocation()" title="Our Location" fxHide.lt-md>
             <lucide-icon name="map-pin" />
         </button>
@@ -299,9 +297,9 @@
         <button class="drawer-secondary-link" (click)="closeMenu(); toggleLocation()">
             <lucide-icon name="map-pin" /> Find Us
         </button>
-        <button class="drawer-secondary-link" (click)="closeMenu(); chatService.open()">
-            <lucide-icon name="search" /> AI Search
-        </button>
+        <a class="drawer-secondary-link" (click)="drawerNav('/search')">
+            <lucide-icon name="search" /> Search
+        </a>
         <button class="drawer-secondary-link" (click)="closeMenu(); openContact()">
             <lucide-icon name="circle-help" /> Contact
         </button>

@@ -32,6 +32,10 @@ export const routes: Routes = [
     loadComponent: () => import('../components/calculator/calculator.component').then(mod => mod.CalculatorComponent),
   },
   {
+    path: 'search',
+    loadComponent: () => import('../components/search/search.component').then(mod => mod.SearchComponent),
+  },
+  {
     path: 'account',
     loadComponent: () => import('../components/account/account.component').then(m => m.AccountComponent),
   },
