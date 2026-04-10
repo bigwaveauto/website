@@ -21,11 +21,11 @@ export class SearchComponent implements AfterViewChecked {
   private shouldScroll = false;
 
   quickSearches = [
-    'Show me EVs under $40k',
-    'What SUVs do you have?',
-    'I want something sporty',
-    'Best car for a family',
-    'What do you have with low miles?',
+    'I want a 2024 Rivian R1S in white',
+    'Looking for an EV under $45k',
+    'Need a luxury SUV for my family',
+    'I want a Porsche 911 under 20k miles',
+    'Find me a pickup truck with towing package',
   ];
 
   sendMessage(text?: string) {

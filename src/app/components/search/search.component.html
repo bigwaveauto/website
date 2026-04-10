@@ -4,8 +4,8 @@
 
   <!-- Hero banner -->
   <div class="search-banner">
-    <h1 class="search-banner-title">Find Your Perfect Vehicle</h1>
-    <p class="search-banner-sub">Tell our AI assistant what you're looking for — it searches our inventory in real time.</p>
+    <h1 class="search-banner-title">Concierge Vehicle Search</h1>
+    <p class="search-banner-sub">Don't see what you want? We'll find it. Tell us your dream car and we'll search the entire country to track it down.</p>
   </div>
 
   <!-- Main content -->
@@ -19,22 +19,22 @@
           <div class="search-step">
             <div class="search-step-num">1</div>
             <div>
-              <strong>Describe what you want</strong>
-              <p>Type naturally — budget, vehicle type, features, color, anything.</p>
+              <strong>Tell us what you're looking for</strong>
+              <p>Year, make, model, color, features, budget — whatever matters to you.</p>
             </div>
           </div>
           <div class="search-step">
             <div class="search-step-num">2</div>
             <div>
-              <strong>Get instant matches</strong>
-              <p>Our AI searches live inventory and shows you vehicles that fit.</p>
+              <strong>We search nationwide</strong>
+              <p>We use dealer-only auctions and nationwide networks to locate your ideal vehicle.</p>
             </div>
           </div>
           <div class="search-step">
             <div class="search-step-num">3</div>
             <div>
-              <strong>Schedule a visit</strong>
-              <p>Found something you like? Book a test drive right from the chat.</p>
+              <strong>We handle everything</strong>
+              <p>Inspection, transport, paperwork, registration — delivered to your door or ready for pickup.</p>
             </div>
           </div>
         </div>
@@ -42,11 +42,27 @@
 
       <!-- Quick searches -->
       <div class="search-quick">
-        <h3 class="search-quick-title">Try asking</h3>
+        <h3 class="search-quick-title">Popular requests</h3>
         <div class="search-quick-chips">
           @for(q of quickSearches; track q){
           <button class="search-quick-chip" (click)="sendMessage(q)">{{ q }}</button>
           }
+        </div>
+      </div>
+
+      <!-- Trust points -->
+      <div class="search-trust">
+        <div class="search-trust-item">
+          <lucide-icon name="shield" class="search-trust-icon" />
+          <span>Licensed, bonded & insured dealer</span>
+        </div>
+        <div class="search-trust-item">
+          <lucide-icon name="car" class="search-trust-icon" />
+          <span>Nationwide delivery available</span>
+        </div>
+        <div class="search-trust-item">
+          <lucide-icon name="handshake" class="search-trust-icon" />
+          <span>No obligation — free to inquire</span>
         </div>
       </div>
     </div>
@@ -60,7 +76,7 @@
 
           @if(!chat.messages().length){
           <div class="chat-bubble assistant">
-            Hey! I'm your Big Wave assistant. Tell me what you're looking for — budget, type, features — and I'll search our inventory for you.
+            Hey! I'm your Big Wave concierge. Looking for something specific? Tell me your dream car — year, make, model, color, features, budget — and we'll search the entire country to find it for you.
           </div>
           }
 
@@ -111,7 +127,7 @@
           <input
             [(ngModel)]="userInput"
             (keydown.enter)="sendMessage()"
-            placeholder="What are you looking for?"
+            placeholder="Describe your dream car..."
             class="search-input"
             [disabled]="chat.isLoading()"
           />
