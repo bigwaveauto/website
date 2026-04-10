@@ -84,6 +84,9 @@
 
     <!-- Right: Icon actions -->
     <div class="header-col-right">
+        <button class="header-icon-btn" (click)="chatService.open()" title="Search with AI" fxHide.lt-md>
+            <lucide-icon name="search" />
+        </button>
         <button class="header-icon-btn" (click)="toggleLocation()" title="Our Location" fxHide.lt-md>
             <lucide-icon name="map-pin" />
         </button>
@@ -296,6 +299,9 @@
         <button class="drawer-secondary-link" (click)="closeMenu(); toggleLocation()">
             <lucide-icon name="map-pin" /> Find Us
         </button>
+        <button class="drawer-secondary-link" (click)="closeMenu(); chatService.open()">
+            <lucide-icon name="search" /> AI Search
+        </button>
         <button class="drawer-secondary-link" (click)="closeMenu(); openContact()">
             <lucide-icon name="circle-help" /> Contact
         </button>
@@ -384,3 +390,6 @@
   </div>
 </div>
 }
+
+<!-- ── AI Chat Panel ── -->
+<app-chat-panel />

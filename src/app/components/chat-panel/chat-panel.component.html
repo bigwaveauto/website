@@ -1,0 +1,87 @@
+@if(chat.panelOpen()){
+<div class="chat-overlay" (click)="chat.close()"></div>
+<div class="chat-panel">
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <lucide-icon name="search" class="chat-header-icon" />
+      <div>
+        <span class="chat-header-title">Find Your Vehicle</span>
+        <span class="chat-header-sub">AI-powered search</span>
+      </div>
+    </div>
+    <button class="chat-close" (click)="chat.close()"><lucide-icon name="x" /></button>
+  </div>
+
+  <!-- Messages -->
+  <div class="chat-messages" #messagesContainer>
+
+    <!-- Welcome -->
+    @if(!chat.messages().length){
+    <div class="chat-bubble assistant">
+      Hey! I'm your Big Wave assistant. Tell me what you're looking for — budget, type, anything — and I'll search our inventory for you.
+    </div>
+    }
+
+    @for(msg of chat.messages(); track $index){
+    <div class="chat-bubble" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
+      <span class="chat-bubble-text">{{ msg.content }}</span>
+
+      <!-- Vehicle cards -->
+      @if(msg.vehicles?.length){
+      <div class="chat-vehicles">
+        @for(v of msg.vehicles; track v.vin){
+        <a [routerLink]="v.url" class="chat-vehicle-card" (click)="chat.close()">
+          @if(v.photo){
+          <img [src]="v.photo" [alt]="v.year + ' ' + v.make + ' ' + v.model" class="chat-vehicle-img" />
+          }
+          <div class="chat-vehicle-info">
+            <span class="chat-vehicle-title">{{ v.year }} {{ v.make }} {{ v.model }}</span>
+            <span class="chat-vehicle-trim">{{ v.trim }}</span>
+            <span class="chat-vehicle-price">{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span>
+            <span class="chat-vehicle-miles">{{ v.mileage | number:'1.0-0' }} mi</span>
+          </div>
+        </a>
+        }
+      </div>
+      }
+
+      <!-- Scheduling link -->
+      @if(msg.schedulingUrl){
+      <a [href]="msg.schedulingUrl" target="_blank" rel="noopener" class="chat-schedule-btn">
+        <lucide-icon name="calendar" /> Schedule a Visit
+      </a>
+      }
+    </div>
+    }
+
+    <!-- Typing indicator -->
+    @if(chat.isLoading()){
+    <div class="chat-bubble assistant">
+      <div class="chat-typing">
+        <span class="chat-dot"></span>
+        <span class="chat-dot"></span>
+        <span class="chat-dot"></span>
+      </div>
+    </div>
+    }
+
+  </div>
+
+  <!-- Input -->
+  <div class="chat-input-area">
+    <input
+      [(ngModel)]="userInput"
+      (keydown.enter)="sendMessage()"
+      placeholder="What are you looking for?"
+      class="chat-input"
+      [disabled]="chat.isLoading()"
+    />
+    <button class="chat-send-btn" (click)="sendMessage()" [disabled]="!userInput.trim() || chat.isLoading()">
+      <lucide-icon name="send" />
+    </button>
+  </div>
+
+</div>
+}

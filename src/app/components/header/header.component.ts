@@ -8,6 +8,8 @@ import { Router, RouterLink, RouterLinkActive } from "@angular/router";
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { AuthService } from '../../services/auth.service';
+import { ChatService } from '../../services/chat.service';
+import { ChatPanelComponent } from '../chat-panel/chat-panel.component';
 
 @Component({
     selector: 'header',
@@ -23,7 +25,8 @@ import { AuthService } from '../../services/auth.service';
         CommonModule,
         RouterLink,
         RouterLinkActive,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        ChatPanelComponent,
     ]
 })
 export class HeaderComponent {
@@ -31,6 +34,7 @@ export class HeaderComponent {
     private readonly fb = inject(FormBuilder);
     private readonly http = inject(HttpClient);
     readonly authService = inject(AuthService);
+    readonly chatService = inject(ChatService);
 
     floating = input<boolean>(false);
 

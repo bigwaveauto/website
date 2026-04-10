@@ -387,6 +387,193 @@ app.post('/api/leads/contact', leadLimiter, async (req, res) => {
 });
 
 /**
+ * AI Chat — conversational vehicle search with tool use
+ */
+const CALENDLY_URL = process.env['CALENDLY_URL'] || 'https://calendly.com/bigwaveauto/visit';
+
+const chatTools: any[] = [
+  {
+    name: 'search_inventory',
+    description: 'Search current vehicle inventory by criteria. Returns matching vehicles.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        price_max: { type: 'number', description: 'Maximum price' },
+        price_min: { type: 'number', description: 'Minimum price' },
+        make: { type: 'string', description: 'Vehicle make (e.g. Tesla, BMW)' },
+        body_type: { type: 'string', description: 'Body type (e.g. SUV, Sedan)' },
+        fuel_type: { type: 'string', description: 'Fuel type (e.g. Electric, Gasoline)' },
+        max_mileage: { type: 'number', description: 'Maximum mileage' },
+      },
+    },
+  },
+  {
+    name: 'capture_lead',
+    description: 'Save customer contact info when they share their name, email, or phone. Call this as soon as you have at least a name and one contact method.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        email: { type: 'string' },
+        phone: { type: 'string' },
+        vehicle_interest: { type: 'string', description: 'What vehicle(s) they are interested in' },
+        notes: { type: 'string' },
+      },
+      required: ['name'],
+    },
+  },
+  {
+    name: 'schedule_appointment',
+    description: 'Generate a scheduling link for the customer to book a visit or test drive.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        email: { type: 'string' },
+      },
+    },
+  },
+];
+
+async function executeToolCall(toolName: string, toolInput: any, inventory: any[]): Promise<string> {
+  if (toolName === 'search_inventory') {
+    let results = [...inventory];
+    if (toolInput.price_max) results = results.filter(v => v.price <= toolInput.price_max);
+    if (toolInput.price_min) results = results.filter(v => v.price >= toolInput.price_min);
+    if (toolInput.make) results = results.filter(v => v.make.toLowerCase().includes(toolInput.make.toLowerCase()));
+    if (toolInput.body_type) results = results.filter(v => v.body.toLowerCase().includes(toolInput.body_type.toLowerCase()));
+    if (toolInput.fuel_type) results = results.filter(v => v.fuel.toLowerCase().includes(toolInput.fuel_type.toLowerCase()));
+    if (toolInput.max_mileage) results = results.filter(v => v.mileage <= toolInput.max_mileage);
+    const mapped = results.map(v => ({
+      vin: v.vin, year: v.year, make: v.make, model: v.model, trim: v.trim,
+      price: v.price, mileage: v.mileage, fuel: v.fuel, body: v.body,
+      color: v.exteriorcolor, drivetrain: v.drivetrainstandard,
+      photo: v.featuredphoto, url: `/showroom/${v.vin}`,
+    }));
+    return JSON.stringify({ count: mapped.length, vehicles: mapped });
+  }
+
+  if (toolName === 'capture_lead') {
+    try {
+      await supabase.from('chat_leads').insert({
+        name: toolInput.name, email: toolInput.email, phone: toolInput.phone,
+        vehicle_interest: toolInput.vehicle_interest, notes: toolInput.notes,
+      });
+      if (toolInput.email) {
+        await resend.emails.send({
+          from: FROM_EMAIL, to: NOTIFY_EMAIL,
+          subject: `🤖 AI Chat Lead — ${escHtml(toolInput.name)}`,
+          html: `<h2>New Chat Lead</h2>
+            <p><b>Name:</b> ${escHtml(toolInput.name)}</p>
+            <p><b>Email:</b> ${escHtml(toolInput.email)}</p>
+            <p><b>Phone:</b> ${escHtml(toolInput.phone)}</p>
+            <p><b>Interest:</b> ${escHtml(toolInput.vehicle_interest)}</p>
+            <p><b>Notes:</b> ${escHtml(toolInput.notes)}</p>`,
+        });
+      }
+    } catch {}
+    return JSON.stringify({ success: true });
+  }
+
+  if (toolName === 'schedule_appointment') {
+    const params = new URLSearchParams();
+    if (toolInput.name) params.set('name', toolInput.name);
+    if (toolInput.email) params.set('email', toolInput.email);
+    const url = `${CALENDLY_URL}?${params.toString()}`;
+    return JSON.stringify({ scheduling_url: url });
+  }
+
+  return JSON.stringify({ error: 'Unknown tool' });
+}
+
+app.post('/api/chat', aiLimiter, async (req, res) => {
+  try {
+    const { messages } = req.body;
+    if (!messages?.length) { res.status(400).json({ error: 'Messages required' }); return; }
+
+    const inventory = await readVautoCsv();
+    const inventorySummary = inventory.map(v => (
+      `${v.year} ${v.make} ${v.model} ${v.trim} — $${v.price.toLocaleString()}, ${v.mileage.toLocaleString()} mi, ${v.fuel}, ${v.exteriorcolor}, VIN: ${v.vin}`
+    )).join('\n');
+
+    const systemPrompt = `You are a friendly, knowledgeable sales assistant for Big Wave Auto, a pre-owned vehicle dealer in Sussex, WI.
+
+Your job:
+1. Understand what the customer is looking for
+2. Ask at most 2 short follow-up questions — keep it conversational like texting a car salesperson
+3. Search inventory and recommend matching vehicles using the search_inventory tool
+4. When the customer shows interest, naturally ask for their name and phone/email so Dave (the owner) can follow up
+5. Once you have contact info, use capture_lead to save it
+6. Offer to schedule a visit or test drive using schedule_appointment
+
+Current inventory:
+${inventorySummary}
+
+Rules:
+- NEVER make up vehicles not in the inventory above
+- If nothing matches, say so honestly and offer to notify them when something comes in
+- Keep responses SHORT — 2-3 sentences max
+- Be warm and casual, not salesy
+- When showing vehicles, mention year, make, model, price, and one standout feature
+- When you use schedule_appointment, tell the user to click the link to pick a time`;
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    let apiMessages = messages.map((m: any) => ({ role: m.role, content: m.content }));
+    let continueLoop = true;
+
+    while (continueLoop) {
+      const response = await anthropic.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        system: systemPrompt,
+        tools: chatTools,
+        messages: apiMessages,
+      });
+
+      for (const block of response.content) {
+        if (block.type === 'text') {
+          res.write(`event: text\ndata: ${JSON.stringify({ text: block.text })}\n\n`);
+        }
+        if (block.type === 'tool_use') {
+          const result = await executeToolCall(block.name, block.input, inventory);
+          // Send vehicle results or scheduling URL to the client
+          if (block.name === 'search_inventory') {
+            const parsed = JSON.parse(result);
+            if (parsed.vehicles?.length) {
+              res.write(`event: vehicles\ndata: ${JSON.stringify(parsed.vehicles)}\n\n`);
+            }
+          }
+          if (block.name === 'schedule_appointment') {
+            const parsed = JSON.parse(result);
+            res.write(`event: schedule\ndata: ${JSON.stringify(parsed)}\n\n`);
+          }
+          // Append assistant message + tool result for continuation
+          apiMessages.push({ role: 'assistant', content: response.content });
+          apiMessages.push({ role: 'user', content: [{ type: 'tool_result', tool_use_id: block.id, content: result }] });
+        }
+      }
+
+      // If the response ended with tool_use, loop to get the follow-up text
+      continueLoop = response.stop_reason === 'tool_use';
+    }
+
+    res.write(`event: done\ndata: {}\n\n`);
+    res.end();
+  } catch (err) {
+    console.error('Chat error:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Chat failed' });
+    } else {
+      res.write(`event: error\ndata: {"error":"Something went wrong"}\n\n`);
+      res.end();
+    }
+  }
+});
+
+/**
  * Admin routes — all protected by auth middleware + rate limiting
  */
 app.use('/api/admin', adminLimiter, requireAdmin);
