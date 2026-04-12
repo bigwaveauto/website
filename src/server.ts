@@ -15,6 +15,8 @@ import { Resend } from 'resend';
 import Anthropic from '@anthropic-ai/sdk';
 import { parse as csvParse } from 'csv-parse/sync';
 import * as XLSX from 'xlsx';
+// @ts-ignore
+import zipcodes from 'zipcodes';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -1878,14 +1880,27 @@ function parseSalesReportRows(rows: Record<string, string>[]): {
     }
   }
 
-  // Build salesByState with topVehicles
-  const salesByState: Record<string, { count: number; zips: Record<string, number>; topVehicles: { name: string; count: number }[] }> = {};
+  // Build salesByState with topVehicles and enriched zip data
+  const salesByState: Record<string, { count: number; zips: Record<string, number>; zipGeo: { zip: string; count: number; city: string; lat: number; lng: number }[]; topVehicles: { name: string; count: number }[] }> = {};
   for (const [state, data] of Object.entries(stateData)) {
     const topVehicles = Object.entries(data.vehicles)
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-    salesByState[state] = { count: data.count, zips: data.zips, topVehicles };
+    // Enrich zip codes with lat/lng and city names
+    const zipGeo = Object.entries(data.zips)
+      .map(([zip, count]) => {
+        const info = (zipcodes as any).lookup(zip);
+        return {
+          zip, count,
+          city: info?.city || '',
+          lat: info?.latitude || 0,
+          lng: info?.longitude || 0,
+        };
+      })
+      .filter(z => z.lat !== 0)
+      .sort((a, b) => b.count - a.count);
+    salesByState[state] = { count: data.count, zips: data.zips, zipGeo, topVehicles };
   }
 
   // Build top brands

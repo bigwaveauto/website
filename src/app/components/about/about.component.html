@@ -189,7 +189,21 @@
     </div>
     }
 
-    @if(detailZips().length){
+    @if(detailZipGeo().length){
+    <div class="abt-modal-section">
+      <h3>Sales Locations</h3>
+      <div class="abt-state-map">
+        @for(z of detailZipGeo(); track z.zip){
+        <div class="abt-map-dot-wrap"
+             [style.left.%]="z.x" [style.top.%]="z.y"
+             [title]="z.city + ' (' + z.zip + ') — ' + z.count + ' sale' + (z.count > 1 ? 's' : '')">
+          <div class="abt-map-dot" [style.width.px]="10 + (z.count - 1) * 6" [style.height.px]="10 + (z.count - 1) * 6"></div>
+          <span class="abt-map-dot-city">{{ z.city }}</span>
+        </div>
+        }
+      </div>
+    </div>
+    }@else if(detailZips().length){
     <div class="abt-modal-section">
       <h3>Sales Locations</h3>
       <div class="abt-modal-dots">

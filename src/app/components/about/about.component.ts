@@ -7,9 +7,18 @@ import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
 import { US_STATE_PATHS } from './us-state-paths';
 
+interface ZipGeo {
+  zip: string;
+  count: number;
+  city: string;
+  lat: number;
+  lng: number;
+}
+
 interface StateDetail {
   count: number;
   zips: Record<string, number>;
+  zipGeo?: ZipGeo[];
   topVehicles: { name: string; count: number }[];
 }
 
@@ -61,6 +70,7 @@ export class AboutComponent implements OnInit {
   detailStateName = signal('');
   detailCount = signal(0);
   detailZips = signal<{ zip: string; count: number }[]>([]);
+  detailZipGeo = signal<{ zip: string; count: number; city: string; x: number; y: number }[]>([]);
   detailVehicles = signal<{ name: string; count: number }[]>([]);
 
   /** Get count from salesByState entry (handles both old flat number and new rich object) */
@@ -111,9 +121,35 @@ export class AboutComponent implements OnInit {
         .sort((a, b) => b.count - a.count);
       this.detailZips.set(sortedZips);
       this.detailVehicles.set((entry.topVehicles || []).slice(0, 5));
+
+      // Convert zipGeo lat/lng to x/y positions within a bounding box
+      const geo = entry.zipGeo || [];
+      if (geo.length > 0) {
+        const lats = geo.map(g => g.lat);
+        const lngs = geo.map(g => g.lng);
+        let minLat = Math.min(...lats), maxLat = Math.max(...lats);
+        let minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+        // Add padding so dots aren't on edges
+        const latPad = Math.max((maxLat - minLat) * 0.15, 0.1);
+        const lngPad = Math.max((maxLng - minLng) * 0.15, 0.1);
+        minLat -= latPad; maxLat += latPad;
+        minLng -= lngPad; maxLng += lngPad;
+        const latRange = maxLat - minLat || 1;
+        const lngRange = maxLng - minLng || 1;
+
+        this.detailZipGeo.set(geo.map(g => ({
+          zip: g.zip,
+          count: g.count,
+          city: g.city,
+          x: ((g.lng - minLng) / lngRange) * 100,
+          y: ((maxLat - g.lat) / latRange) * 100, // flip Y axis
+        })));
+      } else {
+        this.detailZipGeo.set([]);
+      }
     } else {
-      // Flat number — no detail available
       this.detailZips.set([]);
+      this.detailZipGeo.set([]);
       this.detailVehicles.set([]);
     }
 

@@ -711,7 +711,56 @@ $radius:    14px;
   flex-shrink: 0;
 }
 
-/* Zip dot map */
+/* State geo map */
+.abt-state-map {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.abt-map-dot-wrap {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: default;
+  z-index: 1;
+
+  &:hover {
+    z-index: 10;
+    .abt-map-dot { transform: scale(1.3); opacity: 1; }
+    .abt-map-dot-city { opacity: 1; }
+  }
+}
+
+.abt-map-dot {
+  border-radius: 50%;
+  background: radial-gradient(circle, #38bdf8 0%, #1a78c2 100%);
+  opacity: 0.8;
+  min-width: 10px;
+  min-height: 10px;
+  max-width: 36px;
+  max-height: 36px;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.abt-map-dot-city {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+/* Fallback dot layout (no geo data) */
 .abt-modal-dots {
   display: flex;
   flex-wrap: wrap;
