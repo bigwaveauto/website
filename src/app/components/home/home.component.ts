@@ -54,13 +54,10 @@ export class HomeComponent implements OnDestroy {
   carSearch = new FormControl('');
 
   heroPhotos = [
-    '/_SLC0012.jpg',
-    '/SLC00303-5.jpg',
-    '/_SLC0181-2.jpg',
-    '/_SLC0056.jpg',
-    
-
-  
+    '/_SLC0012.webp',
+    '/SLC00303-5.webp',
+    '/_SLC0181-2.webp',
+    '/_SLC0056.webp',
   ];
   currentSlide = signal(0);
   private slideInterval: ReturnType<typeof setInterval> | undefined;
