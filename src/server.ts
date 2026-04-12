@@ -15,8 +15,9 @@ import { Resend } from 'resend';
 import Anthropic from '@anthropic-ai/sdk';
 import { parse as csvParse } from 'csv-parse/sync';
 import * as XLSX from 'xlsx';
-// @ts-ignore
-import zipcodes from 'zipcodes';
+import { createRequire } from 'node:module';
+const _require = createRequire(import.meta.url);
+const zipcodes = _require('zipcodes');
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import cors from 'cors';
