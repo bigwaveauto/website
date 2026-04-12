@@ -120,6 +120,17 @@ $blue: #2563eb;
   &:hover  { background: #e8edf5 !important; }
 }
 
+.nav-acq-btn {
+  background: #38bdf8 !important;
+  color: #0e1523 !important;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.3px;
+
+  &::after { display: none !important; }
+  &:hover  { background: #7dd3fc !important; }
+}
+
 /* ── Financing dropdown ── */
 .nav-financing-wrap {
   position: relative;

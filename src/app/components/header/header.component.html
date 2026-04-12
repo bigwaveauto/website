@@ -55,6 +55,7 @@
           </div>
           }
         </div>
+        <a routerLink="/search" routerLinkActive="nav-link-active" class="nav-link nav-acq-btn">The Acquisition Desk</a>
         <a routerLink="/sell"      routerLinkActive="nav-link-active" class="nav-link">Sell or Trade</a>
         <div class="nav-financing-wrap"
              (mouseenter)="openFinancingMenu()"
@@ -80,7 +81,6 @@
           }
         </div>
         <a routerLink="/about"     routerLinkActive="nav-link-active" class="nav-link">About</a>
-        <a routerLink="/search"   routerLinkActive="nav-link-active" class="nav-link">Search</a>
     </div>
 
     <!-- Right: Icon actions -->
@@ -298,7 +298,7 @@
             <lucide-icon name="map-pin" /> Find Us
         </button>
         <a class="drawer-secondary-link" (click)="drawerNav('/search')">
-            <lucide-icon name="search" /> Search
+            <lucide-icon name="search" /> The Acquisition Desk
         </a>
         <button class="drawer-secondary-link" (click)="closeMenu(); openContact()">
             <lucide-icon name="circle-help" /> Contact
