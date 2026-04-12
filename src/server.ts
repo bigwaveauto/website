@@ -1851,7 +1851,10 @@ function parseSalesReportRows(rows: Record<string, string>[]): {
     const model = (row['Model'] || row['model'] || '').trim();
     const dealNo = (row['Deal No.'] || row['deal no.'] || row['Deal No'] || row['deal no'] || '').trim();
 
-    // Skip rows without a valid state
+    // Count every row as a sale
+    totalSales++;
+
+    // Skip state-level tracking for rows without a valid state
     if (!signerState || !VALID_STATES.has(signerState)) continue;
 
     // Initialize state entry
@@ -1860,7 +1863,6 @@ function parseSalesReportRows(rows: Record<string, string>[]): {
     }
 
     stateData[signerState].count++;
-    totalSales++;
 
     // Track zip codes
     if (signerZip && signerZip.length === 5) {
