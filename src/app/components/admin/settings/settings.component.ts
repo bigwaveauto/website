@@ -208,6 +208,9 @@ export class AdminSettingsComponent implements OnInit {
         }
         if (res.topBrands?.length) this.topBrands.set(res.topBrands);
         this.xlsUploading.set(false);
+        this.appRef.tick();
+        // Auto-save after successful parse
+        this.saveSalesStats();
       },
       error: () => {
         this.xlsUploading.set(false);
