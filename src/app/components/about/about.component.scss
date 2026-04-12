@@ -660,70 +660,92 @@ $radius:    14px;
   }
 }
 
-.abt-modal-vehicles {
+/* Bar chart */
+.abt-modal-bar-chart {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-.abt-modal-vehicle {
+.abt-bar-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
 }
 
-.abt-modal-vehicle-rank {
+.abt-bar-label {
   font-size: 13px;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.25);
-  width: 24px;
-  flex-shrink: 0;
-}
-
-.abt-modal-vehicle-name {
-  flex: 1;
-  font-size: 15px;
   font-weight: 600;
-  color: white;
+  color: rgba(255, 255, 255, 0.75);
+  width: 140px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: 500px) { width: 100px; font-size: 12px; }
 }
 
-.abt-modal-vehicle-count {
-  font-size: 16px;
+.abt-bar-track {
+  flex: 1;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.abt-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1a78c2, #38bdf8);
+  border-radius: 6px;
+  min-width: 4px;
+  transition: width 0.4s ease;
+}
+
+.abt-bar-value {
+  font-size: 15px;
   font-weight: 800;
   color: #38bdf8;
+  width: 28px;
+  text-align: right;
   flex-shrink: 0;
 }
 
-.abt-modal-zips {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 6px;
-}
-
-.abt-modal-zip {
+/* Zip dot map */
+.abt-modal-dots {
   display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.abt-dot-wrap {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 8px;
+  gap: 4px;
+  cursor: default;
 }
 
-.abt-modal-zip-code {
-  font-size: 14px;
+.abt-dot {
+  border-radius: 50%;
+  background: radial-gradient(circle, #38bdf8 0%, #1a78c2 100%);
+  opacity: 0.85;
+  min-width: 12px;
+  min-height: 12px;
+  max-width: 40px;
+  max-height: 40px;
+  transition: transform 0.2s;
+
+  .abt-dot-wrap:hover & { transform: scale(1.15); opacity: 1; }
+}
+
+.abt-dot-label {
+  font-size: 10px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.4);
   font-family: monospace;
-}
-
-.abt-modal-zip-count {
-  font-size: 13px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.45);
 }
 
 .abt-modal-no-detail {

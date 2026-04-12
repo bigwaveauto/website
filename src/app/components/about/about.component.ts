@@ -136,7 +136,6 @@ export class AboutComponent implements OnInit {
     { name: 'Rivian', count: 25, logo: '/brands/rivian.png' },
     { name: 'BMW', count: 24, logo: '/brands/bmw.png' },
     { name: 'Porsche', count: 10, logo: '/brands/porsche.png' },
-    { name: 'Toyota', count: 10, logo: '/brands/toyota.png' },
   ];
 
   ngOnInit() {
@@ -148,7 +147,7 @@ export class AboutComponent implements OnInit {
           this.statesReached = Object.keys(this.salesByState).length;
         }
         if (data.total_sales) this.totalSales = data.total_sales;
-        if (data.top_brands?.length) this.topBrands = data.top_brands;
+        if (data.top_brands?.length) this.topBrands = data.top_brands.slice(0, 4);
       },
     });
   }

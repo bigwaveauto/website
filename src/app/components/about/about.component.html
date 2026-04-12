@@ -175,12 +175,14 @@
     @if(detailVehicles().length){
     <div class="abt-modal-section">
       <h3>Top Vehicles Sold</h3>
-      <div class="abt-modal-vehicles">
-        @for(v of detailVehicles(); track v.name; let i = $index){
-        <div class="abt-modal-vehicle">
-          <span class="abt-modal-vehicle-rank">#{{ i + 1 }}</span>
-          <span class="abt-modal-vehicle-name">{{ v.name }}</span>
-          <span class="abt-modal-vehicle-count">{{ v.count }}</span>
+      <div class="abt-modal-bar-chart">
+        @for(v of detailVehicles(); track v.name){
+        <div class="abt-bar-row">
+          <span class="abt-bar-label">{{ v.name }}</span>
+          <div class="abt-bar-track">
+            <div class="abt-bar-fill" [style.width.%]="(v.count / detailVehicles()[0].count) * 100"></div>
+          </div>
+          <span class="abt-bar-value">{{ v.count }}</span>
         </div>
         }
       </div>
@@ -189,12 +191,12 @@
 
     @if(detailZips().length){
     <div class="abt-modal-section">
-      <h3>Zip Code Breakdown</h3>
-      <div class="abt-modal-zips">
+      <h3>Sales Locations</h3>
+      <div class="abt-modal-dots">
         @for(z of detailZips(); track z.zip){
-        <div class="abt-modal-zip">
-          <span class="abt-modal-zip-code">{{ z.zip }}</span>
-          <span class="abt-modal-zip-count">{{ z.count }}</span>
+        <div class="abt-dot-wrap" [title]="z.zip + ' — ' + z.count + ' sale' + (z.count > 1 ? 's' : '')">
+          <div class="abt-dot" [style.width.px]="12 + (z.count - 1) * 8" [style.height.px]="12 + (z.count - 1) * 8"></div>
+          <span class="abt-dot-label">{{ z.zip }}</span>
         </div>
         }
       </div>
@@ -203,7 +205,7 @@
 
     @if(!detailVehicles().length && !detailZips().length){
     <div class="abt-modal-section">
-      <p class="abt-modal-no-detail">Detailed breakdown not available for this state yet.</p>
+      <p class="abt-modal-no-detail">Detailed breakdown not available for this state yet. Upload a sales report in admin settings.</p>
     </div>
     }
   </div>
