@@ -18,7 +18,7 @@
       (click)="toggleMakeFilter(make.key)">
       @if(getBrandLogo(make.key); as logoSrc){
       <div class="inv-brand-logo-wrap" [class.inv-brand-logo-wrap--lg]="make.key.toLowerCase() === 'porsche'">
-        <img class="inv-brand-logo" [src]="logoSrc" [alt]="make.key">
+        <img class="inv-brand-logo" [src]="logoSrc" [alt]="make.key" loading="lazy">
       </div>
       }
       <span class="inv-brand-name">{{ make.key }}</span>
@@ -184,12 +184,12 @@
                 <div class="inv-img-slide" [style.width.%]="(1/photoslen)*100">
                   <img (load)="onImageLoad($event, i)"
                     [src]="auto.photos[0] || 'https://static.overfuel.com/photos/1368/848688/202412-7f6fa4ca4bf848799c7e693986e85fda-thumb.webp'"
-                    [alt]="auto.make + ' ' + auto.model" class="inv-img" />
+                    [alt]="auto.make + ' ' + auto.model" class="inv-img" width="400" height="300" [attr.loading]="i < 3 ? 'eager' : 'lazy'" />
                 </div>
                 @for(img of auto.photos | slice:1:photoslen; track img){
                 <div class="inv-img-slide" [style.width.%]="(1/photoslen)*100"
                   [style.height.px]="heroDims()[i]?.height">
-                  <img [src]="img" [alt]="auto.make + ' ' + auto.model" class="inv-img" />
+                  <img [src]="img" [alt]="auto.make + ' ' + auto.model" class="inv-img" width="400" height="300" loading="lazy" />
                 </div>
                 }
               </div>

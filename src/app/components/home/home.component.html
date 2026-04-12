@@ -9,7 +9,7 @@
 
             <!-- Sliding photos -->
             @for(photo of heroPhotos; track photo; let i = $index) {
-            <img [src]="photo" class="hero-photo" [class.active]="currentSlide() === i" alt="Big Wave Auto" />
+            <img [src]="photo" class="hero-photo" [class.active]="currentSlide() === i" alt="Big Wave Auto" fetchpriority="high" />
             }
 
             <!-- Dark overlay -->
@@ -59,18 +59,18 @@
             <p class="brands-subtitle">View from our collection of most prestigious brands of cars</p>
             <div class="marquee-wrapper">
                 <div class="marquee-track">
-                    <div class="brand-item"><img src="/brands/bmw.png" alt="BMW"></div>
-                    <div class="brand-item"><img src="/brands/porsche.png" alt="Porsche"></div>
-                    <div class="brand-item"><img src="/brands/mercedes-benz.png" alt="Mercedes-Benz"></div>
-                    <div class="brand-item"><img src="/brands/rivian.png" alt="Rivian"></div>
-                    <div class="brand-item"><img src="/brands/tesla.png" alt="Tesla"></div>
-                    <div class="brand-item"><img src="/brands/audi.png" alt="Audi"></div>
-                    <div class="brand-item"><img src="/brands/bmw.png" alt="BMW"></div>
-                    <div class="brand-item"><img src="/brands/porsche.png" alt="Porsche"></div>
-                    <div class="brand-item"><img src="/brands/mercedes-benz.png" alt="Mercedes-Benz"></div>
-                    <div class="brand-item"><img src="/brands/rivian.png" alt="Rivian"></div>
-                    <div class="brand-item"><img src="/brands/tesla.png" alt="Tesla"></div>
-                    <div class="brand-item"><img src="/brands/audi.png" alt="Audi"></div>
+                    <div class="brand-item"><img src="/brands/bmw.png" alt="BMW" loading="lazy" width="120" height="60"></div>
+                    <div class="brand-item"><img src="/brands/porsche.png" alt="Porsche" loading="lazy" width="120" height="60"></div>
+                    <div class="brand-item"><img src="/brands/mercedes-benz.png" alt="Mercedes-Benz" loading="lazy" width="120" height="60"></div>
+                    <div class="brand-item"><img src="/brands/rivian.png" alt="Rivian" loading="lazy" width="120" height="60"></div>
+                    <div class="brand-item"><img src="/brands/tesla.png" alt="Tesla" loading="lazy" width="120" height="60"></div>
+                    <div class="brand-item"><img src="/brands/audi.png" alt="Audi" loading="lazy" width="120" height="60"></div>
+                    <div class="brand-item"><img src="/brands/bmw.png" alt="BMW" loading="lazy" width="120" height="60"></div>
+                    <div class="brand-item"><img src="/brands/porsche.png" alt="Porsche" loading="lazy" width="120" height="60"></div>
+                    <div class="brand-item"><img src="/brands/mercedes-benz.png" alt="Mercedes-Benz" loading="lazy" width="120" height="60"></div>
+                    <div class="brand-item"><img src="/brands/rivian.png" alt="Rivian" loading="lazy" width="120" height="60"></div>
+                    <div class="brand-item"><img src="/brands/tesla.png" alt="Tesla" loading="lazy" width="120" height="60"></div>
+                    <div class="brand-item"><img src="/brands/audi.png" alt="Audi" loading="lazy" width="120" height="60"></div>
                 </div>
             </div>
         </div>
@@ -160,10 +160,10 @@
             </div>
             <!-- Carfax card with Car Fox peeking behind -->
             <div class="trust-card-fox-wrap">
-              <img src="/Carfax/Car_Fox_flag-waving_us.png" alt="Car Fox" class="trust-carfox-behind">
+              <img src="/Carfax/Car_Fox_flag-waving_us.png" alt="Car Fox" class="trust-carfox-behind" loading="lazy" width="80" height="80">
               <div class="trust-card trust-card--carfax">
                 <div class="trust-badge trust-badge--carfax">
-                  <img src="/Carfax/CAD_flatLogo1.png" alt="Carfax" width="100">
+                  <img src="/Carfax/CAD_flatLogo1.png" alt="Carfax" width="100" loading="lazy">
                 </div>
                 <b class="trust-card-title">Carfax history report</b>
                 <p class="trust-card-sub">Know the full story</p>
@@ -182,7 +182,7 @@
               <a routerLink="/sell" class="sell-float-btn">Get Your Offer</a>
             </div>
             <div class="sell-float-right">
-              <img src="/_SLC0212-2.jpg" alt="Big Wave Auto showroom" class="sell-float-img">
+              <img src="/_SLC0212-2.jpg" alt="Big Wave Auto showroom" class="sell-float-img" loading="lazy">
             </div>
           </div>
         </div>

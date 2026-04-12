@@ -10,7 +10,7 @@
   <div class="vdp-photo-fixed">
     @if(total > 0){
     <div class="vdp-photo-main" (click)="openSinglePhoto(selectedPhotoIndex())">
-      <img [src]="v.photos[selectedPhotoIndex()].large" [alt]="v.title" />
+      <img [src]="v.photos[selectedPhotoIndex()].large" [alt]="v.title" fetchpriority="high" />
       <!-- Expand icon -->
       <button class="vdp-photo-expand"><lucide-icon name="maximize-2" /></button>
       <!-- Nav arrows -->
@@ -152,17 +152,17 @@
   @if(v.carfaxurl){
   <div class="vdp-carfax-card">
     <a [href]="v.carfaxurl" target="_blank" rel="noopener" class="vdp-carfax-snapshot">
-      <img [src]="v.carfaxicon" [alt]="v.carfaxalt || 'Carfax Report'" class="vdp-carfax-snapshot-img" />
+      <img [src]="v.carfaxicon" [alt]="v.carfaxalt || 'Carfax Report'" class="vdp-carfax-snapshot-img" loading="lazy" />
     </a>
     <div class="vdp-carfax-items">
       @if(v.carfaxownerstext){
       <div class="vdp-carfax-item">
-        @if(v.carfaxownersicon){<img [src]="v.carfaxownersicon" alt="" class="vdp-carfax-item-icon" />}
+        @if(v.carfaxownersicon){<img [src]="v.carfaxownersicon" alt="" class="vdp-carfax-item-icon" loading="lazy" />}
         <span>{{ v.carfaxownerstext }}</span>
       </div>}
       @if(v.carfaxaccidenttext){
       <div class="vdp-carfax-item">
-        @if(v.carfaxaccidenticon){<img [src]="v.carfaxaccidenticon" alt="" class="vdp-carfax-item-icon" />}
+        @if(v.carfaxaccidenticon){<img [src]="v.carfaxaccidenticon" alt="" class="vdp-carfax-item-icon" loading="lazy" />}
         <span>{{ v.carfaxaccidenttext }}</span>
       </div>}
     </div>
@@ -288,7 +288,7 @@
     <div class="vdp-lb-main">
       <div class="vdp-lb-img-wrap">
         <img [src]="v.photos[selectedPhotoIndex()].large" [alt]="v.title"
-             class="vdp-lb-img" [style.transform]="'scale(' + zoomLevel() + ')'" />
+             class="vdp-lb-img" [style.transform]="'scale(' + zoomLevel() + ')'" loading="lazy" />
         <!-- Zoom controls -->
         <div class="vdp-lb-zoom">
           <button (click)="zoomOut()" [disabled]="zoomLevel() <= 1"><lucide-icon name="zoom-out" /></button>

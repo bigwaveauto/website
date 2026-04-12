@@ -13,7 +13,7 @@
     <!-- Left: Logo -->
     <div class="header-col-left">
         <a [routerLink]="['/']" class="header-logo-link">
-            <img src="big-wave-auto-logo.webp" class="header-logo-img">
+            <img src="big-wave-auto-logo.webp" class="header-logo-img" width="140" height="50">
         </a>
     </div>
 
@@ -36,11 +36,11 @@
             <!-- Right: brand / feature cards -->
             <div class="mega-cards">
               <a routerLink="/showroom" [queryParams]="{'make[]': 'rivian'}" class="mega-card" (click)="inventoryMenuOpen.set(false)">
-                <div class="mega-card-img"><img src="/brands/rivian.png" alt="Rivian"></div>
+                <div class="mega-card-img"><img src="/brands/rivian.png" alt="Rivian" loading="lazy" width="80" height="60"></div>
                 <span class="mega-card-label">Rivian</span>
               </a>
               <a routerLink="/showroom" [queryParams]="{'make[]': 'tesla'}" class="mega-card" (click)="inventoryMenuOpen.set(false)">
-                <div class="mega-card-img"><img src="/brands/tesla.png" alt="Tesla"></div>
+                <div class="mega-card-img"><img src="/brands/tesla.png" alt="Tesla" loading="lazy" width="80" height="60"></div>
                 <span class="mega-card-label">Tesla</span>
               </a>
               <a routerLink="/showroom" [queryParams]="{'fuel[]': 'Electric'}" class="mega-card" (click)="inventoryMenuOpen.set(false)">
