@@ -4,17 +4,39 @@ $bg: #e8eaed;
 $border: rgba(0,0,0,0.08);
 $text-muted: rgba(0,0,0,0.45);
 
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+
+  @media (max-width: 900px) {
+    height: auto;
+    overflow: visible;
+  }
+}
+
 .search-page {
-  min-height: 100vh;
+  height: 100dvh;
   background: $bg;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  @media (max-width: 900px) {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
 }
 
 /* Banner */
 .search-banner {
   background: $navy;
   border-radius: 20px;
-  margin: 20px 20px 0;
-  padding: 48px 48px 40px;
+  margin: 14px 20px 0;
+  padding: 28px 40px 24px;
+  flex-shrink: 0;
 
   @media (max-width: 768px) {
     padding: 32px 24px 28px;
@@ -42,13 +64,13 @@ $text-muted: rgba(0,0,0,0.45);
   gap: 24px;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 20px 40px;
-  height: calc(100dvh - 280px);
-  min-height: 400px;
+  padding: 16px 20px 16px;
+  flex: 1;
+  min-height: 0;
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
-    height: auto;
+    flex: none;
   }
 }
 
