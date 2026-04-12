@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, signal, inject, OnInit, ApplicationRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -45,7 +45,7 @@ interface FinanceSettings {
 })
 export class AdminSettingsComponent implements OnInit {
   private http = inject(HttpClient);
-  private cdr = inject(ChangeDetectorRef);
+  private appRef = inject(ApplicationRef);
 
   activeTab = signal<string>('finance');
   loading = signal(false);
@@ -80,6 +80,7 @@ export class AdminSettingsComponent implements OnInit {
   setTab(key: string) {
     this.activeTab.set(key);
     this.saved.set(false);
+    setTimeout(() => this.appRef.tick());
   }
 
   loadSettings() {
@@ -89,10 +90,11 @@ export class AdminSettingsComponent implements OnInit {
           this.finance = { ...this.finance, ...res.settings['finance'] };
         }
         this.loading.set(false);
+        this.appRef.tick();
       },
       error: () => {
-        // Use defaults if no settings saved yet
         this.loading.set(false);
+        this.appRef.tick();
       },
     });
   }
