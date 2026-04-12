@@ -547,6 +547,28 @@ select.det-dv {
   &:hover { color: #ef4444; }
 }
 
+.det-photo-cat-pills {
+  display: flex;
+  gap: 3px;
+}
+
+.det-cat-pill {
+  padding: 3px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: white;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: inherit;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.3px;
+
+  &:hover { border-color: #999; color: #555; }
+  &.active { background: $blue; border-color: $blue; color: white; }
+}
+
 /* ── Window Sticker ── */
 .det-sticker-preview {
   display: flex; align-items: center; gap: 12px; padding: 12px 0;

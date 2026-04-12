@@ -121,6 +121,13 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   uploadingPhoto = signal(false);
   photoDragOver = signal(false);
   photoCategories = PHOTO_CATEGORIES;
+  photoCatPills = [
+    { key: 'Exterior', short: 'EXT' },
+    { key: 'Interior', short: 'INT' },
+    { key: 'Mechanical', short: 'MECH' },
+    { key: 'Damage', short: 'DMG' },
+    { key: 'Miscellaneous', short: 'MSC' },
+  ];
   photoCatFilter = signal('All');
   savingPhotoCats = signal(false);
   photoCatsSaved = signal(false);
@@ -232,10 +239,32 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
             sort_order: p.sort_order,
             category: p.category,
           })));
+        } else {
+          // No saved categories — load from vAuto feed if no photos yet
+          this.loadFeedPhotosIfEmpty(vin);
         }
       },
-      error: () => {},
+      error: () => this.loadFeedPhotosIfEmpty(vin),
     });
+  }
+
+  private loadFeedPhotosIfEmpty(vin: string) {
+    // Wait a tick for other requests to settle, then check
+    setTimeout(() => {
+      if (this.photos().length) return;
+      this.http.get<any>('/api/admin/vauto/inventory').subscribe({
+        next: (data) => {
+          const v = (data?.results || []).find((veh: any) => veh.vin.toLowerCase() === vin.toLowerCase());
+          if (v?.photos?.length) {
+            this.photos.set(
+              v.photos
+                .filter((url: any) => typeof url === 'string')
+                .map((url: string, i: number) => ({ url, sort_order: i, category: 'Exterior' }))
+            );
+          }
+        },
+      });
+    }, 500);
   }
 
   ngOnDestroy() {

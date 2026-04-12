@@ -323,11 +323,12 @@
       <div class="det-photo-item">
         <img [src]="p.photo.url" alt="Vehicle photo" />
         <div class="det-photo-controls">
-          <select [ngModel]="p.photo.category || 'Exterior'" (ngModelChange)="setPhotoCategory(p.index, $event)">
-            @for(cat of photoCategories; track cat){
-            <option [value]="cat">{{ cat }}</option>
+          <div class="det-photo-cat-pills">
+            @for(cat of photoCatPills; track cat.key){
+            <button class="det-cat-pill" [class.active]="(p.photo.category || 'Exterior') === cat.key"
+                    (click)="setPhotoCategory(p.index, cat.key)">{{ cat.short }}</button>
             }
-          </select>
+          </div>
           <button class="det-photo-remove" (click)="removePhoto(p.index)"><lucide-icon name="x" /></button>
         </div>
       </div>
