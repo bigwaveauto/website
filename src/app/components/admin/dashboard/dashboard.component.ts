@@ -81,8 +81,22 @@ export class DashboardComponent implements OnInit {
 
   loadVautoStatus() {
     this.http.get<VautoStatus>('/api/admin/vauto/status').subscribe({
-      next: (status) => this.vauto.set(status),
-      error: () => {},
+      next: (status) => {
+        if ((status as any)?.error) return;
+        this.vauto.set(status);
+      },
+      error: () => {
+        // Auth might not be ready yet — retry once after 2s
+        setTimeout(() => {
+          this.http.get<VautoStatus>('/api/admin/vauto/status').subscribe({
+            next: (status) => {
+              if ((status as any)?.error) return;
+              this.vauto.set(status);
+            },
+            error: () => {},
+          });
+        }, 2000);
+      },
     });
   }
 
