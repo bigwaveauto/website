@@ -833,6 +833,16 @@ const upload = multer({
   },
 });
 
+const REPORT_MIMES = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/pdf', 'text/plain'];
+const reportUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (REPORT_MIMES.includes(file.mimetype) || file.originalname.match(/\.(csv|xls|xlsx|pdf)$/i)) { cb(null, true); }
+    else { cb(new Error('File type not allowed. Use CSV, XLS, XLSX, or PDF.')); }
+  },
+});
+
 /**
  * AI Document Scanner — Bill of Sale
  * Extracts: VIN, purchase price, seller name/address, auction/source, date, odometer
@@ -1777,6 +1787,185 @@ app.post('/api/admin/sales-stats/upload', upload.single('file'), async (req: any
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to parse spreadsheet' });
+  }
+});
+
+/**
+ * Brand logo mapping (server-side mirror of settings.component.ts brandLogos)
+ */
+const BRAND_LOGOS: Record<string, string> = {
+  'Acura': '/brands/acura.png', 'Alfa Romeo': '/brands/alfa-romeo.png',
+  'Aston Martin': '/brands/aston-martin.png', 'Audi': '/brands/audi.png',
+  'Bentley': '/brands/bentley.png', 'BMW': '/brands/bmw.png',
+  'Buick': '/brands/buick.png', 'Cadillac': '/brands/cadillac.png',
+  'Chevrolet': '/brands/chevrolet.png', 'Chrysler': '/brands/chrysler.png',
+  'Dodge': '/brands/dodge.png', 'Ferrari': '/brands/ferrari.png',
+  'Ford': '/brands/ford.png', 'Genesis': '/brands/genesis.png',
+  'GMC': '/brands/gmc.png', 'Honda': '/brands/honda.png',
+  'Hyundai': '/brands/hyundai.png', 'Infiniti': '/brands/infiniti.png',
+  'Jaguar': '/brands/jaguar.png', 'Jeep': '/brands/jeep.png',
+  'Kia': '/brands/kia.png', 'Lamborghini': '/brands/lamborghini.png',
+  'Land Rover': '/brands/land-rover.png', 'Lexus': '/brands/lexus.png',
+  'Lincoln': '/brands/lincoln.png', 'Lucid': '/brands/lucid.png',
+  'Maserati': '/brands/maserati.png', 'Mazda': '/brands/mazda.png',
+  'Mercedes-Benz': '/brands/mercedes-benz.png', 'Mini': '/brands/mini.png',
+  'Mitsubishi': '/brands/mitsubishi.png', 'Nissan': '/brands/nissan.png',
+  'Polestar': '/brands/polestar.png', 'Porsche': '/brands/porsche.png',
+  'Ram': '/brands/ram.png', 'Rivian': '/brands/rivian.png',
+  'Rolls-Royce': '/brands/rolls-royce.png', 'Subaru': '/brands/subaru.png',
+  'Tesla': '/brands/tesla.png', 'Toyota': '/brands/toyota.png',
+  'Volkswagen': '/brands/volkswagen.png', 'Volvo': '/brands/volvo.png',
+};
+
+/**
+ * Capitalize first letter of each word in a brand name
+ */
+function normalizeBrand(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return trimmed;
+  // Check for known brands (case-insensitive)
+  for (const known of Object.keys(BRAND_LOGOS)) {
+    if (known.toLowerCase() === trimmed.toLowerCase()) return known;
+  }
+  // Fallback: title case
+  return trimmed.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+/**
+ * Parse CSV rows into structured sales data
+ */
+function parseSalesReportRows(rows: Record<string, string>[]): {
+  totalSales: number;
+  salesByState: Record<string, { count: number; zips: Record<string, number>; topVehicles: { name: string; count: number }[] }>;
+  topBrands: { name: string; count: number; logo: string }[];
+} {
+  const stateData: Record<string, { count: number; zips: Record<string, number>; vehicles: Record<string, number> }> = {};
+  const overallBrands: Record<string, number> = {};
+  let totalSales = 0;
+
+  for (const row of rows) {
+    // Find column values (flexible header matching)
+    const signerState = (row['Signer State'] || row['signer state'] || row['State'] || row['state'] || '').trim().toUpperCase();
+    const signerZip = (row['Signer Zip'] || row['signer zip'] || row['Zip'] || row['zip'] || '').trim().replace(/[^0-9]/g, '').slice(0, 5);
+    const vehicleMake = (row['Vehicle Make'] || row['vehicle make'] || row['Make'] || row['make'] || '').trim();
+    const model = (row['Model'] || row['model'] || '').trim();
+    const dealNo = (row['Deal No.'] || row['deal no.'] || row['Deal No'] || row['deal no'] || '').trim();
+
+    // Skip rows without a valid state
+    if (!signerState || !VALID_STATES.has(signerState)) continue;
+
+    // Initialize state entry
+    if (!stateData[signerState]) {
+      stateData[signerState] = { count: 0, zips: {}, vehicles: {} };
+    }
+
+    stateData[signerState].count++;
+    totalSales++;
+
+    // Track zip codes
+    if (signerZip && signerZip.length === 5) {
+      stateData[signerState].zips[signerZip] = (stateData[signerState].zips[signerZip] || 0) + 1;
+    }
+
+    // Track vehicles (make + model)
+    if (vehicleMake) {
+      const brand = normalizeBrand(vehicleMake);
+      const vehicleName = model ? `${brand} ${model}` : brand;
+      stateData[signerState].vehicles[vehicleName] = (stateData[signerState].vehicles[vehicleName] || 0) + 1;
+      overallBrands[brand] = (overallBrands[brand] || 0) + 1;
+    }
+  }
+
+  // Build salesByState with topVehicles
+  const salesByState: Record<string, { count: number; zips: Record<string, number>; topVehicles: { name: string; count: number }[] }> = {};
+  for (const [state, data] of Object.entries(stateData)) {
+    const topVehicles = Object.entries(data.vehicles)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+    salesByState[state] = { count: data.count, zips: data.zips, topVehicles };
+  }
+
+  // Build top brands
+  const topBrands = Object.entries(overallBrands)
+    .map(([name, count]) => ({ name, count, logo: BRAND_LOGOS[name] || '' }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+
+  return { totalSales, salesByState, topBrands };
+}
+
+/**
+ * Admin — upload CSV or PDF sales report and parse into structured data
+ * CSV parsed directly; PDF extracted via Claude
+ */
+app.post('/api/admin/sales-stats/upload-report', aiLimiter, reportUpload.single('file'), async (req: any, res) => {
+  try {
+    if (!req.file) { res.status(400).json({ error: 'No file uploaded' }); return; }
+
+    const mime = req.file.mimetype;
+    const ext = (req.file.originalname || '').split('.').pop()?.toLowerCase();
+    const isCSV = mime === 'text/csv' || mime === 'text/plain' || ext === 'csv';
+    const isPDF = mime === 'application/pdf' || ext === 'pdf';
+    const isXLS = ext === 'xls' || ext === 'xlsx' || mime.includes('spreadsheet') || mime.includes('ms-excel');
+
+    if (isCSV) {
+      // Parse CSV directly
+      const raw = req.file.buffer.toString('utf-8');
+      const rows = csvParse(raw, { columns: true, skip_empty_lines: true, trim: true, bom: true }) as Record<string, string>[];
+      const result = parseSalesReportRows(rows);
+      res.json(result);
+    } else if (isPDF) {
+      // Use Claude to extract structured data from PDF
+      const base64 = req.file.buffer.toString('base64');
+      const msg = await anthropic.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4096,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
+            { type: 'text', text: `This is a car dealership sales report. Extract every deal/sale row from this document.
+Return a JSON array of objects. Each object should have these fields (use empty string if not found):
+- "Deal No.": the deal number
+- "Signer State": the 2-letter US state code of the buyer
+- "Signer Zip": the buyer's zip code
+- "Vehicle Make": the vehicle manufacturer/brand (e.g. "Tesla", "BMW", "Toyota")
+- "Model": the vehicle model (e.g. "Model Y", "X5", "Camry")
+- "Year": the vehicle year
+
+Return ONLY the JSON array, no other text.` }
+          ]
+        }]
+      });
+
+      const text = msg.content[0].type === 'text' ? msg.content[0].text : '';
+      // Extract JSON array from response
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        res.status(422).json({ error: 'Could not extract structured data from PDF' });
+        return;
+      }
+      const rows: Record<string, string>[] = JSON.parse(jsonMatch[0]);
+      const result = parseSalesReportRows(rows);
+      res.json(result);
+    } else if (isXLS) {
+      // Parse XLS/XLSX using existing XLSX library with column-based approach
+      const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+      const allRows: Record<string, string>[] = [];
+      for (const sheetName of workbook.SheetNames) {
+        const sheet = workbook.Sheets[sheetName];
+        const rows: Record<string, string>[] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        allRows.push(...rows);
+      }
+      const result = parseSalesReportRows(allRows);
+      res.json(result);
+    } else {
+      res.status(400).json({ error: 'Unsupported file type. Use CSV, PDF, or XLS/XLSX.' });
+    }
+  } catch (err) {
+    console.error('Report upload error:', err);
+    res.status(500).json({ error: 'Failed to parse sales report' });
   }
 });
 

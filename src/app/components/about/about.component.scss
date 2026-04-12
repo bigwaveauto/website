@@ -562,3 +562,175 @@ $radius:    14px;
     &:hover { border-color: white; }
   }
 }
+
+/* ── State Detail Modal ── */
+.abt-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: abt-fadeIn 0.2s ease;
+}
+
+@keyframes abt-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes abt-slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.abt-modal {
+  background: $navy;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  animation: abt-slideUp 0.25s ease;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+
+  @media (max-width: 600px) {
+    padding: 24px 20px;
+    max-height: 85vh;
+  }
+}
+
+.abt-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  border-radius: 8px;
+  padding: 6px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.5);
+  transition: background 0.2s, color 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+  }
+
+  lucide-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.abt-modal-header {
+  margin-bottom: 24px;
+
+  h2 {
+    font-size: 24px;
+    font-weight: 800;
+    color: white;
+    margin: 0 0 6px;
+  }
+}
+
+.abt-modal-count {
+  font-size: 16px;
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+.abt-modal-section {
+  margin-bottom: 24px;
+
+  &:last-child { margin-bottom: 0; }
+
+  h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin: 0 0 12px;
+  }
+}
+
+.abt-modal-vehicles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.abt-modal-vehicle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+}
+
+.abt-modal-vehicle-rank {
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.25);
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.abt-modal-vehicle-name {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+}
+
+.abt-modal-vehicle-count {
+  font-size: 16px;
+  font-weight: 800;
+  color: #38bdf8;
+  flex-shrink: 0;
+}
+
+.abt-modal-zips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 6px;
+}
+
+.abt-modal-zip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+}
+
+.abt-modal-zip-code {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: monospace;
+}
+
+.abt-modal-zip-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.abt-modal-no-detail {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+  padding: 20px 0;
+  margin: 0;
+  font-style: italic;
+}

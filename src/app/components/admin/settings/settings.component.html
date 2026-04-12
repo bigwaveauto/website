@@ -156,39 +156,30 @@
   @if(activeTab() === 'sales'){
   <div class="settings-panel">
 
-    <!-- Upload or Paste Sales Report -->
+    <!-- Upload Sales Report -->
     <div class="settings-card">
       <div class="settings-card-header">
         <lucide-icon name="file-spreadsheet" />
         <div>
-          <h3>Sales by State</h3>
-          <p>Upload an XLS/XLSX file, or paste report data manually.</p>
+          <h3>Sales Report Upload</h3>
+          <p>Upload a CSV, PDF, or XLS/XLSX sales report. CSV columns: Deal No., Signer State, Signer Zip, Vehicle Make, Model, Year</p>
         </div>
       </div>
       <div class="settings-card-body">
 
-        <!-- XLS Upload -->
+        <!-- File Upload Zone -->
         <div class="settings-drop-zone" [class.dragover]="xlsDragOver()"
              (dragover)="onXlsDragOver($event)" (dragleave)="xlsDragOver.set(false)" (drop)="onXlsDrop($event)"
              (click)="xlsInput.click()">
-          <input #xlsInput type="file" accept=".xls,.xlsx,.csv" (change)="onXlsSelect($event)" hidden />
+          <input #xlsInput type="file" accept=".csv,.xls,.xlsx,.pdf" (change)="onXlsSelect($event)" hidden />
           @if(xlsUploading()){
             <div class="settings-btn-spinner"></div>
-            <span>Parsing spreadsheet...</span>
+            <span>Parsing report...</span>
           }@else{
             <lucide-icon name="upload" />
-            <span>Drop an XLS/XLSX file here or click to upload</span>
+            <span>Drop a CSV, PDF, or XLS/XLSX report here, or click to upload</span>
           }
         </div>
-
-        <div style="text-align:center;color:#999;font-size:12px;margin:8px 0">— or paste text —</div>
-
-        <div class="settings-field" style="max-width:100%">
-          <textarea [(ngModel)]="salesReportText" rows="6" placeholder="WI 81&#10;IL 12&#10;TX 3&#10;NJ 2&#10;..." style="width:100%;font-family:monospace;font-size:13px;padding:12px;border:1.5px solid rgba(0,0,0,0.1);border-radius:8px;resize:vertical"></textarea>
-        </div>
-        <button class="settings-save" style="margin-top:8px" (click)="parseSalesReport()">
-          <lucide-icon name="scan-search" /> Parse Text
-        </button>
 
         @if(salesParsed()){
         <div style="margin-top:20px">
@@ -201,11 +192,13 @@
           </div>
           <div style="margin-top:16px">
             <label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:8px">Parsed States ({{ salesStateList.length }})</label>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px">
               @for(s of salesStateList; track s.code){
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f8f9fb;border-radius:6px;font-size:13px">
-                <span style="font-weight:600">{{ s.code }}</span>
-                <span style="color:#555">{{ s.count }}</span>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8f9fb;border-radius:8px;font-size:13px;gap:8px">
+                <span style="font-weight:700;min-width:28px">{{ s.code }}</span>
+                <span style="color:#555;flex:1">{{ s.count }} sale{{ s.count > 1 ? 's' : '' }}</span>
+                @if(s.zipCount){<span style="color:#999;font-size:11px">{{ s.zipCount }} zip{{ s.zipCount > 1 ? 's' : '' }}</span>}
+                @if(s.topVehicle){<span style="color:#1a78c2;font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" [title]="s.topVehicle">{{ s.topVehicle }}</span>}
               </div>
               }
             </div>
@@ -215,40 +208,29 @@
       </div>
     </div>
 
-    <!-- Top Brands -->
+    <!-- Top Brands (auto-extracted from report) -->
+    @if(topBrands().length){
     <div class="settings-card">
       <div class="settings-card-header">
         <lucide-icon name="trophy" />
         <div>
           <h3>Top Brands Sold</h3>
-          <p>Paste brand data, one per line: "Brand, Count" (e.g. "Tesla, 34")</p>
+          <p>Auto-extracted from the uploaded report</p>
         </div>
       </div>
       <div class="settings-card-body">
-        <div class="settings-field" style="max-width:100%">
-          <label>Paste Brand Data</label>
-          <textarea [(ngModel)]="brandReportText" rows="6" placeholder="Tesla, 34&#10;Rivian, 25&#10;BMW, 24&#10;Porsche, 10&#10;Toyota, 10" style="width:100%;font-family:monospace;font-size:13px;padding:12px;border:1.5px solid rgba(0,0,0,0.1);border-radius:8px;resize:vertical"></textarea>
-        </div>
-        <button class="settings-save" style="margin-top:12px" (click)="parseBrandReport()">
-          <lucide-icon name="scan-search" /> Parse Brands
-        </button>
-
-        @if(topBrands().length){
-        <div style="margin-top:16px">
-          <label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:8px">Parsed Brands</label>
-          <div style="display:flex;flex-direction:column;gap:4px">
-            @for(b of topBrands(); track b.name){
-            <div style="display:flex;align-items:center;gap:12px;padding:6px 10px;background:#f8f9fb;border-radius:6px;font-size:13px">
-              <span style="font-weight:600;width:120px">{{ b.name }}</span>
-              <span style="color:#555">{{ b.count }} sold</span>
-              @if(b.logo){<span style="color:#999;font-size:11px">{{ b.logo }}</span>}
-            </div>
-            }
+        <div style="display:flex;flex-direction:column;gap:4px">
+          @for(b of topBrands(); track b.name){
+          <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:#f8f9fb;border-radius:8px;font-size:13px">
+            @if(b.logo){<img [src]="b.logo" [alt]="b.name" style="height:24px;width:48px;object-fit:contain;background:#fff;border-radius:4px;padding:2px 4px" />}
+            <span style="font-weight:600;width:120px">{{ b.name }}</span>
+            <span style="color:#555">{{ b.count }} sold</span>
           </div>
+          }
         </div>
-        }
       </div>
     </div>
+    }
 
     <!-- Save -->
     <div class="settings-actions">

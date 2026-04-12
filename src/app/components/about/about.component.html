@@ -66,7 +66,7 @@
           <span class="abt-map-stat-label">States Reached</span>
         </div>
         <div class="abt-map-stat">
-          <span class="abt-map-stat-num">{{ salesByState['WI'] || 0 }}</span>
+          <span class="abt-map-stat-num">{{ getStateCount('WI') }}</span>
           <span class="abt-map-stat-label">Sold in Wisconsin</span>
         </div>
       </div>
@@ -75,7 +75,7 @@
       <div class="abt-map-wrap">
         <svg viewBox="0 0 960 620" class="abt-us-map" xmlns="http://www.w3.org/2000/svg">
           @for(s of stateEntries; track s.code){
-          <path [attr.d]="s.path" [attr.fill]="getStateFill(s.code)" stroke="#0e1523" stroke-width="0.5" (mouseenter)="onStateHover($event, s.code, stateNames[s.code] || s.code)" (mouseleave)="onStateLeave()" class="abt-state" />
+          <path [attr.d]="s.path" [attr.fill]="getStateFill(s.code)" stroke="#0e1523" stroke-width="0.5" (mouseenter)="onStateHover($event, s.code, stateNames[s.code] || s.code)" (mouseleave)="onStateLeave()" (click)="onStateClick(s.code)" class="abt-state" />
           }
         </svg>
 
@@ -160,5 +160,55 @@
   </section>
 
 </div>
+
+<!-- State Detail Modal -->
+@if(detailOpen()){
+<div class="abt-modal-overlay" (click)="closeDetail()">
+  <div class="abt-modal" (click)="$event.stopPropagation()">
+    <button class="abt-modal-close" (click)="closeDetail()">
+      <lucide-icon name="x" />
+    </button>
+    <div class="abt-modal-header">
+      <h2>{{ detailStateName() }}</h2>
+      <span class="abt-modal-count">{{ detailCount() }} vehicle{{ detailCount() > 1 ? 's' : '' }} sold</span>
+    </div>
+
+    @if(detailVehicles().length){
+    <div class="abt-modal-section">
+      <h3>Top Vehicles Sold</h3>
+      <div class="abt-modal-vehicles">
+        @for(v of detailVehicles(); track v.name; let i = $index){
+        <div class="abt-modal-vehicle">
+          <span class="abt-modal-vehicle-rank">#{{ i + 1 }}</span>
+          <span class="abt-modal-vehicle-name">{{ v.name }}</span>
+          <span class="abt-modal-vehicle-count">{{ v.count }}</span>
+        </div>
+        }
+      </div>
+    </div>
+    }
+
+    @if(detailZips().length){
+    <div class="abt-modal-section">
+      <h3>Zip Code Breakdown</h3>
+      <div class="abt-modal-zips">
+        @for(z of detailZips(); track z.zip){
+        <div class="abt-modal-zip">
+          <span class="abt-modal-zip-code">{{ z.zip }}</span>
+          <span class="abt-modal-zip-count">{{ z.count }}</span>
+        </div>
+        }
+      </div>
+    </div>
+    }
+
+    @if(!detailVehicles().length && !detailZips().length){
+    <div class="abt-modal-section">
+      <p class="abt-modal-no-detail">Detailed breakdown not available for this state yet.</p>
+    </div>
+    }
+  </div>
+</div>
+}
 
 <footer></footer>

@@ -117,7 +117,7 @@ export class AdminSettingsComponent implements OnInit {
   salesReportText = '';
   xlsDragOver = signal(false);
   xlsUploading = signal(false);
-  salesByState = signal<Record<string, number>>({});
+  salesByState = signal<Record<string, { count: number; zips: Record<string, number>; topVehicles: { name: string; count: number }[] }>>({});
   totalSales = signal(0);
   salesParsed = signal(false);
   savingSales = signal(false);
@@ -151,7 +151,7 @@ export class AdminSettingsComponent implements OnInit {
 
   get salesStateList() {
     return Object.entries(this.salesByState())
-      .map(([code, count]) => ({ code, name: STATE_NAMES[code] || code, count }))
+      .map(([code, data]) => ({ code, name: STATE_NAMES[code] || code, count: data.count, zipCount: Object.keys(data.zips || {}).length, topVehicle: data.topVehicles?.[0]?.name || '' }))
       .sort((a, b) => b.count - a.count);
   }
 
@@ -160,7 +160,16 @@ export class AdminSettingsComponent implements OnInit {
       next: (data) => {
         if (!data) return;
         if (data.sales_by_state) {
-          this.salesByState.set(data.sales_by_state);
+          // Normalize: convert flat numbers to rich objects if needed
+          const normalized: Record<string, { count: number; zips: Record<string, number>; topVehicles: { name: string; count: number }[] }> = {};
+          for (const [code, val] of Object.entries(data.sales_by_state)) {
+            if (typeof val === 'number') {
+              normalized[code] = { count: val, zips: {}, topVehicles: [] };
+            } else {
+              normalized[code] = val as any;
+            }
+          }
+          this.salesByState.set(normalized);
           this.totalSales.set(data.total_sales || 0);
           this.salesParsed.set(true);
         }
@@ -188,7 +197,7 @@ export class AdminSettingsComponent implements OnInit {
     const formData = new FormData();
     formData.append('file', file);
 
-    this.http.post<any>('/api/admin/sales-stats/upload', formData).subscribe({
+    this.http.post<any>('/api/admin/sales-stats/upload-report', formData).subscribe({
       next: (res) => {
         if (res.salesByState) {
           this.salesByState.set(res.salesByState);
@@ -200,7 +209,7 @@ export class AdminSettingsComponent implements OnInit {
       },
       error: () => {
         this.xlsUploading.set(false);
-        alert('Failed to parse spreadsheet. Make sure it contains state codes or names with counts.');
+        alert('Failed to parse report. Make sure it is a valid CSV, PDF, or XLS/XLSX file.');
       },
     });
   }
@@ -240,7 +249,12 @@ export class AdminSettingsComponent implements OnInit {
     }
 
     const total = Object.values(stateCount).reduce((s, n) => s + n, 0);
-    this.salesByState.set(stateCount);
+    // Convert flat counts to rich structure
+    const rich: Record<string, { count: number; zips: Record<string, number>; topVehicles: { name: string; count: number }[] }> = {};
+    for (const [code, count] of Object.entries(stateCount)) {
+      rich[code] = { count, zips: {}, topVehicles: [] };
+    }
+    this.salesByState.set(rich);
     this.totalSales.set(total);
     this.salesParsed.set(true);
   }
