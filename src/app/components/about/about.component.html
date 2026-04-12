@@ -195,10 +195,9 @@
       <div class="abt-state-map">
         @for(z of detailZipGeo(); track z.zip){
         <div class="abt-map-dot-wrap"
-             [style.left.%]="z.x" [style.top.%]="z.y"
-             [title]="z.city + ' (' + z.zip + ') — ' + z.count + ' sale' + (z.count > 1 ? 's' : '')">
-          <div class="abt-map-dot" [style.width.px]="10 + (z.count - 1) * 6" [style.height.px]="10 + (z.count - 1) * 6"></div>
-          <span class="abt-map-dot-city">{{ z.city }}</span>
+             [style.left.%]="z.x" [style.top.%]="z.y">
+          <div class="abt-map-dot" [style.width.px]="8 + (z.count - 1) * 5" [style.height.px]="8 + (z.count - 1) * 5"></div>
+          <span class="abt-map-dot-tooltip">{{ z.city }} ({{ z.count }})</span>
         </div>
         }
       </div>
