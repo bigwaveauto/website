@@ -4,70 +4,23 @@
 
   <!-- Hero banner -->
   <div class="search-banner">
-    <h1 class="search-banner-title">The Acquisition Desk</h1>
-    <p class="search-banner-sub">Don't see what you want? We'll find it. Tell us your dream car and we'll search the entire country to track it down.</p>
-  </div>
-
-  <!-- Main content -->
-  <div class="search-body">
-
-    <!-- Left: How it works -->
-    <div class="search-info">
-      <div class="search-how">
-        <h2 class="search-how-title">How It Works</h2>
-        <div class="search-steps">
-          <div class="search-step">
-            <div class="search-step-num">1</div>
-            <div>
-              <strong>Tell us what you're looking for</strong>
-              <p>Year, make, model, color, features, budget — whatever matters to you.</p>
-            </div>
-          </div>
-          <div class="search-step">
-            <div class="search-step-num">2</div>
-            <div>
-              <strong>We search nationwide</strong>
-              <p>We use dealer-only auctions and nationwide networks to locate your ideal vehicle.</p>
-            </div>
-          </div>
-          <div class="search-step">
-            <div class="search-step-num">3</div>
-            <div>
-              <strong>We handle everything</strong>
-              <p>Inspection, transport, paperwork, registration — delivered to your door or ready for pickup.</p>
-            </div>
-          </div>
-        </div>
+    <div class="search-banner-content">
+      <div class="search-banner-left">
+        <h1 class="search-banner-title">The Acquisition Desk</h1>
+        <p class="search-banner-sub">Don't see what you want? We'll find it nationwide.</p>
       </div>
-
-      <!-- Quick searches -->
-      <div class="search-quick">
-        <h3 class="search-quick-title">Popular requests</h3>
-        <div class="search-quick-chips">
-          @for(q of quickSearches; track q){
-          <button class="search-quick-chip" (click)="sendMessage(q)">{{ q }}</button>
-          }
-        </div>
-      </div>
-
-      <!-- Trust points -->
-      <div class="search-trust">
-        <div class="search-trust-item">
-          <lucide-icon name="shield" class="search-trust-icon" />
-          <span>Licensed, bonded & insured dealer</span>
-        </div>
-        <div class="search-trust-item">
-          <lucide-icon name="car" class="search-trust-icon" />
-          <span>Nationwide delivery available</span>
-        </div>
-        <div class="search-trust-item">
-          <lucide-icon name="handshake" class="search-trust-icon" />
-          <span>No obligation — free to inquire</span>
-        </div>
+      <div class="search-banner-steps">
+        <span class="search-mini-step"><strong>1.</strong> Tell us what you want</span>
+        <span class="search-mini-step"><strong>2.</strong> We search the country</span>
+        <span class="search-mini-step"><strong>3.</strong> We deliver it to you</span>
       </div>
     </div>
+  </div>
 
-    <!-- Right: Chat -->
+  <!-- Chat + Quick searches -->
+  <div class="search-body">
+
+    <!-- Chat -->
     <div class="search-chat">
       <div class="search-chat-box">
 
@@ -137,6 +90,13 @@
         </div>
 
       </div>
+    </div>
+
+    <!-- Quick searches -->
+    <div class="search-quick-row">
+      @for(q of quickSearches; track q){
+      <button class="search-quick-chip" (click)="sendMessage(q)">{{ q }}</button>
+      }
     </div>
 
   </div>
