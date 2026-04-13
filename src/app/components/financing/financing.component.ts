@@ -18,7 +18,7 @@ export class FinancingComponent implements OnInit {
   private http = inject(HttpClient);
 
   // ── Business-configurable rate (defaults, overridden by admin settings) ──
-  lowestRate = '6.9%';
+  lowestRate = '4.99%';
   lowestRateTerm = '60-month term';
   lendingPartnerCount = '10+';
   downOptions = '$0';
