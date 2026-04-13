@@ -45,8 +45,6 @@ $text-muted: rgba(0,0,0,0.45);
   display: grid;
   grid-template-columns: 340px 1fr;
   gap: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
   padding: 24px 20px 40px;
 
   @media (max-width: 900px) {
