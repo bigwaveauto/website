@@ -123,9 +123,11 @@ $blue: #2563eb;
 .nav-acq-btn {
   background: #38bdf8 !important;
   color: #0e1523 !important;
+  font-family: 'Cormorant Garamond', serif !important;
   font-weight: 700;
-  font-style: italic;
-  letter-spacing: 0.3px;
+  font-style: normal;
+  font-size: 17px !important;
+  letter-spacing: 0.2px;
 
   &::after { display: none !important; }
   &:hover  { background: #7dd3fc !important; }
