@@ -192,7 +192,7 @@ $radius: 14px;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin: 0 auto 48px;
-  max-width: 1200px;
+  max-width: none;
   padding: 0 20px;
 
   @media (max-width: 860px) { grid-template-columns: repeat(2, 1fr); }
@@ -237,7 +237,7 @@ $radius: 14px;
 
 /* ── Wizard ── */
 .fin-wizard {
-  max-width: 1200px;
+  max-width: none;
   margin: 0 auto 64px;
   padding: 0 20px;
 }
@@ -530,7 +530,7 @@ $radius: 14px;
 
 /* Benefits */
 .fin-benefits {
-  max-width: 1200px;
+  max-width: none;
   margin: 0 auto;
   padding: 0 20px 80px;
 }

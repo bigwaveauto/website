@@ -107,7 +107,7 @@ $radius:    14px;
 
 /* ── Intro ── */
 .abt-intro {
-  max-width: 960px;
+  max-width: none;
   margin: 0 auto;
   padding: 60px 24px 48px;
   text-align: center;
@@ -127,7 +127,7 @@ $radius:    14px;
 }
 
 .abt-principles-inner {
-  max-width: 960px;
+  max-width: none;
   margin: 0 auto;
   text-align: center;
 }
@@ -191,7 +191,7 @@ $radius:    14px;
 }
 
 .abt-story-inner {
-  max-width: 960px;
+  max-width: none;
   margin: 0 auto;
   display: flex;
   gap: 64px;
@@ -283,7 +283,7 @@ $radius:    14px;
 }
 
 .abt-map-inner {
-  max-width: 960px;
+  max-width: none;
   margin: 0 auto;
   text-align: center;
 }
@@ -473,7 +473,7 @@ $radius:    14px;
 }
 
 .abt-location-inner {
-  max-width: 960px;
+  max-width: none;
   margin: 0 auto;
   display: flex;
   gap: 64px;
