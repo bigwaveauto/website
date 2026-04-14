@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter, withRouterConfig } from '@angular/router';
+import { provideRouter, withRouterConfig, withInMemoryScrolling } from '@angular/router';
 
 import { routes } from '../routes/app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
@@ -41,7 +41,7 @@ export const appConfig: ApplicationConfig = {
         Truck, DollarSign,
       }),
     },
-    provideRouter(routes, withRouterConfig({ onSameUrlNavigation: 'reload' })),
+    provideRouter(routes, withRouterConfig({ onSameUrlNavigation: 'reload' }), withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
     provideClientHydration(),
   ]
 };
