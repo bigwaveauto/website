@@ -751,6 +751,11 @@ $dark: #131313;
   font-size: 52px;
   font-weight: 800;
   color: #111;
+
+  &--icon {
+    font-weight: normal;
+    font-size: 44px;
+  }
 }
 
 .trust-badge-label {
