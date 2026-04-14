@@ -38,16 +38,6 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Quick searches -->
-      <div class="search-quick">
-        <h3 class="search-quick-title">Popular requests</h3>
-        <div class="search-quick-chips">
-          @for(q of quickSearches; track q){
-          <button class="search-quick-chip" (click)="sendMessage(q)">{{ q }}</button>
-          }
-        </div>
         <div class="search-trust">
           <div class="search-trust-item">
             <lucide-icon name="shield" class="search-trust-icon" />
@@ -134,6 +124,16 @@
           </button>
         </div>
 
+      </div>
+    </div>
+
+    <!-- Popular requests — full width below grid -->
+    <div class="search-quick-row">
+      <h3 class="search-quick-title">Popular requests</h3>
+      <div class="search-quick-chips">
+        @for(q of quickSearches; track q){
+        <button class="search-quick-chip" (click)="sendMessage(q)">{{ q }}</button>
+        }
       </div>
     </div>
 
