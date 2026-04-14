@@ -396,13 +396,23 @@ $text-muted: rgba(0,0,0,0.45);
   &--light { color: rgba(255,255,255,0.5); }
 }
 
+/* Scout Lite standalone */
+.ad-tier-lite-wrap {
+  max-width: 400px;
+  margin: 0 auto 32px;
+}
+
+.ad-tier--lite {
+  text-align: center;
+  border-style: dashed !important;
+}
+
 /* Pricing tiers */
 .ad-tiers {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 
-  @media (max-width: 1024px) { grid-template-columns: repeat(3, 1fr); }
   @media (max-width: 700px) { grid-template-columns: 1fr; }
 }
 
@@ -439,12 +449,23 @@ $text-muted: rgba(0,0,0,0.45);
   white-space: nowrap;
 }
 
-.ad-tier-name { font-size: 16px; font-weight: 800; color: #111; }
-.ad-tier-price { font-size: 28px; font-weight: 800; color: $blue; line-height: 1; }
-.ad-tier-split { font-size: 12px; color: rgba(0,0,0,0.45); }
+.ad-tier-range-top {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111;
+  background: rgba(0,0,0,0.04);
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: center;
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+}
+
+.ad-tier-name { font-size: 14px; font-weight: 700; color: rgba(0,0,0,0.45); text-transform: uppercase; letter-spacing: 0.06em; }
+.ad-tier-price { font-size: 32px; font-weight: 800; color: $blue; line-height: 1; }
 .ad-tier-desc { font-size: 14px; color: rgba(0,0,0,0.6); line-height: 1.5; flex: 1; }
 .ad-tier-range {
-  font-size: 12px; font-weight: 700; color: rgba(0,0,0,0.35);
+  font-size: 13px; font-weight: 700; color: rgba(0,0,0,0.35);
   border-top: 1px solid rgba(0,0,0,0.06); padding-top: 8px; margin-top: 4px;
 }
 
