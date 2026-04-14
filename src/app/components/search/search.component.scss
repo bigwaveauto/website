@@ -82,7 +82,7 @@ $text-muted: rgba(0,0,0,0.45);
 .search-info {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   overflow-y: auto;
 }
 
@@ -185,7 +185,10 @@ $text-muted: rgba(0,0,0,0.45);
 .search-trust {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0,0,0,0.06);
 }
 
 .search-trust-item {
@@ -215,7 +218,7 @@ $text-muted: rgba(0,0,0,0.45);
   border: 1px solid $border;
   display: flex;
   flex-direction: column;
-  height: 520px;
+  height: 380px;
   overflow: hidden;
 }
 
