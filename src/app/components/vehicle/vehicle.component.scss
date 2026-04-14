@@ -180,16 +180,22 @@ $text-muted: rgba(0,0,0,0.45);
   }
 }
 
-/* Breadcrumb */
-.vdp-breadcrumb {
-  display: flex;
+/* Back button */
+.vdp-back-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 16px;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: $text-muted;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover { background: rgba(0,0,0,0.05); color: #111; }
 }
-.vdp-bc-link { color: $text-muted; text-decoration: none; &:hover { color: #111; } }
-.vdp-bc-sep { color: rgba(0,0,0,0.2); }
-.vdp-bc-current { color: rgba(0,0,0,0.7); font-weight: 500; }
+.vdp-back-icon { width: 16px; height: 16px; }
 
 /* Title block */
 .vdp-title-block { display: flex; flex-direction: column; gap: 4px; }

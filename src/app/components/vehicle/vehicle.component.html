@@ -35,14 +35,11 @@
   <div class="vdp-right">
     <div class="vdp-buy-box">
 
-      <!-- Breadcrumb -->
-      <div class="vdp-breadcrumb">
-        <a routerLink="/" class="vdp-bc-link">Home</a>
-        <span class="vdp-bc-sep">/</span>
-        <a routerLink="/showroom" class="vdp-bc-link">Inventory</a>
-        <span class="vdp-bc-sep">/</span>
-        <span class="vdp-bc-current">{{ v.year }} {{ v.make }} {{ v.model }}</span>
-      </div>
+      <!-- Back to search -->
+      <a routerLink="/showroom" class="vdp-back-btn">
+        <lucide-icon name="arrow-left" class="vdp-back-icon"></lucide-icon>
+        Back to Search
+      </a>
 
       <!-- Title -->
       <div class="vdp-title-block">
