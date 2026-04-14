@@ -242,30 +242,77 @@ $text-muted: rgba(0,0,0,0.45);
   gap: 12px;
 }
 
-/* Carfax */
-.vdp-carfax-card {
+/* Highlights + Carfax row */
+.vdp-highlights-row {
   display: flex;
-  align-items: center;
   gap: 24px;
+  align-items: flex-start;
+
+  .vdp-highlights-section { flex: 1; min-width: 0; }
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+  }
+}
+
+/* Carfax sidebar */
+.vdp-carfax-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
   background: white;
   border: 1px solid $border;
   border-radius: 12px;
-  padding: 20px 24px;
-  flex-wrap: wrap;
+  padding: 24px 16px;
+  text-align: center;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:hover { border-color: #1a6bb5; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+  @media (max-width: 900px) {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    padding: 16px 24px;
+  }
 }
-.vdp-carfax-snapshot { display: block; flex-shrink: 0; }
-.vdp-carfax-snapshot-img { height: 60px; width: auto; display: block; }
-.vdp-carfax-items { display: flex; flex-wrap: wrap; gap: 16px 28px; flex: 1; }
+
+.vdp-carfax-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #111;
+}
+
+.vdp-carfax-fox-img {
+  width: 160px;
+  height: auto;
+  display: block;
+}
+
+.vdp-carfax-cta {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a6bb5;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.vdp-carfax-items { display: flex; flex-direction: column; gap: 10px; width: 100%; }
 .vdp-carfax-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: #111;
 }
-.vdp-carfax-item-icon { height: 28px; width: auto; display: block; }
-.cfx-svc-icon { font-size: 22px; width: 22px; height: 22px; color: $blue; }
+.vdp-carfax-item-icon { height: 24px; width: auto; display: block; }
 
 /* Sections */
 .vdp-section { display: flex; flex-direction: column; gap: 16px; }

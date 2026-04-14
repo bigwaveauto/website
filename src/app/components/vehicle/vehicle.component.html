@@ -106,39 +106,65 @@
 <!-- ── Below photo: Details section ── -->
 <div class="vdp-below">
 
-  <!-- Vehicle Highlights -->
-  <div class="vdp-highlights-section">
-    <h2 class="vdp-highlights-heading">Highlights</h2>
-    <div class="vdp-highlights-grid">
-      @for(item of detailsItems; track $index){
-        @let val = $any(v)[item.datacol];
-        @if(val){
+  <!-- Highlights + Carfax side by side -->
+  <div class="vdp-highlights-row">
+
+    <!-- Vehicle Highlights -->
+    <div class="vdp-highlights-section">
+      <h2 class="vdp-highlights-heading">Highlights</h2>
+      <div class="vdp-highlights-grid">
+        @for(item of detailsItems; track $index){
+          @let val = $any(v)[item.datacol];
+          @if(val){
+          <div class="vdp-highlight-card">
+            <div class="vdp-highlight-icon-wrap">
+              <lucide-icon [name]="item.icon" class="vdp-highlight-icon" />
+            </div>
+            <div class="vdp-highlight-text">
+              <span class="vdp-highlight-label">{{ item.displayName }}</span>
+              <span class="vdp-highlight-value">
+                @if(item.format === 'miles'){ {{ val | number:'1.0-0' }} miles }
+                @else if(item.format === 'hp'){ {{ val }} hp }
+                @else if(item.format === 'lb-ft'){ {{ val }} lb-ft }
+                @else { {{ val }} }
+              </span>
+            </div>
+          </div>}
+        }
+        @if(v.mpgcity && v.mpghwy){
         <div class="vdp-highlight-card">
           <div class="vdp-highlight-icon-wrap">
-            <lucide-icon [name]="item.icon" class="vdp-highlight-icon" />
+            <lucide-icon name="leaf" class="vdp-highlight-icon" />
           </div>
           <div class="vdp-highlight-text">
-            <span class="vdp-highlight-label">{{ item.displayName }}</span>
-            <span class="vdp-highlight-value">
-              @if(item.format === 'miles'){ {{ val | number:'1.0-0' }} miles }
-              @else if(item.format === 'hp'){ {{ val }} hp }
-              @else if(item.format === 'lb-ft'){ {{ val }} lb-ft }
-              @else { {{ val }} }
-            </span>
+            <span class="vdp-highlight-label">Fuel Economy</span>
+            <span class="vdp-highlight-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</span>
           </div>
         </div>}
-      }
-      @if(v.mpgcity && v.mpghwy){
-      <div class="vdp-highlight-card">
-        <div class="vdp-highlight-icon-wrap">
-          <lucide-icon name="leaf" class="vdp-highlight-icon" />
-        </div>
-        <div class="vdp-highlight-text">
-          <span class="vdp-highlight-label">Fuel Economy</span>
-          <span class="vdp-highlight-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</span>
-        </div>
+      </div>
+    </div>
+
+    <!-- Carfax -->
+    <div class="vdp-carfax-sidebar">
+      <a href="http://www.carfax.com/VehicleHistory/p/Report.cfx?partner=DVW_1&vin={{ v.vin }}" target="_blank" rel="noopener" class="vdp-carfax-link">
+        <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax Vehicle History" class="vdp-carfax-fox-img" loading="lazy" />
+        <span class="vdp-carfax-cta">View Vehicle History Report</span>
+      </a>
+      @if(v.carfaxownerstext || v.carfaxaccidenttext){
+      <div class="vdp-carfax-items">
+        @if(v.carfaxownerstext){
+        <div class="vdp-carfax-item">
+          @if(v.carfaxownersicon){<img [src]="v.carfaxownersicon" alt="" class="vdp-carfax-item-icon" loading="lazy" />}
+          <span>{{ v.carfaxownerstext }}</span>
+        </div>}
+        @if(v.carfaxaccidenttext){
+        <div class="vdp-carfax-item">
+          @if(v.carfaxaccidenticon){<img [src]="v.carfaxaccidenticon" alt="" class="vdp-carfax-item-icon" loading="lazy" />}
+          <span>{{ v.carfaxaccidenttext }}</span>
+        </div>}
       </div>}
     </div>
+
   </div>
 
   <!-- Description -->
@@ -147,26 +173,6 @@
     <h2 class="vdp-highlights-heading">About This Vehicle</h2>
     <p class="vdp-description">{{ v.vehicledescription || v.notes }}</p>
   </div>}
-
-  <!-- Carfax -->
-  <div class="vdp-carfax-card">
-    <a href="http://www.carfax.com/VehicleHistory/p/Report.cfx?partner=DVW_1&vin={{ v.vin }}" target="_blank" rel="noopener" class="vdp-carfax-snapshot">
-      <img src="http://www.carfaxonline.com/assets/subscriber/showmethecarfax.jpg" alt="Show me the Carfax" class="vdp-carfax-snapshot-img" loading="lazy" />
-    </a>
-    @if(v.carfaxownerstext || v.carfaxaccidenttext){
-    <div class="vdp-carfax-items">
-      @if(v.carfaxownerstext){
-      <div class="vdp-carfax-item">
-        @if(v.carfaxownersicon){<img [src]="v.carfaxownersicon" alt="" class="vdp-carfax-item-icon" loading="lazy" />}
-        <span>{{ v.carfaxownerstext }}</span>
-      </div>}
-      @if(v.carfaxaccidenttext){
-      <div class="vdp-carfax-item">
-        @if(v.carfaxaccidenticon){<img [src]="v.carfaxaccidenticon" alt="" class="vdp-carfax-item-icon" loading="lazy" />}
-        <span>{{ v.carfaxaccidenttext }}</span>
-      </div>}
-    </div>}
-  </div>
 
   <!-- Window Sticker -->
   @if(v.monroneysticker){
