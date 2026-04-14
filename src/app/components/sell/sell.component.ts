@@ -71,19 +71,16 @@ export class SellComponent implements OnInit {
   }
 
   private loadMakes() {
-    this.loadingMakes.set(true);
-    this.http.get<any>('https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/car?format=json').subscribe({
-      next: (res) => {
-        const makes = (res?.Results || [])
-          .map((m: any) => m.MakeName)
-          .filter((n: string) => !!n)
-          .sort();
-        // Dedupe
-        this.makes.set([...new Set<string>(makes)]);
-        this.loadingMakes.set(false);
-      },
-      error: () => this.loadingMakes.set(false),
-    });
+    this.makes.set([
+      'Acura', 'Alfa Romeo', 'Audi', 'BMW', 'Buick', 'Cadillac', 'Chevrolet',
+      'Chrysler', 'Dodge', 'Ferrari', 'Fiat', 'Ford', 'Genesis', 'GMC',
+      'Honda', 'Hyundai', 'INFINITI', 'Jaguar', 'Jeep', 'Kia',
+      'Lamborghini', 'Land Rover', 'Lexus', 'Lincoln', 'Lucid',
+      'Maserati', 'Mazda', 'McLaren', 'Mercedes-Benz', 'MINI',
+      'Mitsubishi', 'Nissan', 'Polestar', 'Porsche', 'RAM',
+      'Rivian', 'Rolls-Royce', 'Subaru', 'Tesla', 'Toyota',
+      'Volkswagen', 'Volvo',
+    ]);
   }
 
   private loadModels() {
