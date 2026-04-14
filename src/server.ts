@@ -1576,7 +1576,7 @@ app.get('/api/admin/vauto/inventory', async (_req, res) => {
 function computeFinance(price: number) {
   const rate = 0.069;
   const months = 60;
-  const taxRate = 0.0543;
+  const taxRate = 0.05;
   const docFees = 1200;
   const taxAmt = price * taxRate;
   const loanAmount = price + docFees;
