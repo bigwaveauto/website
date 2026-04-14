@@ -498,7 +498,7 @@ app.post('/api/leads/contact', leadLimiter, async (req, res) => {
 /**
  * AI Chat — conversational vehicle search with tool use
  */
-const CALENDLY_URL = process.env['CALENDLY_URL'] || 'https://calendly.com/bigwaveauto/visit';
+const CALENDLY_URL = process.env['CALENDLY_URL'] || 'https://calendly.com/dave-rkfy/30min';
 
 // Chat-specific rate limiters
 const chatPerMinute = rateLimit({
