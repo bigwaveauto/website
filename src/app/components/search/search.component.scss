@@ -448,38 +448,61 @@ $text-muted: rgba(0,0,0,0.45);
   border-top: 1px solid rgba(0,0,0,0.06); padding-top: 8px; margin-top: 4px;
 }
 
-/* Transparency grid */
-.ad-transparency-grid {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.ad-trans-item {
+/* Invoice-style transparency */
+.ad-invoice {
+  max-width: 640px;
+  margin: 0 auto;
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 12px;
-  padding: 20px;
-  width: 180px;
-  text-align: center;
-
-  strong { font-size: 15px; color: white; display: block; margin-bottom: 4px; }
-  p { font-size: 13px; color: rgba(255,255,255,0.5); margin: 0; line-height: 1.5; }
+  padding: 28px 32px;
 }
 
-.ad-trans-num {
+.ad-invoice-line {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(56,189,248,0.15);
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.ad-invoice-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.ad-invoice-desc {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  text-align: right;
+  line-height: 1.5;
+}
+
+.ad-invoice-op {
+  display: block;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
   color: #38bdf8;
-  font-size: 14px;
-  font-weight: 800;
-  margin: 0 auto 10px;
+  padding: 2px 0;
+}
+
+.ad-invoice-divider {
+  border-top: 2px solid rgba(56,189,248,0.4);
+  margin: 8px 0;
+}
+
+.ad-invoice-line--total {
+  .ad-invoice-label {
+    font-size: 18px;
+    color: #38bdf8;
+  }
+  .ad-invoice-desc {
+    color: rgba(255,255,255,0.7);
+    font-weight: 600;
+  }
 }
 
 /* Timeline */
