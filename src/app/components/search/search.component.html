@@ -55,23 +55,18 @@
       </div>
     </div>
 
-    <!-- Right: Chat -->
+    <!-- Center: Chat -->
     <div class="search-chat">
       <div class="search-chat-box">
-
-        <!-- Messages -->
         <div class="search-messages" #messagesContainer>
-
           @if(!chat.messages().length){
           <div class="chat-bubble assistant">
             Hey! I'm your Big Wave concierge. Looking for something specific? Tell me your dream car — year, make, model, color, features, budget — and we'll search the entire country to find it for you.
           </div>
           }
-
           @for(msg of chat.messages(); track $index){
           <div class="chat-bubble" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
             <span class="chat-bubble-text">{{ msg.content }}</span>
-
             @if(msg.vehicles?.length){
             <div class="chat-vehicles">
               @for(v of msg.vehicles; track v.vin){
@@ -89,7 +84,6 @@
               }
             </div>
             }
-
             @if(msg.schedulingUrl){
             <a [href]="msg.schedulingUrl" target="_blank" rel="noopener" class="chat-schedule-btn">
               <lucide-icon name="calendar" /> Schedule a Visit
@@ -97,7 +91,6 @@
             }
           </div>
           }
-
           @if(chat.isLoading()){
           <div class="chat-bubble assistant">
             <div class="chat-typing">
@@ -107,10 +100,7 @@
             </div>
           </div>
           }
-
         </div>
-
-        <!-- Input -->
         <div class="search-input-area">
           <input
             [(ngModel)]="userInput"
@@ -123,12 +113,11 @@
             <lucide-icon name="send" />
           </button>
         </div>
-
       </div>
     </div>
 
-    <!-- Popular requests — full width below grid -->
-    <div class="search-quick-row">
+    <!-- Right: Popular requests -->
+    <div class="search-quick">
       <h3 class="search-quick-title">Popular requests</h3>
       <div class="search-quick-chips">
         @for(q of quickSearches; track q){
