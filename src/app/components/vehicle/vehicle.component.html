@@ -149,11 +149,11 @@
   </div>}
 
   <!-- Carfax -->
-  @if(v.carfaxurl){
   <div class="vdp-carfax-card">
-    <a [href]="v.carfaxurl" target="_blank" rel="noopener" class="vdp-carfax-snapshot">
-      <img [src]="v.carfaxicon" [alt]="v.carfaxalt || 'Carfax Report'" class="vdp-carfax-snapshot-img" loading="lazy" />
+    <a href="http://www.carfax.com/VehicleHistory/p/Report.cfx?partner=DVW_1&vin={{ v.vin }}" target="_blank" rel="noopener" class="vdp-carfax-snapshot">
+      <img src="http://www.carfaxonline.com/assets/subscriber/showmethecarfax.jpg" alt="Show me the Carfax" class="vdp-carfax-snapshot-img" loading="lazy" />
     </a>
+    @if(v.carfaxownerstext || v.carfaxaccidenttext){
     <div class="vdp-carfax-items">
       @if(v.carfaxownerstext){
       <div class="vdp-carfax-item">
@@ -165,9 +165,8 @@
         @if(v.carfaxaccidenticon){<img [src]="v.carfaxaccidenticon" alt="" class="vdp-carfax-item-icon" loading="lazy" />}
         <span>{{ v.carfaxaccidenttext }}</span>
       </div>}
-    </div>
+    </div>}
   </div>
-  }
 
   <!-- Window Sticker -->
   @if(v.monroneysticker){
