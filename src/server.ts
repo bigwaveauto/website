@@ -34,7 +34,72 @@ const supabase = createClient(
 );
 const resend = new Resend(process.env['RESEND_API_KEY']);
 const NOTIFY_EMAIL = 'dave@bigwaveauto.com';
+const DEALERCENTER_EMAIL = '18548085@leadsprod.dealercenter.net';
 const FROM_EMAIL = process.env['FROM_EMAIL'] || 'onboarding@resend.dev';
+
+// ADF/XML lead format for DealerCenter CRM
+function buildAdfXml(opts: {
+  source: string;
+  firstname?: string; lastname?: string; name?: string;
+  email?: string; phone?: string;
+  street?: string; city?: string; state?: string; zip?: string;
+  comments?: string;
+  vehicle?: { year?: string; make?: string; model?: string; vin?: string; stock?: string; price?: string };
+}): string {
+  const fn = opts.firstname || opts.name?.split(' ')[0] || '';
+  const ln = opts.lastname || opts.name?.split(' ').slice(1).join(' ') || '';
+  const v = opts.vehicle;
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<?adf version="1.0"?>
+<adf>
+  <prospect>
+    <requestdate>${new Date().toISOString()}</requestdate>
+    <vehicle>
+      ${v?.year ? `<year>${v.year}</year>` : ''}
+      ${v?.make ? `<make>${v.make}</make>` : ''}
+      ${v?.model ? `<model>${v.model}</model>` : ''}
+      ${v?.vin ? `<vin>${v.vin}</vin>` : ''}
+      ${v?.stock ? `<stock>${v.stock}</stock>` : ''}
+      ${v?.price ? `<price>${v.price}</price>` : ''}
+    </vehicle>
+    <customer>
+      <contact>
+        <name part="first">${fn}</name>
+        <name part="last">${ln}</name>
+        ${opts.email ? `<email>${opts.email}</email>` : ''}
+        ${opts.phone ? `<phone type="voice">${opts.phone}</phone>` : ''}
+        ${(opts.street || opts.city) ? `<address>
+          ${opts.street ? `<street line="1">${opts.street}</street>` : ''}
+          ${opts.city ? `<city>${opts.city}</city>` : ''}
+          ${opts.state ? `<regioncode>${opts.state}</regioncode>` : ''}
+          ${opts.zip ? `<postalcode>${opts.zip}</postalcode>` : ''}
+        </address>` : ''}
+      </contact>
+      ${opts.comments ? `<comments>${opts.comments}</comments>` : ''}
+    </customer>
+    <vendor>
+      <vendorname>Big Wave Auto</vendorname>
+    </vendor>
+    <provider>
+      <name part="full">Big Wave Auto Website</name>
+      <service>${opts.source}</service>
+    </provider>
+  </prospect>
+</adf>`;
+}
+
+async function sendAdfToDealerCenter(adfXml: string, subject: string) {
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: DEALERCENTER_EMAIL,
+      subject,
+      text: adfXml,
+    });
+  } catch (err) {
+    console.error('DealerCenter ADF send error:', err);
+  }
+}
 const anthropic = new Anthropic({ apiKey: process.env['ANTHROPIC_API_KEY'] });
 
 // AES-256-GCM encryption for sensitive fields (SSN)
@@ -195,6 +260,13 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
         <p><b>Co-borrower:</b> ${data.coborrower ? 'Yes' : 'No'}</p>
       `
     });
+    await sendAdfToDealerCenter(buildAdfXml({
+      source: 'Financing Application',
+      firstname: data.firstname, lastname: data.lastname,
+      email: data.email, phone: data.phone,
+      street: data.street, city: data.city, state: data.state, zip: data.zip,
+      comments: `Financing Application | DOB: ${data.dob} | Employment: ${data.employmentStatus} at ${data.employerName} | Monthly Income: ${data.monthlyIncome} | Co-borrower: ${data.coborrower ? 'Yes' : 'No'}`,
+    }), `Financing Application — ${data.firstname} ${data.lastname}`);
     res.json({ success: true });
   } catch (err) {
     console.error('Financing lead error');
@@ -230,6 +302,13 @@ app.post('/api/leads/trade-in', leadLimiter, async (req, res) => {
         <p><b>Notes:</b> ${escHtml(data.notes) || 'None'}</p>
       `
     });
+    await sendAdfToDealerCenter(buildAdfXml({
+      source: 'Trade-In',
+      firstname: data.firstname, lastname: data.lastname,
+      email: data.email, phone: data.phone,
+      vehicle: { year: data.year, make: data.make, model: data.model, vin: data.vin },
+      comments: `Trade-In | Mileage: ${data.mileage} | Condition: ${data.condition} | Notes: ${data.notes || 'None'}`,
+    }), `Trade-In — ${data.year} ${data.make} ${data.model}`);
     res.json({ success: true });
   } catch (err) {
     console.error('Trade-in lead error');
@@ -266,6 +345,13 @@ app.post('/api/leads/test-drive', leadLimiter, async (req, res) => {
         <p><b>Notes:</b> ${escHtml(data.notes) || 'None'}</p>
       `
     });
+    await sendAdfToDealerCenter(buildAdfXml({
+      source: 'Test Drive',
+      firstname: data.firstname, lastname: data.lastname,
+      email: data.email, phone: data.phone,
+      vehicle: { year: data.year, make: data.make, model: data.model, vin: data.vin, stock: data.stock },
+      comments: `Test Drive Request | Preferred: ${data.preferred_date || 'N/A'} ${data.preferred_time || ''} | Notes: ${data.notes || 'None'}`,
+    }), `Test Drive — ${data.year} ${data.make} ${data.model}`);
     res.json({ success: true });
   } catch (err) {
     console.error('Test drive lead error');
@@ -318,6 +404,14 @@ app.post('/api/leads/reservation', leadLimiter, async (req, res) => {
         <p><b>Identity Verification:</b> ${escHtml(verifyId) || 'Manual verification required'}</p>
       `
     });
+    await sendAdfToDealerCenter(buildAdfXml({
+      source: 'Reservation',
+      firstname: info?.firstName, lastname: info?.lastName,
+      email: info?.email, phone: info?.phone,
+      street: info?.street, city: info?.city, state: info?.state, zip: info?.zip,
+      vehicle: { year: vehicle?.year, make: vehicle?.make, model: vehicle?.model, vin: vehicle?.vin, price: vehicle?.price },
+      comments: `Vehicle Reservation | Delivery: ${delivery?.method || 'N/A'} | Coverage: ${coverage?.plan || 'None'}`,
+    }), `Reservation — ${vehicle?.year} ${vehicle?.make} ${vehicle?.model}`);
     res.json({ success: true });
   } catch (err) {
     console.error('Reservation lead error');
@@ -354,6 +448,13 @@ app.post('/api/leads/make-offer', leadLimiter, async (req, res) => {
         <p><b>Notes:</b> ${escHtml(data.notes) || 'None'}</p>
       `
     });
+    await sendAdfToDealerCenter(buildAdfXml({
+      source: 'Make an Offer',
+      firstname: data.firstname, lastname: data.lastname,
+      email: data.email, phone: data.phone,
+      vehicle: { year: data.year, make: data.make, model: data.model, vin: data.vin, stock: data.stock, price: String(data.listed_price || '') },
+      comments: `Offer: $${data.offer_amount} | Listed: $${data.listed_price || 'N/A'} | Financing: ${data.financing} | Notes: ${data.notes || 'None'}`,
+    }), `Offer — $${data.offer_amount} on ${data.year} ${data.make} ${data.model}`);
     res.json({ success: true });
   } catch (err) {
     console.error('Offer lead error');
@@ -382,6 +483,11 @@ app.post('/api/leads/contact', leadLimiter, async (req, res) => {
         <p><b>Message:</b> ${escHtml(data.message)}</p>
       `
     });
+    await sendAdfToDealerCenter(buildAdfXml({
+      source: 'Contact Form',
+      name: data.name, email: data.email, phone: data.phone,
+      comments: `Contact | Topic: ${data.topic || 'General'} | Preferred: ${data.preferred_method || 'N/A'} | Message: ${data.message}`,
+    }), `Contact — ${data.name}`);
     res.json({ success: true });
   } catch (err) {
     console.error('Contact lead error');
