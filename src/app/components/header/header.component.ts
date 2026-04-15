@@ -50,6 +50,7 @@ export class HeaderComponent {
     private inventoryMenuTimer: any;
 
     contactForm: FormGroup = this.fb.group({
+        name:            ['', Validators.required],
         topic:           ['', Validators.required],
         phone:           [''],
         email:           ['', [Validators.required, Validators.email]],

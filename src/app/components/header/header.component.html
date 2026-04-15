@@ -209,6 +209,14 @@
     <form [formGroup]="contactForm" (ngSubmit)="submitContact()" class="contact-panel-form">
 
         <div class="cpf-field">
+            <label>Name</label>
+            <div class="cpf-input-wrap">
+                <lucide-icon name="user" class="cpf-input-icon" />
+                <input formControlName="name" type="text" placeholder="Your name" class="cpf-input cpf-input--icon">
+            </div>
+        </div>
+
+        <div class="cpf-field">
             <select formControlName="topic" class="cpf-select">
                 <option value="">What can we help you with?</option>
                 <option>Buying a vehicle</option>

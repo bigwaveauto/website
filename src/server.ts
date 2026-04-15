@@ -465,6 +465,8 @@ app.post('/api/leads/make-offer', leadLimiter, async (req, res) => {
 app.post('/api/leads/contact', leadLimiter, async (req, res) => {
   try {
     const data = pickFields(req.body, ['name', 'email', 'phone', 'topic', 'preferred_method', 'message']);
+    // Accept camelCase from frontend
+    if (!data.preferred_method && req.body.preferredMethod) data.preferred_method = req.body.preferredMethod;
     if (!data.email || !validateEmail(data.email)) {
       res.status(400).json({ error: 'Valid email required' }); return;
     }
