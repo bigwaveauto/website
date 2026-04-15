@@ -816,10 +816,15 @@ $dark: #131313;
 }
 
 .trust-badge-icon-lg {
-  width: 72px;
-  height: 72px;
+  width: 100px !important;
+  height: 100px !important;
   color: #111;
-  stroke-width: 1.5;
+}
+
+::ng-deep .trust-badge-icon-lg svg {
+  width: 100px !important;
+  height: 100px !important;
+  stroke-width: 1.2 !important;
 }
 
 .trust-badge-label {
