@@ -465,34 +465,19 @@ $dark: #131313;
   line-height: 1.4;
 }
 
-/* ── Service cards ── */
-.svc-card {
+/* ── Office sign image ── */
+.home-sign-wrap {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.07);
-  border-radius: 14px;
-  padding: 28px 24px;
-  gap: 16px;
-  transition: box-shadow 0.2s;
-
-  &:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  justify-content: center;
 }
 
-.svc-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #111;
+.home-sign-img {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 16px;
   display: block;
-  margin-bottom: 8px;
-  line-height: 1.2;
-}
-
-.svc-body {
-  font-size: 16px;
-  color: rgba(0, 0, 0, 0.55);
-  line-height: 1.6;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
 }
 
 .svc-icon {
