@@ -815,16 +815,11 @@ $dark: #131313;
   color: #111;
 }
 
-.trust-badge-icon-lg {
-  width: 100px !important;
-  height: 100px !important;
-  color: #111;
-}
-
-::ng-deep .trust-badge-icon-lg svg {
-  width: 100px !important;
-  height: 100px !important;
-  stroke-width: 1.2 !important;
+.trust-badge-img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  display: block;
 }
 
 .trust-badge-label {
