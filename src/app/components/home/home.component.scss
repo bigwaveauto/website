@@ -607,6 +607,27 @@ $dark: #131313;
   white-space: nowrap;
 }
 
+.contact-phone-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1.5px solid #dadce0;
+  border-radius: 12px;
+  padding: 14px 18px;
+  text-decoration: none;
+  color: #111;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  transition: box-shadow 0.2s, border-color 0.2s;
+
+  &:hover {
+    border-color: #34a853;
+    box-shadow: 0 2px 8px rgba(52,168,83,0.25);
+  }
+}
+
 .contact-row {
   display: flex;
   align-items: center;
