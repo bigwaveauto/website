@@ -3,105 +3,39 @@
 @if(fullVehicle()?.results; as v){
 @let total = v.photos.length;
 
-<!-- ── Top: Photo + Buy Box ── -->
+<!-- ── Full-page grid: content left, sticky buy box right ── -->
 <div class="vdp-shell">
 
-  <!-- ── Left: Sticky photo ── -->
-  <div class="vdp-photo-fixed">
-    @if(total > 0){
-    <div class="vdp-photo-main" (click)="openSinglePhoto(selectedPhotoIndex())">
-      <img [src]="v.photos[selectedPhotoIndex()].large" [alt]="v.title" fetchpriority="high" />
-      <!-- Expand icon -->
-      <button class="vdp-photo-expand"><lucide-icon name="maximize-2" /></button>
-      <!-- Nav arrows -->
-      @if(total > 1){
-      <button class="vdp-photo-arrow left" (click)="$event.stopPropagation(); prevPhoto(total)"><lucide-icon name="chevron-left" /></button>
-      <button class="vdp-photo-arrow right" (click)="$event.stopPropagation(); nextPhoto(total)"><lucide-icon name="chevron-right" /></button>
-      <!-- Dots -->
-      <div class="vdp-photo-dots">
-        @for(p of v.photos | slice:0:8; track $index; let i = $index){
-        <span class="vdp-photo-dot" [class.active]="i === selectedPhotoIndex()" (click)="$event.stopPropagation(); selectGalleryPhoto(i)"></span>
+  <!-- ── Left column: photo + details ── -->
+  <div class="vdp-left">
+
+    <!-- Photo -->
+    <div class="vdp-photo-fixed">
+      @if(total > 0){
+      <div class="vdp-photo-main" (click)="openSinglePhoto(selectedPhotoIndex())">
+        <img [src]="v.photos[selectedPhotoIndex()].large" [alt]="v.title" fetchpriority="high" />
+        <!-- Expand icon -->
+        <button class="vdp-photo-expand"><lucide-icon name="maximize-2" /></button>
+        <!-- Nav arrows -->
+        @if(total > 1){
+        <button class="vdp-photo-arrow left" (click)="$event.stopPropagation(); prevPhoto(total)"><lucide-icon name="chevron-left" /></button>
+        <button class="vdp-photo-arrow right" (click)="$event.stopPropagation(); nextPhoto(total)"><lucide-icon name="chevron-right" /></button>
+        <!-- Dots -->
+        <div class="vdp-photo-dots">
+          @for(p of v.photos | slice:0:8; track $index; let i = $index){
+          <span class="vdp-photo-dot" [class.active]="i === selectedPhotoIndex()" (click)="$event.stopPropagation(); selectGalleryPhoto(i)"></span>
+          }
+          @if(total > 8){<span class="vdp-photo-dot-more">+{{ total - 8 }}</span>}
+        </div>
         }
-        @if(total > 8){<span class="vdp-photo-dot-more">+{{ total - 8 }}</span>}
       </div>
+      }@else{
+      <div class="vdp-no-photo-wrap"><span>Photos Coming Soon</span></div>
       }
     </div>
-    }@else{
-    <div class="vdp-no-photo-wrap"><span>Photos Coming Soon</span></div>
-    }
-  </div>
 
-  <!-- ── Right: Buy Box ── -->
-  <div class="vdp-right">
-    <div class="vdp-buy-box">
-
-      <!-- Back to search -->
-      <a routerLink="/showroom" class="vdp-back-btn">
-        <lucide-icon name="arrow-left" class="vdp-back-icon"></lucide-icon>
-        Back to Search
-      </a>
-
-      <!-- Title -->
-      <div class="vdp-title-block">
-        <span class="vdp-year-label">{{ v.year }}</span>
-        <h1 class="vdp-title">{{ v.make }} {{ v.model }} {{ v.trim }}</h1>
-        <div class="vdp-vin-stock">
-          @if(v.vin){<span>VIN: {{ v.vin }}</span>}
-          @if(v.stocknumber){<span>Stock #: {{ v.stocknumber }}</span>}
-        </div>
-      </div>
-
-      <!-- Key stats -->
-      <div class="vdp-key-stats">
-        <span>{{ v.mileage | number:'1.0-0' }} mi</span>
-        @if(v.fuel){<span>{{ v.fuel }}</span>}
-        @if(v.drivetrainstandard){<span>{{ v.drivetrainstandard }}</span>}
-        @if(v.maxhorsepower){<span>{{ v.maxhorsepower }} hp</span>}
-      </div>
-
-      <!-- Price -->
-      <div class="vdp-price-section">
-        <span class="vdp-price">{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span>
-        @if(v.msrp && v.msrp > v.price){
-        <span class="vdp-msrp">MSRP {{ v.msrp | currency:'USD':'symbol':'1.0-0' }}</span>}
-      </div>
-
-      <!-- Cost card -->
-      <div class="vdp-cost-card" (click)="calcOpen.set(true)">
-        <div class="vdp-cost-header">
-          <span class="vdp-cost-title">What does this really cost?</span>
-          <lucide-icon name="chevron-right" class="vdp-cost-chevron" />
-        </div>
-        <div class="vdp-cost-summary">
-          <div class="vdp-cost-item">
-            <span class="vdp-cost-item-label">Est. Monthly</span>
-            <span class="vdp-cost-item-value">{{ dealMonthly | currency:'USD':'symbol':'1.0-0' }}/mo</span>
-          </div>
-          <div class="vdp-cost-divider"></div>
-          <div class="vdp-cost-item">
-            <span class="vdp-cost-item-label">Out-the-Door</span>
-            <span class="vdp-cost-item-value">{{ dealTotal | currency:'USD':'symbol':'1.0-0' }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- CTAs -->
-      <div class="vdp-cta-stack">
-        <button class="vdp-btn-reserve" (click)="reserveVehicle(v)">Reserve This Vehicle</button>
-        <button class="vdp-btn-primary" (click)="openTestDrive()">Request a Test Drive</button>
-        <div class="vdp-cta-row">
-          <button class="vdp-btn-outline" (click)="openMakeOffer()">Make an Offer</button>
-          <a routerLink="/financing" class="vdp-btn-outline">Apply for Financing</a>
-        </div>
-      </div>
-
-    </div><!-- /vdp-buy-box -->
-  </div><!-- /vdp-right -->
-
-</div><!-- /vdp-shell -->
-
-<!-- ── Below photo: Details section ── -->
-<div class="vdp-below">
+    <!-- Below photo: Details section -->
+    <div class="vdp-below">
 
   <!-- Highlights -->
   <div class="vdp-highlights-section">
@@ -224,7 +158,77 @@
   </a>
   }
 
-</div><!-- /vdp-below -->
+    </div><!-- /vdp-below -->
+  </div><!-- /vdp-left -->
+
+  <!-- ── Right: Sticky Buy Box ── -->
+  <div class="vdp-right">
+    <div class="vdp-buy-box">
+
+      <!-- Back to search -->
+      <a routerLink="/showroom" class="vdp-back-btn">
+        <lucide-icon name="arrow-left" class="vdp-back-icon"></lucide-icon>
+        Back to Search
+      </a>
+
+      <!-- Title -->
+      <div class="vdp-title-block">
+        <span class="vdp-year-label">{{ v.year }}</span>
+        <h1 class="vdp-title">{{ v.make }} {{ v.model }} {{ v.trim }}</h1>
+        <div class="vdp-vin-stock">
+          @if(v.vin){<span>VIN: {{ v.vin }}</span>}
+          @if(v.stocknumber){<span>Stock #: {{ v.stocknumber }}</span>}
+        </div>
+      </div>
+
+      <!-- Key stats -->
+      <div class="vdp-key-stats">
+        <span>{{ v.mileage | number:'1.0-0' }} mi</span>
+        @if(v.fuel){<span>{{ v.fuel }}</span>}
+        @if(v.drivetrainstandard){<span>{{ v.drivetrainstandard }}</span>}
+        @if(v.maxhorsepower){<span>{{ v.maxhorsepower }} hp</span>}
+      </div>
+
+      <!-- Price -->
+      <div class="vdp-price-section">
+        <span class="vdp-price">{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span>
+        @if(v.msrp && v.msrp > v.price){
+        <span class="vdp-msrp">MSRP {{ v.msrp | currency:'USD':'symbol':'1.0-0' }}</span>}
+      </div>
+
+      <!-- Cost card -->
+      <div class="vdp-cost-card" (click)="calcOpen.set(true)">
+        <div class="vdp-cost-header">
+          <span class="vdp-cost-title">What does this really cost?</span>
+          <lucide-icon name="chevron-right" class="vdp-cost-chevron" />
+        </div>
+        <div class="vdp-cost-summary">
+          <div class="vdp-cost-item">
+            <span class="vdp-cost-item-label">Est. Monthly</span>
+            <span class="vdp-cost-item-value">{{ dealMonthly | currency:'USD':'symbol':'1.0-0' }}/mo</span>
+          </div>
+          <div class="vdp-cost-divider"></div>
+          <div class="vdp-cost-item">
+            <span class="vdp-cost-item-label">Out-the-Door</span>
+            <span class="vdp-cost-item-value">{{ dealTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTAs -->
+      <div class="vdp-cta-stack">
+        <button class="vdp-btn-reserve" (click)="reserveVehicle(v)">Reserve This Vehicle</button>
+        <button class="vdp-btn-primary" (click)="openTestDrive()">Request a Test Drive</button>
+        <div class="vdp-cta-row">
+          <button class="vdp-btn-outline" (click)="openMakeOffer()">Make an Offer</button>
+          <a routerLink="/financing" class="vdp-btn-outline">Apply for Financing</a>
+        </div>
+      </div>
+
+    </div><!-- /vdp-buy-box -->
+  </div><!-- /vdp-right -->
+
+</div><!-- /vdp-shell -->
 
 <!-- ── Deal Calculator Slide-out Panel ── -->
 @if(calcOpen()){

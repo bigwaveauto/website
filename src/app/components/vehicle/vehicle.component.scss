@@ -11,13 +11,13 @@ $text-muted: rgba(0,0,0,0.45);
   color: #111;
 }
 
-/* ── Page shell: photo left, buy box right ── */
+/* ── Page shell: content left, sticky buy box right ── */
 .vdp-shell {
   display: grid;
-  grid-template-columns: 1fr calc(22vw + 20px);
+  grid-template-columns: 1fr calc(22vw + 40px);
 
   @media (max-width: 1280px) {
-    grid-template-columns: 1fr 34vw;
+    grid-template-columns: 1fr calc(34vw + 20px);
   }
 
   @media (max-width: 1024px) {
@@ -25,7 +25,12 @@ $text-muted: rgba(0,0,0,0.45);
   }
 }
 
-/* ── Left: Sticky photo ── */
+/* ── Left column ── */
+.vdp-left {
+  min-width: 0;
+}
+
+/* ── Photo ── */
 .vdp-photo-fixed {
   position: sticky;
   top: 10px;
@@ -139,7 +144,7 @@ $text-muted: rgba(0,0,0,0.45);
   background: #f0f1f3;
 }
 
-/* ── Right: Buy box column ── */
+/* ── Right: Sticky buy box column ── */
 .vdp-right {
   padding: 10px 16px 40px 8px;
   grid-column: 2;
@@ -151,6 +156,8 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-buy-box {
+  position: sticky;
+  top: 10px;
   border: 1.5px solid rgba(0,0,0,0.12);
   border-radius: 16px;
   background: white;
@@ -160,6 +167,8 @@ $text-muted: rgba(0,0,0,0.45);
   gap: 20px;
 
   @media (max-width: 1024px) {
+    position: relative;
+    top: auto;
     border: none;
     border-radius: 0;
     padding: 24px 4px 0;
@@ -168,8 +177,6 @@ $text-muted: rgba(0,0,0,0.45);
 
 /* ── Below photo: details section ── */
 .vdp-below {
-  max-width: 900px;
-  margin: 0 auto;
   padding: 40px 32px 60px;
   display: flex;
   flex-direction: column;
