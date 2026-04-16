@@ -382,18 +382,57 @@ export class VehicleComponent implements OnInit, OnDestroy {
 
   detailsItems = [
     { displayName: 'Mileage', datacol: 'mileage', icon: 'gauge', format: 'miles' },
+    { displayName: 'Exterior Color', datacol: 'exteriorcolorstandard', icon: 'palette', colorType: 'ext' },
+    { displayName: 'Interior Color', datacol: 'interiorcolorstandard', icon: 'armchair', colorType: 'int' },
     { displayName: 'Drivetrain', datacol: 'drivetrainstandard', icon: 'cog' },
-    { displayName: 'Exterior Color', datacol: 'exteriorcolorstandard', icon: 'palette' },
-    { displayName: 'Interior Color', datacol: 'interiorcolorstandard', icon: 'armchair' },
-    { displayName: 'Body Type', datacol: 'body', icon: 'car' },
-    { displayName: 'Transmission', datacol: 'transmissionstandard', icon: 'settings' },
     { displayName: 'Engine', datacol: 'engine', icon: 'zap' },
+    { displayName: 'Transmission', datacol: 'transmissionstandard', icon: 'settings' },
     { displayName: 'Fuel Type', datacol: 'fuel', icon: 'fuel' },
-    { displayName: 'Horsepower', datacol: 'maxhorsepower', icon: 'activity', format: 'hp' },
-    { displayName: 'Torque', datacol: 'maxtorque', icon: 'gauge-circle', format: 'lb-ft' },
+    { displayName: 'Body Type', datacol: 'body', icon: 'car' },
     { displayName: 'Condition', datacol: 'condition', icon: 'badge-check' },
     { displayName: 'Trim', datacol: 'trim', icon: 'tag' },
   ];
+
+  makeLogo = computed(() => {
+    const v = this.fullVehicle()?.results;
+    if (!v?.make) return null;
+    const slug = v.make.toLowerCase().replace(/\s+/g, '-');
+    return `/brands/${slug}.png`;
+  });
+
+  private colorMap: Record<string, string> = {
+    'black': '#111111', 'ebony': '#111111', 'jet black': '#111111', 'shadow black': '#111111',
+    'white': '#FAFAFA', 'oxford white': '#FAFAFA', 'summit white': '#FAFAFA', 'glacier white': '#F0F0F0',
+    'silver': '#C0C0C0', 'ingot silver': '#B0B0B0', 'iconic silver': '#C0C0C0', 'quicksilver': '#B8B8B8',
+    'gray': '#808080', 'grey': '#808080', 'magnetic': '#6E6E6E', 'carbonized gray': '#5A5A5A',
+    'dark gray': '#4A4A4A', 'dark grey': '#4A4A4A',
+    'red': '#CC0000', 'ruby red': '#9B111E', 'rapid red': '#A52019', 'race red': '#E60000',
+    'blue': '#2563EB', 'velocity blue': '#1E4DB7', 'atlas blue': '#1A3A6B', 'antimatter blue': '#1C2951',
+    'lightning blue': '#4A90D9', 'alto blue': '#4169E1',
+    'green': '#2D6A4F', 'eruption green': '#2ECC40', 'forged green': '#355E3B',
+    'limestone': '#9CA39C', 'rivian blue': '#4A6FA5', 'el cap granite': '#6E6E6E',
+    'launch green': '#3B6B3B', 'forest green': '#3B6B3B', 'compass yellow': '#E2B842',
+    'la silver': '#C0C0C0', 'midnight': '#1C2331',
+    'yellow': '#F5C518', 'orange': '#E8740C', 'gold': '#C5A54E',
+    'brown': '#6B4226', 'bronze': '#8B6914', 'tan': '#C4A46C', 'beige': '#C8B88A', 'sand': '#C2B280',
+    'maroon': '#5E1224', 'burgundy': '#6D1A36', 'purple': '#5B2C6F',
+    // Interior
+    'black mountain': '#1A1A1A', 'ocean coast': '#4A6FA5',
+    'charcoal': '#36454F', 'graphite': '#4A4A4A', 'dark ash': '#3D3D3D',
+    'saddle': '#8B5A2B', 'cognac': '#9F5922', 'caramel': '#A27035',
+    'light gray': '#CCCCCC', 'light grey': '#CCCCCC', 'parchment': '#E8DCC8',
+    'cream': '#F5F0E1', 'ivory': '#FFFFF0', 'almond': '#EFDECD',
+  };
+
+  getColorHex(colorName: string | undefined): string | null {
+    if (!colorName) return null;
+    const lower = colorName.toLowerCase().trim();
+    if (this.colorMap[lower]) return this.colorMap[lower];
+    for (const [key, val] of Object.entries(this.colorMap)) {
+      if (lower.includes(key)) return val;
+    }
+    return null;
+  }
   private destroy$ = new Subject<void>();
 
 

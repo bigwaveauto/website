@@ -479,7 +479,18 @@ $text-muted: rgba(0,0,0,0.45);
   gap: 20px;
 }
 
-/* Highlights cards */
+/* Make logo */
+.vdp-make-logo-wrap {
+  margin-bottom: 8px;
+}
+
+.vdp-make-logo {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Highlights cards — Rivian vertical style */
 .vdp-highlights-section {
   padding: 0;
 }
@@ -506,55 +517,58 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-highlight-card {
-  background: white;
-  border: 1px solid rgba(0,0,0,0.06);
-  border-radius: 12px;
-  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 16px;
+  padding: 20px;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  transition: box-shadow 0.2s;
-
-  &:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  flex-direction: column;
+  gap: 10px;
+  min-height: 120px;
 }
 
 .vdp-highlight-icon-wrap {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  border: 1.5px solid #34d399;
+  border: 2px solid #34d399;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  margin-bottom: 4px;
 }
 
 .vdp-highlight-icon {
-  width: 17px;
-  height: 17px;
+  width: 20px;
+  height: 20px;
   color: #34d399;
 }
 
-.vdp-highlight-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
+/* Color swatch circle */
+.vdp-color-swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+  border: 2px solid transparent;
+
+  &.vdp-color-light {
+    border-color: #d1d5db;
+  }
 }
 
 .vdp-highlight-label {
   font-size: 16px;
   font-weight: 700;
   color: #111;
+  line-height: 1.2;
 }
 
 .vdp-highlight-value {
-  font-size: 16px;
+  font-size: 15px;
   color: rgba(0,0,0,0.45);
   line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Legacy — keep for calc panel internals */

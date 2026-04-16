@@ -108,24 +108,33 @@
 
     <!-- Vehicle Highlights -->
     <div class="vdp-highlights-section">
+      @if(makeLogo()){
+      <div class="vdp-make-logo-wrap">
+        <img [src]="makeLogo()!" [alt]="v.make" class="vdp-make-logo" />
+      </div>}
       <h2 class="vdp-highlights-heading">Highlights</h2>
       <div class="vdp-highlights-grid">
         @for(item of detailsItems; track $index){
           @let val = $any(v)[item.datacol];
           @if(val){
           <div class="vdp-highlight-card">
+            @if($any(item).colorType; as ct){
+              @let hex = getColorHex(val);
+              @if(hex){
+              <div class="vdp-color-swatch" [style.background]="hex" [class.vdp-color-light]="hex === '#FAFAFA' || hex === '#F0F0F0' || hex === '#FFFFF0' || hex === '#F5F0E1' || hex === '#E8DCC8' || hex === '#EFDECD'"></div>
+              } @else {
+              <div class="vdp-highlight-icon-wrap">
+                <lucide-icon [name]="item.icon" class="vdp-highlight-icon" />
+              </div>}
+            } @else {
             <div class="vdp-highlight-icon-wrap">
               <lucide-icon [name]="item.icon" class="vdp-highlight-icon" />
-            </div>
-            <div class="vdp-highlight-text">
-              <span class="vdp-highlight-label">{{ item.displayName }}</span>
-              <span class="vdp-highlight-value">
-                @if(item.format === 'miles'){ {{ val | number:'1.0-0' }} miles }
-                @else if(item.format === 'hp'){ {{ val }} hp }
-                @else if(item.format === 'lb-ft'){ {{ val }} lb-ft }
-                @else { {{ val }} }
-              </span>
-            </div>
+            </div>}
+            <span class="vdp-highlight-label">{{ item.displayName }}</span>
+            <span class="vdp-highlight-value">
+              @if(item.format === 'miles'){ {{ val | number:'1.0-0' }} miles }
+              @else { {{ val }} }
+            </span>
           </div>}
         }
         @if(v.mpgcity && v.mpghwy){
@@ -133,10 +142,8 @@
           <div class="vdp-highlight-icon-wrap">
             <lucide-icon name="leaf" class="vdp-highlight-icon" />
           </div>
-          <div class="vdp-highlight-text">
-            <span class="vdp-highlight-label">Fuel Economy</span>
-            <span class="vdp-highlight-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</span>
-          </div>
+          <span class="vdp-highlight-label">Fuel Economy</span>
+          <span class="vdp-highlight-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</span>
         </div>}
       </div>
     </div>
