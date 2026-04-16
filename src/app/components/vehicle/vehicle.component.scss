@@ -248,77 +248,108 @@ $text-muted: rgba(0,0,0,0.45);
   gap: 12px;
 }
 
-/* Highlights + Carfax row */
-.vdp-highlights-row {
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-
-  .vdp-highlights-section { flex: 1; min-width: 0; }
-
-  @media (max-width: 900px) {
-    flex-direction: column;
-  }
+/* History and inspection section */
+.vdp-history-section {
+  margin-top: 8px;
 }
 
-/* Carfax sidebar */
-.vdp-carfax-sidebar {
-  width: 220px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.vdp-history-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
-  background: white;
-  border: 1px solid $border;
-  border-radius: 12px;
-  padding: 24px 16px;
-  text-align: center;
-  transition: border-color 0.2s, box-shadow 0.2s;
 
-  &:hover { border-color: #1a6bb5; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-
-  @media (max-width: 900px) {
-    width: 100%;
-    flex-direction: row;
-    justify-content: center;
-    padding: 16px 24px;
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
   }
 }
 
-.vdp-carfax-link {
+.vdp-history-card {
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  padding: 28px;
   display: flex;
   flex-direction: column;
+  gap: 20px;
+  background: white;
+}
+
+.vdp-history-card-header {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  text-decoration: none;
+}
+
+.vdp-history-card-title {
+  font-size: 18px;
+  font-weight: 700;
   color: #111;
 }
 
-.vdp-carfax-fox-img {
-  width: 160px;
-  height: auto;
-  display: block;
+.vdp-history-carfax-logo {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
 }
 
-.vdp-carfax-cta {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1a6bb5;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.vdp-carfax-items { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-.vdp-carfax-item {
+.vdp-history-badge {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 14px;
+  font-weight: 600;
+  color: #34d399;
+}
+
+.vdp-history-badge-icon {
+  width: 18px;
+  height: 18px;
+  color: #34d399;
+}
+
+.vdp-history-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vdp-history-check-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
   font-weight: 500;
   color: #111;
 }
-.vdp-carfax-item-icon { height: 24px; width: auto; display: block; }
+
+.vdp-history-check-icon {
+  width: 20px;
+  height: 20px;
+  color: #34d399;
+  flex-shrink: 0;
+  background: rgba(52, 211, 153, 0.1);
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.vdp-history-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-top: auto;
+
+  &:hover { color: #333; }
+}
+
+.vdp-history-link-arrow {
+  width: 16px;
+  height: 16px;
+}
 
 /* Sections */
 .vdp-section { display: flex; flex-direction: column; gap: 16px; }
