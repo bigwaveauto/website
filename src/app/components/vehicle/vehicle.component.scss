@@ -32,8 +32,7 @@ $text-muted: rgba(0,0,0,0.45);
 
 /* ── Photo ── */
 .vdp-photo-fixed {
-  position: sticky;
-  top: 10px;
+  position: relative;
   height: calc(100dvh - 160px);
   margin: 10px 0 10px 10px;
   background: #111;
@@ -42,7 +41,6 @@ $text-muted: rgba(0,0,0,0.45);
   z-index: 0;
 
   @media (max-width: 1024px) {
-    position: relative;
     height: 50vh;
     min-height: 300px;
     margin: 0;
@@ -853,13 +851,31 @@ $text-muted: rgba(0,0,0,0.45);
   }
 }
 
-.vdp-deal-line.out-of-state {
-  span:last-child {
-    font-size: 16px;
-    font-style: italic;
-    color: $text-muted !important;
-    font-weight: 400 !important;
-  }
+.vdp-deal-tax-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.vdp-deal-tax-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.vdp-deal-tax-input {
+  width: 52px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 14px;
+  font-family: inherit;
+  text-align: right;
+  color: #111;
+  background: white;
+  -moz-appearance: textfield;
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 }
 
 .vdp-deal-zip {

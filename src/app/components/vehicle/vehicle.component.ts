@@ -77,8 +77,7 @@ export class VehicleComponent implements OnInit, OnDestroy {
   dealTitleFee = signal(214.50);
   dealLicenseFee = signal(85);
   dealLienFee = signal(10);
-  dealTaxRate = signal(5.43); // WI default
-  dealZip = signal('53089');
+  dealTaxRate = signal(5.5);
   dealDownPayment = signal(0);
   dealTradeIn = signal(0);
   dealCreditTier = signal('good');
@@ -96,13 +95,7 @@ export class VehicleComponent implements OnInit, OnDestroy {
 
   readonly termOptions = [36, 48, 60, 72, 84];
 
-  // WI county tax rates by zip prefix
-  readonly zipTaxRates: Record<string, number> = {
-    '530': 5.5, '531': 5.5, '532': 5.5, '534': 5.5, '535': 5.0,
-    '537': 5.5, '538': 5.0, '539': 5.5, '540': 5.5, '541': 5.5,
-    '542': 5.5, '543': 5.5, '544': 5.0, '545': 5.5, '546': 5.0,
-    '547': 5.5, '548': 5.0, '549': 5.5,
-  };
+  dealZip = signal('53089');
 
   get selectedRate(): number {
     return this.creditTiers.find(t => t.key === this.dealCreditTier())?.rate || 7.49;
@@ -127,15 +120,10 @@ export class VehicleComponent implements OnInit, OnDestroy {
   }
 
   get dealTaxAmount(): number {
-    if (!this.isWisconsinZip) return 0;
     return this.dealTaxableAmount * (this.dealTaxRate() / 100);
   }
 
   get dealTotal(): number {
-    if (!this.isWisconsinZip) {
-      // Out-of-state: just purchase price + service fee
-      return this.dealTaxableAmount;
-    }
     return this.dealTaxableAmount + this.dealTaxAmount + this.dealNonTaxFees;
   }
 
@@ -151,16 +139,8 @@ export class VehicleComponent implements OnInit, OnDestroy {
     return principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
   }
 
-  get isWisconsinZip(): boolean {
-    const prefix = this.dealZip().substring(0, 3);
-    return !!this.zipTaxRates[prefix];
-  }
-
   onZipChange() {
     const zip = this.dealZip();
-    const prefix = zip.substring(0, 3);
-    const rate = this.zipTaxRates[prefix];
-    if (rate) this.dealTaxRate.set(rate);
     // Estimate distance from Sussex, WI (53089) for transport
     if (zip.length === 5) this.estimateDistance(zip);
   }
