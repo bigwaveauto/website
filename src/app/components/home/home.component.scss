@@ -743,6 +743,11 @@ $dark: #131313;
 /* Carfax card with fox peeking behind */
 .trust-card-fox-wrap {
   position: relative;
+  overflow: visible;
+
+  @media (max-width: 768px) {
+    overflow: hidden;
+  }
 }
 
 .trust-carfox-behind {
@@ -754,6 +759,11 @@ $dark: #131313;
   width: auto;
   z-index: 0;
   pointer-events: none;
+
+  @media (max-width: 768px) {
+    height: 120px;
+    bottom: 92%;
+  }
 }
 
 .trust-card--carfax {
