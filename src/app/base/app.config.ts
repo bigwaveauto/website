@@ -17,7 +17,7 @@ import {
   Palette, CircleDot, Hash, Fingerprint, Armchair, Cog, Trophy,
   Activity, Droplets, GaugeCircle, Ruler, Eye, Maximize2, Upload,
   BarChart3, Thermometer, Weight, Box, HandCoins, MessageCircle, Calendar,
-  Truck, DollarSign,
+  Truck, DollarSign, ShieldCheck,
 } from 'lucide-angular';
 
 export const appConfig: ApplicationConfig = {
@@ -38,7 +38,7 @@ export const appConfig: ApplicationConfig = {
         Palette, CircleDot, Hash, Fingerprint, Armchair, Cog, Trophy,
         Activity, Droplets, GaugeCircle, Ruler, Eye, Maximize2, Upload,
         BarChart3, Thermometer, Weight, Box, HandCoins, MessageCircle, Calendar,
-        Truck, DollarSign,
+        Truck, DollarSign, ShieldCheck,
       }),
     },
     provideRouter(routes, withRouterConfig({ onSameUrlNavigation: 'reload' }), withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
