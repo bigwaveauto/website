@@ -966,30 +966,47 @@ app.post('/api/admin/tax/process', reportUpload.single('file'), async (req: any,
 
     const workbook = XLSX.read(req.file.buffer, { type: 'buffer', cellDates: true });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
 
-    // Find the header row — look for columns containing key fields
-    // sheet_to_json uses the first row as headers by default
+    // Read all rows as arrays to find the header row (contains "Deal No." or "Delivery Date")
+    const allRows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+    let headerRowIdx = -1;
+    for (let i = 0; i < Math.min(20, allRows.length); i++) {
+      const rowStr = allRows[i].map((c: any) => String(c).toLowerCase()).join('|');
+      if (rowStr.includes('delivery date') || rowStr.includes('deal no')) {
+        headerRowIdx = i;
+        break;
+      }
+    }
+
+    if (headerRowIdx === -1) {
+      res.status(400).json({ error: 'Could not find header row with "Delivery Date" in the spreadsheet.' });
+      return;
+    }
+
+    // Re-parse using the found header row
+    const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '', range: headerRowIdx });
+
+    // Map columns
     const colMap: Record<string, string> = {};
     if (rows.length > 0) {
       const keys = Object.keys(rows[0]);
       for (const k of keys) {
         const kl = k.toLowerCase().trim();
-        if (kl.includes('delivery date') || kl === 'deliverydate') colMap['deliveryDate'] = k;
-        else if (kl.includes('purchase price') || kl === 'purchaseprice') colMap['purchasePrice'] = k;
-        else if (kl.includes('taxable amount') || kl === 'taxableamount') colMap['taxableAmount'] = k;
+        if (kl.includes('delivery date')) colMap['deliveryDate'] = k;
+        else if (kl.includes('purchase price')) colMap['purchasePrice'] = k;
+        else if (kl.includes('taxable amount')) colMap['taxableAmount'] = k;
         else if (kl.includes('state') && kl.includes('tax') && kl.includes('amount')) colMap['stateTaxAmount'] = k;
         else if (kl.includes('county') && kl.includes('tax') && kl.includes('amount')) colMap['countyTaxAmount'] = k;
         else if (kl.includes('city') && kl.includes('tax') && kl.includes('amount')) colMap['cityTaxAmount'] = k;
-        else if (kl === 'county' || kl.includes('county') && !kl.includes('tax')) colMap['county'] = k;
-        else if (kl.includes('signer city') || kl === 'signercity') colMap['signerCity'] = k;
-        else if (kl.includes('signer state') || kl === 'signerstate') colMap['signerState'] = k;
-        else if (kl.includes('trade1 allowance') || kl.includes('trade allowance') || kl === 'trade1allowanceamount') colMap['tradeAllowance'] = k;
+        else if (kl === 'county') colMap['county'] = k;
+        else if (kl.includes('signer city')) colMap['signerCity'] = k;
+        else if (kl.includes('signer state')) colMap['signerState'] = k;
+        else if (kl.includes('trade') && kl.includes('allowance')) colMap['tradeAllowance'] = k;
       }
     }
 
     if (!colMap['deliveryDate']) {
-      res.status(400).json({ error: 'Could not find "Delivery Date" column in the spreadsheet. Check the file format.' });
+      res.status(400).json({ error: 'Could not find "Delivery Date" column in the spreadsheet.' });
       return;
     }
 
@@ -999,16 +1016,23 @@ app.post('/api/admin/tax/process', reportUpload.single('file'), async (req: any,
       return parseFloat(String(v).replace(/[^0-9.\-]/g, '')) || 0;
     };
 
+    // Parse date — handles Date objects, Excel serial numbers, and date strings
+    const parseDate = (raw: any): Date | null => {
+      if (!raw) return null;
+      if (raw instanceof Date) return raw;
+      // Excel serial number (e.g., 46133)
+      if (typeof raw === 'number' && raw > 10000 && raw < 100000) {
+        const d = new Date((raw - 25569) * 86400 * 1000);
+        return isNaN(d.getTime()) ? null : d;
+      }
+      const d = new Date(String(raw));
+      return isNaN(d.getTime()) ? null : d;
+    };
+
     // Filter to selected month/year
     const filtered = rows.filter(r => {
-      const raw = r[colMap['deliveryDate']];
-      if (!raw) return false;
-      let d: Date;
-      if (raw instanceof Date) { d = raw; }
-      else {
-        d = new Date(String(raw));
-        if (isNaN(d.getTime())) return false;
-      }
+      const d = parseDate(r[colMap['deliveryDate']]);
+      if (!d) return false;
       return (d.getMonth() + 1) === month && d.getFullYear() === year;
     });
 
