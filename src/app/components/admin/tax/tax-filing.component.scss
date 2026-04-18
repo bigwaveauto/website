@@ -1,0 +1,267 @@
+$blue: #2563eb;
+
+.tax-page {
+  max-width: 900px;
+}
+
+.tax-heading {
+  font-size: 24px;
+  font-weight: 800;
+  color: #111;
+  margin: 0 0 4px;
+}
+
+.tax-sub {
+  font-size: 14px;
+  color: rgba(0,0,0,0.45);
+  margin: 0 0 24px;
+}
+
+/* Upload card */
+.tax-upload-card {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.tax-upload-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tax-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 140px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+  }
+}
+
+.tax-file-input {
+  font-size: 14px;
+  font-family: inherit;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+}
+
+.tax-select {
+  padding: 9px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: white;
+  color: #111;
+}
+
+.tax-btn-generate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: $blue;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+
+  lucide-icon { width: 18px; height: 18px; }
+
+  &:hover { background: darken($blue, 8%); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.tax-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: tax-spin 0.6s linear infinite;
+  display: inline-block;
+}
+@keyframes tax-spin { to { transform: rotate(360deg); } }
+
+.tax-error {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+/* Results */
+.tax-results-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111;
+    margin: 0;
+  }
+}
+
+.tax-tx-count {
+  font-size: 14px;
+  color: rgba(0,0,0,0.45);
+  background: rgba(0,0,0,0.04);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.tax-btn-copy-all {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #333;
+  cursor: pointer;
+
+  lucide-icon { width: 16px; height: 16px; }
+
+  &:hover { background: #f5f5f5; }
+}
+
+/* Sections */
+.tax-section {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.tax-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 16px;
+}
+
+/* Table */
+.tax-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    padding: 8px 12px;
+    border-bottom: 2px solid #e5e7eb;
+  }
+
+  td {
+    padding: 10px 12px;
+    font-size: 15px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  tr:last-child td { border-bottom: none; }
+}
+
+.tax-line-num {
+  width: 32px;
+  font-weight: 700;
+  color: #333;
+}
+
+.tax-line-label {
+  color: #333;
+}
+
+.tax-line-value {
+  text-align: right;
+  font-weight: 600;
+  color: #111;
+  white-space: nowrap;
+  width: 160px;
+}
+
+.tax-th-value {
+  text-align: right !important;
+}
+
+.tax-line-copy {
+  width: 40px;
+  text-align: center;
+}
+
+.tax-th-copy {
+  width: 40px;
+}
+
+.tax-copy-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: #999;
+
+  lucide-icon { width: 16px; height: 16px; }
+
+  &:hover { background: rgba(0,0,0,0.04); color: #333; }
+}
+
+.tax-county-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.tax-sub-header {
+  td {
+    padding: 14px 12px 6px;
+    font-size: 14px;
+    color: #555;
+    border-bottom: none;
+  }
+}
+
+.tax-row-gray {
+  td {
+    background: #f9fafb;
+    color: rgba(0,0,0,0.45) !important;
+  }
+  .tax-line-value { color: rgba(0,0,0,0.45) !important; }
+}
+
+.tax-row-bold {
+  td {
+    font-weight: 700;
+    border-top: 2px solid #e5e7eb;
+  }
+  .tax-line-value {
+    font-size: 16px;
+  }
+}

@@ -955,6 +955,140 @@ const reportUpload = multer({
 });
 
 /**
+ * Sales Tax Filing Tool — parse DMS Sales Tax Report Excel
+ */
+app.post('/api/admin/tax/process', reportUpload.single('file'), async (req: any, res) => {
+  try {
+    if (!req.file) { res.status(400).json({ error: 'No file uploaded' }); return; }
+    const month = parseInt(req.body.month);
+    const year = parseInt(req.body.year);
+    if (!month || !year) { res.status(400).json({ error: 'Month and year are required' }); return; }
+
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer', cellDates: true });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+    // Find the header row — look for columns containing key fields
+    // sheet_to_json uses the first row as headers by default
+    const colMap: Record<string, string> = {};
+    if (rows.length > 0) {
+      const keys = Object.keys(rows[0]);
+      for (const k of keys) {
+        const kl = k.toLowerCase().trim();
+        if (kl.includes('delivery date') || kl === 'deliverydate') colMap['deliveryDate'] = k;
+        else if (kl.includes('purchase price') || kl === 'purchaseprice') colMap['purchasePrice'] = k;
+        else if (kl.includes('taxable amount') || kl === 'taxableamount') colMap['taxableAmount'] = k;
+        else if (kl.includes('state') && kl.includes('tax') && kl.includes('amount')) colMap['stateTaxAmount'] = k;
+        else if (kl.includes('county') && kl.includes('tax') && kl.includes('amount')) colMap['countyTaxAmount'] = k;
+        else if (kl.includes('city') && kl.includes('tax') && kl.includes('amount')) colMap['cityTaxAmount'] = k;
+        else if (kl === 'county' || kl.includes('county') && !kl.includes('tax')) colMap['county'] = k;
+        else if (kl.includes('signer city') || kl === 'signercity') colMap['signerCity'] = k;
+        else if (kl.includes('signer state') || kl === 'signerstate') colMap['signerState'] = k;
+        else if (kl.includes('trade1 allowance') || kl.includes('trade allowance') || kl === 'trade1allowanceamount') colMap['tradeAllowance'] = k;
+      }
+    }
+
+    if (!colMap['deliveryDate']) {
+      res.status(400).json({ error: 'Could not find "Delivery Date" column in the spreadsheet. Check the file format.' });
+      return;
+    }
+
+    const num = (v: any): number => {
+      if (typeof v === 'number') return v;
+      if (!v) return 0;
+      return parseFloat(String(v).replace(/[^0-9.\-]/g, '')) || 0;
+    };
+
+    // Filter to selected month/year
+    const filtered = rows.filter(r => {
+      const raw = r[colMap['deliveryDate']];
+      if (!raw) return false;
+      let d: Date;
+      if (raw instanceof Date) { d = raw; }
+      else {
+        d = new Date(String(raw));
+        if (isNaN(d.getTime())) return false;
+      }
+      return (d.getMonth() + 1) === month && d.getFullYear() === year;
+    });
+
+    let totalSales = 0;
+    let exemptCertificates = 0;
+    let otherExempt = 0;
+    let returnsAllowances = 0;
+    let salesSubjectToTax = 0;
+    let stateSalesTax = 0;
+    const countyMap: Record<string, number> = {};
+    let milwaukeeCitySales = 0;
+
+    for (const r of filtered) {
+      const purchasePrice = num(r[colMap['purchasePrice']]);
+      const taxableAmount = num(r[colMap['taxableAmount']]);
+      const stateTax = num(r[colMap['stateTaxAmount']]);
+      const countyTax = num(r[colMap['countyTaxAmount']]);
+      const cityTax = num(r[colMap['cityTaxAmount']]);
+      const county = String(r[colMap['county']] || '').trim().toUpperCase();
+      const signerCity = String(r[colMap['signerCity']] || '').trim().toUpperCase();
+      const signerState = String(r[colMap['signerState']] || '').trim().toUpperCase();
+      const tradeAllowance = num(r[colMap['tradeAllowance']]);
+
+      // Identify transaction type
+      const isWholesale = !county && !signerCity && !signerState && stateTax === 0 && countyTax === 0 && cityTax === 0;
+      const isOutOfState = signerState !== '' && signerState !== 'WI';
+
+      totalSales += purchasePrice;
+
+      if (isWholesale) {
+        exemptCertificates += purchasePrice;
+      } else if (isOutOfState) {
+        otherExempt += purchasePrice;
+      }
+
+      returnsAllowances += tradeAllowance;
+      salesSubjectToTax += taxableAmount;
+      stateSalesTax += stateTax;
+
+      // County
+      if (county && countyTax > 0) {
+        countyMap[county] = (countyMap[county] || 0) + taxableAmount;
+      }
+
+      // Milwaukee city
+      if (signerCity === 'MILWAUKEE' && cityTax > 0) {
+        milwaukeeCitySales += taxableAmount;
+      }
+    }
+
+    const totalSubtractions = exemptCertificates + otherExempt + returnsAllowances;
+
+    const counties = Object.entries(countyMap)
+      .map(([name, salesSubjectToTax]) => ({ name, salesSubjectToTax }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    res.json({
+      month,
+      year,
+      transactionCount: filtered.length,
+      state: {
+        totalSales,
+        exemptCertificates,
+        otherExempt,
+        returnsAllowances,
+        other: 0,
+        totalSubtractions,
+        salesSubjectToTax,
+        stateSalesTax,
+      },
+      counties,
+      milwaukee: { salesSubjectToCitySalesTax: milwaukeeCitySales },
+    });
+  } catch (err: any) {
+    console.error('Tax process error:', err);
+    res.status(500).json({ error: err.message || 'Failed to process file' });
+  }
+});
+
+/**
  * AI Document Scanner — Bill of Sale
  * Extracts: VIN, purchase price, seller name/address, auction/source, date, odometer
  */
