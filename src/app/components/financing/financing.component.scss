@@ -369,6 +369,12 @@ $radius: 14px;
     background: $light-blue;
     color: $blue;
   }
+
+  &.selected {
+    border-color: $blue;
+    background: $light-blue;
+    color: $blue;
+  }
 }
 
 /* Form fields */

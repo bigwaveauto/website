@@ -77,10 +77,10 @@
       <div class="fin-borrower-choice">
         <p>Are you applying for financing for yourself, or jointly with a co-borrower?</p>
         <div class="fin-borrower-btns">
-          <button class="fin-borrower-btn" (click)="selectBorrower(false)">
+          <button class="fin-borrower-btn" [class.selected]="!coborrower()" (click)="selectBorrower(false)">
             <lucide-icon name="user" /> For myself
           </button>
-          <button class="fin-borrower-btn" (click)="selectBorrower(true)">
+          <button class="fin-borrower-btn" [class.selected]="coborrower()" (click)="selectBorrower(true)">
             <lucide-icon name="users" /> With a co-borrower
           </button>
         </div>

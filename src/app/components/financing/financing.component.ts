@@ -98,7 +98,6 @@ export class FinancingComponent implements OnInit {
 
   selectBorrower(withCo: boolean) {
     this.coborrower.set(withCo);
-    this.nextStep();
   }
 
   nextStep() {
