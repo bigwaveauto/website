@@ -65,8 +65,8 @@ export class TaxFilingComponent {
 
     const fd = new FormData();
     fd.append('file', this.selectedFile);
-    fd.append('month', String(this.selectedMonth + 1)); // 1-indexed
-    fd.append('year', String(this.selectedYear));
+    fd.append('month', String(Number(this.selectedMonth) + 1)); // 1-indexed
+    fd.append('year', String(Number(this.selectedYear)));
 
     this.http.post<TaxResult>('/api/admin/tax/process', fd).subscribe({
       next: (r) => { this.result.set(r); this.processing.set(false); },
