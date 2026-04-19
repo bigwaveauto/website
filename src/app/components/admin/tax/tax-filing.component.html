@@ -46,9 +46,11 @@
       <h2>{{ months[r.month - 1] }} {{ r.year }}</h2>
       <span class="tax-tx-count">{{ r.transactionCount }} transactions</span>
       <button class="tax-btn-copy-all" (click)="copyAll()">
-        <lucide-icon name="check" *ngIf="copied() === 'all'" />
-        <lucide-icon name="list-checks" *ngIf="copied() !== 'all'" />
+        <lucide-icon [name]="copied() === 'all' ? 'check' : 'list-checks'" />
         {{ copied() === 'all' ? 'Copied!' : 'Copy All Values' }}
+      </button>
+      <button class="tax-btn-print" (click)="printPdf()">
+        <lucide-icon name="file-text" /> Print / PDF
       </button>
     </div>
 
@@ -57,55 +59,146 @@
       <h3 class="tax-section-title">Sales Tax - State</h3>
       <table class="tax-table">
         <tbody>
-          <tr>
+          <!-- Line 1 -->
+          <tr class="tax-expandable" (click)="toggleExpand('l1')">
             <td class="tax-line-num">1.</td>
-            <td class="tax-line-label">Total sales</td>
+            <td class="tax-line-label">Total sales <span class="tax-tx-badge">{{ r.transactions.totalSales.length }}</span></td>
             <td class="tax-line-value">{{ fmt(r.state.totalSales) }}</td>
-            <td class="tax-line-copy"><button (click)="copyValue(r.state.totalSales, 'l1')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l1' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-copy"><button (click)="$event.stopPropagation(); copyValue(r.state.totalSales, 'l1')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l1' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-chevron"><lucide-icon [name]="isExpanded('l1') ? 'chevron-up' : 'chevron-down'" /></td>
           </tr>
-          <tr class="tax-sub-header"><td colspan="4"><b>Subtractions From Total Sales:</b></td></tr>
-          <tr>
+          @if(isExpanded('l1')){
+          <tr class="tax-detail-row"><td colspan="5">
+            <table class="tax-detail-table">
+              <thead><tr><th>Deal #</th><th>Date</th><th>Vehicle</th><th>Buyer</th><th class="tax-dt-amt">Amount</th></tr></thead>
+              <tbody>
+                @for(t of getTx('l1'); track $index){
+                <tr><td>{{ t.dealNo }}</td><td>{{ t.date }}</td><td>{{ t.vehicle }}</td><td>{{ t.buyer }}</td><td class="tax-dt-amt">{{ fmt(t.amount) }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </td></tr>}
+
+          <tr class="tax-sub-header"><td colspan="5"><b>Subtractions From Total Sales:</b></td></tr>
+
+          <!-- Line 2 -->
+          <tr class="tax-expandable" (click)="toggleExpand('l2')">
             <td class="tax-line-num">2.</td>
-            <td class="tax-line-label">Sales for which you received exemption certificates</td>
+            <td class="tax-line-label">Sales for which you received exemption certificates <span class="tax-tx-badge">{{ r.transactions.exemptCertificates.length }}</span></td>
             <td class="tax-line-value">{{ fmt(r.state.exemptCertificates) }}</td>
-            <td class="tax-line-copy"><button (click)="copyValue(r.state.exemptCertificates, 'l2')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l2' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-copy"><button (click)="$event.stopPropagation(); copyValue(r.state.exemptCertificates, 'l2')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l2' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-chevron"><lucide-icon [name]="isExpanded('l2') ? 'chevron-up' : 'chevron-down'" /></td>
           </tr>
-          <tr>
+          @if(isExpanded('l2')){
+          <tr class="tax-detail-row"><td colspan="5">
+            <table class="tax-detail-table">
+              <thead><tr><th>Deal #</th><th>Date</th><th>Vehicle</th><th>Buyer</th><th class="tax-dt-amt">Amount</th></tr></thead>
+              <tbody>
+                @for(t of getTx('l2'); track $index){
+                <tr><td>{{ t.dealNo }}</td><td>{{ t.date }}</td><td>{{ t.vehicle }}</td><td>{{ t.buyer }}</td><td class="tax-dt-amt">{{ fmt(t.amount) }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </td></tr>}
+
+          <!-- Line 3 -->
+          <tr class="tax-expandable" (click)="toggleExpand('l3')">
             <td class="tax-line-num">3.</td>
-            <td class="tax-line-label">Sales of other exempt property and services</td>
+            <td class="tax-line-label">Sales of other exempt property and services <span class="tax-tx-badge">{{ r.transactions.otherExempt.length }}</span></td>
             <td class="tax-line-value">{{ fmt(r.state.otherExempt) }}</td>
-            <td class="tax-line-copy"><button (click)="copyValue(r.state.otherExempt, 'l3')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l3' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-copy"><button (click)="$event.stopPropagation(); copyValue(r.state.otherExempt, 'l3')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l3' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-chevron"><lucide-icon [name]="isExpanded('l3') ? 'chevron-up' : 'chevron-down'" /></td>
           </tr>
-          <tr>
+          @if(isExpanded('l3')){
+          <tr class="tax-detail-row"><td colspan="5">
+            <table class="tax-detail-table">
+              <thead><tr><th>Deal #</th><th>Date</th><th>Vehicle</th><th>Buyer</th><th class="tax-dt-amt">Amount</th></tr></thead>
+              <tbody>
+                @for(t of getTx('l3'); track $index){
+                <tr><td>{{ t.dealNo }}</td><td>{{ t.date }}</td><td>{{ t.vehicle }}</td><td>{{ t.buyer }}</td><td class="tax-dt-amt">{{ fmt(t.amount) }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </td></tr>}
+
+          <!-- Line 4 -->
+          <tr class="tax-expandable" (click)="toggleExpand('l4')">
             <td class="tax-line-num">4.</td>
-            <td class="tax-line-label">Sales returns, allowances, and bad debts</td>
+            <td class="tax-line-label">Sales returns, allowances, and bad debts <span class="tax-tx-badge">{{ r.transactions.returnsAllowances.length }}</span></td>
             <td class="tax-line-value">{{ fmt(r.state.returnsAllowances) }}</td>
-            <td class="tax-line-copy"><button (click)="copyValue(r.state.returnsAllowances, 'l4')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l4' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-copy"><button (click)="$event.stopPropagation(); copyValue(r.state.returnsAllowances, 'l4')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l4' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-chevron"><lucide-icon [name]="isExpanded('l4') ? 'chevron-up' : 'chevron-down'" /></td>
           </tr>
+          @if(isExpanded('l4')){
+          <tr class="tax-detail-row"><td colspan="5">
+            <table class="tax-detail-table">
+              <thead><tr><th>Deal #</th><th>Date</th><th>Vehicle</th><th>Buyer</th><th class="tax-dt-amt">Amount</th></tr></thead>
+              <tbody>
+                @for(t of getTx('l4'); track $index){
+                <tr><td>{{ t.dealNo }}</td><td>{{ t.date }}</td><td>{{ t.vehicle }}</td><td>{{ t.buyer }}</td><td class="tax-dt-amt">{{ fmt(t.amount) }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </td></tr>}
+
+          <!-- Line 5 -->
           <tr>
             <td class="tax-line-num">5.</td>
             <td class="tax-line-label">Other</td>
             <td class="tax-line-value">{{ fmt(r.state.other) }}</td>
             <td class="tax-line-copy"><button (click)="copyValue(r.state.other, 'l5')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l5' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-chevron"></td>
           </tr>
+
+          <!-- Line 6 -->
           <tr class="tax-row-gray">
             <td class="tax-line-num">6.</td>
             <td class="tax-line-label">Total subtractions</td>
             <td class="tax-line-value">{{ fmt(r.state.totalSubtractions) }}</td>
             <td class="tax-line-copy"><button (click)="copyValue(r.state.totalSubtractions, 'l6')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l6' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-chevron"></td>
           </tr>
-          <tr class="tax-row-gray">
+
+          <!-- Line 7 -->
+          <tr class="tax-row-gray tax-expandable" (click)="toggleExpand('l7')">
             <td class="tax-line-num">7.</td>
-            <td class="tax-line-label">Sales subject to state sales tax</td>
+            <td class="tax-line-label">Sales subject to state sales tax <span class="tax-tx-badge">{{ r.transactions.salesSubjectToTax.length }}</span></td>
             <td class="tax-line-value">{{ fmt(r.state.salesSubjectToTax) }}</td>
-            <td class="tax-line-copy"><button (click)="copyValue(r.state.salesSubjectToTax, 'l7')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l7' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-copy"><button (click)="$event.stopPropagation(); copyValue(r.state.salesSubjectToTax, 'l7')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l7' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-chevron"><lucide-icon [name]="isExpanded('l7') ? 'chevron-up' : 'chevron-down'" /></td>
           </tr>
-          <tr class="tax-row-bold">
+          @if(isExpanded('l7')){
+          <tr class="tax-detail-row"><td colspan="5">
+            <table class="tax-detail-table">
+              <thead><tr><th>Deal #</th><th>Date</th><th>Vehicle</th><th>Buyer</th><th class="tax-dt-amt">Amount</th></tr></thead>
+              <tbody>
+                @for(t of getTx('l7'); track $index){
+                <tr><td>{{ t.dealNo }}</td><td>{{ t.date }}</td><td>{{ t.vehicle }}</td><td>{{ t.buyer }}</td><td class="tax-dt-amt">{{ fmt(t.amount) }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </td></tr>}
+
+          <!-- Line 8 -->
+          <tr class="tax-row-bold tax-expandable" (click)="toggleExpand('l8')">
             <td class="tax-line-num">8.</td>
-            <td class="tax-line-label">State sales tax</td>
+            <td class="tax-line-label">State sales tax <span class="tax-tx-badge">{{ r.transactions.stateSalesTax.length }}</span></td>
             <td class="tax-line-value">{{ fmt(r.state.stateSalesTax) }}</td>
-            <td class="tax-line-copy"><button (click)="copyValue(r.state.stateSalesTax, 'l8')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l8' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-copy"><button (click)="$event.stopPropagation(); copyValue(r.state.stateSalesTax, 'l8')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'l8' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-chevron"><lucide-icon [name]="isExpanded('l8') ? 'chevron-up' : 'chevron-down'" /></td>
           </tr>
+          @if(isExpanded('l8')){
+          <tr class="tax-detail-row"><td colspan="5">
+            <table class="tax-detail-table">
+              <thead><tr><th>Deal #</th><th>Date</th><th>Vehicle</th><th>Buyer</th><th class="tax-dt-amt">Amount</th></tr></thead>
+              <tbody>
+                @for(t of getTx('l8'); track $index){
+                <tr><td>{{ t.dealNo }}</td><td>{{ t.date }}</td><td>{{ t.vehicle }}</td><td>{{ t.buyer }}</td><td class="tax-dt-amt">{{ fmt(t.amount) }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </td></tr>}
+
         </tbody>
       </table>
     </div>
@@ -120,15 +213,28 @@
             <th>County</th>
             <th class="tax-th-value">Sales Subject to County Sales Tax</th>
             <th class="tax-th-copy"></th>
+            <th class="tax-th-chevron"></th>
           </tr>
         </thead>
         <tbody>
           @for(c of r.counties; track c.name){
-          <tr>
-            <td class="tax-county-name">{{ c.name }}</td>
+          <tr class="tax-expandable" (click)="toggleExpand('c-' + c.name)">
+            <td class="tax-county-name">{{ c.name }} <span class="tax-tx-badge">{{ c.transactions.length }}</span></td>
             <td class="tax-line-value">{{ fmt(c.salesSubjectToTax) }}</td>
-            <td class="tax-line-copy"><button (click)="copyValue(c.salesSubjectToTax, 'c-' + c.name)" class="tax-copy-btn"><lucide-icon [name]="copied() === 'c-' + c.name ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-copy"><button (click)="$event.stopPropagation(); copyValue(c.salesSubjectToTax, 'c-' + c.name)" class="tax-copy-btn"><lucide-icon [name]="copied() === 'c-' + c.name ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-chevron"><lucide-icon [name]="isExpanded('c-' + c.name) ? 'chevron-up' : 'chevron-down'" /></td>
           </tr>
+          @if(isExpanded('c-' + c.name)){
+          <tr class="tax-detail-row"><td colspan="4">
+            <table class="tax-detail-table">
+              <thead><tr><th>Deal #</th><th>Date</th><th>Vehicle</th><th>Buyer</th><th class="tax-dt-amt">Amount</th></tr></thead>
+              <tbody>
+                @for(t of getTx('c-' + c.name); track $index){
+                <tr><td>{{ t.dealNo }}</td><td>{{ t.date }}</td><td>{{ t.vehicle }}</td><td>{{ t.buyer }}</td><td class="tax-dt-amt">{{ fmt(t.amount) }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </td></tr>}
           }
         </tbody>
       </table>
@@ -144,14 +250,27 @@
             <th>City</th>
             <th class="tax-th-value">Sales Subject to City Sales Tax</th>
             <th class="tax-th-copy"></th>
+            <th class="tax-th-chevron"></th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="tax-county-name">Milwaukee</td>
+          <tr class="tax-expandable" (click)="toggleExpand('milwaukee')">
+            <td class="tax-county-name">Milwaukee <span class="tax-tx-badge">{{ r.transactions.milwaukee.length }}</span></td>
             <td class="tax-line-value">{{ fmt(r.milwaukee.salesSubjectToCitySalesTax) }}</td>
-            <td class="tax-line-copy"><button (click)="copyValue(r.milwaukee.salesSubjectToCitySalesTax, 'milwaukee')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'milwaukee' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-copy"><button (click)="$event.stopPropagation(); copyValue(r.milwaukee.salesSubjectToCitySalesTax, 'milwaukee')" class="tax-copy-btn"><lucide-icon [name]="copied() === 'milwaukee' ? 'check' : 'list-checks'" /></button></td>
+            <td class="tax-line-chevron"><lucide-icon [name]="isExpanded('milwaukee') ? 'chevron-up' : 'chevron-down'" /></td>
           </tr>
+          @if(isExpanded('milwaukee')){
+          <tr class="tax-detail-row"><td colspan="4">
+            <table class="tax-detail-table">
+              <thead><tr><th>Deal #</th><th>Date</th><th>Vehicle</th><th>Buyer</th><th class="tax-dt-amt">Amount</th></tr></thead>
+              <tbody>
+                @for(t of getTx('milwaukee'); track $index){
+                <tr><td>{{ t.dealNo }}</td><td>{{ t.date }}</td><td>{{ t.vehicle }}</td><td>{{ t.buyer }}</td><td class="tax-dt-amt">{{ fmt(t.amount) }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </td></tr>}
         </tbody>
       </table>
     </div>

@@ -265,3 +265,94 @@ $blue: #2563eb;
     font-size: 16px;
   }
 }
+
+/* Expandable rows */
+.tax-expandable {
+  cursor: pointer;
+  &:hover { background: rgba(0,0,0,0.02); }
+}
+
+.tax-line-chevron {
+  width: 32px;
+  text-align: center;
+  color: #bbb;
+  lucide-icon { width: 16px; height: 16px; }
+}
+
+.tax-th-chevron {
+  width: 32px;
+}
+
+.tax-tx-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: $blue;
+  background: rgba(37,99,235,0.08);
+  padding: 1px 7px;
+  border-radius: 10px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* Detail table (expanded) */
+.tax-detail-row {
+  td {
+    padding: 0 12px 12px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    background: #fafbfc;
+  }
+}
+
+.tax-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    padding: 6px 8px;
+    border-bottom: 1px solid #e5e7eb;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  td {
+    padding: 5px 8px !important;
+    font-size: 13px;
+    color: #444;
+    border-bottom: 1px solid #f0f0f0 !important;
+    background: transparent !important;
+    font-weight: 400 !important;
+  }
+
+  tr:last-child td { border-bottom: none !important; }
+}
+
+.tax-dt-amt {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Print / PDF button */
+.tax-btn-print {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #333;
+  cursor: pointer;
+
+  lucide-icon { width: 16px; height: 16px; }
+
+  &:hover { background: #f5f5f5; }
+}

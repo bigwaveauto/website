@@ -1036,6 +1036,11 @@ app.post('/api/admin/tax/process', reportUpload.single('file'), async (req: any,
       return (d.getMonth() + 1) === month && d.getFullYear() === year;
     });
 
+    interface TxDetail {
+      dealNo: string; vehicle: string; stockNo: string;
+      buyer: string; date: string; amount: number;
+    }
+
     let totalSales = 0;
     let exemptCertificates = 0;
     let otherExempt = 0;
@@ -1043,7 +1048,17 @@ app.post('/api/admin/tax/process', reportUpload.single('file'), async (req: any,
     let salesSubjectToTax = 0;
     let stateSalesTax = 0;
     const countyMap: Record<string, number> = {};
+    const countyTxMap: Record<string, TxDetail[]> = {};
     let milwaukeeCitySales = 0;
+    const milwaukeeTx: TxDetail[] = [];
+
+    // Transaction lists per line
+    const txTotalSales: TxDetail[] = [];
+    const txExempt: TxDetail[] = [];
+    const txOutOfState: TxDetail[] = [];
+    const txTradeIns: TxDetail[] = [];
+    const txTaxable: TxDetail[] = [];
+    const txStateTax: TxDetail[] = [];
 
     for (const r of filtered) {
       const purchasePrice = num(r[colMap['purchasePrice']]);
@@ -1056,37 +1071,62 @@ app.post('/api/admin/tax/process', reportUpload.single('file'), async (req: any,
       const signerState = String(r[colMap['signerState']] || '').trim().toUpperCase();
       const tradeAllowance = num(r[colMap['tradeAllowance']]);
 
-      // Identify transaction type
+      const dealNo = String(r[Object.keys(r).find(k => k.toLowerCase().includes('deal no')) || ''] || '');
+      const vehicle = String(r[Object.keys(r).find(k => k.toLowerCase().includes('vehicle year')) || ''] || '');
+      const stockNo = String(r[colMap['stockNo'] || Object.keys(r).find(k => k.toLowerCase().includes('stock')) || ''] || '');
+      const firstName = String(r[Object.keys(r).find(k => k.toLowerCase().includes('signer first')) || ''] || '');
+      const lastName = String(r[Object.keys(r).find(k => k.toLowerCase().includes('signer last')) || ''] || '');
+      const buyer = [firstName, lastName].filter(Boolean).join(' ') || String(r[Object.keys(r).find(k => k.toLowerCase().includes('business name')) || ''] || '') || 'N/A';
+      const dd = parseDate(r[colMap['deliveryDate']]);
+      const dateStr = dd ? dd.toLocaleDateString('en-US') : '';
+
+      const makeTx = (amt: number): TxDetail => ({ dealNo, vehicle, stockNo, buyer, date: dateStr, amount: amt });
+
       const isWholesale = !county && !signerCity && !signerState && stateTax === 0 && countyTax === 0 && cityTax === 0;
       const isOutOfState = signerState !== '' && signerState !== 'WI';
 
       totalSales += purchasePrice;
+      txTotalSales.push(makeTx(purchasePrice));
 
       if (isWholesale) {
         exemptCertificates += purchasePrice;
+        txExempt.push(makeTx(purchasePrice));
       } else if (isOutOfState) {
         otherExempt += purchasePrice;
+        txOutOfState.push(makeTx(purchasePrice));
       }
 
-      returnsAllowances += tradeAllowance;
-      salesSubjectToTax += taxableAmount;
-      stateSalesTax += stateTax;
+      if (tradeAllowance > 0) {
+        returnsAllowances += tradeAllowance;
+        txTradeIns.push(makeTx(tradeAllowance));
+      }
 
-      // County
+      if (taxableAmount > 0) {
+        salesSubjectToTax += taxableAmount;
+        txTaxable.push(makeTx(taxableAmount));
+      }
+
+      if (stateTax > 0) {
+        stateSalesTax += stateTax;
+        txStateTax.push(makeTx(stateTax));
+      }
+
       if (county && countyTax > 0) {
         countyMap[county] = (countyMap[county] || 0) + taxableAmount;
+        if (!countyTxMap[county]) countyTxMap[county] = [];
+        countyTxMap[county].push(makeTx(taxableAmount));
       }
 
-      // Milwaukee city
       if (signerCity === 'MILWAUKEE' && cityTax > 0) {
         milwaukeeCitySales += taxableAmount;
+        milwaukeeTx.push(makeTx(taxableAmount));
       }
     }
 
     const totalSubtractions = exemptCertificates + otherExempt + returnsAllowances;
 
     const counties = Object.entries(countyMap)
-      .map(([name, salesSubjectToTax]) => ({ name, salesSubjectToTax }))
+      .map(([name, salesSubjectToTax]) => ({ name, salesSubjectToTax, transactions: countyTxMap[name] || [] }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
     res.json({
@@ -1102,6 +1142,15 @@ app.post('/api/admin/tax/process', reportUpload.single('file'), async (req: any,
         totalSubtractions,
         salesSubjectToTax,
         stateSalesTax,
+      },
+      transactions: {
+        totalSales: txTotalSales,
+        exemptCertificates: txExempt,
+        otherExempt: txOutOfState,
+        returnsAllowances: txTradeIns,
+        salesSubjectToTax: txTaxable,
+        stateSalesTax: txStateTax,
+        milwaukee: milwaukeeTx,
       },
       counties,
       milwaukee: { salesSubjectToCitySalesTax: milwaukeeCitySales },
