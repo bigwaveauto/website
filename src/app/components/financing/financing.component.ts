@@ -79,15 +79,20 @@ export class FinancingComponent implements OnInit {
       city: ['', Validators.required],
       state: ['', Validators.required],
       zip: ['', Validators.required],
-      yearsAtAddress: ['', Validators.required],
+      county: [''],
+      addressYears: ['', Validators.required],
+      addressMonths: ['0'],
       housingStatus: ['', Validators.required],
+      rentMortgageAmount: [''],
     });
 
     this.employmentForm = this.fb.group({
       employerName: ['', Validators.required],
+      jobTitle: [''],
       employmentStatus: ['', Validators.required],
       monthlyIncome: ['', Validators.required],
-      yearsEmployed: ['', Validators.required],
+      employmentYears: ['', Validators.required],
+      employmentMonths: ['0'],
     });
 
     this.consentForm = this.fb.group({

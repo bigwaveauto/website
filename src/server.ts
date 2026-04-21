@@ -232,20 +232,24 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
   try {
     const raw = pickFields(req.body, [
       'firstname', 'lastname', 'email', 'phone', 'dob', 'ssn',
-      'street', 'city', 'state', 'zip', 'yearsAtAddress', 'housingStatus',
-      'employerName', 'employmentStatus', 'monthlyIncome', 'yearsEmployed', 'coborrower',
+      'street', 'city', 'state', 'zip', 'county',
+      'addressYears', 'addressMonths', 'housingStatus', 'rentMortgageAmount',
+      'employerName', 'jobTitle', 'employmentStatus', 'monthlyIncome',
+      'employmentYears', 'employmentMonths', 'coborrower',
     ]);
     if (!raw.firstname || !raw.email || !validateEmail(raw.email)) {
       res.status(400).json({ error: 'Valid name and email required' }); return;
     }
     const lastFour = (raw.ssn || '').slice(-4);
+    const addrTime = `${raw.addressYears || 0} yr ${raw.addressMonths || 0} mo`;
+    const empTime = `${raw.employmentYears || 0} yr ${raw.employmentMonths || 0} mo`;
     const data: Record<string, any> = {
       firstname: raw.firstname, lastname: raw.lastname, email: raw.email,
       phone: raw.phone, dob: raw.dob,
       street: raw.street, city: raw.city, state: raw.state, zip: raw.zip,
-      years_at_address: raw.yearsAtAddress, housing_status: raw.housingStatus,
+      years_at_address: addrTime, housing_status: raw.housingStatus,
       employer_name: raw.employerName, employment_status: raw.employmentStatus,
-      monthly_income: raw.monthlyIncome, years_employed: raw.yearsEmployed,
+      monthly_income: raw.monthlyIncome, years_employed: empTime,
       coborrower: raw.coborrower,
     };
     const { error } = await supabase.from('financing_leads').insert(data);
@@ -262,22 +266,54 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
         <p><b>Phone:</b> ${escHtml(raw.phone)}</p>
         <p><b>DOB:</b> ${escHtml(raw.dob)}</p>
         <p><b>SSN:</b> ***-**-${escHtml(lastFour) || 'N/A'}</p>
-        <p><b>Address:</b> ${escHtml(raw.street)}, ${escHtml(raw.city)}, ${escHtml(raw.state)} ${escHtml(raw.zip)}</p>
-        <p><b>Employment:</b> ${escHtml(raw.employmentStatus)} at ${escHtml(raw.employerName)}</p>
+        <p><b>Address:</b> ${escHtml(raw.street)}, ${escHtml(raw.city)}, ${escHtml(raw.state)} ${escHtml(raw.zip)} (${escHtml(raw.county || '')} County)</p>
+        <p><b>Time at Address:</b> ${escHtml(addrTime)}</p>
+        <p><b>Housing:</b> ${escHtml(raw.housingStatus)} — ${escHtml(raw.rentMortgageAmount || 'N/A')}/mo</p>
+        <p><b>Employment:</b> ${escHtml(raw.employmentStatus)} — ${escHtml(raw.jobTitle || '')} at ${escHtml(raw.employerName)}</p>
+        <p><b>Time at Employer:</b> ${escHtml(empTime)}</p>
         <p><b>Monthly Income:</b> ${escHtml(raw.monthlyIncome)}</p>
         <p><b>Co-borrower:</b> ${raw.coborrower ? 'Yes' : 'No'}</p>
       `
     });
-    await sendAdfToDealerCenter(buildAdfXml({
-      source: 'Financing Application',
-      firstname: raw.firstname, lastname: raw.lastname,
-      email: raw.email, phone: raw.phone,
-      street: raw.street, city: raw.city, state: raw.state, zip: raw.zip,
-      comments: `Financing Application | DOB: ${raw.dob} | Employment: ${raw.employmentStatus} at ${raw.employerName} | Monthly Income: ${raw.monthlyIncome} | Co-borrower: ${raw.coborrower ? 'Yes' : 'No'}`,
-    }), `Financing Application — ${raw.firstname} ${raw.lastname}`);
+
+    // Build credit-app ADF XML for DealerCenter with full buyer details
+    const creditAdf = `<?xml version="1.0" encoding="UTF-8"?>
+<?adf version="1.0"?>
+<adf>
+  <prospect>
+    <requestdate>${new Date().toISOString()}</requestdate>
+    <customer>
+      <contact>
+        <name part="first">${escHtml(raw.firstname)}</name>
+        <name part="last">${escHtml(raw.lastname)}</name>
+        <email>${escHtml(raw.email)}</email>
+        <phone type="cellphone">${escHtml(raw.phone)}</phone>
+        <address type="current">
+          <street line="1">${escHtml(raw.street)}</street>
+          <city>${escHtml(raw.city)}</city>
+          <regioncode>${escHtml(raw.state)}</regioncode>
+          <postalcode>${escHtml(raw.zip)}</postalcode>
+          ${raw.county ? `<county>${escHtml(raw.county)}</county>` : ''}
+        </address>
+      </contact>
+      <timeframe>
+        <description>Financing Application</description>
+      </timeframe>
+      <comments>DOB: ${escHtml(raw.dob)} | SSN last 4: ${escHtml(lastFour)} | Housing: ${escHtml(raw.housingStatus)} (${escHtml(raw.rentMortgageAmount || '0')}/mo) | Address: ${escHtml(addrTime)} | Employment: ${escHtml(raw.employmentStatus)} - ${escHtml(raw.jobTitle || '')} at ${escHtml(raw.employerName)} (${escHtml(empTime)}) | Income: ${escHtml(raw.monthlyIncome)}/mo | Co-borrower: ${raw.coborrower ? 'Yes' : 'No'}</comments>
+    </customer>
+    <vendor>
+      <vendorname>Big Wave Auto</vendorname>
+    </vendor>
+    <provider>
+      <name part="full">Big Wave Auto Website</name>
+      <service>Credit Application</service>
+    </provider>
+  </prospect>
+</adf>`;
+    await sendAdfToDealerCenter(creditAdf, `Credit Application — ${raw.firstname} ${raw.lastname}`);
     res.json({ success: true });
   } catch (err) {
-    console.error('Financing lead error');
+    console.error('Financing lead error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

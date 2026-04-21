@@ -148,24 +148,59 @@
         </div>
         <div class="fin-form-row">
           <div class="fin-field">
-            <label>Years at Address</label>
-            <select formControlName="yearsAtAddress">
-              <option value="">Select</option>
-              <option>Less than 1 year</option>
-              <option>1–2 years</option>
-              <option>3–5 years</option>
-              <option>5+ years</option>
-            </select>
+            <label>County</label>
+            <input formControlName="county" placeholder="Waukesha" type="text">
           </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Time at Address</label>
+            <div class="fin-time-row">
+              <select formControlName="addressYears">
+                <option value="">Years</option>
+                <option value="0">0 years</option>
+                <option value="1">1 year</option>
+                <option value="2">2 years</option>
+                <option value="3">3 years</option>
+                <option value="4">4 years</option>
+                <option value="5">5 years</option>
+                <option value="6">6 years</option>
+                <option value="7">7 years</option>
+                <option value="8">8 years</option>
+                <option value="9">9 years</option>
+                <option value="10">10+ years</option>
+              </select>
+              <select formControlName="addressMonths">
+                <option value="0">0 months</option>
+                <option value="1">1 month</option>
+                <option value="2">2 months</option>
+                <option value="3">3 months</option>
+                <option value="4">4 months</option>
+                <option value="5">5 months</option>
+                <option value="6">6 months</option>
+                <option value="7">7 months</option>
+                <option value="8">8 months</option>
+                <option value="9">9 months</option>
+                <option value="10">10 months</option>
+                <option value="11">11 months</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="fin-form-row">
           <div class="fin-field">
             <label>Housing Status</label>
             <select formControlName="housingStatus">
               <option value="">Select</option>
-              <option>Own</option>
-              <option>Rent</option>
-              <option>Live with family</option>
-              <option>Other</option>
+              <option value="Own">Own</option>
+              <option value="Rent">Rent</option>
+              <option value="Family">Live with family</option>
+              <option value="Other">Other</option>
             </select>
+          </div>
+          <div class="fin-field">
+            <label>Monthly Rent / Mortgage</label>
+            <input formControlName="rentMortgageAmount" placeholder="$0" type="text">
           </div>
         </div>
       </form>
@@ -179,12 +214,12 @@
             <label>Employment Status</label>
             <select formControlName="employmentStatus">
               <option value="">Select</option>
-              <option>Full-time employed</option>
-              <option>Part-time employed</option>
-              <option>Self-employed</option>
-              <option>Retired</option>
-              <option>Student</option>
-              <option>Unemployed</option>
+              <option value="Employed">Full-time employed</option>
+              <option value="Part-time">Part-time employed</option>
+              <option value="Self-employed">Self-employed</option>
+              <option value="Retired">Retired</option>
+              <option value="Student">Student</option>
+              <option value="Unemployed">Unemployed</option>
             </select>
           </div>
           <div class="fin-field">
@@ -194,18 +229,47 @@
         </div>
         <div class="fin-form-row">
           <div class="fin-field">
+            <label>Job Title</label>
+            <input formControlName="jobTitle" placeholder="Job title" type="text">
+          </div>
+          <div class="fin-field">
             <label>Gross Monthly Income</label>
             <input formControlName="monthlyIncome" placeholder="$0,000" type="text">
           </div>
+        </div>
+        <div class="fin-form-row">
           <div class="fin-field">
-            <label>Years Employed</label>
-            <select formControlName="yearsEmployed">
-              <option value="">Select</option>
-              <option>Less than 1 year</option>
-              <option>1–2 years</option>
-              <option>3–5 years</option>
-              <option>5+ years</option>
-            </select>
+            <label>Time at Employer</label>
+            <div class="fin-time-row">
+              <select formControlName="employmentYears">
+                <option value="">Years</option>
+                <option value="0">0 years</option>
+                <option value="1">1 year</option>
+                <option value="2">2 years</option>
+                <option value="3">3 years</option>
+                <option value="4">4 years</option>
+                <option value="5">5 years</option>
+                <option value="6">6 years</option>
+                <option value="7">7 years</option>
+                <option value="8">8 years</option>
+                <option value="9">9 years</option>
+                <option value="10">10+ years</option>
+              </select>
+              <select formControlName="employmentMonths">
+                <option value="0">0 months</option>
+                <option value="1">1 month</option>
+                <option value="2">2 months</option>
+                <option value="3">3 months</option>
+                <option value="4">4 months</option>
+                <option value="5">5 months</option>
+                <option value="6">6 months</option>
+                <option value="7">7 months</option>
+                <option value="8">8 months</option>
+                <option value="9">9 months</option>
+                <option value="10">10 months</option>
+                <option value="11">11 months</option>
+              </select>
+            </div>
           </div>
         </div>
       </form>

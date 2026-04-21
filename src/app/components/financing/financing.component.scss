@@ -422,6 +422,25 @@ $radius: 14px;
   }
 }
 
+/* Time at address / employer row */
+.fin-time-row {
+  display: flex;
+  gap: 8px;
+
+  select {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1.5px solid $border;
+    border-radius: 8px;
+    font-size: 16px;
+    color: $text;
+    background: white;
+    font-family: inherit;
+
+    &:focus { border-color: $blue; }
+  }
+}
+
 /* Consent */
 .fin-consent-text {
   color: $muted;
