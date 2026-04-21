@@ -241,7 +241,7 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
     const lastFour = (raw.ssn || '').slice(-4);
     const data: Record<string, any> = {
       firstname: raw.firstname, lastname: raw.lastname, email: raw.email,
-      phone: raw.phone, dob: raw.dob, ssn: raw.ssn ? encrypt(raw.ssn) : null,
+      phone: raw.phone, dob: raw.dob,
       street: raw.street, city: raw.city, state: raw.state, zip: raw.zip,
       years_at_address: raw.yearsAtAddress, housing_status: raw.housingStatus,
       employer_name: raw.employerName, employment_status: raw.employmentStatus,
