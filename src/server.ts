@@ -230,43 +230,51 @@ function pickFields(data: any, allowed: string[]): any {
 
 app.post('/api/leads/financing', leadLimiter, async (req, res) => {
   try {
-    const data = pickFields(req.body, [
+    const raw = pickFields(req.body, [
       'firstname', 'lastname', 'email', 'phone', 'dob', 'ssn',
       'street', 'city', 'state', 'zip', 'yearsAtAddress', 'housingStatus',
       'employerName', 'employmentStatus', 'monthlyIncome', 'yearsEmployed', 'coborrower',
     ]);
-    if (!data.firstname || !data.email || !validateEmail(data.email)) {
+    if (!raw.firstname || !raw.email || !validateEmail(raw.email)) {
       res.status(400).json({ error: 'Valid name and email required' }); return;
     }
-    const lastFour = (data.ssn || '').slice(-4);
-    if (data.ssn) data.ssn = encrypt(data.ssn);
+    const lastFour = (raw.ssn || '').slice(-4);
+    const data: Record<string, any> = {
+      firstname: raw.firstname, lastname: raw.lastname, email: raw.email,
+      phone: raw.phone, dob: raw.dob, ssn: raw.ssn ? encrypt(raw.ssn) : null,
+      street: raw.street, city: raw.city, state: raw.state, zip: raw.zip,
+      years_at_address: raw.yearsAtAddress, housing_status: raw.housingStatus,
+      employer_name: raw.employerName, employment_status: raw.employmentStatus,
+      monthly_income: raw.monthlyIncome, years_employed: raw.yearsEmployed,
+      coborrower: raw.coborrower,
+    };
     const { error } = await supabase.from('financing_leads').insert(data);
     if (error) { console.error('Financing lead save error:', error.message, error.details, error.hint); res.status(500).json({ error: 'Failed to save' }); return; }
 
     await resend.emails.send({
       from: FROM_EMAIL,
       to: NOTIFY_EMAIL,
-      subject: `New Financing Application — ${escHtml(data.firstname)} ${escHtml(data.lastname)}`,
+      subject: `New Financing Application — ${escHtml(raw.firstname)} ${escHtml(raw.lastname)}`,
       html: `
         <h2>New Financing Application</h2>
-        <p><b>Name:</b> ${escHtml(data.firstname)} ${escHtml(data.lastname)}</p>
-        <p><b>Email:</b> ${escHtml(data.email)}</p>
-        <p><b>Phone:</b> ${escHtml(data.phone)}</p>
-        <p><b>DOB:</b> ${escHtml(data.dob)}</p>
+        <p><b>Name:</b> ${escHtml(raw.firstname)} ${escHtml(raw.lastname)}</p>
+        <p><b>Email:</b> ${escHtml(raw.email)}</p>
+        <p><b>Phone:</b> ${escHtml(raw.phone)}</p>
+        <p><b>DOB:</b> ${escHtml(raw.dob)}</p>
         <p><b>SSN:</b> ***-**-${escHtml(lastFour) || 'N/A'}</p>
-        <p><b>Address:</b> ${escHtml(data.street)}, ${escHtml(data.city)}, ${escHtml(data.state)} ${escHtml(data.zip)}</p>
-        <p><b>Employment:</b> ${escHtml(data.employmentStatus)} at ${escHtml(data.employerName)}</p>
-        <p><b>Monthly Income:</b> ${escHtml(data.monthlyIncome)}</p>
-        <p><b>Co-borrower:</b> ${data.coborrower ? 'Yes' : 'No'}</p>
+        <p><b>Address:</b> ${escHtml(raw.street)}, ${escHtml(raw.city)}, ${escHtml(raw.state)} ${escHtml(raw.zip)}</p>
+        <p><b>Employment:</b> ${escHtml(raw.employmentStatus)} at ${escHtml(raw.employerName)}</p>
+        <p><b>Monthly Income:</b> ${escHtml(raw.monthlyIncome)}</p>
+        <p><b>Co-borrower:</b> ${raw.coborrower ? 'Yes' : 'No'}</p>
       `
     });
     await sendAdfToDealerCenter(buildAdfXml({
       source: 'Financing Application',
-      firstname: data.firstname, lastname: data.lastname,
-      email: data.email, phone: data.phone,
-      street: data.street, city: data.city, state: data.state, zip: data.zip,
-      comments: `Financing Application | DOB: ${data.dob} | Employment: ${data.employmentStatus} at ${data.employerName} | Monthly Income: ${data.monthlyIncome} | Co-borrower: ${data.coborrower ? 'Yes' : 'No'}`,
-    }), `Financing Application — ${data.firstname} ${data.lastname}`);
+      firstname: raw.firstname, lastname: raw.lastname,
+      email: raw.email, phone: raw.phone,
+      street: raw.street, city: raw.city, state: raw.state, zip: raw.zip,
+      comments: `Financing Application | DOB: ${raw.dob} | Employment: ${raw.employmentStatus} at ${raw.employerName} | Monthly Income: ${raw.monthlyIncome} | Co-borrower: ${raw.coborrower ? 'Yes' : 'No'}`,
+    }), `Financing Application — ${raw.firstname} ${raw.lastname}`);
     res.json({ success: true });
   } catch (err) {
     console.error('Financing lead error');
