@@ -241,7 +241,7 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
     const lastFour = (data.ssn || '').slice(-4);
     if (data.ssn) data.ssn = encrypt(data.ssn);
     const { error } = await supabase.from('financing_leads').insert(data);
-    if (error) { console.error('Lead save error'); res.status(500).json({ error: 'Failed to save' }); return; }
+    if (error) { console.error('Financing lead save error:', error.message, error.details, error.hint); res.status(500).json({ error: 'Failed to save' }); return; }
 
     await resend.emails.send({
       from: FROM_EMAIL,
@@ -1096,19 +1096,22 @@ app.post('/api/admin/tax/process', reportUpload.single('file'), async (req: any,
         txOutOfState.push(makeTx(purchasePrice));
       }
 
-      if (tradeAllowance > 0) {
-        returnsAllowances += tradeAllowance;
-        txTradeIns.push(makeTx(tradeAllowance));
-      }
+      // Out-of-state: tax was collected and remitted to another state, not WI
+      if (!isOutOfState) {
+        if (tradeAllowance > 0) {
+          returnsAllowances += tradeAllowance;
+          txTradeIns.push(makeTx(tradeAllowance));
+        }
 
-      if (taxableAmount > 0) {
-        salesSubjectToTax += taxableAmount;
-        txTaxable.push(makeTx(taxableAmount));
-      }
+        if (taxableAmount > 0) {
+          salesSubjectToTax += taxableAmount;
+          txTaxable.push(makeTx(taxableAmount));
+        }
 
-      if (stateTax > 0) {
-        stateSalesTax += stateTax;
-        txStateTax.push(makeTx(stateTax));
+        if (stateTax > 0) {
+          stateSalesTax += stateTax;
+          txStateTax.push(makeTx(stateTax));
+        }
       }
 
       if (county && countyTax > 0) {
