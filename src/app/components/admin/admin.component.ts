@@ -27,6 +27,7 @@ export class AdminComponent implements OnInit {
     { label: 'Home',       icon: 'home',        route: '/admin' },
     { label: 'Inventory',  icon: 'car',         route: '/admin/inventory' },
     { label: 'Leads',      icon: 'users',       route: '/admin/customers' },
+    { label: 'Members',   icon: 'user-plus',   route: '/admin/members' },
     { label: 'Sales Tax',  icon: 'calculator',  route: '/admin/tax' },
     { label: 'Settings',   icon: 'settings',    route: '/admin/settings' },
   ];

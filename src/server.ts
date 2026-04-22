@@ -225,6 +225,31 @@ function pickFields(data: any, allowed: string[]): any {
 }
 
 /**
+ * New account notification — called after signup or first OAuth login
+ */
+app.post('/api/auth/notify-signup', leadLimiter, async (req, res) => {
+  try {
+    const { email, name, provider } = req.body;
+    if (!email) { res.json({ ok: true }); return; }
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: NOTIFY_EMAIL,
+      subject: `New Account Created — ${escHtml(name || email)}`,
+      html: `
+        <h2>New Account Created</h2>
+        <p><b>Name:</b> ${escHtml(name || 'N/A')}</p>
+        <p><b>Email:</b> ${escHtml(email)}</p>
+        <p><b>Method:</b> ${escHtml(provider || 'email')}</p>
+        <p><b>Time:</b> ${new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })}</p>
+      `
+    });
+    res.json({ ok: true });
+  } catch {
+    res.json({ ok: true }); // Don't fail silently — signup should still succeed
+  }
+});
+
+/**
  * Lead form submissions
  */
 
@@ -776,6 +801,96 @@ Rules:
  * Admin routes — all protected by auth middleware + rate limiting
  */
 app.use('/api/admin', adminLimiter, requireAdmin);
+
+/**
+ * Admin — list all registered users
+ */
+app.get('/api/admin/members', async (_req, res) => {
+  try {
+    const { data, error } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+    if (error) { res.status(500).json({ error: error.message }); return; }
+
+    // Get all leads to count per user
+    const [financing, offers, testDrives, tradeIns, contacts, reservations] = await Promise.all([
+      supabase.from('financing_leads').select('email').then(r => r.data || []),
+      supabase.from('offer_leads').select('email').then(r => r.data || []),
+      supabase.from('test_drive_leads').select('email').then(r => r.data || []),
+      supabase.from('trade_in_leads').select('email').then(r => r.data || []),
+      supabase.from('contact_leads').select('email').then(r => r.data || []),
+      supabase.from('chat_leads').select('email').then(r => r.data || []),
+    ]);
+    const allLeads = [...financing, ...offers, ...testDrives, ...tradeIns, ...contacts, ...reservations];
+    const leadCounts: Record<string, number> = {};
+    for (const l of allLeads) {
+      if (l.email) leadCounts[l.email.toLowerCase()] = (leadCounts[l.email.toLowerCase()] || 0) + 1;
+    }
+
+    const members = data.users.map(u => ({
+      id: u.id,
+      email: u.email || '',
+      fullName: u.user_metadata?.['full_name'] || u.user_metadata?.['name'] || '',
+      firstName: u.user_metadata?.['first_name'] || '',
+      lastName: u.user_metadata?.['last_name'] || '',
+      avatarUrl: u.user_metadata?.['avatar_url'] || '',
+      provider: u.app_metadata?.provider || 'email',
+      createdAt: u.created_at,
+      lastSignIn: u.last_sign_in_at,
+      leadCount: leadCounts[(u.email || '').toLowerCase()] || 0,
+    }));
+
+    members.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    res.json({ total: members.length, members });
+  } catch (err: any) {
+    console.error('Members list error:', err);
+    res.status(500).json({ error: 'Failed to fetch members' });
+  }
+});
+
+/**
+ * Admin — get member detail with all their leads
+ */
+app.get('/api/admin/members/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data: userData, error } = await supabase.auth.admin.getUserById(id);
+    if (error || !userData?.user) { res.status(404).json({ error: 'User not found' }); return; }
+    const u = userData.user;
+    const email = (u.email || '').toLowerCase();
+
+    // Fetch all leads for this user by email
+    const fetchLeads = async (table: string, type: string) => {
+      const { data } = await supabase.from(table).select('*').ilike('email', email).order('created_at', { ascending: false });
+      return (data || []).map((l: any) => ({ ...l, _type: type }));
+    };
+
+    const [financing, offers, testDrives, tradeIns, contacts] = await Promise.all([
+      fetchLeads('financing_leads', 'financing'),
+      fetchLeads('offer_leads', 'offer'),
+      fetchLeads('test_drive_leads', 'test-drive'),
+      fetchLeads('trade_in_leads', 'trade-in'),
+      fetchLeads('contact_leads', 'contact'),
+    ]);
+
+    const allLeads = [...financing, ...offers, ...testDrives, ...tradeIns, ...contacts];
+    allLeads.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    res.json({
+      id: u.id,
+      email: u.email,
+      fullName: u.user_metadata?.['full_name'] || '',
+      firstName: u.user_metadata?.['first_name'] || '',
+      lastName: u.user_metadata?.['last_name'] || '',
+      avatarUrl: u.user_metadata?.['avatar_url'] || '',
+      provider: u.app_metadata?.provider || 'email',
+      createdAt: u.created_at,
+      lastSignIn: u.last_sign_in_at,
+      leads: allLeads,
+    });
+  } catch (err: any) {
+    console.error('Member detail error:', err);
+    res.status(500).json({ error: 'Failed to fetch member' });
+  }
+});
 
 app.get('/api/admin/dashboard', async (_req, res) => {
   try {

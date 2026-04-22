@@ -1,0 +1,125 @@
+<div class="members">
+
+  <!-- Header -->
+  <div class="members-header">
+    <div>
+      <h1 class="members-title">Members</h1>
+      <p class="members-subtitle">{{ members().length }} registered accounts</p>
+    </div>
+    <div class="members-search">
+      <lucide-icon name="search" />
+      <input type="text" placeholder="Search by name or email..." [(ngModel)]="search" />
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if(loading()){
+  <div class="members-loading">Loading members...</div>
+  }
+
+  <!-- Table -->
+  @if(!loading()){
+  <div class="members-table-wrap">
+    <table class="members-table">
+      <thead>
+        <tr>
+          <th>Member</th>
+          <th>Provider</th>
+          <th>Joined</th>
+          <th>Last Sign In</th>
+          <th>Leads</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for(m of filtered; track m.id){
+        <tr class="members-row" (click)="openDetail(m)">
+          <td>
+            <div class="members-user">
+              @if(m.avatarUrl){
+              <img [src]="m.avatarUrl" class="members-avatar" />
+              }@else{
+              <div class="members-avatar-placeholder">{{ (m.firstName || m.email)[0] | uppercase }}</div>
+              }
+              <div>
+                <span class="members-name">{{ m.fullName || m.email }}</span>
+                @if(m.fullName){<span class="members-email">{{ m.email }}</span>}
+              </div>
+            </div>
+          </td>
+          <td><span class="members-provider" [class]="'members-provider--' + m.provider">{{ m.provider }}</span></td>
+          <td class="members-date">{{ timeAgo(m.createdAt) }}</td>
+          <td class="members-date">{{ timeAgo(m.lastSignIn) }}</td>
+          <td>
+            @if(m.leadCount > 0){
+            <span class="members-lead-badge">{{ m.leadCount }}</span>
+            }@else{
+            <span class="members-no-leads">—</span>
+            }
+          </td>
+          <td class="members-chevron"><lucide-icon name="chevron-right" /></td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+
+  <!-- Detail Drawer -->
+  @if(selectedMember() || detailLoading()){
+  <div class="members-overlay" (click)="closeDetail()"></div>
+  <div class="members-drawer">
+    <div class="members-drawer-header">
+      <h2>Member Detail</h2>
+      <button class="members-drawer-close" (click)="closeDetail()"><lucide-icon name="x" /></button>
+    </div>
+
+    @if(detailLoading()){
+    <div class="members-loading">Loading...</div>
+    }
+
+    @if(selectedMember(); as d){
+    <div class="members-drawer-body">
+      <!-- Profile -->
+      <div class="members-profile">
+        @if(d.avatarUrl){
+        <img [src]="d.avatarUrl" class="members-profile-avatar" />
+        }@else{
+        <div class="members-profile-avatar-placeholder">{{ (d.fullName || d.email)[0] | uppercase }}</div>
+        }
+        <div>
+          <h3 class="members-profile-name">{{ d.fullName || 'No name' }}</h3>
+          <p class="members-profile-email">{{ d.email }}</p>
+          <p class="members-profile-meta">
+            Joined {{ timeAgo(d.createdAt) }} &middot; {{ d.provider }} &middot; Last sign-in {{ timeAgo(d.lastSignIn) }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Activity -->
+      <div class="members-activity">
+        <h4>Activity ({{ d.leads.length }})</h4>
+        @if(d.leads.length === 0){
+        <p class="members-no-activity">No inquiries or leads from this member yet.</p>
+        }
+        @for(lead of d.leads; track lead.id){
+        <div class="members-lead-card">
+          <div class="members-lead-icon">
+            <lucide-icon [name]="leadTypeIcon(lead._type)" />
+          </div>
+          <div class="members-lead-info">
+            <span class="members-lead-type">{{ leadTypeLabel(lead._type) }}</span>
+            <span class="members-lead-date">{{ timeAgo(lead.created_at) }}</span>
+          </div>
+          @if(lead.status){
+          <span class="members-lead-status" [class]="'members-lead-status--' + lead.status">{{ lead.status }}</span>
+          }
+        </div>
+        }
+      </div>
+    </div>
+    }
+  </div>
+  }
+
+</div>

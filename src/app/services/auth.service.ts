@@ -1,6 +1,7 @@
 import { Injectable, signal, computed, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import type { SupabaseClient, User, Session } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
 
@@ -8,7 +9,9 @@ import { environment } from '../../environments/environment';
 export class AuthService {
   private platformId = inject(PLATFORM_ID);
   private router = inject(Router);
+  private http = inject(HttpClient);
   private supabase: SupabaseClient | null = null;
+  private notifiedSignups = new Set<string>();
   private _ready: Promise<void> = Promise.resolve();
   private _readyResolve!: () => void;
 
@@ -51,10 +54,21 @@ export class AuthService {
     this.user.set(data.session?.user ?? null);
     this.loading.set(false);
 
-    this.supabase.auth.onAuthStateChange((_event, session) => {
+    this.supabase.auth.onAuthStateChange((event, session) => {
       this.session.set(session);
       this.user.set(session?.user ?? null);
       this.loading.set(false);
+      // Notify on first sign-in (new OAuth accounts)
+      if (event === 'SIGNED_IN' && session?.user) {
+        const u = session.user;
+        const created = new Date(u.created_at).getTime();
+        const now = Date.now();
+        // If account was created within last 60 seconds, it's a new signup
+        if (now - created < 60000 && !this.notifiedSignups.has(u.id)) {
+          this.notifiedSignups.add(u.id);
+          this.notifySignup(u.email || '', u.user_metadata?.['full_name'] || u.user_metadata?.['name'] || '', u.app_metadata?.['provider'] || 'google');
+        }
+      }
     });
 
     this._readyResolve();
@@ -97,10 +111,18 @@ export class AuthService {
 
   async signUp(email: string, password: string, firstName: string, lastName: string) {
     if (!this.supabase) return { error: new Error('Not initialised') };
-    return this.supabase.auth.signUp({
+    const result = await this.supabase.auth.signUp({
       email, password,
       options: { data: { first_name: firstName, last_name: lastName, full_name: `${firstName} ${lastName}` } },
     });
+    if (!result.error) {
+      this.notifySignup(email, `${firstName} ${lastName}`, 'email');
+    }
+    return result;
+  }
+
+  private notifySignup(email: string, name: string, provider: string) {
+    this.http.post('/api/auth/notify-signup', { email, name, provider }).subscribe();
   }
 
   async signOut() {
