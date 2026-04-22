@@ -2325,11 +2325,36 @@ function parseSalesReportRows(rows: Record<string, string>[]): {
 
   for (const row of rows) {
     // Find column values (flexible header matching)
-    const signerState = (row['Signer State'] || row['signer state'] || row['State'] || row['state'] || '').trim().toUpperCase();
-    const signerZip = (row['Signer Zip'] || row['signer zip'] || row['Zip'] || row['zip'] || '').trim().replace(/[^0-9]/g, '').slice(0, 5);
-    const vehicleMake = (row['Vehicle Make'] || row['vehicle make'] || row['Make'] || row['make'] || '').trim();
-    const model = (row['Model'] || row['model'] || '').trim();
-    const dealNo = (row['Deal No.'] || row['deal no.'] || row['Deal No'] || row['deal no'] || '').trim();
+    // Flexible column matching — find by key substring
+    const findCol = (keys: string[]): string => {
+      for (const k of keys) {
+        if (row[k] !== undefined) return row[k];
+      }
+      // Try case-insensitive partial match
+      for (const k of keys) {
+        const found = Object.keys(row).find(rk => rk.toLowerCase().includes(k.toLowerCase()));
+        if (found && row[found]) return row[found];
+      }
+      return '';
+    };
+    const signerState = findCol(['Signer State', 'signer state', 'State', 'state']).trim().toUpperCase();
+    const signerZip = findCol(['Signer Zip', 'signer zip', 'Zip', 'zip']).trim().replace(/[^0-9]/g, '').slice(0, 5);
+    let vehicleMake = findCol(['Vehicle Make', 'vehicle make', 'Make', 'make']).trim();
+    const model = findCol(['Model', 'model']).trim();
+    const dealNo = findCol(['Deal No.', 'deal no.', 'Deal No', 'deal no']).trim();
+
+    // Handle combined "Vehicle Year Make" column (e.g., "2023 RIVIAN")
+    if (!vehicleMake) {
+      const combined = findCol(['Vehicle Year Make', 'vehicle year make']).trim();
+      if (combined) {
+        const parts = combined.split(/\s+/);
+        if (parts.length >= 2 && /^\d{4}$/.test(parts[0])) {
+          vehicleMake = parts.slice(1).join(' ');
+        } else {
+          vehicleMake = combined;
+        }
+      }
+    }
 
     // Count every row as a sale
     totalSales++;
@@ -2445,12 +2470,21 @@ Return ONLY the JSON array, no other text.` }
       const result = parseSalesReportRows(rows);
       res.json(result);
     } else if (isXLS) {
-      // Parse XLS/XLSX using existing XLSX library with column-based approach
+      // Parse XLS/XLSX — scan for header row containing known columns
       const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
       const allRows: Record<string, string>[] = [];
       for (const sheetName of workbook.SheetNames) {
         const sheet = workbook.Sheets[sheetName];
-        const rows: Record<string, string>[] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        const rawRows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+        let headerIdx = 0;
+        for (let i = 0; i < Math.min(20, rawRows.length); i++) {
+          const rowStr = rawRows[i].map((c: any) => String(c).toLowerCase()).join('|');
+          if (rowStr.includes('deal no') || rowStr.includes('signer state') || rowStr.includes('vehicle') || rowStr.includes('delivery date')) {
+            headerIdx = i;
+            break;
+          }
+        }
+        const rows: Record<string, string>[] = XLSX.utils.sheet_to_json(sheet, { defval: '', range: headerIdx });
         allRows.push(...rows);
       }
       const result = parseSalesReportRows(allRows);
