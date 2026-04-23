@@ -35,35 +35,32 @@
 
   <!-- Pipeline Stage -->
   <div class="det-stage-section">
-    <div class="det-stage-current">
-      @if(currentStage()){
-      <div class="det-stage-info">
-        <span class="det-stage-label">Current Stage</span>
-        <span class="det-stage-name">{{ currentStage().stage }}</span>
-        <span class="det-stage-days">{{ stageDays }} days &middot; moved {{ stageTimeAgo(currentStage().entered_at) }} by {{ currentStage().created_by }}</span>
-      </div>
-      }@else{
-      <div class="det-stage-info">
-        <span class="det-stage-label">Current Stage</span>
-        <span class="det-stage-name det-stage-unset">No stage set</span>
-      </div>
+    @if(currentStage()){
+    <div class="det-stage-meta">{{ stageDays }} days in stage &middot; moved {{ stageTimeAgo(currentStage().entered_at) }} by {{ currentStage().created_by }}</div>
+    }
+    <div class="det-stage-buttons">
+      @for(s of stageList; track s){
+      <button class="det-stage-btn"
+        [class.det-stage-btn-active]="currentStage()?.stage === s"
+        [class.det-stage-btn-past]="isBeforeCurrent(s)"
+        [disabled]="movingStage() || currentStage()?.stage === s"
+        (click)="quickMoveStage(s)">
+        {{ shortStage(s) }}
+      </button>
       }
-      <div class="det-stage-move">
-        <select [(ngModel)]="moveToStage" class="det-stage-select">
-          @for(s of stageList; track s){
-          <option [value]="s">{{ s }}</option>
-          }
-        </select>
-        @if(isNonLinearMove){
-        <input [(ngModel)]="stageNotes" placeholder="Why moving back? (required)" class="det-stage-notes" />
-        }@else{
-        <input [(ngModel)]="stageNotes" placeholder="Notes (optional)" class="det-stage-notes" />
-        }
-        <button class="det-stage-move-btn" (click)="submitStageMove()" [disabled]="movingStage() || !moveToStage()">
-          @if(movingStage()){ Moving… }@else{ Move }
-        </button>
+    </div>
+
+    <!-- Backward move notes prompt -->
+    @if(backwardPrompt()){
+    <div class="det-stage-backward">
+      <span>Moving backward to <b>{{ shortStage(backwardPrompt()) }}</b> — why?</span>
+      <div class="det-stage-backward-row">
+        <input [(ngModel)]="stageNotes" placeholder="Reason (required)" class="det-stage-notes" />
+        <button class="det-stage-move-btn" (click)="confirmBackwardMove()" [disabled]="!stageNotes()">Confirm</button>
+        <button class="det-stage-cancel-btn" (click)="cancelBackwardMove()">Cancel</button>
       </div>
     </div>
+    }
 
     @if(stageHistory().length > 1){
     <details class="det-stage-history">

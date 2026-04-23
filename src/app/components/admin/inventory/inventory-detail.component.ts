@@ -148,9 +148,9 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
     'In Mechanical', 'In Body/Paint', 'In Detail', 'In Photos',
     'Listed', 'Offered/Negotiating', 'Sold — Pending Delivery', 'Sold — Delivered',
   ];
-  moveToStage = signal('');
   stageNotes = signal('');
   movingStage = signal(false);
+  backwardPrompt = signal('');
 
   get stageDays(): number {
     const s = this.currentStage();
@@ -158,20 +158,27 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
     return Math.floor((Date.now() - new Date(s.entered_at).getTime()) / 86400000);
   }
 
-  get nextStage(): string {
+  isBeforeCurrent(stage: string): boolean {
     const cur = this.currentStage()?.stage;
-    if (!cur) return this.stageList[0];
-    const idx = this.stageList.indexOf(cur);
-    return idx < this.stageList.length - 1 ? this.stageList[idx + 1] : '';
+    if (!cur) return false;
+    return this.stageList.indexOf(stage) < this.stageList.indexOf(cur);
   }
 
-  get isNonLinearMove(): boolean {
-    const cur = this.currentStage()?.stage;
-    const target = this.moveToStage();
-    if (!cur || !target) return false;
-    const curIdx = this.stageList.indexOf(cur);
-    const targetIdx = this.stageList.indexOf(target);
-    return targetIdx < curIdx; // Going backwards
+  shortStage(stage: string): string {
+    const map: Record<string, string> = {
+      'At Auction — Won, Awaiting Pickup': 'Auction Won',
+      'In Transport': 'Transport',
+      'Arrived — Needs Intake': 'Intake',
+      'In Mechanical': 'Mechanical',
+      'In Body/Paint': 'Body/Paint',
+      'In Detail': 'Detail',
+      'In Photos': 'Photos',
+      'Listed': 'Listed',
+      'Offered/Negotiating': 'Negotiating',
+      'Sold — Pending Delivery': 'Sold (Pending)',
+      'Sold — Delivered': 'Delivered',
+    };
+    return map[stage] || stage;
   }
 
   // Save state
@@ -313,33 +320,38 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
       next: (data) => {
         this.currentStage.set(data.current);
         this.stageHistory.set(data.history);
-        if (data.current) {
-          // Default the dropdown to next stage
-          const idx = this.stageList.indexOf(data.current.stage);
-          this.moveToStage.set(idx < this.stageList.length - 1 ? this.stageList[idx + 1] : '');
-        } else {
-          this.moveToStage.set(this.stageList[0]);
-        }
       },
     });
   }
 
-  submitStageMove() {
-    const vin = this.vin();
-    const stage = this.moveToStage();
-    if (!vin || !stage || this.movingStage()) return;
-
-    // Require notes for non-linear moves
-    if (this.isNonLinearMove && !this.stageNotes()) {
-      alert('Notes are required when moving to an earlier stage.');
+  quickMoveStage(stage: string) {
+    if (this.movingStage()) return;
+    // Check if backward move
+    if (this.isBeforeCurrent(stage)) {
+      this.backwardPrompt.set(stage);
+      this.stageNotes.set('');
       return;
     }
+    this.doMoveStage(stage, null);
+  }
 
+  confirmBackwardMove() {
+    const stage = this.backwardPrompt();
+    if (!stage || !this.stageNotes()) return;
+    this.doMoveStage(stage, this.stageNotes());
+    this.backwardPrompt.set('');
+  }
+
+  cancelBackwardMove() {
+    this.backwardPrompt.set('');
+    this.stageNotes.set('');
+  }
+
+  private doMoveStage(stage: string, notes: string | null) {
+    const vin = this.vin();
+    if (!vin) return;
     this.movingStage.set(true);
-    this.http.post<any>(`/api/admin/vehicle/${vin}/stage`, {
-      stage,
-      notes: this.stageNotes() || null,
-    }).subscribe({
+    this.http.post<any>(`/api/admin/vehicle/${vin}/stage`, { stage, notes }).subscribe({
       next: () => {
         this.stageNotes.set('');
         this.movingStage.set(false);
