@@ -2359,6 +2359,12 @@ function parseSalesReportRows(rows: Record<string, string>[]): {
     // Count every row as a sale
     totalSales++;
 
+    // Track brands for ALL deals (including wholesale with no state)
+    if (vehicleMake) {
+      const brand = normalizeBrand(vehicleMake);
+      overallBrands[brand] = (overallBrands[brand] || 0) + 1;
+    }
+
     // Skip state-level tracking for rows without a valid state
     if (!signerState || !VALID_STATES.has(signerState)) continue;
 
@@ -2374,12 +2380,11 @@ function parseSalesReportRows(rows: Record<string, string>[]): {
       stateData[signerState].zips[signerZip] = (stateData[signerState].zips[signerZip] || 0) + 1;
     }
 
-    // Track vehicles (make + model)
+    // Track vehicles per state (make + model)
     if (vehicleMake) {
       const brand = normalizeBrand(vehicleMake);
       const vehicleName = model ? `${brand} ${model}` : brand;
       stateData[signerState].vehicles[vehicleName] = (stateData[signerState].vehicles[vehicleName] || 0) + 1;
-      overallBrands[brand] = (overallBrands[brand] || 0) + 1;
     }
   }
 
