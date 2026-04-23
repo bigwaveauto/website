@@ -1742,6 +1742,132 @@ app.post('/api/admin/vehicle/save', async (req, res) => {
 });
 
 /**
+ * Vehicle Pipeline Stages
+ */
+
+// Get stage thresholds (configurable)
+app.get('/api/admin/stages/thresholds', async (_req, res) => {
+  try {
+    const { data, error } = await supabase.from('stage_thresholds').select('*').order('sort_order');
+    if (error) { res.status(500).json({ error: error.message }); return; }
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load thresholds' });
+  }
+});
+
+// Update stage thresholds
+app.post('/api/admin/stages/thresholds', async (req, res) => {
+  try {
+    const { thresholds } = req.body;
+    if (!thresholds?.length) { res.status(400).json({ error: 'Thresholds required' }); return; }
+    for (const t of thresholds) {
+      await supabase.from('stage_thresholds').update({ yellow_days: t.yellow_days, red_days: t.red_days }).eq('stage', t.stage);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update thresholds' });
+  }
+});
+
+// Get current stage + history for a vehicle
+app.get('/api/admin/vehicle/:vin/stages', async (req, res) => {
+  try {
+    const { vin } = req.params;
+    const { data, error } = await supabase.from('vehicle_stages')
+      .select('*').eq('vin', vin).order('entered_at', { ascending: false });
+    if (error) { res.status(500).json({ error: error.message }); return; }
+    res.json({
+      current: data?.[0] || null,
+      history: data || [],
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load stages' });
+  }
+});
+
+// Get current stages for ALL vehicles (for inventory list badges)
+app.get('/api/admin/stages/current', async (_req, res) => {
+  try {
+    // Get all stage records, then pick the latest per VIN
+    const { data, error } = await supabase.from('vehicle_stages')
+      .select('*').order('entered_at', { ascending: false });
+    if (error) { res.status(500).json({ error: error.message }); return; }
+
+    const byVin: Record<string, any> = {};
+    for (const row of (data || [])) {
+      if (!byVin[row.vin]) byVin[row.vin] = row;
+    }
+    res.json(byVin);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load current stages' });
+  }
+});
+
+// Move a vehicle to a new stage
+app.post('/api/admin/vehicle/:vin/stage', async (req, res) => {
+  try {
+    const { vin } = req.params;
+    const { stage, notes } = req.body;
+    const adminUser = (req as any).adminUser;
+    const createdBy = adminUser?.email || 'unknown';
+
+    if (!stage) { res.status(400).json({ error: 'Stage required' }); return; }
+
+    // Close the previous stage (set exited_at)
+    const { data: current } = await supabase.from('vehicle_stages')
+      .select('id').eq('vin', vin).is('exited_at', null).order('entered_at', { ascending: false }).limit(1);
+
+    if (current?.length) {
+      await supabase.from('vehicle_stages').update({ exited_at: new Date().toISOString() }).eq('id', current[0].id);
+    }
+
+    // Insert new stage
+    const { data: newStage, error } = await supabase.from('vehicle_stages').insert({
+      vin, stage, notes: notes || null, created_by: createdBy,
+    }).select().single();
+
+    if (error) { res.status(500).json({ error: error.message }); return; }
+    res.json(newStage);
+  } catch (err) {
+    console.error('Stage update error:', err);
+    res.status(500).json({ error: 'Failed to update stage' });
+  }
+});
+
+// Bulk set stages for multiple vehicles at once (initial backfill)
+app.post('/api/admin/stages/bulk', async (req, res) => {
+  try {
+    const { assignments } = req.body; // Array of { vin, stage, notes? }
+    const adminUser = (req as any).adminUser;
+    const createdBy = adminUser?.email || 'unknown';
+
+    if (!assignments?.length) { res.status(400).json({ error: 'Assignments required' }); return; }
+
+    for (const a of assignments) {
+      if (!a.vin || !a.stage) continue;
+
+      // Close any existing open stage
+      const { data: current } = await supabase.from('vehicle_stages')
+        .select('id').eq('vin', a.vin).is('exited_at', null).order('entered_at', { ascending: false }).limit(1);
+
+      if (current?.length) {
+        await supabase.from('vehicle_stages').update({ exited_at: new Date().toISOString() }).eq('id', current[0].id);
+      }
+
+      await supabase.from('vehicle_stages').insert({
+        vin: a.vin, stage: a.stage, notes: a.notes || 'Initial backfill', created_by: createdBy,
+      });
+    }
+
+    res.json({ success: true, count: assignments.length });
+  } catch (err) {
+    console.error('Bulk stage error:', err);
+    res.status(500).json({ error: 'Failed to bulk update stages' });
+  }
+});
+
+/**
  * Photo categories — save/load per-vehicle photo categorization
  */
 app.post('/api/admin/vehicle/photos/categories', async (req, res) => {

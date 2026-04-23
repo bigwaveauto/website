@@ -1,0 +1,67 @@
+<div class="setup">
+  <div class="setup-header">
+    <div>
+      <h1 class="setup-title">Pipeline Stage Setup</h1>
+      <p class="setup-sub">Assign current stages to your existing inventory. This is a one-time setup.</p>
+    </div>
+    <div class="setup-actions">
+      <span class="setup-count">{{ assignedCount }} / {{ vehicles().length }} assigned</span>
+      <button class="setup-save" (click)="saveAll()" [disabled]="saving() || saved()">
+        @if(saved()){
+        <lucide-icon name="circle-check" /> Saved! Redirecting…
+        }@else if(saving()){
+        Saving…
+        }@else{
+        Save All Stages
+        }
+      </button>
+    </div>
+  </div>
+
+  <div class="setup-set-all">
+    <span>Set all to:</span>
+    <select (change)="setAll($any($event.target).value)">
+      <option value="">Choose…</option>
+      @for(s of stageList; track s){
+      @if(s){<option [value]="s">{{ s }}</option>}
+      }
+    </select>
+  </div>
+
+  @if(loading()){
+  <div class="setup-loading">Loading inventory…</div>
+  }@else{
+  <div class="setup-table-wrap">
+    <table class="setup-table">
+      <thead>
+        <tr>
+          <th>Stock #</th>
+          <th>Year</th>
+          <th>Make</th>
+          <th>Model</th>
+          <th>Trim</th>
+          <th>Stage</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for(v of vehicles(); track v.vin; let i = $index){
+        <tr [class.setup-row-set]="v.selectedStage">
+          <td class="mono">{{ v.stocknumber }}</td>
+          <td>{{ v.year }}</td>
+          <td>{{ v.make }}</td>
+          <td>{{ v.model }}</td>
+          <td>{{ v.trim }}</td>
+          <td>
+            <select [(ngModel)]="vehicles()[i].selectedStage" class="setup-stage-select">
+              @for(s of stageList; track s){
+              <option [value]="s">{{ s || '— Select —' }}</option>
+              }
+            </select>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+</div>

@@ -33,6 +33,61 @@
     </div>
   </div>
 
+  <!-- Pipeline Stage -->
+  <div class="det-stage-section">
+    <div class="det-stage-current">
+      @if(currentStage()){
+      <div class="det-stage-info">
+        <span class="det-stage-label">Current Stage</span>
+        <span class="det-stage-name">{{ currentStage().stage }}</span>
+        <span class="det-stage-days">{{ stageDays }} days &middot; moved {{ stageTimeAgo(currentStage().entered_at) }} by {{ currentStage().created_by }}</span>
+      </div>
+      }@else{
+      <div class="det-stage-info">
+        <span class="det-stage-label">Current Stage</span>
+        <span class="det-stage-name det-stage-unset">No stage set</span>
+      </div>
+      }
+      <div class="det-stage-move">
+        <select [(ngModel)]="moveToStage" class="det-stage-select">
+          @for(s of stageList; track s){
+          <option [value]="s">{{ s }}</option>
+          }
+        </select>
+        @if(isNonLinearMove){
+        <input [(ngModel)]="stageNotes" placeholder="Why moving back? (required)" class="det-stage-notes" />
+        }@else{
+        <input [(ngModel)]="stageNotes" placeholder="Notes (optional)" class="det-stage-notes" />
+        }
+        <button class="det-stage-move-btn" (click)="submitStageMove()" [disabled]="movingStage() || !moveToStage()">
+          @if(movingStage()){ Moving… }@else{ Move }
+        </button>
+      </div>
+    </div>
+
+    @if(stageHistory().length > 1){
+    <details class="det-stage-history">
+      <summary>Stage History ({{ stageHistory().length }})</summary>
+      <div class="det-stage-timeline">
+        @for(s of stageHistory(); track s.id){
+        <div class="det-stage-event">
+          <div class="det-stage-event-dot"></div>
+          <div class="det-stage-event-body">
+            <span class="det-stage-event-name">{{ s.stage }}</span>
+            <span class="det-stage-event-meta">
+              {{ s.entered_at | date:'M/d/yyyy h:mm a' }}
+              @if(s.exited_at){ — {{ s.exited_at | date:'M/d/yyyy h:mm a' }} }
+              &middot; {{ s.created_by }}
+            </span>
+            @if(s.notes){<span class="det-stage-event-notes">{{ s.notes }}</span>}
+          </div>
+        </div>
+        }
+      </div>
+    </details>
+    }
+  </div>
+
   <!-- Tabs -->
   <div class="det-tabs">
     <button class="det-tab" [class.active]="activeTab() === 'overview'" (click)="activeTab.set('overview')">Overview</button>

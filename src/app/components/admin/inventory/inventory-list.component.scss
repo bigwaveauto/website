@@ -93,3 +93,57 @@ $text-muted: rgba(0,0,0,0.45);
 
 // Lucide search icon fix
 lucide-icon { display: inline-flex; align-items: center; }
+
+/* Stage filter */
+.inv-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.inv-stage-filter {
+  padding: 10px 12px;
+  border: 1.5px solid rgba(0,0,0,0.12);
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #111;
+  background: white;
+  outline: none;
+  &:focus { border-color: $blue; }
+}
+
+/* Stage badges */
+.inv-stage-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #f0f1f3;
+  color: #555;
+  white-space: nowrap;
+
+  &.inv-stage-yellow {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &.inv-stage-red {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+.inv-stage-none {
+  color: #d1d5db;
+  font-size: 12px;
+}
+
+.inv-days-yellow { color: #d97706 !important; font-weight: 700; }
+.inv-days-red { color: #dc2626 !important; font-weight: 700; }
+
+.inv-row-red { background: #fef2f2; }
+.inv-row-yellow { background: #fffbeb; }
+.inv-row-red:hover { background: #fee2e2 !important; }
+.inv-row-yellow:hover { background: #fef3c7 !important; }

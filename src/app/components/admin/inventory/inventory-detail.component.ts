@@ -140,6 +140,40 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   description = signal('');
   generatingDesc = signal(false);
 
+  // Pipeline stage
+  currentStage = signal<any>(null);
+  stageHistory = signal<any[]>([]);
+  stageList = [
+    'At Auction — Won, Awaiting Pickup', 'In Transport', 'Arrived — Needs Intake',
+    'In Mechanical', 'In Body/Paint', 'In Detail', 'In Photos',
+    'Listed', 'Offered/Negotiating', 'Sold — Pending Delivery', 'Sold — Delivered',
+  ];
+  moveToStage = signal('');
+  stageNotes = signal('');
+  movingStage = signal(false);
+
+  get stageDays(): number {
+    const s = this.currentStage();
+    if (!s) return 0;
+    return Math.floor((Date.now() - new Date(s.entered_at).getTime()) / 86400000);
+  }
+
+  get nextStage(): string {
+    const cur = this.currentStage()?.stage;
+    if (!cur) return this.stageList[0];
+    const idx = this.stageList.indexOf(cur);
+    return idx < this.stageList.length - 1 ? this.stageList[idx + 1] : '';
+  }
+
+  get isNonLinearMove(): boolean {
+    const cur = this.currentStage()?.stage;
+    const target = this.moveToStage();
+    if (!cur || !target) return false;
+    const curIdx = this.stageList.indexOf(cur);
+    const targetIdx = this.stageList.indexOf(target);
+    return targetIdx < curIdx; // Going backwards
+  }
+
   // Save state
   saving = signal(false);
   saved = signal(false);
@@ -212,6 +246,9 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
       error: () => this.fetchFromVauto(vin),
     });
 
+    // Fetch pipeline stage
+    this.loadStages(vin);
+
     // Fetch internal data
     this.http.get<any>(`/api/admin/vehicle/${vin}`).subscribe({
       next: (data) => {
@@ -269,6 +306,58 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.tickInterval) clearInterval(this.tickInterval);
+  }
+
+  loadStages(vin: string) {
+    this.http.get<{ current: any; history: any[] }>(`/api/admin/vehicle/${vin}/stages`).subscribe({
+      next: (data) => {
+        this.currentStage.set(data.current);
+        this.stageHistory.set(data.history);
+        if (data.current) {
+          // Default the dropdown to next stage
+          const idx = this.stageList.indexOf(data.current.stage);
+          this.moveToStage.set(idx < this.stageList.length - 1 ? this.stageList[idx + 1] : '');
+        } else {
+          this.moveToStage.set(this.stageList[0]);
+        }
+      },
+    });
+  }
+
+  submitStageMove() {
+    const vin = this.vin();
+    const stage = this.moveToStage();
+    if (!vin || !stage || this.movingStage()) return;
+
+    // Require notes for non-linear moves
+    if (this.isNonLinearMove && !this.stageNotes()) {
+      alert('Notes are required when moving to an earlier stage.');
+      return;
+    }
+
+    this.movingStage.set(true);
+    this.http.post<any>(`/api/admin/vehicle/${vin}/stage`, {
+      stage,
+      notes: this.stageNotes() || null,
+    }).subscribe({
+      next: () => {
+        this.stageNotes.set('');
+        this.movingStage.set(false);
+        this.loadStages(vin);
+      },
+      error: () => { this.movingStage.set(false); alert('Failed to update stage.'); },
+    });
+  }
+
+  stageTimeAgo(dateStr: string): string {
+    if (!dateStr) return '';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
   }
 
   private fetchFromVauto(vin: string) {

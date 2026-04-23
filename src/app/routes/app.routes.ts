@@ -56,6 +56,7 @@ export const routes: Routes = [
       { path: 'intake', loadComponent: () => import('../components/admin/intake/intake.component').then(m => m.IntakeComponent) },
       { path: 'inventory', loadComponent: () => import('../components/admin/inventory/inventory-list.component').then(m => m.AdminInventoryListComponent) },
       { path: 'inventory/:vin', loadComponent: () => import('../components/admin/inventory/inventory-detail.component').then(m => m.AdminInventoryDetailComponent) },
+      { path: 'stages/setup', loadComponent: () => import('../components/admin/stages/stage-setup.component').then(m => m.StageSetupComponent) },
       { path: 'customers', loadComponent: () => import('../components/admin/leads/leads.component').then(m => m.AdminLeadsComponent) },
       { path: 'members', loadComponent: () => import('../components/admin/members/members.component').then(m => m.AdminMembersComponent) },
       { path: 'tax', loadComponent: () => import('../components/admin/tax/tax-filing.component').then(m => m.TaxFilingComponent) },

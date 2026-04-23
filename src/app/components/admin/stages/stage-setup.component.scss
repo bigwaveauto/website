@@ -1,0 +1,118 @@
+$blue: #2563eb;
+$border: rgba(0,0,0,0.07);
+$text-muted: rgba(0,0,0,0.45);
+
+.setup { display: flex; flex-direction: column; gap: 16px; }
+
+.setup-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.setup-title { font-size: 26px; font-weight: 800; color: #111; margin: 0; }
+.setup-sub { font-size: 14px; color: $text-muted; margin: 4px 0 0; }
+
+.setup-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setup-count {
+  font-size: 13px;
+  color: $text-muted;
+  background: rgba(0,0,0,0.04);
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+.setup-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 24px;
+  background: $blue;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  lucide-icon { width: 18px; height: 18px; }
+  &:hover { background: darken($blue, 8%); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.setup-set-all {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #555;
+
+  select {
+    padding: 8px 12px;
+    border: 1.5px solid rgba(0,0,0,0.12);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    background: white;
+  }
+}
+
+.setup-loading {
+  padding: 60px;
+  text-align: center;
+  color: $text-muted;
+}
+
+.setup-table-wrap {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow: auto;
+}
+
+.setup-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 10px 12px;
+    border-bottom: 2px solid $border;
+    background: #fafbfc;
+  }
+
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid $border;
+    color: #333;
+  }
+
+  .mono { font-family: 'SF Mono', 'Consolas', monospace; font-size: 12px; }
+}
+
+.setup-row-set {
+  background: #f0f9ff;
+}
+
+.setup-stage-select {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1.5px solid rgba(0,0,0,0.12);
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  background: white;
+}

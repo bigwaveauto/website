@@ -2,9 +2,18 @@
 
   <div class="inv-header">
     <h1 class="inv-title">Inventory</h1>
-    <div class="inv-search-wrap">
-      <lucide-icon name="search" class="inv-search-icon" />
-      <input class="inv-search" placeholder="Search stock #, VIN, make, model…" [ngModel]="search()" (ngModelChange)="onSearch($event)" />
+    <div class="inv-header-controls">
+      <select class="inv-stage-filter" [ngModel]="stageFilter()" (ngModelChange)="onStageFilter($event)">
+        <option value="">All Stages</option>
+        <option value="__none__">No Stage Set</option>
+        @for(s of stageList; track s){
+        <option [value]="s">{{ shortStage(s) }}</option>
+        }
+      </select>
+      <div class="inv-search-wrap">
+        <lucide-icon name="search" class="inv-search-icon" />
+        <input class="inv-search" placeholder="Search stock #, VIN, make, model…" [ngModel]="search()" (ngModelChange)="onSearch($event)" />
+      </div>
     </div>
   </div>
 
@@ -29,20 +38,28 @@
       </thead>
       <tbody>
         @for(v of filtered(); track v.vin){
-        <tr [routerLink]="'/admin/inventory/' + v.vin" class="inv-row">
+        <tr [routerLink]="'/admin/inventory/' + v.vin" class="inv-row"
+            [class.inv-row-red]="getStageAlert(v.vin) === 'red'"
+            [class.inv-row-yellow]="getStageAlert(v.vin) === 'yellow'">
+          <td>
+            @if(getStage(v.vin)){
+            <span class="inv-stage-badge" [class.inv-stage-red]="getStageAlert(v.vin) === 'red'" [class.inv-stage-yellow]="getStageAlert(v.vin) === 'yellow'">{{ shortStage(getStage(v.vin)) }}</span>
+            }@else{
+            <span class="inv-stage-none">—</span>
+            }
+          </td>
+          <td class="r" [class.inv-days-red]="getStageAlert(v.vin) === 'red'" [class.inv-days-yellow]="getStageAlert(v.vin) === 'yellow'">
+            @if(getStage(v.vin)){ {{ getStageDays(v.vin) }} }
+          </td>
           <td class="mono">{{ v.stocknumber }}</td>
-          <td class="mono vin">{{ v.vin }}</td>
           <td>{{ v.year }}</td>
           <td>{{ v.make }}</td>
           <td>{{ v.model }}</td>
           <td class="trim">{{ v.trim }}</td>
-          <td>{{ v.dateinstock | date:'M/d/yyyy' }}</td>
-          <td class="r" [class.aging-warn]="v.daysinstock > 60" [class.aging-danger]="v.daysinstock > 90">{{ v.daysinstock }}</td>
+          <td class="r" [class.aging-warn]="v.daysinstock > 45" [class.aging-danger]="v.daysinstock > 60">{{ v.daysinstock }}</td>
           <td class="r">{{ formatNumber(v.mileage) }}</td>
           <td>{{ v.exteriorcolorstandard }}</td>
-          <td>{{ v.interiorcolorstandard }}</td>
           <td class="r price">{{ formatCurrency(v.price) }}</td>
-          <td class="r cost">{{ formatCurrency(v.originalprice || v.price) }}</td>
         </tr>
         }
       </tbody>
