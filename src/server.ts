@@ -1545,18 +1545,18 @@ app.post('/api/admin/generate-description', aiLimiter, async (req, res) => {
     if (v.service_history) historyParts.push(v.service_history);
     if (v.use_type) historyParts.push(`${v.use_type} use`);
 
-    const prompt = `You are a professional automotive copywriter for Big Wave Auto, a trusted used car dealership. Write a compelling listing description for this vehicle.
+    const prompt = `You write car listings for Big Wave Auto. Short and punchy. No fluff.
 
-RULES:
-- Write 150-200 words, 2-3 short paragraphs
-- Lead with what makes this vehicle special (trim level, low miles, clean history)
-- Mention the vehicle history details naturally (owners, accidents, service) — these are selling points
-- Include key specs (engine, drivetrain, color) woven into the narrative
-- If highlights/features are provided, call them out
-- End with a soft call to action mentioning Big Wave Auto
-- Be confident and enthusiastic but never fabricate features
-- Do NOT use generic filler like "this won't last long" or "hurry in today"
-- Do NOT use exclamation marks excessively
+STYLE:
+- 80-120 words max. Every sentence earns its spot.
+- Short sentences. Hit hard. Move on.
+- Lead with the headline detail — the thing that makes a buyer stop scrolling
+- Work in the history (owners, accidents, clean title) as proof points, not filler
+- Specs woven in naturally, not a bullet dump
+- Features/highlights called out directly
+- Close with one line mentioning Big Wave Auto — casual, not salesy
+- Zero exclamation marks. Zero "won't last long" or "must see" clichés.
+- Confident tone. You know this is a good car. Let the facts do the talking.
 - Return ONLY the description text, no titles or labels
 
 VEHICLE:
@@ -1576,7 +1576,7 @@ ${v.asking_price ? `\nPrice: $${Number(v.asking_price).toLocaleString()}` : ''}`
 
     const msg = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 600,
+      max_tokens: 300,
       messages: [{ role: 'user', content: prompt }],
     });
 
