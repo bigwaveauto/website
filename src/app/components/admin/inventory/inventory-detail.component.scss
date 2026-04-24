@@ -343,23 +343,94 @@ $card-bg: #fff;
   -moz-appearance: textfield;
 }
 
-.det-msrp-row {
+.det-price-compact {
+  padding: 12px 0 8px;
+}
+
+/* ── Market Data ── */
+.det-market-bar {
+  border-top: 1px solid $border;
+  padding-top: 12px;
+}
+
+.det-market-loading {
   display: flex;
   align-items: center;
+  gap: 8px;
   justify-content: center;
-  gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid $border;
+  font-size: 13px;
+  color: $text-muted;
+  padding: 12px 0;
 }
 
-.det-msrp-label {
-  font-size: 13px;
+.det-market-pct {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+
+  &.det-market-below { background: #dcfce7; }
+  &.det-market-at { background: #fef9c3; }
+  &.det-market-above { background: #fee2e2; }
+}
+
+.det-market-pct-value {
+  font-size: 22px;
+  font-weight: 900;
+
+  .det-market-below & { color: #16a34a; }
+  .det-market-at & { color: #a16207; }
+  .det-market-above & { color: #dc2626; }
+}
+
+.det-market-pct-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  .det-market-below & { color: #166534; }
+  .det-market-at & { color: #92400e; }
+  .det-market-above & { color: #991b1b; }
+}
+
+.det-market-values {
+  display: flex;
+  gap: 8px;
+}
+
+.det-market-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  background: #f8f9fb;
+  border-radius: 8px;
+}
+
+.det-mv-label {
+  font-size: 10px;
   font-weight: 700;
   color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.det-msrp-input {
-  width: 160px;
+.det-mv-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111;
+}
+
+.det-btn-market {
+  width: 100%;
+  justify-content: center;
+  padding: 14px;
 }
 
 /* ── Vehicle Details Grid ── */

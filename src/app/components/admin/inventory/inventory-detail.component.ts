@@ -140,6 +140,18 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   description = signal('');
   generatingDesc = signal(false);
 
+  // Market data
+  mmrValue = signal(0);
+  kbbValue = signal(0);
+  marketAvg = signal(0);
+  loadingMarket = signal(false);
+
+  get pctToMarket(): number {
+    const avg = this.marketAvg();
+    if (!avg || !this.askingPrice()) return 0;
+    return ((this.askingPrice() - avg) / avg) * 100;
+  }
+
   // Pipeline stage
   currentStage = signal<any>(null);
   stageHistory = signal<any[]>([]);
@@ -273,6 +285,11 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
           this.specialPrice.set(data.pricing.special_price ?? this.specialPrice());
           this.purchasePrice.set(data.pricing.purchase_price ?? this.purchasePrice());
           this.minDown.set(data.pricing.min_down ?? 0);
+        }
+        if (data.marketData) {
+          this.mmrValue.set(data.marketData.mmr || 0);
+          this.kbbValue.set(data.marketData.kbb || 0);
+          this.marketAvg.set(data.marketData.market_avg || 0);
         }
       },
       error: () => {},
@@ -726,6 +743,29 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
         this.savingPhotoCats.set(false);
         alert('Failed to save photo categories.');
       },
+    });
+  }
+
+  // ── Market Data ──
+  fetchMarketData() {
+    const v = this.vehicle();
+    if (!v) return;
+    this.loadingMarket.set(true);
+    this.http.post<any>('/api/admin/vehicle/market-data', {
+      vin: v.vin,
+      year: this.year(),
+      make: this.make(),
+      model: this.model(),
+      trim: this.trim(),
+      mileage: this.mileage(),
+    }).subscribe({
+      next: (data) => {
+        this.mmrValue.set(data.mmr || 0);
+        this.kbbValue.set(data.kbb || 0);
+        this.marketAvg.set(data.market_avg || 0);
+        this.loadingMarket.set(false);
+      },
+      error: () => { this.loadingMarket.set(false); },
     });
   }
 

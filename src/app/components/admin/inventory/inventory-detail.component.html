@@ -100,11 +100,10 @@
   <!-- ═══ OVERVIEW TAB ═══ -->
   @if(activeTab() === 'overview'){
   <div class="det-grid det-grid-3">
-    <!-- Price Info -->
+    <!-- Advertised Price -->
     <div class="det-card">
-      <h2 class="det-card-title">Price Info</h2>
-      <div class="det-price-hero">
-        <label class="det-price-label">Retail Purchase Price</label>
+      <h2 class="det-card-title">Advertised Price</h2>
+      <div class="det-price-hero det-price-compact">
         <div class="det-price-big">
           <span class="det-price-dollar">$</span>
           <input type="text" class="det-price-input"
@@ -113,12 +112,39 @@
                  (blur)="$any(null)" />
         </div>
       </div>
-      <div class="det-msrp-row">
-        <span class="det-msrp-label">MSRP</span>
-        <div class="det-input-dollar det-msrp-input">
-          <span>$</span>
-          <input type="number" [ngModel]="msrp()" (ngModelChange)="msrp.set($event)" />
-        </div>
+
+      <!-- % to Market -->
+      <div class="det-market-bar">
+        @if(loadingMarket()){
+          <div class="det-market-loading"><div class="det-mini-spinner"></div> Loading market data…</div>
+        }@else if(marketAvg() > 0){
+          <div class="det-market-pct" [class.det-market-below]="pctToMarket < 0" [class.det-market-above]="pctToMarket > 5" [class.det-market-at]="pctToMarket >= 0 && pctToMarket <= 5">
+            <span class="det-market-pct-value">{{ pctToMarket > 0 ? '+' : '' }}{{ pctToMarket | number:'1.1-1' }}%</span>
+            <span class="det-market-pct-label">to Market</span>
+          </div>
+          <div class="det-market-values">
+            <div class="det-market-item">
+              <span class="det-mv-label">Market Avg</span>
+              <span class="det-mv-value">{{ marketAvg() | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            @if(mmrValue() > 0){
+            <div class="det-market-item">
+              <span class="det-mv-label">MMR</span>
+              <span class="det-mv-value">{{ mmrValue() | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            }
+            @if(kbbValue() > 0){
+            <div class="det-market-item">
+              <span class="det-mv-label">KBB</span>
+              <span class="det-mv-value">{{ kbbValue() | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            }
+          </div>
+        }@else{
+          <button class="det-btn-outline det-btn-market" (click)="fetchMarketData()">
+            <lucide-icon name="bar-chart-3" /> Get Market Data
+          </button>
+        }
       </div>
     </div>
 

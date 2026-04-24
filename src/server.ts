@@ -1454,6 +1454,84 @@ Return ONLY the JSON, no other text.`;
 });
 
 /**
+ * Market Data — MMR + KBB lookups
+ */
+app.post('/api/admin/vehicle/market-data', async (req, res) => {
+  try {
+    const { vin, year, make, model, trim, mileage } = req.body;
+    if (!vin) { res.status(400).json({ error: 'VIN required' }); return; }
+
+    // Check cached market data first (refresh if older than 7 days)
+    const { data: cached } = await supabase
+      .from('vehicle_market_data')
+      .select('*')
+      .eq('vin', vin)
+      .single();
+
+    if (cached && cached.fetched_at) {
+      const age = Date.now() - new Date(cached.fetched_at).getTime();
+      if (age < 7 * 86400000) {
+        res.json({ mmr: cached.mmr, kbb: cached.kbb, market_avg: cached.market_avg });
+        return;
+      }
+    }
+
+    // Fetch from external APIs
+    let mmr = 0;
+    let kbb = 0;
+
+    // MMR via Manheim API (if configured)
+    if (process.env['MANHEIM_API_KEY']) {
+      try {
+        const mmrRes = await fetch(`https://api.manheim.com/valuation/vin/${vin}?country=US`, {
+          headers: {
+            'Authorization': `Bearer ${process.env['MANHEIM_API_KEY']}`,
+            'Accept': 'application/json',
+          },
+        });
+        if (mmrRes.ok) {
+          const mmrData = await mmrRes.json();
+          mmr = mmrData?.adjustedPricing?.average?.wholesale || mmrData?.items?.[0]?.adjustedPricing?.average?.wholesale || 0;
+        }
+      } catch (e) { console.error('MMR fetch error:', e); }
+    }
+
+    // KBB via API (if configured)
+    if (process.env['KBB_API_KEY']) {
+      try {
+        const kbbRes = await fetch(`https://api.kbb.com/vehicle/v1/values?vin=${vin}&mileage=${mileage || 0}&condition=good`, {
+          headers: {
+            'Authorization': `Bearer ${process.env['KBB_API_KEY']}`,
+            'Accept': 'application/json',
+          },
+        });
+        if (kbbRes.ok) {
+          const kbbData = await kbbRes.json();
+          kbb = kbbData?.fairPurchasePrice || kbbData?.values?.fairPurchasePrice || 0;
+        }
+      } catch (e) { console.error('KBB fetch error:', e); }
+    }
+
+    // Calculate market average from available values
+    const values = [mmr, kbb].filter(v => v > 0);
+    const market_avg = values.length > 0 ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
+
+    // Cache the result
+    const row = { vin, mmr, kbb, market_avg, year, make, model, trim, mileage, fetched_at: new Date().toISOString() };
+    if (cached) {
+      await supabase.from('vehicle_market_data').update(row).eq('vin', vin);
+    } else {
+      await supabase.from('vehicle_market_data').insert(row);
+    }
+
+    res.json({ mmr, kbb, market_avg });
+  } catch (err) {
+    console.error('Market data error:', err);
+    res.status(500).json({ error: 'Failed to fetch market data' });
+  }
+});
+
+/**
  * AI Vehicle Description Generator
  */
 app.post('/api/admin/generate-description', aiLimiter, async (req, res) => {
@@ -1683,12 +1761,13 @@ app.get('/api/admin/vehicle/:vin', async (req, res) => {
   try {
     const { vin } = req.params;
 
-    const [pricing, costAdds, floorPlans, photos, windowSticker] = await Promise.all([
+    const [pricing, costAdds, floorPlans, photos, windowSticker, marketData] = await Promise.all([
       supabase.from('vehicle_pricing').select('*').eq('vin', vin).maybeSingle(),
       supabase.from('vehicle_cost_adds').select('*').eq('vin', vin).order('date_added', { ascending: true }),
       supabase.from('vehicle_floor_plans').select('*').eq('vin', vin).order('date_floored', { ascending: true }),
       supabase.from('vehicle_photos').select('*').eq('vin', vin).order('sort_order', { ascending: true }),
       Promise.resolve(supabase.from('vehicle_documents').select('url').eq('vin', vin).eq('type', 'window_sticker').maybeSingle()).then(r => r.data).catch(() => null),
+      supabase.from('vehicle_market_data').select('mmr,kbb,market_avg').eq('vin', vin).maybeSingle(),
     ]);
 
     res.json({
@@ -1697,6 +1776,7 @@ app.get('/api/admin/vehicle/:vin', async (req, res) => {
       floorPlans: floorPlans.data || [],
       photos: photos.data || [],
       windowSticker: (windowSticker as any)?.url || null,
+      marketData: marketData.data || null,
     });
   } catch (err) {
     console.error(err);
