@@ -1537,22 +1537,47 @@ app.post('/api/admin/vehicle/market-data', async (req, res) => {
 app.post('/api/admin/generate-description', aiLimiter, async (req, res) => {
   try {
     const v = req.body;
-    const msg = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 512,
-      messages: [{ role: 'user', content: `Write a compelling, professional used car listing description for this vehicle. Keep it under 150 words. Be enthusiastic but honest. Do not make up features — only use what's provided.
 
-Vehicle: ${v.year} ${v.make} ${v.model} ${v.trim || ''}
-Mileage: ${v.mileage || 'N/A'}
+    // Build history section from Carfax-style inputs
+    const historyParts: string[] = [];
+    if (v.owners) historyParts.push(v.owners);
+    if (v.accidents) historyParts.push(v.accidents);
+    if (v.service_history) historyParts.push(v.service_history);
+    if (v.use_type) historyParts.push(`${v.use_type} use`);
+
+    const prompt = `You are a professional automotive copywriter for Big Wave Auto, a trusted used car dealership. Write a compelling listing description for this vehicle.
+
+RULES:
+- Write 150-200 words, 2-3 short paragraphs
+- Lead with what makes this vehicle special (trim level, low miles, clean history)
+- Mention the vehicle history details naturally (owners, accidents, service) — these are selling points
+- Include key specs (engine, drivetrain, color) woven into the narrative
+- If highlights/features are provided, call them out
+- End with a soft call to action mentioning Big Wave Auto
+- Be confident and enthusiastic but never fabricate features
+- Do NOT use generic filler like "this won't last long" or "hurry in today"
+- Do NOT use exclamation marks excessively
+- Return ONLY the description text, no titles or labels
+
+VEHICLE:
+${v.year} ${v.make} ${v.model} ${v.trim || ''}
+Mileage: ${v.mileage ? Number(v.mileage).toLocaleString() + ' miles' : 'N/A'}
 Exterior: ${v.exterior_color || 'N/A'}
 Interior: ${v.interior_color || 'N/A'}
-Drivetrain: ${v.drivetrain || 'N/A'}
+Body: ${v.body || 'N/A'}
 Engine: ${v.engine || 'N/A'}
 Transmission: ${v.transmission || 'N/A'}
+Drivetrain: ${v.drivetrain || 'N/A'}
 Fuel: ${v.fuel || 'N/A'}
-Features: ${v.features || 'N/A'}
+Condition: ${v.condition || 'N/A'}
+${historyParts.length ? `\nHISTORY: ${historyParts.join(', ')}` : ''}
+${v.highlights ? `\nHIGHLIGHTS: ${v.highlights}` : ''}
+${v.asking_price ? `\nPrice: $${Number(v.asking_price).toLocaleString()}` : ''}`;
 
-Return only the description text, no headers or labels.` }],
+    const msg = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 600,
+      messages: [{ role: 'user', content: prompt }],
     });
 
     const text = (msg.content[0] as any).text || '';

@@ -139,6 +139,11 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   // Description
   description = signal('');
   generatingDesc = signal(false);
+  carfaxOwners = signal('');
+  carfaxAccidents = signal('');
+  carfaxService = signal('');
+  carfaxUse = signal('');
+  descHighlights = signal('');
 
   // Market data
   mmrValue = signal(0);
@@ -772,14 +777,16 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   // ── AI Description ──
   generateDescription() {
     this.generatingDesc.set(true);
-    const v = this.vehicle();
     this.http.post<any>('/api/admin/generate-description', {
-      year: v?.year, make: v?.make, model: v?.model, trim: v?.trim,
-      mileage: v?.mileage, exterior_color: v?.exteriorcolorstandard || v?.exterior_color,
-      interior_color: v?.interiorcolorstandard || v?.interior_color,
-      drivetrain: v?.drivetrainstandard || v?.drivetrain,
-      engine: v?.engine, transmission: v?.transmissionstandard || v?.transmission,
-      fuel: v?.fuel, features: '',
+      year: this.year(), make: this.make(), model: this.model(), trim: this.trim(),
+      mileage: this.mileage(), exterior_color: this.exteriorColor(),
+      interior_color: this.interiorColor(), drivetrain: this.drivetrain(),
+      engine: this.engine(), transmission: this.transmission(),
+      fuel: this.fuel(), body: this.body(),
+      owners: this.carfaxOwners(), accidents: this.carfaxAccidents(),
+      service_history: this.carfaxService(), use_type: this.carfaxUse(),
+      highlights: this.descHighlights(), asking_price: this.askingPrice(),
+      title_status: this.titleStatus(), condition: this.condition(),
     }).subscribe({
       next: (res) => { this.description.set(res.description || ''); this.generatingDesc.set(false); },
       error: () => { this.generatingDesc.set(false); alert('Failed to generate description.'); },
