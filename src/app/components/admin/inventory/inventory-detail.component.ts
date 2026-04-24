@@ -536,19 +536,87 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
 
   // ── Floor Plans ──
   addFloorPlan() {
-    const dateFloored = new Date().toISOString().split('T')[0];
-    const maturity = new Date();
+    this.addFloorPlanFor('NextGear');
+  }
+
+  addFloorPlanFor(lender: 'NextGear' | 'AFC') {
+    const amt = this.purchasePrice();
+    const dateFloored = this.purchaseDate() || new Date().toISOString().split('T')[0];
+    const maturity = new Date(dateFloored);
     maturity.setDate(maturity.getDate() + 120);
+
+    // Lender-specific fees
+    let adminFee = 18;
+    let docFee = 25;
+    let rate = 8.25;
+    let highlineFee = 0;
+
+    if (lender === 'NextGear') {
+      // NextGear: Admin $18, Doc $25, Highline 0.5% on vehicles over $50k
+      adminFee = 18;
+      docFee = 25;
+      rate = 8.25; // Prime + 1.5%
+      highlineFee = amt >= 50000 ? Math.round(amt * 0.005 * 100) / 100 : 0;
+    } else {
+      // AFC: Admin $18, Doc $25, Highline is manual (not a clean %)
+      adminFee = 18;
+      docFee = 25;
+      rate = 8.25;
+      highlineFee = 0; // AFC highline must be entered manually
+    }
+
     this.floorPlans.update(list => [...list, {
-      lender: 'NextGear', amount_floored: this.purchasePrice(),
+      lender, amount_floored: amt,
       date_floored: dateFloored,
-      interest_rate: 8.25, plan_length: 120,
+      interest_rate: rate, plan_length: 120,
       maturity_date: maturity.toISOString().split('T')[0],
-      admin_fee: 18, floor_fee: 0,
-      highline_fee: this.purchasePrice() >= 50000 ? Math.round(this.purchasePrice() * 0.005 * 100) / 100 : 0,
+      admin_fee: adminFee, floor_fee: docFee,
+      highline_fee: highlineFee,
       est_flooring: 0, per_diem: 0,
       status: 'Active', payments: [],
     }]);
+  }
+
+  recalcFloorFees(fp: FloorPlan) {
+    if (fp.lender === 'NextGear') {
+      fp.highline_fee = fp.amount_floored >= 50000 ? Math.round(fp.amount_floored * 0.005 * 100) / 100 : 0;
+    }
+    this.touchFloorPlans();
+  }
+
+  floorPerDiem(fp: FloorPlan): number {
+    return (fp.amount_floored * (fp.interest_rate || 8.25) / 100) / 365;
+  }
+
+  floorInterestAccrued(fp: FloorPlan): number {
+    return this.floorPerDiem(fp) * this.daysOnFloor(fp);
+  }
+
+  floorPayoffTotal(fp: FloorPlan): number {
+    const principal = fp.amount_floored;
+    const interest = this.floorInterestAccrued(fp);
+    const fees = (fp.admin_fee || 0) + (fp.floor_fee || 0) + (fp.highline_fee || 0);
+    const paid = (fp.payments || []).reduce((s, p) => s + p.amount, 0);
+    return Math.round((principal + interest + fees - paid) * 100) / 100;
+  }
+
+  payoffFloorPlan(index: number) {
+    this.floorPlans.update(list => list.map((fp, i) => {
+      if (i !== index) return fp;
+      const totalCost = this.liveFlooringCost(fp);
+      const updated = { ...fp, status: 'Paid Off', est_flooring: totalCost };
+      // Lock flooring cost as a cost add
+      this.costAdds.update(adds => [...adds, {
+        description: `${fp.lender} Floor Plan Payoff`,
+        category: 'Flooring',
+        cost: totalCost,
+        payment_method: '',
+        vendor: fp.lender,
+        date_added: new Date().toISOString().split('T')[0],
+        memo: `${this.daysOnFloor(fp)} days on floor`,
+      }]);
+      return updated;
+    }));
   }
 
   removeFloorPlan(index: number) {

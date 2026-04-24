@@ -433,6 +433,32 @@ $card-bg: #fff;
   padding: 14px;
 }
 
+/* ── Lender picker ── */
+.det-floor-pick {
+  display: flex;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.det-lender-btn {
+  flex: 1;
+  padding: 16px 12px;
+  border: 2px solid rgba(0,0,0,0.1);
+  border-radius: 10px;
+  background: white;
+  font-size: 15px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+
+  &:hover { border-color: $blue; color: $blue; background: #f0f4ff; }
+}
+
+.det-lender-ng { color: #1e40af; }
+.det-lender-afc { color: #7c3aed; }
+
 /* ── Flooring Compact Card ── */
 .det-floor-compact {
   border: 1.5px solid rgba(0,0,0,0.08);
@@ -441,7 +467,93 @@ $card-bg: #fff;
   background: #fafbfc;
   margin-bottom: 8px;
   &:last-child { margin-bottom: 0; }
-  &.paidoff { opacity: 0.6; border-style: dashed; }
+  &.paidoff { opacity: 0.7; border-style: dashed; }
+}
+
+.det-floor-payoff-hero {
+  text-align: center;
+  padding: 8px 0 10px;
+}
+
+.det-floor-payoff-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.det-floor-payoff-value {
+  display: block;
+  font-size: 26px;
+  font-weight: 900;
+  color: #dc2626;
+}
+
+.det-floor-fees {
+  padding: 6px 0 8px;
+  border-top: 1px solid rgba(0,0,0,0.05);
+  margin-top: 6px;
+}
+
+.det-floor-fee-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+  padding: 2px 0;
+
+  &.det-floor-fee-total {
+    border-top: 1px solid rgba(0,0,0,0.08);
+    margin-top: 4px;
+    padding-top: 4px;
+    font-weight: 700;
+    color: #333;
+  }
+}
+
+.det-floor-payoff-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  lucide-icon { width: 16px; height: 16px; }
+  &:hover { background: #15803d; }
+}
+
+.det-floor-closed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 0;
+}
+
+.det-floor-closed-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #16a34a;
+  text-transform: uppercase;
+}
+
+.det-floor-closed-cost {
+  font-size: 16px;
+  font-weight: 800;
+  color: #333;
+}
+
+.det-floor-closed-days {
+  font-size: 12px;
+  color: $text-muted;
 }
 
 .det-floor-compact-top {

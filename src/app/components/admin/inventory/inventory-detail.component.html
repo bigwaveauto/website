@@ -146,6 +146,67 @@
       </div>
     </div>
 
+    <!-- Flooring -->
+    <div class="det-card">
+      <h2 class="det-card-title">Flooring</h2>
+      @if(floorPlans().length === 0){
+        <div class="det-floor-pick">
+          <button class="det-lender-btn det-lender-ng" (click)="addFloorPlanFor('NextGear')">NextGear</button>
+          <button class="det-lender-btn det-lender-afc" (click)="addFloorPlanFor('AFC')">AFC</button>
+        </div>
+      }
+      @for(fp of floorPlans(); track $index; let i = $index){
+      <div class="det-floor-compact" [class.paidoff]="fp.status === 'Paid Off'">
+        <div class="det-floor-compact-top">
+          <span class="det-floor-lender-sm">{{ fp.lender }}</span>
+          <span class="det-floor-status" [class.active]="fp.status === 'Active'" [class.paidoff]="fp.status === 'Paid Off'">{{ fp.status }}</span>
+        </div>
+
+        @if(fp.status === 'Active'){
+        <!-- Live payoff cost -->
+        <div class="det-floor-payoff-hero">
+          <span class="det-floor-payoff-label">Today's Payoff</span>
+          <span class="det-floor-payoff-value">{{ floorPayoffTotal(fp) | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+
+        <div class="det-floor-compact-stats">
+          <div><span class="fs-label">Per Diem</span><span class="fs-value-sm">{{ floorPerDiem(fp) | currency:'USD':'symbol':'1.2-2' }}</span></div>
+          <div><span class="fs-label">Days</span><span class="fs-value-sm" [class.aging-warn]="daysOnFloor(fp) > 60" [class.aging-danger]="daysOnFloor(fp) > 90">{{ daysOnFloor(fp) }}</span></div>
+          <div><span class="fs-label">Interest</span><span class="fs-value-sm">{{ floorInterestAccrued(fp) | currency:'USD':'symbol':'1.2-2' }}</span></div>
+        </div>
+
+        <!-- Fee breakdown -->
+        <div class="det-floor-fees">
+          <div class="det-floor-fee-row"><span>Admin</span><span>{{ fp.admin_fee | currency:'USD':'symbol':'1.2-2' }}</span></div>
+          <div class="det-floor-fee-row"><span>Doc Processing</span><span>{{ fp.floor_fee | currency:'USD':'symbol':'1.2-2' }}</span></div>
+          @if(fp.highline_fee > 0){
+          <div class="det-floor-fee-row"><span>Highline</span><span>{{ fp.highline_fee | currency:'USD':'symbol':'1.2-2' }}</span></div>
+          }
+          <div class="det-floor-fee-row det-floor-fee-total"><span>Total Fees</span><span>{{ (fp.admin_fee || 0) + (fp.floor_fee || 0) + (fp.highline_fee || 0) | currency:'USD':'symbol':'1.2-2' }}</span></div>
+        </div>
+
+        <div class="det-floor-compact-fields">
+          <div class="det-floor-field"><span>Floored</span><input type="text" [ngModel]="formatPrice(fp.amount_floored)" (ngModelChange)="fp.amount_floored = parsePrice($event); recalcFloorFees(fp)" [ngModelOptions]="{standalone: true}" /></div>
+          <div class="det-floor-field"><span>Date</span><input type="date" [(ngModel)]="fp.date_floored" [ngModelOptions]="{standalone: true}" (ngModelChange)="touchFloorPlans()" /></div>
+          <div class="det-floor-field"><span>Rate %</span><input type="number" step="0.01" [(ngModel)]="fp.interest_rate" [ngModelOptions]="{standalone: true}" (ngModelChange)="touchFloorPlans()" /></div>
+        </div>
+
+        <div class="det-floor-compact-actions">
+          <button class="det-floor-payoff-btn" (click)="payoffFloorPlan(i)"><lucide-icon name="circle-check" /> Paid Off</button>
+          <button class="det-del-btn-text" (click)="removeFloorPlan(i)"><lucide-icon name="x" /></button>
+        </div>
+        }@else{
+        <!-- Paid off state -->
+        <div class="det-floor-closed">
+          <span class="det-floor-closed-label">Closed</span>
+          <span class="det-floor-closed-cost">{{ fp.est_flooring | currency:'USD':'symbol':'1.2-2' }} total cost</span>
+          <span class="det-floor-closed-days">{{ daysOnFloor(fp) }} days on floor</span>
+        </div>
+        }
+      </div>
+      }
+    </div>
+
     <!-- Cost Summary -->
     <div class="det-card">
       <h2 class="det-card-title">Cost Summary</h2>
@@ -165,46 +226,6 @@
           <span class="det-profit-value" [class.green]="potentialProfit >= 0" [class.red]="potentialProfit < 0">{{ potentialProfit | currency:'USD':'symbol':'1.2-2' }}</span>
         </div>
       </div>
-    </div>
-
-    <!-- Flooring -->
-    <div class="det-card">
-      <div class="det-card-header" style="margin-bottom:8px">
-        <h2 class="det-card-title" style="margin:0;border:none;padding:0">Flooring</h2>
-        @if(!floorPlans().length){
-        <button class="det-add-btn" (click)="addFloorPlan()"><lucide-icon name="plus" /> Add</button>
-        }
-      </div>
-      @if(floorPlans().length > 0){
-        @for(fp of floorPlans(); track $index; let i = $index){
-        <div class="det-floor-compact" [class.paidoff]="fp.status === 'Paid Off'">
-          <div class="det-floor-compact-top">
-            <span class="det-floor-lender-sm">{{ fp.lender }}</span>
-            <span class="det-floor-status" [class.active]="fp.status === 'Active'" [class.paidoff]="fp.status === 'Paid Off'">{{ fp.status }}</span>
-          </div>
-          <div class="det-floor-compact-live">{{ liveFlooringCost(fp) | currency:'USD':'symbol':'1.2-2' }}</div>
-          <div class="det-floor-compact-stats">
-            <div><span class="fs-label">Balance</span><span class="fs-value-sm">{{ principalBalance(fp) | currency:'USD':'symbol':'1.0-0' }}</span></div>
-            <div><span class="fs-label">Days</span><span class="fs-value-sm" [class.aging-warn]="daysOnFloor(fp) > 60" [class.aging-danger]="daysOnFloor(fp) > 90">{{ daysOnFloor(fp) }}</span></div>
-            <div><span class="fs-label">Per Diem</span><span class="fs-value-sm">{{ (fp.amount_floored * (fp.interest_rate || 8.25) / 100 / 365) | currency:'USD':'symbol':'1.2-2' }}</span></div>
-          </div>
-          <div class="det-floor-compact-fields">
-            <div class="det-floor-field"><span>Floored</span><input type="text" [ngModel]="formatPrice(fp.amount_floored)" (ngModelChange)="fp.amount_floored = parsePrice($event); touchFloorPlans()" [ngModelOptions]="{standalone: true}" /></div>
-            <div class="det-floor-field"><span>Date</span><input type="date" [(ngModel)]="fp.date_floored" [ngModelOptions]="{standalone: true}" (ngModelChange)="touchFloorPlans()" /></div>
-            <div class="det-floor-field"><span>Rate</span><input type="number" step="0.01" [(ngModel)]="fp.interest_rate" [ngModelOptions]="{standalone: true}" (ngModelChange)="touchFloorPlans()" /></div>
-            <div class="det-floor-field"><span>Fees</span><input type="text" [ngModel]="formatPrice((fp.admin_fee || 0) + (fp.highline_fee || 0))" [ngModelOptions]="{standalone: true}" readonly /></div>
-          </div>
-          @if(fp.status === 'Active'){
-          <div class="det-floor-compact-actions">
-            <button class="det-pay-btn-sm" (click)="openPaymentModal(i)"><lucide-icon name="landmark" /> Pay</button>
-            <button class="det-del-btn-text" (click)="removeFloorPlan(i)"><lucide-icon name="x" /></button>
-          </div>
-          }
-        </div>
-        }
-      }@else{
-        <p class="det-empty" style="padding:12px 0">No floor plan set up.</p>
-      }
     </div>
   </div>
 
