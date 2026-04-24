@@ -45,7 +45,7 @@
             @if(getStage(v.vin)){
             <span class="inv-stage-badge" [class.inv-stage-red]="getStageAlert(v.vin) === 'red'" [class.inv-stage-yellow]="getStageAlert(v.vin) === 'yellow'">{{ shortStage(getStage(v.vin)) }}</span>
             }@else{
-            <span class="inv-stage-none">—</span>
+            <span class="inv-stage-badge inv-stage-red">Set Stage</span>
             }
           </td>
           <td class="r" [class.inv-days-red]="getStageAlert(v.vin) === 'red'" [class.inv-days-yellow]="getStageAlert(v.vin) === 'yellow'">

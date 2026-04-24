@@ -70,7 +70,10 @@
         <div class="det-stage-event">
           <div class="det-stage-event-dot"></div>
           <div class="det-stage-event-body">
-            <span class="det-stage-event-name">{{ s.stage }}</span>
+            <span class="det-stage-event-name">
+              {{ s.stage }}
+              <span class="det-stage-event-duration" [class.det-stage-duration-warn]="stageDuration(s) >= 7">{{ stageDuration(s) }}d</span>
+            </span>
             <span class="det-stage-event-meta">
               {{ s.entered_at | date:'M/d/yyyy h:mm a' }}
               @if(s.exited_at){ — {{ s.exited_at | date:'M/d/yyyy h:mm a' }} }
@@ -96,7 +99,7 @@
 
   <!-- ═══ OVERVIEW TAB ═══ -->
   @if(activeTab() === 'overview'){
-  <div class="det-grid">
+  <div class="det-grid det-grid-3">
     <!-- Price Info -->
     <div class="det-card">
       <h2 class="det-card-title">Price Info</h2>
@@ -138,6 +141,38 @@
           <span class="det-profit-value" [class.green]="potentialProfit >= 0" [class.red]="potentialProfit < 0">{{ potentialProfit | currency:'USD':'symbol':'1.2-2' }}</span>
         </div>
       </div>
+    </div>
+
+    <!-- Quick Add Cost / Receipt -->
+    <div class="det-card">
+      <h2 class="det-card-title">Add Cost / Receipt</h2>
+      <div class="det-receipt-drop det-receipt-drop-compact" [class.dragover]="receiptDragOver()" [class.scanning]="scanningReceipt()"
+           (dragover)="onReceiptDragOver($event)" (dragleave)="onReceiptDragLeave()" (drop)="onReceiptDrop($event)"
+           (click)="overviewReceiptInput.click()">
+        <input #overviewReceiptInput type="file" accept="image/*,.pdf" (change)="onReceiptSelect($event)" hidden />
+        @if(scanningReceipt()){
+          <div class="det-mini-spinner"></div>
+          <span>Scanning…</span>
+        }@else{
+          <lucide-icon name="file-text" />
+          <span>Drop receipt to auto-fill</span>
+        }
+      </div>
+      <button class="det-add-btn det-add-btn-full" (click)="addCostAdd(); activeTab.set('costs')"><lucide-icon name="plus" /> Manual Entry</button>
+      @if(costAdds().length > 0){
+      <div class="det-recent-costs">
+        <span class="det-recent-label">Recent ({{ costAdds().length }})</span>
+        @for(add of recentCostAdds(); track $index){
+        <div class="det-recent-row">
+          <span class="det-recent-desc">{{ add.description || add.category || 'Untitled' }}</span>
+          <span class="det-recent-cost">{{ add.cost | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        }
+        @if(costAdds().length > 3){
+        <button class="det-view-all-btn" (click)="activeTab.set('costs')">View all {{ costAdds().length }} costs</button>
+        }
+      </div>
+      }
     </div>
   </div>
 

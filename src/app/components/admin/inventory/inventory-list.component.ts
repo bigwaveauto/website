@@ -124,12 +124,15 @@ export class AdminInventoryListComponent implements OnInit {
 
   getStageAlert(vin: string): 'red' | 'yellow' | '' {
     const stage = this.getStage(vin);
-    if (!stage) return '';
+    if (!stage) return 'red'; // No stage set = needs attention
+    // Sold stages don't need alerts
+    if (stage.startsWith('Sold')) return '';
     const days = this.getStageDays(vin);
     const t = this.thresholds().find(th => th.stage === stage);
-    if (!t || (t.yellow_days === 0 && t.red_days === 0)) return '';
-    if (t.red_days > 0 && days >= t.red_days) return 'red';
-    if (t.yellow_days > 0 && days >= t.yellow_days) return 'yellow';
+    const redDays = t?.red_days || 7;   // Default 7 days red for all active stages
+    const yellowDays = t?.yellow_days || 5; // Default 5 days yellow
+    if (days >= redDays) return 'red';
+    if (days >= yellowDays) return 'yellow';
     return '';
   }
 

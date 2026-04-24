@@ -226,6 +226,23 @@ $card-bg: #fff;
   color: $text-muted;
 }
 
+.det-stage-event-duration {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #f0f1f3;
+  color: #555;
+  margin-left: 6px;
+  vertical-align: middle;
+
+  &.det-stage-duration-warn {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
 .det-stage-event-notes {
   font-size: 12px;
   color: #555;
@@ -251,6 +268,12 @@ $card-bg: #fff;
 .det-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
   @media (max-width: 900px) { grid-template-columns: 1fr; }
+}
+
+.det-grid-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+  @media (max-width: 1100px) { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 700px) { grid-template-columns: 1fr; }
 }
 
 /* ── Card ── */
@@ -809,4 +832,75 @@ select.det-dv {
   padding: 12px; background: #dcfce7; border-radius: 8px;
   font-size: 13px; color: #166534; font-weight: 500;
   lucide-icon { width: 18px; height: 18px; flex-shrink: 0; }
+}
+
+/* ── Compact receipt drop zone (overview tab) ── */
+.det-receipt-drop-compact {
+  padding: 20px 12px;
+  margin-bottom: 10px;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  lucide-icon { width: 28px; height: 28px; color: #bbb; }
+  &:hover lucide-icon, &.dragover lucide-icon { color: $blue; }
+}
+
+.det-add-btn-full {
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.det-recent-costs {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid $border;
+  padding-top: 10px;
+}
+
+.det-recent-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.det-recent-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  &:last-of-type { border-bottom: none; }
+}
+
+.det-recent-desc {
+  font-size: 13px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.det-recent-cost {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111;
+}
+
+.det-view-all-btn {
+  background: none;
+  border: none;
+  color: $blue;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 6px 0 0;
+  text-align: center;
+  &:hover { text-decoration: underline; }
 }

@@ -193,6 +193,10 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   paymentDate = signal(new Date().toISOString().split('T')[0]);
   paymentNotes = signal('');
 
+  recentCostAdds(): CostAdd[] {
+    return this.costAdds().slice(-3).reverse();
+  }
+
   get totalCostAdds(): number {
     return this.costAdds().reduce((s, c) => s + (c.cost || 0), 0);
   }
@@ -359,6 +363,12 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
       },
       error: () => { this.movingStage.set(false); alert('Failed to update stage.'); },
     });
+  }
+
+  stageDuration(s: any): number {
+    const entered = new Date(s.entered_at).getTime();
+    const exited = s.exited_at ? new Date(s.exited_at).getTime() : Date.now();
+    return Math.floor((exited - entered) / 86400000);
   }
 
   stageTimeAgo(dateStr: string): string {
