@@ -679,10 +679,11 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   }
 
   // ── Import vAuto photos ──
+  private feedImported = false;
   importVautoPhotos() {
+    if (this.feedImported) { alert('Photos already imported from feed.'); return; }
     const v = this.vehicle();
     if (!v) return;
-    // vAuto vehicles have photos as string[] on the raw vehicle object
     const rawPhotos: string[] = v.photos || [];
     if (!rawPhotos.length) return;
 
@@ -692,15 +693,17 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
       .map((url: string, i: number) => ({
         url,
         sort_order: this.photos().length + i,
-        category: 'Exterior', // default, user can re-categorize
+        category: 'Exterior',
       }));
 
     if (newPhotos.length === 0) {
       alert('All photos are already imported.');
+      this.feedImported = true;
       return;
     }
 
     this.photos.update(list => [...list, ...newPhotos]);
+    this.feedImported = true;
   }
 
   setPhotoCategory(index: number, category: string) {
