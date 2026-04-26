@@ -270,12 +270,14 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
     const empTime = `${raw.employmentYears || 0} yr ${raw.employmentMonths || 0} mo`;
     const data: Record<string, any> = {
       firstname: raw.firstname, lastname: raw.lastname, email: raw.email,
-      phone: raw.phone, dob: raw.dob,
+      phone: raw.phone, dob: raw.dob, ssn_last4: lastFour,
       street: raw.street, city: raw.city, state: raw.state, zip: raw.zip,
+      county: raw.county,
       years_at_address: addrTime, housing_status: raw.housingStatus,
+      rent_mortgage: raw.rentMortgageAmount,
       employer_name: raw.employerName, employment_status: raw.employmentStatus,
-      monthly_income: raw.monthlyIncome, years_employed: empTime,
-      coborrower: raw.coborrower,
+      job_title: raw.jobTitle, monthly_income: raw.monthlyIncome,
+      years_employed: empTime, coborrower: raw.coborrower,
     };
     const { error } = await supabase.from('financing_leads').insert(data);
     if (error) { console.error('Financing lead save error:', error.message, error.details, error.hint); res.status(500).json({ error: 'Failed to save' }); return; }
@@ -313,18 +315,32 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
         <name part="last">${escHtml(raw.lastname)}</name>
         <email>${escHtml(raw.email)}</email>
         <phone type="cellphone">${escHtml(raw.phone)}</phone>
+        <birthday>${escHtml(raw.dob)}</birthday>
+        <ssn>${escHtml(raw.ssn)}</ssn>
         <address type="current">
           <street line="1">${escHtml(raw.street)}</street>
           <city>${escHtml(raw.city)}</city>
           <regioncode>${escHtml(raw.state)}</regioncode>
           <postalcode>${escHtml(raw.zip)}</postalcode>
           ${raw.county ? `<county>${escHtml(raw.county)}</county>` : ''}
+          <duration>${escHtml(addrTime)}</duration>
         </address>
+        <housing>
+          <status>${escHtml(raw.housingStatus)}</status>
+          <monthlyPayment>${escHtml(raw.rentMortgageAmount || '0')}</monthlyPayment>
+        </housing>
       </contact>
+      <employment>
+        <status>${escHtml(raw.employmentStatus)}</status>
+        <employername>${escHtml(raw.employerName)}</employername>
+        <jobtitle>${escHtml(raw.jobTitle || '')}</jobtitle>
+        <duration>${escHtml(empTime)}</duration>
+        <income type="monthly">${escHtml(raw.monthlyIncome)}</income>
+      </employment>
       <timeframe>
-        <description>Financing Application</description>
+        <description>Credit Application</description>
       </timeframe>
-      <comments>DOB: ${escHtml(raw.dob)} | SSN last 4: ${escHtml(lastFour)} | Housing: ${escHtml(raw.housingStatus)} (${escHtml(raw.rentMortgageAmount || '0')}/mo) | Address: ${escHtml(addrTime)} | Employment: ${escHtml(raw.employmentStatus)} - ${escHtml(raw.jobTitle || '')} at ${escHtml(raw.employerName)} (${escHtml(empTime)}) | Income: ${escHtml(raw.monthlyIncome)}/mo | Co-borrower: ${raw.coborrower ? 'Yes' : 'No'}</comments>
+      <comments>Co-borrower: ${raw.coborrower ? 'Yes' : 'No'}</comments>
     </customer>
     <vendor>
       <vendorname>Big Wave Auto</vendorname>
