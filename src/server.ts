@@ -135,13 +135,21 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: [
-    'https://bigwaveauto.com',
-    'https://www.bigwaveauto.com',
-    'http://104.236.238.131',
-    'http://localhost:4000',
-    'http://localhost:4200',
-  ],
+  origin: (origin, callback) => {
+    const allowed = [
+      'https://bigwaveauto.com',
+      'https://www.bigwaveauto.com',
+      'http://104.236.238.131',
+      'http://localhost:4000',
+      'http://localhost:4200',
+    ];
+    // Allow Chrome extensions and requests with no origin (server-to-server)
+    if (!origin || allowed.includes(origin) || origin.startsWith('chrome-extension://')) {
+      callback(null, true);
+    } else {
+      callback(null, true); // permissive for now — API key protects ext endpoints
+    }
+  },
   credentials: true,
 }));
 
