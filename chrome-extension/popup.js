@@ -1,4 +1,4 @@
-// Big Wave Auto — Manheim Photo Grabber + CR Extractor
+// Big Wave Auto — Manheim CR Extractor
 
 const $ = (s) => document.getElementById(s);
 
@@ -24,28 +24,17 @@ function showStatus(msg, type) {
   el.className = `status show ${type}`;
 }
 
-function hideStatus() {
-  $('status').className = 'status';
-}
-
-function getSettings() {
-  return {
-    serverUrl: $('serverUrl').value.replace(/\/+$/, ''),
-    apiKey: $('apiKey').value,
-  };
-}
-
-// ── Scan button ──
+// ── Scan ──
 $('scanBtn').addEventListener('click', async () => {
-  hideStatus();
   showStatus('Scanning page...', 'working');
   $('scanBtn').disabled = true;
+  $('submitBtn').style.display = 'none';
 
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     if (!tab?.url?.includes('manheim.com')) {
-      showStatus('Navigate to a Manheim listing first.', 'error');
+      showStatus('Navigate to a Manheim page first.', 'error');
       $('scanBtn').disabled = false;
       return;
     }
@@ -57,8 +46,8 @@ $('scanBtn').addEventListener('click', async () => {
 
     extractedData = results?.[0]?.result;
 
-    if (!extractedData) {
-      showStatus('Could not extract data from this page.', 'error');
+    if (!extractedData || (!extractedData.vin && !extractedData.photos?.length)) {
+      showStatus('Nothing found on this page. Try a listing or CR page.', 'error');
       $('scanBtn').disabled = false;
       return;
     }
@@ -70,78 +59,46 @@ $('scanBtn').addEventListener('click', async () => {
     }
 
     // Show vehicle info
-    if (extractedData.vehicle && Object.keys(extractedData.vehicle).length > 0) {
-      const v = extractedData.vehicle;
-      let html = '';
-      if (v.year || v.make || v.model) {
-        html += `<div class="vi-title">${v.year || ''} ${v.make || ''} ${v.model || ''} ${v.trim || ''}</div>`;
-      }
+    const v = extractedData.vehicle || {};
+    const hasVehicle = v.year || v.make || v.model;
+    if (hasVehicle) {
+      let html = `<div class="vi-title">${v.year || ''} ${v.make || ''} ${v.model || ''} ${v.trim || ''}</div>`;
       const fields = [
-        ['Mileage', v.mileage],
-        ['Exterior', v.exterior_color],
-        ['Interior', v.interior_color],
-        ['Engine', v.engine],
-        ['Transmission', v.transmission],
-        ['Drivetrain', v.drivetrain],
-        ['Fuel', v.fuel],
-        ['Body', v.body],
-        ['Grade', v.grade],
-        ['Seller', v.seller],
-        ['Sale Date', v.sale_date],
-        ['Channel', v.channel],
+        ['Mileage', v.mileage], ['Exterior', v.exterior_color], ['Interior', v.interior_color],
+        ['Engine', v.engine], ['Transmission', v.transmission], ['Drivetrain', v.drivetrain],
+        ['Body', v.body], ['Grade', v.grade],
       ];
       for (const [label, val] of fields) {
         if (val) html += `<div class="vi-row"><span class="vi-label">${label}</span><span class="vi-value">${val}</span></div>`;
       }
-      if (html) {
-        $('vehicleInfo').innerHTML = html;
-        $('vehicleInfo').style.display = 'block';
-      }
+      $('vehicleInfo').innerHTML = html;
+      $('vehicleInfo').style.display = 'block';
     }
 
-    // Show condition report details
-    if (extractedData.condition) {
-      const cr = extractedData.condition;
-      let html = '<h3>Condition Report</h3>';
-
-      if (cr.overall_grade) html += `<div class="cr-item"><b>Grade:</b> ${cr.overall_grade}</div>`;
-      if (cr.announcements?.length) html += `<div class="cr-item"><b>Announcements:</b> ${cr.announcements.join(', ')}</div>`;
-
-      if (cr.damage?.length) {
-        html += '<h3 style="margin-top:8px">Damage / Issues</h3>';
-        for (const d of cr.damage) {
-          html += `<div class="cr-item damage">${d}</div>`;
-        }
-      }
-
-      if (cr.options?.length) {
-        html += '<h3 style="margin-top:8px">Options / Packages</h3>';
-        for (const o of cr.options) {
-          html += `<div class="cr-item">${o}</div>`;
-        }
-      }
-
-      if (cr.tires) html += `<div class="cr-item" style="margin-top:6px"><b>Tires:</b> ${cr.tires}</div>`;
-
-      $('crDetails').innerHTML = html;
-      $('crDetails').style.display = 'block';
+    // Show summary
+    const cr = extractedData.condition || {};
+    const parts = [];
+    if (cr.damage?.length) parts.push(`<b>${cr.damage.length}</b> damage notes`);
+    if (cr.options?.length) parts.push(`<b>${cr.options.length}</b> options`);
+    if (cr.announcements?.length) parts.push(`<b>${cr.announcements.length}</b> announcements`);
+    if (parts.length) {
+      $('scanSummary').innerHTML = 'Extracted: ' + parts.join(' · ');
+      $('scanSummary').style.display = 'block';
     }
 
     // Show photos
     if (extractedData.photos?.length) {
-      $('photoCount').textContent = `${extractedData.photos.length} photos found`;
+      $('photoCount').textContent = `${extractedData.photos.length} photos`;
       $('photosPreview').innerHTML = extractedData.photos
-        .slice(0, 30)
+        .slice(0, 20)
         .map(url => `<img src="${url}" />`)
         .join('');
-      $('resultsSection').style.display = 'block';
-      $('noPhotos').style.display = 'none';
-      showStatus(`Found ${extractedData.photos.length} photos + vehicle data.`, 'success');
-    } else {
-      $('resultsSection').style.display = 'none';
-      $('noPhotos').style.display = 'block';
-      showStatus('No photos found, but extracted vehicle data.', 'info');
+      $('photosSection').style.display = 'block';
     }
+
+    // Show submit button
+    $('submitBtn').style.display = 'flex';
+    showStatus('Ready to submit.', 'success');
 
   } catch (err) {
     showStatus('Scan failed: ' + err.message, 'error');
@@ -150,96 +107,53 @@ $('scanBtn').addEventListener('click', async () => {
   $('scanBtn').disabled = false;
 });
 
-// ── Create Proposal ──
-$('proposalBtn').addEventListener('click', async () => {
-  const { serverUrl, apiKey } = getSettings();
-  if (!serverUrl || !apiKey) { showStatus('Enter server URL and API key.', 'error'); return; }
-  if (!extractedData) return;
+// ── Submit ──
+$('submitBtn').addEventListener('click', async () => {
+  const serverUrl = $('serverUrl').value.replace(/\/+$/, '');
+  const apiKey = $('apiKey').value;
 
-  $('proposalBtn').disabled = true;
-  showStatus('Creating proposal...', 'working');
+  if (!serverUrl) { showStatus('Enter server URL.', 'error'); return; }
+  if (!apiKey) { showStatus('Enter API key.', 'error'); return; }
+  if (!extractedData) { showStatus('Scan a page first.', 'error'); return; }
+
+  $('submitBtn').disabled = true;
+  showStatus('Submitting...', 'working');
 
   try {
     const response = await fetch(`${serverUrl}/api/ext/proposal`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': apiKey,
+      },
       body: JSON.stringify(extractedData),
     });
 
-    if (!response.ok) throw new Error(`Server returned ${response.status}`);
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`${response.status}: ${err}`);
+    }
 
     const result = await response.json();
-    const link = `${serverUrl}/proposal/${result.id}`;
+    showStatus(`Submitted! Edit at: ${serverUrl}/admin/proposals`, 'success');
+    $('submitBtn').textContent = 'Submitted';
 
-    $('proposalUrl').value = link;
-    $('proposalResult').style.display = 'block';
-    showStatus('Proposal created. Share the link.', 'success');
   } catch (err) {
     showStatus('Failed: ' + err.message, 'error');
+    $('submitBtn').disabled = false;
   }
-
-  $('proposalBtn').disabled = false;
-});
-
-// ── Copy link ──
-$('copyLinkBtn').addEventListener('click', () => {
-  const url = $('proposalUrl').value;
-  navigator.clipboard.writeText(url).then(() => {
-    $('copyLinkBtn').textContent = 'Copied!';
-    setTimeout(() => { $('copyLinkBtn').textContent = 'Copy Link'; }, 2000);
-  });
-});
-
-// ── Send Photos ──
-$('sendBtn').addEventListener('click', async () => {
-  const { serverUrl, apiKey } = getSettings();
-  if (!serverUrl || !apiKey) { showStatus('Enter server URL and API key.', 'error'); return; }
-  if (!extractedData?.photos?.length) return;
-
-  $('sendBtn').disabled = true;
-  showStatus(`Sending ${extractedData.photos.length} photos...`, 'working');
-
-  try {
-    const response = await fetch(`${serverUrl}/api/ext/manheim-photos`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
-      body: JSON.stringify({ vin: extractedData.vin, photos: extractedData.photos }),
-    });
-    if (!response.ok) throw new Error(`Server returned ${response.status}`);
-    const result = await response.json();
-    showStatus(`Sent ${result.count} photos.`, 'success');
-  } catch (err) {
-    showStatus('Failed: ' + err.message, 'error');
-  }
-  $('sendBtn').disabled = false;
-});
-
-// ── Download ──
-$('downloadBtn').addEventListener('click', async () => {
-  if (!extractedData?.photos?.length) return;
-  $('downloadBtn').disabled = true;
-  chrome.runtime.sendMessage({
-    action: 'downloadPhotos',
-    photos: extractedData.photos,
-    vin: extractedData.vin,
-  }, () => {
-    showStatus(`Downloading ${extractedData.photos.length} photos.`, 'success');
-    $('downloadBtn').disabled = false;
-  });
 });
 
 
 /**
- * Runs INSIDE the Manheim page. Extracts everything: photos, vehicle info, condition report.
+ * Runs INSIDE the Manheim page. Extracts everything.
  */
 function extractManheimData() {
   const photos = new Set();
   const vehicle = {};
   const condition = { damage: [], options: [], announcements: [] };
 
-  // ── Extract all text content for parsing ──
   const pageText = document.body.innerText || '';
-  const pageHtml = document.body.innerHTML || '';
 
   // ── VIN ──
   let vin = '';
@@ -254,9 +168,8 @@ function extractManheimData() {
     if (urlMatch) vin = urlMatch[0];
   }
 
-  // ── Vehicle info — scrape labeled fields ──
+  // ── Vehicle info ──
   const fieldPatterns = [
-    { key: 'year', patterns: [/(\d{4})\s+([\w-]+)\s+([\w-]+)/] },
     { key: 'mileage', patterns: [/(?:mileage|odometer|miles)[:\s]*([0-9,]+)/i] },
     { key: 'exterior_color', patterns: [/(?:ext(?:erior)?[\s.]*(?:color)?)[:\s]*([A-Za-z\s]+?)(?:\n|$|Int)/i] },
     { key: 'interior_color', patterns: [/(?:int(?:erior)?[\s.]*(?:color)?)[:\s]*([A-Za-z\s]+?)(?:\n|$)/i] },
@@ -270,15 +183,12 @@ function extractManheimData() {
   for (const { key, patterns } of fieldPatterns) {
     for (const pat of patterns) {
       const m = pageText.match(pat);
-      if (m) {
-        vehicle[key] = m[1].trim().replace(/\s+/g, ' ');
-        break;
-      }
+      if (m) { vehicle[key] = m[1].trim().replace(/\s+/g, ' '); break; }
     }
   }
 
-  // Try to extract year/make/model from title or header
-  const titleEl = document.querySelector('h1, [class*="vehicle-title"], [class*="vehicleTitle"], [data-testid*="title"]');
+  // Year/Make/Model from title
+  const titleEl = document.querySelector('h1, [class*="vehicle-title"], [class*="vehicleTitle"]');
   const titleText = titleEl?.textContent?.trim() || document.title || '';
   const ymmMatch = titleText.match(/(\d{4})\s+([\w-]+)\s+([\w-]+(?:\s+[\w-]+)?)/);
   if (ymmMatch) {
@@ -286,8 +196,6 @@ function extractManheimData() {
     vehicle.make = ymmMatch[2];
     vehicle.model = ymmMatch[3];
   }
-
-  // Trim from title
   const trimMatch = titleText.match(/(\d{4})\s+[\w-]+\s+[\w-]+\s+(.*)/);
   if (trimMatch && trimMatch[2]) vehicle.trim = trimMatch[2].trim();
 
@@ -299,32 +207,22 @@ function extractManheimData() {
   const sellerMatch = pageText.match(/(?:seller|consignor)[:\s]*([^\n]+)/i);
   if (sellerMatch) vehicle.seller = sellerMatch[1].trim();
 
-  // ── Condition Report: damage, dents, scratches ──
-  const damagePatterns = [
-    /(?:damage|dent|scratch|scuff|chip|crack|tear|stain|worn|faded|rust|corrosion|missing|broken|bent|gouge|discolor)[^\n]*/gi,
-  ];
-  // Look for damage in structured sections
-  document.querySelectorAll('[class*="damage" i], [class*="condition" i], [class*="defect" i], [class*="announcement" i], [data-testid*="damage" i], [data-testid*="condition" i]').forEach(el => {
+  // ── Damage ──
+  document.querySelectorAll('[class*="damage" i], [class*="condition" i], [class*="defect" i], [data-testid*="damage" i], [data-testid*="condition" i]').forEach(el => {
     const text = el.textContent?.trim();
-    if (text && text.length > 3 && text.length < 200) {
-      condition.damage.push(text);
-    }
+    if (text && text.length > 3 && text.length < 200) condition.damage.push(text);
   });
 
-  // Scan page text for damage keywords if no structured elements found
   if (condition.damage.length === 0) {
     const lines = pageText.split('\n');
     for (const line of lines) {
       const trimmed = line.trim();
-      if (trimmed.length > 5 && trimmed.length < 200) {
-        if (/(?:dent|scratch|scuff|chip|crack|tear|stain|worn|faded|rust|missing|broken|bent|gouge|paint|panel|bumper|fender|hood|door|roof|quarter|trunk|hail)/i.test(trimmed)) {
-          condition.damage.push(trimmed);
-        }
+      if (trimmed.length > 5 && trimmed.length < 200 &&
+          /(?:dent|scratch|scuff|chip|crack|tear|stain|worn|faded|rust|missing|broken|bent|gouge|paint|panel|bumper|fender|hood|door|roof|quarter|trunk|hail)/i.test(trimmed)) {
+        condition.damage.push(trimmed);
       }
     }
   }
-
-  // Deduplicate damage
   condition.damage = [...new Set(condition.damage)];
 
   // ── Announcements ──
@@ -332,19 +230,10 @@ function extractManheimData() {
     const text = el.textContent?.trim();
     if (text && text.length > 3) condition.announcements.push(text);
   });
-  // Also look for announcement text patterns
-  const annMatch = pageText.match(/(?:announcements?|seller\s*disclosures?)[:\s]*([^\n]+(?:\n[^\n]+)*)/i);
-  if (annMatch && condition.announcements.length === 0) {
-    annMatch[1].split('\n').forEach(l => {
-      const t = l.trim();
-      if (t.length > 3) condition.announcements.push(t);
-    });
-  }
   condition.announcements = [...new Set(condition.announcements)];
 
-  // ── Options / Packages ──
-  document.querySelectorAll('[class*="option" i], [class*="feature" i], [class*="equipment" i], [class*="package" i], [data-testid*="option" i], [data-testid*="feature" i]').forEach(el => {
-    // Get individual items if it's a list
+  // ── Options ──
+  document.querySelectorAll('[class*="option" i], [class*="feature" i], [class*="equipment" i], [class*="package" i]').forEach(el => {
     const items = el.querySelectorAll('li, [class*="item" i], span');
     if (items.length > 0) {
       items.forEach(item => {
@@ -354,17 +243,13 @@ function extractManheimData() {
     } else {
       const text = el.textContent?.trim();
       if (text && text.length > 2 && text.length < 300) {
-        // Split comma or newline separated
-        text.split(/[,\n]/).forEach(t => {
-          const trimmed = t.trim();
-          if (trimmed.length > 2) condition.options.push(trimmed);
-        });
+        text.split(/[,\n]/).forEach(t => { if (t.trim().length > 2) condition.options.push(t.trim()); });
       }
     }
   });
   condition.options = [...new Set(condition.options)].slice(0, 50);
 
-  // ── Tires ──
+  // Tires
   const tireMatch = pageText.match(/(?:tire|tyre)s?[:\s]*([^\n]+)/i);
   if (tireMatch) condition.tires = tireMatch[1].trim();
 
@@ -373,29 +258,26 @@ function extractManheimData() {
     let src = img.src || img.dataset?.src || img.getAttribute('data-lazy-src') || '';
     if (!src) return;
     if (img.naturalWidth > 0 && img.naturalWidth < 50) return;
-    if (src.includes('logo') || src.includes('icon') || src.includes('avatar') || src.includes('sprite') || src.includes('svg') || src.includes('data:image')) return;
-    src = src.replace(/\?.*$/, '');
-    src = src.replace(/_thumb|_small|_medium|_tn|_sm|_md/gi, '');
-    src = src.replace(/\/s\/\d+x\d+\//, '/s/0x0/');
-    src = src.replace(/\/resize\/\d+x\d+\//, '/');
-    if (src.match(/\.(jpg|jpeg|png|webp)/i)) photos.add(src);
+    if (/logo|icon|avatar|sprite|svg|data:image/i.test(src)) return;
+    src = src.replace(/\?.*$/, '').replace(/_thumb|_small|_medium|_tn|_sm|_md/gi, '');
+    if (/\.(jpg|jpeg|png|webp)/i.test(src)) photos.add(src);
   });
 
   document.querySelectorAll('[style*="background-image"]').forEach(el => {
     const match = el.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);
-    if (match?.[1] && match[1].match(/\.(jpg|jpeg|png|webp)/i)) photos.add(match[1].replace(/\?.*$/, ''));
+    if (match?.[1] && /\.(jpg|jpeg|png|webp)/i.test(match[1])) photos.add(match[1].replace(/\?.*$/, ''));
   });
 
   document.querySelectorAll('[data-src], [data-full], [data-original], [data-zoom-image], [data-large]').forEach(el => {
     const src = el.dataset.src || el.dataset.full || el.dataset.original || el.dataset.zoomImage || el.dataset.large;
-    if (src && src.match(/\.(jpg|jpeg|png|webp)/i)) photos.add(src.replace(/\?.*$/, ''));
+    if (src && /\.(jpg|jpeg|png|webp)/i.test(src)) photos.add(src.replace(/\?.*$/, ''));
   });
 
   document.querySelectorAll('script').forEach(script => {
     const text = script.textContent || '';
     const matches = text.matchAll(/"(https?:\/\/[^"]+\.(jpg|jpeg|png|webp))"/gi);
     for (const m of matches) {
-      if (!m[1].includes('logo') && !m[1].includes('icon')) photos.add(m[1].replace(/\?.*$/, ''));
+      if (!/logo|icon/i.test(m[1])) photos.add(m[1].replace(/\?.*$/, ''));
     }
   });
 
