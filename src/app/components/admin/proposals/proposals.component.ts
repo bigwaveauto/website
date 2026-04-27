@@ -18,6 +18,10 @@ export class AdminProposalsComponent implements OnInit {
   loading = signal(true);
   selected = signal<any>(null);
 
+  // Strategy data
+  strategy = signal<any>(null);
+  loadingStrategy = signal(false);
+
   // Send form
   sendEmail = signal('');
   sendMessage = signal('');
@@ -39,6 +43,75 @@ export class AdminProposalsComponent implements OnInit {
     this.selected.set({ ...p, excluded_fields: p.excluded_fields || [] });
     this.sent.set(false);
     this.saved.set(false);
+    this.loadStrategy(p.vin);
+  }
+
+  loadStrategy(vin: string) {
+    this.loadingStrategy.set(true);
+    this.strategy.set(null);
+
+    // Fetch vehicle costs + market data in parallel
+    const costs$ = this.http.get<any>(`/api/admin/vehicle/${vin}`);
+    const market$ = this.http.post<any>('/api/admin/vehicle/market-data', {
+      vin,
+      year: this.selected()?.vehicle?.year,
+      make: this.selected()?.vehicle?.make,
+      model: this.selected()?.vehicle?.model,
+      trim: this.selected()?.vehicle?.trim,
+      mileage: this.selected()?.vehicle?.mileage,
+    });
+
+    costs$.subscribe({
+      next: (data) => {
+        const purchasePrice = data.pricing?.purchase_price || 0;
+        const costAdds = (data.costAdds || []).reduce((s: number, c: any) => s + (c.cost || 0), 0);
+        const costAddsList = data.costAdds || [];
+        const floorPlans = data.floorPlans || [];
+        const flooringCost = floorPlans.reduce((s: number, fp: any) => {
+          if (fp.status === 'Paid Off') return s + (fp.est_flooring || 0);
+          const days = Math.floor((Date.now() - new Date(fp.date_floored).getTime()) / 86400000);
+          const interest = (fp.amount_floored * (fp.interest_rate || 8.25) / 100 / 365) * days;
+          const fees = (fp.admin_fee || 0) + (fp.floor_fee || 0) + (fp.highline_fee || 0);
+          return s + interest + fees;
+        }, 0);
+
+        this.strategy.update(s => ({
+          ...s,
+          purchase_price: purchasePrice,
+          cost_adds: costAdds,
+          cost_adds_list: costAddsList,
+          flooring_cost: Math.round(flooringCost * 100) / 100,
+          total_investment: Math.round((purchasePrice + costAdds + flooringCost) * 100) / 100,
+        }));
+        this.loadingStrategy.set(false);
+      },
+      error: () => this.loadingStrategy.set(false),
+    });
+
+    market$.subscribe({
+      next: (data) => {
+        this.strategy.update(s => ({
+          ...s,
+          mmr: data.mmr || 0,
+          kbb: data.kbb || 0,
+          market_avg: data.market_avg || 0,
+        }));
+      },
+      error: () => {},
+    });
+  }
+
+  get grossProfit(): number {
+    const s = this.selected();
+    const st = this.strategy();
+    if (!s || !st) return 0;
+    return (s.asking_price || 0) - (st.total_investment || 0);
+  }
+
+  get grossMargin(): number {
+    const s = this.selected();
+    if (!s?.asking_price) return 0;
+    return (this.grossProfit / s.asking_price) * 100;
   }
 
   close() {

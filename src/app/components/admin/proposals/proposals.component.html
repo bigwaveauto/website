@@ -47,6 +47,63 @@
         <button class="prop-copy-btn" (click)="copyLink(s)">Copy</button>
       </div>
 
+      <!-- ═══ STRATEGY DESK ═══ -->
+      @if(strategy(); as st){
+      <div class="strat-desk">
+        <div class="strat-grid">
+          <!-- Cost Side -->
+          <div class="strat-col strat-cost">
+            <div class="strat-col-header">Your Cost Basis</div>
+            <div class="strat-line"><span>Purchase Price</span><span>{{ st.purchase_price | currency:'USD':'symbol':'1.0-0' }}</span></div>
+            <div class="strat-line strat-sub"><span>Cost Adds</span><span>{{ st.cost_adds | currency:'USD':'symbol':'1.0-0' }}</span></div>
+            <div class="strat-line strat-sub"><span>Flooring</span><span>{{ st.flooring_cost | currency:'USD':'symbol':'1.0-0' }}</span></div>
+            <div class="strat-line strat-total"><span>Total Investment</span><span>{{ st.total_investment | currency:'USD':'symbol':'1.0-0' }}</span></div>
+          </div>
+
+          <!-- Market Side -->
+          <div class="strat-col strat-market">
+            <div class="strat-col-header">Market Values</div>
+            @if(st.mmr > 0){
+            <div class="strat-line"><span>MMR (Wholesale)</span><span>{{ st.mmr | currency:'USD':'symbol':'1.0-0' }}</span></div>
+            }
+            @if(st.kbb > 0){
+            <div class="strat-line"><span>KBB</span><span>{{ st.kbb | currency:'USD':'symbol':'1.0-0' }}</span></div>
+            }
+            @if(st.market_avg > 0){
+            <div class="strat-line strat-total"><span>Market Avg</span><span>{{ st.market_avg | currency:'USD':'symbol':'1.0-0' }}</span></div>
+            }
+            @if(!st.mmr && !st.kbb){
+            <div class="strat-no-data">No market data yet</div>
+            }
+          </div>
+        </div>
+
+        <!-- Spread -->
+        @if(s.asking_price > 0){
+        <div class="strat-spread">
+          <div class="strat-spread-item">
+            <span class="strat-spread-label">Asking</span>
+            <span class="strat-spread-value">{{ s.asking_price | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+          <div class="strat-spread-item">
+            <span class="strat-spread-label">Investment</span>
+            <span class="strat-spread-value">{{ st.total_investment | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+          <div class="strat-spread-item strat-spread-profit" [class.strat-profit-pos]="grossProfit >= 0" [class.strat-profit-neg]="grossProfit < 0">
+            <span class="strat-spread-label">Gross Profit</span>
+            <span class="strat-spread-value">{{ grossProfit | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+          <div class="strat-spread-item">
+            <span class="strat-spread-label">Margin</span>
+            <span class="strat-spread-value">{{ grossMargin | number:'1.1-1' }}%</span>
+          </div>
+        </div>
+        }
+      </div>
+      }@else if(loadingStrategy()){
+      <div class="strat-loading">Loading cost & market data...</div>
+      }
+
       <!-- Status -->
       <div class="prop-field-row">
         <div class="prop-field">
