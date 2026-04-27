@@ -85,6 +85,10 @@ export class AdminProposalsComponent implements OnInit {
       custom_notes: s.custom_notes,
       asking_price: s.asking_price,
       status: s.status,
+      line_items: s.line_items || [],
+      trade_in: s.trade_in || null,
+      tax_rate: s.tax_rate || 0,
+      down_payment: s.down_payment || 0,
     }).subscribe({
       next: () => { this.saving.set(false); this.saved.set(true); setTimeout(() => this.saved.set(false), 3000); },
       error: () => { this.saving.set(false); alert('Failed to save.'); },
@@ -108,6 +112,40 @@ export class AdminProposalsComponent implements OnInit {
       },
       error: () => { this.sending.set(false); alert('Failed to send.'); },
     });
+  }
+
+  // ── Line Items ──
+  getLineItems(s: any): any[] {
+    if (!s.line_items) s.line_items = [];
+    return s.line_items;
+  }
+
+  addLineItem(s: any, label: string, amount: number, taxable: boolean) {
+    if (!s.line_items) s.line_items = [];
+    s.line_items.push({ label, amount, taxable });
+    this.selected.set({ ...s });
+  }
+
+  removeLineItem(s: any, index: number) {
+    s.line_items = s.line_items.filter((_: any, i: number) => i !== index);
+    this.selected.set({ ...s });
+  }
+
+  applyPreset(s: any) {
+    const price = s.asking_price || 0;
+    s.line_items = [
+      { label: 'Dealer Retail Price', amount: price, taxable: true },
+      { label: 'Service Fee', amount: 299, taxable: true },
+      { label: 'Title & Registration', amount: 215, taxable: false },
+    ];
+    if (!s.tax_rate) s.tax_rate = 5.5;
+    this.selected.set({ ...s });
+  }
+
+  // ── Trade-In ──
+  getTradeIn(s: any): any {
+    if (!s.trade_in) s.trade_in = { year: '', make: '', model: '', vin: '', mileage: '', allowance: 0, payoff: 0, payoff_to: '' };
+    return s.trade_in;
   }
 
   timeAgo(date: string): string {

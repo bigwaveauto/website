@@ -47,12 +47,8 @@
         <button class="prop-copy-btn" (click)="copyLink(s)">Copy</button>
       </div>
 
-      <!-- Price & Notes -->
+      <!-- Status -->
       <div class="prop-field-row">
-        <div class="prop-field">
-          <label>Asking Price</label>
-          <div class="prop-price-input"><span>$</span><input type="number" [(ngModel)]="s.asking_price" /></div>
-        </div>
         <div class="prop-field">
           <label>Status</label>
           <select [(ngModel)]="s.status">
@@ -62,9 +58,64 @@
             <option value="closed">Closed</option>
           </select>
         </div>
+        <div class="prop-field">
+          <label>Tax Rate %</label>
+          <input type="number" step="0.01" [(ngModel)]="s.tax_rate" placeholder="5.5" />
+        </div>
       </div>
 
-      <div class="prop-field" style="margin-bottom:16px">
+      <!-- ═══ DEAL SHEET: Line Items ═══ -->
+      <h3 class="prop-toggle-title">Deal Sheet — Line Items</h3>
+      <div class="prop-line-items">
+        @for(li of getLineItems(s); track $index; let i = $index){
+        <div class="prop-li-row">
+          <input class="prop-li-label" [(ngModel)]="li.label" placeholder="Label" [ngModelOptions]="{standalone: true}" />
+          <div class="prop-li-amount"><span>$</span><input type="number" [(ngModel)]="li.amount" [ngModelOptions]="{standalone: true}" /></div>
+          <label class="prop-li-check"><input type="checkbox" [(ngModel)]="li.taxable" [ngModelOptions]="{standalone: true}" /> Tax</label>
+          <button class="prop-li-del" (click)="removeLineItem(s, i)"><lucide-icon name="x" /></button>
+        </div>
+        }
+      </div>
+      <div class="prop-li-actions">
+        <button class="prop-li-add" (click)="addLineItem(s, 'Dealer Retail Price', 0, true)"><lucide-icon name="plus" /> Taxable</button>
+        <button class="prop-li-add" (click)="addLineItem(s, 'Title/Registration Fees', 0, false)"><lucide-icon name="plus" /> Non-Taxable</button>
+      </div>
+      <div class="prop-li-presets">
+        <button (click)="applyPreset(s)">Auto-fill WI defaults</button>
+      </div>
+
+      <!-- ═══ TRADE-IN ═══ -->
+      <h3 class="prop-toggle-title">Trade-In</h3>
+      <div class="prop-trade-section">
+        <div class="prop-field-row">
+          <div class="prop-field"><label>Year</label><input [(ngModel)]="getTradeIn(s).year" [ngModelOptions]="{standalone: true}" /></div>
+          <div class="prop-field"><label>Make</label><input [(ngModel)]="getTradeIn(s).make" [ngModelOptions]="{standalone: true}" /></div>
+          <div class="prop-field"><label>Model</label><input [(ngModel)]="getTradeIn(s).model" [ngModelOptions]="{standalone: true}" /></div>
+        </div>
+        <div class="prop-field-row">
+          <div class="prop-field"><label>VIN</label><input [(ngModel)]="getTradeIn(s).vin" [ngModelOptions]="{standalone: true}" /></div>
+          <div class="prop-field"><label>Mileage</label><input [(ngModel)]="getTradeIn(s).mileage" [ngModelOptions]="{standalone: true}" /></div>
+        </div>
+        <div class="prop-field-row">
+          <div class="prop-field"><label>Trade Allowance</label><div class="prop-price-input"><span>$</span><input type="number" [(ngModel)]="getTradeIn(s).allowance" [ngModelOptions]="{standalone: true}" /></div></div>
+          <div class="prop-field"><label>Payoff Amount</label><div class="prop-price-input"><span>$</span><input type="number" [(ngModel)]="getTradeIn(s).payoff" [ngModelOptions]="{standalone: true}" /></div></div>
+        </div>
+        <div class="prop-field">
+          <label>Payoff Owed To</label>
+          <input [(ngModel)]="getTradeIn(s).payoff_to" [ngModelOptions]="{standalone: true}" placeholder="Lender name" />
+        </div>
+      </div>
+
+      <!-- Down Payment -->
+      <div class="prop-field-row" style="margin-top:12px">
+        <div class="prop-field">
+          <label>Down Payment</label>
+          <div class="prop-price-input"><span>$</span><input type="number" [(ngModel)]="s.down_payment" /></div>
+        </div>
+      </div>
+
+      <!-- Custom Notes -->
+      <div class="prop-field" style="margin:12px 0">
         <label>Custom Notes (shown to customer)</label>
         <textarea [(ngModel)]="s.custom_notes" rows="3" placeholder="Personal message to the buyer..."></textarea>
       </div>

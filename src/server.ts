@@ -1799,7 +1799,7 @@ app.get('/api/admin/proposals', async (_req, res) => {
  */
 app.post('/api/admin/proposal/:id', async (req, res) => {
   try {
-    const { vehicle, condition, photos, status, excluded_fields, custom_notes, asking_price } = req.body;
+    const { vehicle, condition, photos, status, excluded_fields, custom_notes, asking_price, line_items, trade_in, tax_rate, down_payment } = req.body;
     const updates: Record<string, any> = {};
     if (vehicle !== undefined) updates['vehicle'] = vehicle;
     if (condition !== undefined) updates['condition'] = condition;
@@ -1808,6 +1808,10 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (excluded_fields !== undefined) updates['excluded_fields'] = excluded_fields;
     if (custom_notes !== undefined) updates['custom_notes'] = custom_notes;
     if (asking_price !== undefined) updates['asking_price'] = asking_price;
+    if (line_items !== undefined) updates['line_items'] = line_items;
+    if (trade_in !== undefined) updates['trade_in'] = trade_in;
+    if (tax_rate !== undefined) updates['tax_rate'] = tax_rate;
+    if (down_payment !== undefined) updates['down_payment'] = down_payment;
     updates['updated_at'] = new Date().toISOString();
 
     const { error } = await supabase

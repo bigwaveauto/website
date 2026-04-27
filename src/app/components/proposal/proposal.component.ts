@@ -40,6 +40,40 @@ export class ProposalComponent implements OnInit {
   get cr(): any { return this.proposal()?.condition || {}; }
   get photos(): string[] { return this.proposal()?.photos || []; }
   get excluded(): string[] { return this.proposal()?.excluded_fields || []; }
+  get lineItems(): any[] { return this.proposal()?.line_items || []; }
+  get tradeIn(): any { return this.proposal()?.trade_in || null; }
+
+  get cashPrice(): number {
+    return this.lineItems
+      .filter((li: any) => li.type !== 'credit')
+      .reduce((s: number, li: any) => s + (li.amount || 0), 0);
+  }
+
+  get taxableAmount(): number {
+    return this.lineItems
+      .filter((li: any) => li.taxable)
+      .reduce((s: number, li: any) => s + (li.amount || 0), 0);
+  }
+
+  get taxAmount(): number {
+    const rate = this.proposal()?.tax_rate || 0;
+    return Math.round(this.taxableAmount * rate) / 100;
+  }
+
+  get nonTaxableTotal(): number {
+    return this.lineItems
+      .filter((li: any) => !li.taxable && li.type !== 'credit')
+      .reduce((s: number, li: any) => s + (li.amount || 0), 0);
+  }
+
+  get tradeEquity(): number {
+    if (!this.tradeIn) return 0;
+    return (this.tradeIn.allowance || 0) - (this.tradeIn.payoff || 0);
+  }
+
+  get totalDue(): number {
+    return this.cashPrice + this.taxAmount - this.tradeEquity - (this.proposal()?.down_payment || 0);
+  }
 
   prevPhoto() {
     const total = this.photos.length;

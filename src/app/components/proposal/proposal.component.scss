@@ -251,3 +251,83 @@ $muted: rgba(0,0,0,0.45);
 
 .prop-dealer-name { font-size: 14px; font-weight: 800; color: #1e293b; }
 .prop-dealer-loc { font-size: 12px; color: $muted; }
+
+/* ── Deal Sheet ── */
+.deal-section {
+  padding: 14px 0;
+  border-bottom: 1px solid $border;
+}
+
+.deal-section-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: $muted;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+
+.deal-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.deal-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+
+  span:first-child { color: #333; }
+  span:last-child { color: #111; font-weight: 600; }
+
+  &.deal-line-sub {
+    padding-left: 8px;
+    span:first-child { color: $muted; font-size: 14px; }
+    span:last-child { color: #555; font-weight: 400; font-size: 14px; }
+  }
+
+  &.deal-line-total {
+    padding-top: 8px;
+    margin-top: 4px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    span { font-weight: 700 !important; color: #111 !important; }
+  }
+}
+
+.deal-credit { color: #16a34a !important; }
+
+.deal-trade-vehicle {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 10px 12px;
+  background: #f8f9fb;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.deal-trade-name { font-size: 15px; font-weight: 800; color: #111; }
+.deal-trade-vin { font-size: 11px; color: $muted; font-family: 'SF Mono', monospace; }
+.deal-trade-detail { font-size: 12px; color: #555; }
+
+.deal-total-section {
+  padding: 20px 0 16px;
+  text-align: center;
+}
+
+.deal-total-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: $muted;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.deal-total-value {
+  font-size: 36px;
+  font-weight: 900;
+  color: #111;
+  margin-top: 4px;
+}

@@ -122,6 +122,67 @@ $muted: rgba(0,0,0,0.45);
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
+/* ── Line Items Editor ── */
+.prop-line-items { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+
+.prop-li-row {
+  display: flex; gap: 6px; align-items: center;
+}
+
+.prop-li-label {
+  flex: 2; padding: 7px 10px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 6px;
+  font-size: 13px; font-family: inherit; color: #111; outline: none;
+  &:focus { border-color: $blue; }
+}
+
+.prop-li-amount {
+  display: flex; align-items: center; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden;
+  flex: 1;
+  &:focus-within { border-color: $blue; }
+  span { padding: 7px 0 7px 8px; font-weight: 700; color: $muted; font-size: 13px; }
+  input { flex: 1; border: none; padding: 7px 8px 7px 4px; font-size: 13px; font-family: inherit; color: #111; outline: none; width: 60px;
+    &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { -webkit-appearance: none; } -moz-appearance: textfield;
+  }
+}
+
+.prop-li-check {
+  display: flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; color: $muted;
+  white-space: nowrap; cursor: pointer;
+  input { width: 14px; height: 14px; cursor: pointer; }
+}
+
+.prop-li-del {
+  background: none; border: none; color: #ccc; cursor: pointer; padding: 4px;
+  lucide-icon { width: 16px; height: 16px; }
+  &:hover { color: #ef4444; }
+}
+
+.prop-li-actions { display: flex; gap: 6px; margin-bottom: 8px; }
+
+.prop-li-add {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 12px; border: 1px dashed rgba(0,0,0,0.15); border-radius: 6px;
+  background: white; font-size: 12px; font-weight: 600; font-family: inherit;
+  color: #555; cursor: pointer;
+  lucide-icon { width: 14px; height: 14px; }
+  &:hover { border-color: $blue; color: $blue; }
+}
+
+.prop-li-presets {
+  margin-bottom: 12px;
+  button {
+    padding: 6px 14px; border: 1px solid $blue; border-radius: 6px;
+    background: white; color: $blue; font-size: 12px; font-weight: 600;
+    font-family: inherit; cursor: pointer;
+    &:hover { background: #f0f4ff; }
+  }
+}
+
+.prop-trade-section {
+  padding: 12px; background: #fafbfc; border-radius: 10px; border: 1px solid rgba(0,0,0,0.06);
+  margin-bottom: 12px;
+}
+
 .prop-photo-grid {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 8px;
   img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 4px; }

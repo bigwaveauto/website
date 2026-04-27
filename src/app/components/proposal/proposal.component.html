@@ -169,13 +169,13 @@
     </div><!-- /prop-below -->
   </div><!-- /prop-left -->
 
-  <!-- Right: Buy Box -->
+  <!-- Right: Deal Sheet -->
   <div class="prop-right">
     <div class="prop-buy-box">
       <!-- BWA badge -->
       <div class="prop-bwa-badge">
         <span class="prop-bwa-name">Big Wave Auto</span>
-        <span class="prop-bwa-tag">Vehicle Report</span>
+        <span class="prop-bwa-tag">Proposal</span>
       </div>
 
       <!-- Title -->
@@ -187,18 +187,124 @@
         </div>
       </div>
 
-      <!-- Key stats -->
-      <div class="prop-key-stats">
-        @if(v.mileage){<span>{{ v.mileage }} mi</span>}
-        @if(v.fuel){<span>{{ v.fuel }}</span>}
-        @if(v.drivetrain){<span>{{ v.drivetrain }}</span>}
+      <!-- ═══ PRICE OF THE VEHICLE ═══ -->
+      @if(lineItems.length > 0){
+      <div class="deal-section">
+        <div class="deal-section-label">Price of the Vehicle</div>
+        <div class="deal-lines">
+          @for(li of lineItems; track $index){
+            @if(li.taxable){
+            <div class="deal-line" [class.deal-line-sub]="li.type === 'sub'">
+              <span>{{ li.label }}</span>
+              <span>{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+            }
+          }
+          <div class="deal-line deal-line-total">
+            <span>Cash Price</span>
+            <span>{{ taxableAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Price -->
+      <!-- ═══ SALES TAX ═══ -->
+      @if(taxAmount > 0){
+      <div class="deal-section">
+        <div class="deal-section-label">Sales Tax</div>
+        <div class="deal-lines">
+          <div class="deal-line deal-line-sub">
+            <span>Amount Subject to Tax</span>
+            <span>{{ taxableAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="deal-line deal-line-sub">
+            <span>Tax Rate</span>
+            <span>{{ p.tax_rate }}%</span>
+          </div>
+          <div class="deal-line deal-line-total">
+            <span>Total Tax</span>
+            <span>{{ taxAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- ═══ NON-TAXABLE ITEMS ═══ -->
+      @if(nonTaxableTotal > 0){
+      <div class="deal-section">
+        <div class="deal-section-label">Non-Taxable Items</div>
+        <div class="deal-lines">
+          @for(li of lineItems; track $index){
+            @if(!li.taxable && li.type !== 'credit'){
+            <div class="deal-line deal-line-sub">
+              <span>{{ li.label }}</span>
+              <span>{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+            }
+          }
+          <div class="deal-line deal-line-total">
+            <span>Total Non-Taxable</span>
+            <span>{{ nonTaxableTotal | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- ═══ TRADE ALLOWANCE ═══ -->
+      @if(tradeIn){
+      <div class="deal-section">
+        <div class="deal-section-label">Trade Allowance</div>
+        <div class="deal-trade-vehicle">
+          @if(tradeIn.year || tradeIn.make || tradeIn.model){
+          <span class="deal-trade-name">{{ tradeIn.year }} {{ tradeIn.make }} {{ tradeIn.model }}</span>
+          }
+          @if(tradeIn.vin){<span class="deal-trade-vin">VIN: {{ tradeIn.vin }}</span>}
+          @if(tradeIn.mileage){<span class="deal-trade-detail">{{ tradeIn.mileage }} miles</span>}
+        </div>
+        <div class="deal-lines">
+          <div class="deal-line deal-line-sub">
+            <span>Trade-In Allowance</span>
+            <span class="deal-credit">{{ tradeIn.allowance | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          @if(tradeIn.payoff > 0){
+          <div class="deal-line deal-line-sub">
+            <span>Payoff Due to {{ tradeIn.payoff_to || 'Lender' }}</span>
+            <span>({{ tradeIn.payoff | currency:'USD':'symbol':'1.2-2' }})</span>
+          </div>
+          }
+          <div class="deal-line deal-line-total">
+            <span>Net Trade Equity</span>
+            <span class="deal-credit">{{ tradeEquity | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- ═══ CASH / DOWN PAYMENT ═══ -->
+      @if(p.down_payment > 0){
+      <div class="deal-section">
+        <div class="deal-section-label">Cash &amp; Down Payment</div>
+        <div class="deal-lines">
+          <div class="deal-line">
+            <span>Down Payment</span>
+            <span>{{ p.down_payment | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- ═══ TOTAL DUE ═══ -->
+      <div class="deal-total-section">
+        <div class="deal-total-label">Balance Due</div>
+        <div class="deal-total-value">{{ totalDue | currency:'USD':'symbol':'1.2-2' }}</div>
+      </div>
+      }@else{
+      <!-- No line items yet -->
       @if(p.asking_price){
       <div class="prop-price-section">
         <span class="prop-price">{{ p.asking_price | currency:'USD':'symbol':'1.0-0' }}</span>
-      </div>}
+      </div>
+      }
+      }
 
       <!-- CTA -->
       <div class="prop-cta-stack">
