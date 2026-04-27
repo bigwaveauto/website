@@ -1,0 +1,189 @@
+$blue: #2563eb;
+$dark: #1e293b;
+$border: rgba(0,0,0,0.07);
+$muted: rgba(0,0,0,0.45);
+
+.prop-loading { padding: 80px; text-align: center; color: $muted; font-size: 16px; font-family: -apple-system, sans-serif; }
+
+.prop-page {
+  max-width: 600px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: white;
+  min-height: 100vh;
+}
+
+.prop-header {
+  background: $dark;
+  padding: 24px;
+  text-align: center;
+}
+
+.prop-logo {
+  font-size: 22px;
+  font-weight: 900;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.prop-header-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 2px;
+}
+
+.prop-hero {
+  img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+  }
+}
+
+.prop-title-section {
+  padding: 24px 20px 16px;
+  text-align: center;
+  border-bottom: 1px solid $border;
+}
+
+.prop-vehicle-name {
+  font-size: 24px;
+  font-weight: 900;
+  color: #111;
+  margin: 0;
+}
+
+.prop-vin {
+  font-size: 12px;
+  color: $muted;
+  font-family: 'SF Mono', monospace;
+  margin-top: 4px;
+}
+
+.prop-price {
+  font-size: 32px;
+  font-weight: 900;
+  color: $blue;
+  margin-top: 12px;
+}
+
+.prop-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid $border;
+}
+
+.prop-stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  &:nth-child(odd) { border-right: 1px solid rgba(0,0,0,0.04); }
+}
+
+.ps-label { font-size: 13px; font-weight: 600; color: $muted; }
+.ps-value { font-size: 13px; font-weight: 700; color: #111; }
+
+.prop-notes {
+  padding: 20px;
+  margin: 16px 20px;
+  background: #f0f4ff;
+  border-radius: 12px;
+  border-left: 4px solid $blue;
+
+  h2 { font-size: 14px; font-weight: 700; color: $blue; margin: 0 0 8px; }
+  p { font-size: 14px; color: #333; line-height: 1.6; margin: 0; }
+}
+
+.prop-section {
+  padding: 20px;
+  border-bottom: 1px solid $border;
+
+  h2 {
+    font-size: 14px;
+    font-weight: 800;
+    color: #111;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 12px;
+  }
+
+  p { font-size: 14px; color: #333; margin: 0; }
+}
+
+.prop-grade {
+  display: inline-block;
+  font-size: 28px;
+  font-weight: 900;
+  color: $dark;
+  background: #f0fdf4;
+  padding: 8px 24px;
+  border-radius: 10px;
+  border: 2px solid #bbf7d0;
+}
+
+.prop-announcement {
+  font-size: 13px;
+  color: #555;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  &:last-child { border-bottom: none; }
+}
+
+.prop-damage-item {
+  font-size: 13px;
+  color: #dc2626;
+  padding: 6px 12px;
+  background: #fef2f2;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+.prop-options-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.prop-option {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  padding: 6px 12px;
+  background: #f8f9fb;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.prop-gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.prop-gallery-img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.prop-footer {
+  padding: 32px 20px;
+  text-align: center;
+  background: $dark;
+}
+
+.prop-footer-logo {
+  font-size: 18px;
+  font-weight: 900;
+  color: white;
+}
+
+.prop-footer-info {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 4px;
+}

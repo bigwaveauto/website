@@ -1720,6 +1720,158 @@ app.post('/api/ext/manheim-photos', async (req, res) => {
 });
 
 /**
+ * Proposals — create from extension CR data
+ */
+app.post('/api/ext/proposal', async (req, res) => {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== process.env['BWA_EXT_API_KEY']) {
+    res.status(401).json({ error: 'Invalid API key' });
+    return;
+  }
+  try {
+    const { vin, vehicle, condition, photos, source_url, extracted_at } = req.body;
+    if (!vin) { res.status(400).json({ error: 'VIN required' }); return; }
+
+    const id = randomBytes(6).toString('hex');
+    const { error } = await supabase.from('vehicle_proposals').insert({
+      id,
+      vin,
+      vehicle: vehicle || {},
+      condition: condition || {},
+      photos: photos || [],
+      source_url: source_url || '',
+      extracted_at: extracted_at || new Date().toISOString(),
+      status: 'draft',
+    });
+
+    if (error) { console.error('Proposal insert error:', error); res.status(500).json({ error: error.message }); return; }
+    res.json({ success: true, id });
+  } catch (err) {
+    console.error('Proposal create error:', err);
+    res.status(500).json({ error: 'Failed to create proposal' });
+  }
+});
+
+/**
+ * Public proposal page — no auth required
+ */
+app.get('/api/proposal/:id', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('vehicle_proposals')
+      .select('*')
+      .eq('id', req.params['id'])
+      .maybeSingle();
+
+    if (error || !data) { res.status(404).json({ error: 'Proposal not found' }); return; }
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load proposal' });
+  }
+});
+
+/**
+ * Admin — list proposals
+ */
+app.get('/api/admin/proposals', async (_req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('vehicle_proposals')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) { res.status(500).json({ error: error.message }); return; }
+    res.json(data || []);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load proposals' });
+  }
+});
+
+/**
+ * Admin — update proposal (edit fields, exclude items, change status)
+ */
+app.post('/api/admin/proposal/:id', async (req, res) => {
+  try {
+    const { vehicle, condition, photos, status, excluded_fields, custom_notes, asking_price } = req.body;
+    const updates: Record<string, any> = {};
+    if (vehicle !== undefined) updates['vehicle'] = vehicle;
+    if (condition !== undefined) updates['condition'] = condition;
+    if (photos !== undefined) updates['photos'] = photos;
+    if (status !== undefined) updates['status'] = status;
+    if (excluded_fields !== undefined) updates['excluded_fields'] = excluded_fields;
+    if (custom_notes !== undefined) updates['custom_notes'] = custom_notes;
+    if (asking_price !== undefined) updates['asking_price'] = asking_price;
+    updates['updated_at'] = new Date().toISOString();
+
+    const { error } = await supabase
+      .from('vehicle_proposals')
+      .update(updates)
+      .eq('id', req.params['id']);
+
+    if (error) { res.status(500).json({ error: error.message }); return; }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update proposal' });
+  }
+});
+
+/**
+ * Admin — send proposal link via email
+ */
+app.post('/api/admin/proposal/:id/send', async (req, res) => {
+  try {
+    const { email, phone, message } = req.body;
+    const proposalId = req.params['id'];
+
+    const { data: proposal } = await supabase
+      .from('vehicle_proposals')
+      .select('*')
+      .eq('id', proposalId)
+      .single();
+
+    if (!proposal) { res.status(404).json({ error: 'Proposal not found' }); return; }
+
+    const v = proposal.vehicle || {};
+    const vehicleName = `${v.year || ''} ${v.make || ''} ${v.model || ''} ${v.trim || ''}`.trim();
+    const link = `https://bigwaveauto.com/proposal/${proposalId}`;
+
+    if (email) {
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        subject: `Your Vehicle Report — ${vehicleName || proposal.vin}`,
+        html: `
+          <div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto">
+            <div style="background:#1e293b;padding:24px;border-radius:12px 12px 0 0">
+              <h1 style="color:white;font-size:20px;margin:0">Big Wave Auto</h1>
+              <p style="color:rgba(255,255,255,0.6);margin:4px 0 0;font-size:14px">Vehicle Report</p>
+            </div>
+            <div style="padding:24px;background:white;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">
+              <h2 style="margin:0 0 8px;font-size:22px">${escHtml(vehicleName)}</h2>
+              <p style="color:#666;font-size:14px">VIN: ${escHtml(proposal.vin)}</p>
+              ${message ? `<p style="margin:16px 0;font-size:14px;color:#333">${escHtml(message)}</p>` : ''}
+              <a href="${link}" style="display:inline-block;padding:14px 32px;background:#2563eb;color:white;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;margin:16px 0">View Full Report</a>
+              <p style="font-size:12px;color:#999;margin-top:24px">Big Wave Auto — Sussex, WI</p>
+            </div>
+          </div>
+        `,
+      });
+    }
+
+    // Update proposal status
+    await supabase.from('vehicle_proposals').update({
+      status: 'sent',
+      sent_to: email || phone || null,
+      sent_at: new Date().toISOString(),
+    }).eq('id', proposalId);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Send proposal error:', err);
+    res.status(500).json({ error: 'Failed to send' });
+  }
+});
+
+/**
  * Admin — upload window sticker / Monroney label
  */
 app.post('/api/admin/vehicle/window-sticker', upload.single('file'), async (req: any, res) => {

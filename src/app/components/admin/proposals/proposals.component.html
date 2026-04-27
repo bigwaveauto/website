@@ -1,0 +1,133 @@
+<div class="prop-admin">
+  <div class="prop-header-bar">
+    <h1>Proposals</h1>
+    <span class="prop-count">{{ proposals().length }} total</span>
+  </div>
+
+  @if(loading()){
+  <div class="prop-loading">Loading...</div>
+  }@else if(proposals().length === 0){
+  <div class="prop-empty">No proposals yet. Use the Chrome extension to create one from a Manheim listing.</div>
+  }@else{
+
+  <div class="prop-layout">
+    <!-- List -->
+    <div class="prop-list">
+      @for(p of proposals(); track p.id){
+      <div class="prop-card" [class.active]="selected()?.id === p.id" (click)="selectProposal(p)">
+        <div class="prop-card-top">
+          <span class="prop-card-name">{{ vehicleName(p) }}</span>
+          <span class="prop-card-status" [class.draft]="p.status === 'draft'" [class.sent]="p.status === 'sent'">{{ p.status }}</span>
+        </div>
+        <div class="prop-card-vin">{{ p.vin }}</div>
+        <div class="prop-card-meta">
+          {{ p.vehicle?.mileage || '' }} &middot; {{ timeAgo(p.created_at) }}
+          @if(p.sent_to){ &middot; Sent to {{ p.sent_to }} }
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- Detail / Editor -->
+    @if(selected(); as s){
+    <div class="prop-editor">
+      <div class="prop-editor-header">
+        <h2>{{ vehicleName(s) }}</h2>
+        <div class="prop-editor-actions">
+          @if(saved()){<span class="prop-saved">Saved</span>}
+          <button class="prop-save-btn" (click)="saveProposal()" [disabled]="saving()">
+            @if(saving()){ Saving... }@else{ Save }
+          </button>
+        </div>
+      </div>
+
+      <!-- Link -->
+      <div class="prop-link-row">
+        <input [value]="proposalUrl(s)" readonly class="prop-link-input" />
+        <button class="prop-copy-btn" (click)="copyLink(s)">Copy</button>
+      </div>
+
+      <!-- Price & Notes -->
+      <div class="prop-field-row">
+        <div class="prop-field">
+          <label>Asking Price</label>
+          <div class="prop-price-input"><span>$</span><input type="number" [(ngModel)]="s.asking_price" /></div>
+        </div>
+        <div class="prop-field">
+          <label>Status</label>
+          <select [(ngModel)]="s.status">
+            <option value="draft">Draft</option>
+            <option value="sent">Sent</option>
+            <option value="viewed">Viewed</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="prop-field" style="margin-bottom:16px">
+        <label>Custom Notes (shown to customer)</label>
+        <textarea [(ngModel)]="s.custom_notes" rows="3" placeholder="Personal message to the buyer..."></textarea>
+      </div>
+
+      <!-- Toggle visibility -->
+      <h3 class="prop-toggle-title">Report Fields (click to hide/show)</h3>
+      <div class="prop-toggles">
+        @for(field of ['mileage','exterior_color','interior_color','engine','transmission','drivetrain','fuel','body','grade','announcements','tires']; track field){
+        <button class="prop-toggle" [class.excluded]="isExcluded(field)" (click)="toggleExclude(field)">
+          {{ field.replace('_', ' ') }}
+          @if(isExcluded(field)){ <lucide-icon name="eye-off" /> }@else{ <lucide-icon name="eye" /> }
+        </button>
+        }
+      </div>
+
+      <!-- Damage items toggle -->
+      @if(s.condition?.damage?.length){
+      <h3 class="prop-toggle-title">Condition Notes</h3>
+      <div class="prop-toggles">
+        @for(d of s.condition.damage; track $index){
+        <button class="prop-toggle prop-toggle-damage" [class.excluded]="isExcluded('damage_' + $index)" (click)="toggleExclude('damage_' + $index)">
+          {{ d }}
+          @if(isExcluded('damage_' + $index)){ <lucide-icon name="eye-off" /> }@else{ <lucide-icon name="eye" /> }
+        </button>
+        }
+      </div>
+      }
+
+      <!-- Send -->
+      <div class="prop-send-section">
+        <h3>Send to Customer</h3>
+        <div class="prop-field-row">
+          <div class="prop-field" style="flex:2">
+            <label>Email</label>
+            <input type="email" [ngModel]="sendEmail()" (ngModelChange)="sendEmail.set($event)" placeholder="customer@email.com" />
+          </div>
+          <div class="prop-field" style="flex:1">
+            <button class="prop-send-btn" (click)="sendProposal()" [disabled]="sending() || !sendEmail()">
+              @if(sending()){ Sending... }@else if(sent()){ Sent! }@else{ Send }
+            </button>
+          </div>
+        </div>
+        <div class="prop-field">
+          <label>Message (optional)</label>
+          <textarea [ngModel]="sendMessage()" (ngModelChange)="sendMessage.set($event)" rows="2" placeholder="Hey, here's the vehicle report..."></textarea>
+        </div>
+      </div>
+
+      <!-- Photos preview -->
+      @if(s.photos?.length){
+      <h3 class="prop-toggle-title">Photos ({{ s.photos.length }})</h3>
+      <div class="prop-photo-grid">
+        @for(photo of s.photos; track $index){
+        <img [src]="photo" alt="photo" />
+        }
+      </div>
+      }
+    </div>
+    }@else{
+    <div class="prop-editor prop-editor-empty">
+      Select a proposal to edit
+    </div>
+    }
+  </div>
+  }
+</div>

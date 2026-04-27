@@ -36,6 +36,10 @@ export const routes: Routes = [
     loadComponent: () => import('../components/search/search.component').then(mod => mod.SearchComponent),
   },
   {
+    path: 'proposal/:id',
+    loadComponent: () => import('../components/proposal/proposal.component').then(m => m.ProposalComponent),
+  },
+  {
     path: 'account',
     loadComponent: () => import('../components/account/account.component').then(m => m.AccountComponent),
   },
@@ -57,6 +61,7 @@ export const routes: Routes = [
       { path: 'inventory', loadComponent: () => import('../components/admin/inventory/inventory-list.component').then(m => m.AdminInventoryListComponent) },
       { path: 'inventory/:vin', loadComponent: () => import('../components/admin/inventory/inventory-detail.component').then(m => m.AdminInventoryDetailComponent) },
       { path: 'stages/setup', loadComponent: () => import('../components/admin/stages/stage-setup.component').then(m => m.StageSetupComponent) },
+      { path: 'proposals', loadComponent: () => import('../components/admin/proposals/proposals.component').then(m => m.AdminProposalsComponent) },
       { path: 'customers', loadComponent: () => import('../components/admin/leads/leads.component').then(m => m.AdminLeadsComponent) },
       { path: 'members', loadComponent: () => import('../components/admin/members/members.component').then(m => m.AdminMembersComponent) },
       { path: 'tax', loadComponent: () => import('../components/admin/tax/tax-filing.component').then(m => m.TaxFilingComponent) },

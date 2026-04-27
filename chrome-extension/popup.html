@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { width: 380px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f9fb; }
+    body { width: 400px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f9fb; }
 
     .header { padding: 16px; background: #1e293b; color: white; }
     .header h1 { font-size: 15px; font-weight: 800; }
@@ -19,20 +19,35 @@
     .status.error { background: #fee2e2; color: #991b1b; }
     .status.working { background: #fef9c3; color: #854d0e; }
 
-    .config { margin-bottom: 16px; }
+    .config { margin-bottom: 12px; }
     .config label { display: block; font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
     .config input { width: 100%; padding: 8px 10px; border: 1.5px solid #e2e8f0; border-radius: 6px; font-size: 13px; font-family: inherit; }
     .config input:focus { outline: none; border-color: #2563eb; }
     .config .hint { font-size: 11px; color: #999; margin-top: 3px; }
 
+    .config-row { display: flex; gap: 8px; }
+    .config-row .config { flex: 1; }
+
     .vin-display { padding: 10px 12px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; }
     .vin-display .label { font-size: 10px; font-weight: 700; color: #999; text-transform: uppercase; }
     .vin-display .value { font-size: 16px; font-weight: 800; color: #111; font-family: 'SF Mono', monospace; letter-spacing: 0.5px; }
 
-    .photos-preview { max-height: 200px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
+    .vehicle-info { padding: 10px 12px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; font-size: 13px; }
+    .vehicle-info .vi-title { font-weight: 800; font-size: 15px; color: #111; margin-bottom: 6px; }
+    .vehicle-info .vi-row { display: flex; justify-content: space-between; padding: 3px 0; color: #555; border-bottom: 1px solid #f1f1f1; }
+    .vehicle-info .vi-row:last-child { border-bottom: none; }
+    .vehicle-info .vi-label { font-weight: 600; color: #888; }
+    .vehicle-info .vi-value { font-weight: 700; color: #111; }
+
+    .cr-section { padding: 10px 12px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; }
+    .cr-section h3 { font-size: 12px; font-weight: 700; color: #666; text-transform: uppercase; margin-bottom: 6px; }
+    .cr-item { font-size: 12px; color: #555; padding: 2px 0; }
+    .cr-item.damage { color: #dc2626; font-weight: 600; }
+
+    .photos-preview { max-height: 120px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
     .photos-preview img { width: 56px; height: 42px; object-fit: cover; border-radius: 4px; border: 1px solid #e2e8f0; }
 
-    .photo-count { font-size: 13px; color: #555; margin-bottom: 12px; font-weight: 600; }
+    .photo-count { font-size: 13px; color: #555; margin-bottom: 8px; font-weight: 600; }
 
     .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s; margin-bottom: 8px; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -40,52 +55,81 @@
     .btn-scan:hover:not(:disabled) { background: #334155; }
     .btn-send { background: #2563eb; color: white; }
     .btn-send:hover:not(:disabled) { background: #1d4ed8; }
+    .btn-proposal { background: #7c3aed; color: white; }
+    .btn-proposal:hover:not(:disabled) { background: #6d28d9; }
     .btn-download { background: white; color: #333; border: 1.5px solid #e2e8f0; }
     .btn-download:hover:not(:disabled) { background: #f8f9fb; border-color: #ccc; }
 
+    .btn-row { display: flex; gap: 8px; }
+    .btn-row .btn { flex: 1; }
+
     .no-photos { text-align: center; padding: 20px; color: #999; font-size: 13px; }
 
-    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    .divider { height: 1px; background: #e2e8f0; margin: 12px 0; }
   </style>
 </head>
 <body>
 
   <div class="header">
     <h1>Big Wave Auto</h1>
-    <p>Manheim Photo Grabber</p>
+    <p>Manheim Photo Grabber + CR Extractor</p>
   </div>
 
   <div class="body">
     <div id="status" class="status"></div>
 
-    <div class="config">
-      <label>Server URL</label>
-      <input id="serverUrl" type="text" placeholder="https://bigwaveauto.com" />
-      <div class="hint">Your Big Wave Auto site URL</div>
+    <div class="config-row">
+      <div class="config">
+        <label>Server URL</label>
+        <input id="serverUrl" type="text" placeholder="https://bigwaveauto.com" />
+      </div>
+      <div class="config">
+        <label>API Key</label>
+        <input id="apiKey" type="password" placeholder="API key" />
+      </div>
     </div>
-    <div class="config">
-      <label>API Key</label>
-      <input id="apiKey" type="password" placeholder="Enter API key" />
-      <div class="hint">Extension API key from server</div>
-    </div>
+
+    <button id="scanBtn" class="btn btn-scan">Scan Page</button>
 
     <div id="vinSection" class="vin-display" style="display:none">
       <div class="label">VIN Detected</div>
       <div class="value" id="vinValue"></div>
     </div>
 
-    <button id="scanBtn" class="btn btn-scan">Scan Page for Photos</button>
+    <!-- Vehicle info extracted from CR -->
+    <div id="vehicleInfo" class="vehicle-info" style="display:none"></div>
+
+    <!-- Condition / Damage -->
+    <div id="crDetails" class="cr-section" style="display:none"></div>
 
     <div id="resultsSection" style="display:none">
       <div id="photoCount" class="photo-count"></div>
       <div id="photosPreview" class="photos-preview"></div>
-      <button id="sendBtn" class="btn btn-send">Send to Vehicle Profile</button>
-      <button id="downloadBtn" class="btn btn-download">Download All as ZIP</button>
+
+      <button id="proposalBtn" class="btn btn-proposal">Create Proposal</button>
+
+      <div class="btn-row">
+        <button id="sendBtn" class="btn btn-send">Send Photos</button>
+        <button id="downloadBtn" class="btn btn-download">Download</button>
+      </div>
     </div>
 
     <div id="noPhotos" class="no-photos" style="display:none">
-      No photos found. Make sure you're on a Manheim listing or condition report page.
+      No data found. Make sure you're on a Manheim listing or condition report.
+    </div>
+
+    <!-- Proposal result -->
+    <div id="proposalResult" style="display:none">
+      <div class="divider"></div>
+      <div class="config">
+        <label>Proposal Link</label>
+        <input id="proposalUrl" type="text" readonly style="font-weight:700; color:#7c3aed;" />
+        <div class="hint">Share this link with the customer</div>
+      </div>
+      <button id="copyLinkBtn" class="btn btn-download">Copy Link</button>
     </div>
   </div>
 

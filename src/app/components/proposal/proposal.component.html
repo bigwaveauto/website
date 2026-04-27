@@ -1,0 +1,133 @@
+@if(loading()){
+<div class="prop-loading">Loading report...</div>
+}@else if(notFound()){
+<div class="prop-loading">Report not found.</div>
+}@else if(proposal(); as p){
+
+<div class="prop-page">
+  <!-- Header -->
+  <div class="prop-header">
+    <div class="prop-logo">Big Wave Auto</div>
+    <div class="prop-header-sub">Vehicle Report</div>
+  </div>
+
+  <!-- Hero photo -->
+  @if(photos.length > 0){
+  <div class="prop-hero">
+    <img [src]="photos[0]" alt="Vehicle photo" />
+  </div>
+  }
+
+  <!-- Vehicle title -->
+  <div class="prop-title-section">
+    <h1 class="prop-vehicle-name">{{ v.year }} {{ v.make }} {{ v.model }} {{ v.trim }}</h1>
+    <div class="prop-vin">VIN: {{ p.vin }}</div>
+    @if(p.asking_price){
+    <div class="prop-price">{{ p.asking_price | currency:'USD':'symbol':'1.0-0' }}</div>
+    }
+  </div>
+
+  <!-- Key stats -->
+  <div class="prop-stats">
+    @if(v.mileage && !isExcluded('mileage')){
+    <div class="prop-stat"><span class="ps-label">Mileage</span><span class="ps-value">{{ v.mileage }}</span></div>
+    }
+    @if(v.exterior_color && !isExcluded('exterior_color')){
+    <div class="prop-stat"><span class="ps-label">Exterior</span><span class="ps-value">{{ v.exterior_color }}</span></div>
+    }
+    @if(v.interior_color && !isExcluded('interior_color')){
+    <div class="prop-stat"><span class="ps-label">Interior</span><span class="ps-value">{{ v.interior_color }}</span></div>
+    }
+    @if(v.engine && !isExcluded('engine')){
+    <div class="prop-stat"><span class="ps-label">Engine</span><span class="ps-value">{{ v.engine }}</span></div>
+    }
+    @if(v.transmission && !isExcluded('transmission')){
+    <div class="prop-stat"><span class="ps-label">Transmission</span><span class="ps-value">{{ v.transmission }}</span></div>
+    }
+    @if(v.drivetrain && !isExcluded('drivetrain')){
+    <div class="prop-stat"><span class="ps-label">Drivetrain</span><span class="ps-value">{{ v.drivetrain }}</span></div>
+    }
+    @if(v.fuel && !isExcluded('fuel')){
+    <div class="prop-stat"><span class="ps-label">Fuel</span><span class="ps-value">{{ v.fuel }}</span></div>
+    }
+    @if(v.body && !isExcluded('body')){
+    <div class="prop-stat"><span class="ps-label">Body</span><span class="ps-value">{{ v.body }}</span></div>
+    }
+  </div>
+
+  <!-- Custom notes from dealer -->
+  @if(p.custom_notes){
+  <div class="prop-notes">
+    <h2>From Big Wave Auto</h2>
+    <p>{{ p.custom_notes }}</p>
+  </div>
+  }
+
+  <!-- Condition -->
+  @if(cr.overall_grade && !isExcluded('grade')){
+  <div class="prop-section">
+    <h2>Condition Grade</h2>
+    <div class="prop-grade">{{ cr.overall_grade }}</div>
+  </div>
+  }
+
+  <!-- Announcements -->
+  @if(cr.announcements?.length && !isExcluded('announcements')){
+  <div class="prop-section">
+    <h2>Announcements</h2>
+    @for(a of cr.announcements; track $index){
+    <div class="prop-announcement">{{ a }}</div>
+    }
+  </div>
+  }
+
+  <!-- Damage -->
+  @if(visibleDamage().length > 0){
+  <div class="prop-section">
+    <h2>Condition Notes</h2>
+    @for(d of visibleDamage(); track $index){
+    <div class="prop-damage-item">{{ d }}</div>
+    }
+  </div>
+  }
+
+  <!-- Options -->
+  @if(visibleOptions().length > 0){
+  <div class="prop-section">
+    <h2>Features &amp; Options</h2>
+    <div class="prop-options-grid">
+      @for(o of visibleOptions(); track $index){
+      <div class="prop-option">{{ o }}</div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Tires -->
+  @if(cr.tires && !isExcluded('tires')){
+  <div class="prop-section">
+    <h2>Tires</h2>
+    <p>{{ cr.tires }}</p>
+  </div>
+  }
+
+  <!-- Photo gallery -->
+  @if(photos.length > 1){
+  <div class="prop-section">
+    <h2>Photos</h2>
+    <div class="prop-gallery">
+      @for(photo of photos; track $index){
+      <img [src]="photo" alt="Vehicle photo" class="prop-gallery-img" />
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Footer -->
+  <div class="prop-footer">
+    <div class="prop-footer-logo">Big Wave Auto</div>
+    <div class="prop-footer-info">Sussex, WI &middot; bigwaveauto.com</div>
+  </div>
+</div>
+
+}

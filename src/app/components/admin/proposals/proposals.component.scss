@@ -1,0 +1,128 @@
+$blue: #2563eb;
+$border: rgba(0,0,0,0.07);
+$muted: rgba(0,0,0,0.45);
+
+.prop-admin { display: flex; flex-direction: column; gap: 12px; }
+
+.prop-header-bar { display: flex; align-items: center; gap: 12px;
+  h1 { font-size: 22px; font-weight: 800; margin: 0; }
+}
+
+.prop-count { font-size: 13px; color: $muted; font-weight: 600; }
+.prop-loading, .prop-empty { text-align: center; padding: 40px; color: $muted; font-size: 14px; }
+
+.prop-layout { display: grid; grid-template-columns: 320px 1fr; gap: 12px; align-items: start;
+  @media (max-width: 900px) { grid-template-columns: 1fr; }
+}
+
+.prop-list { display: flex; flex-direction: column; gap: 6px; max-height: 80vh; overflow-y: auto; }
+
+.prop-card {
+  padding: 12px 14px; background: white; border-radius: 10px; border: 1.5px solid $border;
+  cursor: pointer; transition: border-color 0.15s;
+  &:hover { border-color: #999; }
+  &.active { border-color: $blue; background: #f0f4ff; }
+}
+
+.prop-card-top { display: flex; justify-content: space-between; align-items: center; }
+.prop-card-name { font-size: 14px; font-weight: 800; color: #111; }
+.prop-card-status {
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+  &.draft { background: #fef9c3; color: #854d0e; }
+  &.sent { background: #dcfce7; color: #166534; }
+}
+.prop-card-vin { font-size: 11px; color: $muted; font-family: monospace; margin-top: 2px; }
+.prop-card-meta { font-size: 11px; color: $muted; margin-top: 4px; }
+
+.prop-editor {
+  background: white; border-radius: 12px; padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.prop-editor-empty { display: flex; align-items: center; justify-content: center; min-height: 300px; color: $muted; font-size: 14px; }
+
+.prop-editor-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+  h2 { font-size: 18px; font-weight: 800; margin: 0; }
+}
+
+.prop-editor-actions { display: flex; align-items: center; gap: 8px; }
+
+.prop-saved { font-size: 13px; font-weight: 600; color: #16a34a; }
+
+.prop-save-btn {
+  padding: 8px 20px; background: $blue; color: white; border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+  &:hover { background: darken($blue, 8%); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.prop-link-row {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+
+.prop-link-input {
+  flex: 1; padding: 8px 12px; border: 1.5px solid $border; border-radius: 8px;
+  font-size: 13px; font-family: monospace; color: #7c3aed; background: #faf5ff;
+}
+
+.prop-copy-btn {
+  padding: 8px 16px; background: white; border: 1.5px solid $border; border-radius: 8px;
+  font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+  &:hover { background: #f5f5f5; }
+}
+
+.prop-field-row { display: flex; gap: 12px; margin-bottom: 12px; }
+
+.prop-field {
+  flex: 1; display: flex; flex-direction: column; gap: 4px;
+  label { font-size: 11px; font-weight: 700; color: $muted; text-transform: uppercase; }
+  input, select, textarea {
+    padding: 8px 10px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px;
+    font-size: 13px; font-family: inherit; color: #111; outline: none;
+    &:focus { border-color: $blue; }
+  }
+  textarea { resize: vertical; }
+}
+
+.prop-price-input {
+  display: flex; align-items: center; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;
+  &:focus-within { border-color: $blue; }
+  span { padding: 8px 0 8px 10px; font-weight: 700; color: $muted; }
+  input { flex: 1; border: none !important; padding: 8px 10px 8px 4px; font-size: 13px; }
+}
+
+.prop-toggle-title { font-size: 12px; font-weight: 700; color: $muted; text-transform: uppercase; margin: 16px 0 8px; }
+
+.prop-toggles { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+
+.prop-toggle {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 6px;
+  background: white; font-size: 12px; font-weight: 600; font-family: inherit;
+  color: #333; cursor: pointer; text-transform: capitalize;
+  lucide-icon { width: 14px; height: 14px; }
+  &:hover { border-color: #999; }
+  &.excluded { background: #f1f5f9; color: #999; text-decoration: line-through; border-style: dashed; }
+}
+
+.prop-toggle-damage {
+  font-size: 11px; max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-transform: none;
+}
+
+.prop-send-section {
+  border-top: 1px solid $border; padding-top: 16px; margin-top: 16px;
+  h3 { font-size: 14px; font-weight: 700; margin: 0 0 12px; }
+}
+
+.prop-send-btn {
+  padding: 8px 20px; background: #7c3aed; color: white; border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; margin-top: 18px; width: 100%;
+  &:hover { background: #6d28d9; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.prop-photo-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 8px;
+  img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 4px; }
+}
