@@ -122,72 +122,121 @@ $muted: rgba(0,0,0,0.45);
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
-/* ── Strategy Desk ── */
-.strat-desk {
-  margin-bottom: 16px;
+/* ── Deal Worksheet ── */
+.desk {
   border: 1.5px solid $border;
   border-radius: 12px;
   overflow: hidden;
+  margin-bottom: 16px;
+  background: white;
 }
 
-.strat-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  @media (max-width: 700px) { grid-template-columns: 1fr; }
+.desk-ref {
+  display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px;
+  background: #f8f9fb; border-bottom: 1px solid $border;
 }
 
-.strat-col { padding: 14px 16px; }
-.strat-cost { border-right: 1px solid $border; background: #fafbfc; }
-.strat-market { background: #f0f4ff; }
-
-.strat-col-header {
-  font-size: 11px; font-weight: 800; color: $muted; text-transform: uppercase;
-  letter-spacing: 0.8px; margin-bottom: 10px;
+.desk-ref-tag {
+  font-size: 11px; font-weight: 800; color: white; background: #1e293b;
+  padding: 3px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;
 }
 
-.strat-line {
-  display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0;
-  span:first-child { color: #555; }
-  span:last-child { font-weight: 600; color: #111; }
+.desk-ref-pill {
+  font-size: 12px; color: #555; background: white; padding: 3px 10px;
+  border-radius: 4px; border: 1px solid $border;
+  b { color: #111; }
 }
 
-.strat-sub {
-  padding-left: 10px;
-  span:first-child { color: $muted; font-size: 13px; }
-  span:last-child { color: #555; font-weight: 400; font-size: 13px; }
+.desk-ref-mmr { border-color: $blue; b { color: $blue; } }
+.desk-ref-date { color: $muted; }
+
+.desk-section {
+  padding: 12px 14px;
+  border-bottom: 1px solid $border;
 }
 
-.strat-total {
-  border-top: 1px solid rgba(0,0,0,0.08); margin-top: 6px; padding-top: 8px;
-  span { font-weight: 800 !important; color: #111 !important; }
+.desk-section-title {
+  font-size: 10px; font-weight: 800; color: $muted; text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 8px;
 }
 
-.strat-no-data {
-  font-size: 13px; color: $muted; font-style: italic; padding: 8px 0;
+.desk-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 4px 0;
+
+  label {
+    font-size: 13px; color: #555; font-weight: 500; flex-shrink: 0;
+  }
 }
 
-.strat-green { color: #16a34a !important; }
-.strat-blue { color: $blue !important; }
-
-.strat-spread {
-  display: flex; border-top: 1px solid $border; background: #fafbfc;
+.desk-row-calc {
+  label { font-weight: 600; color: #333; }
 }
 
-.strat-spread-item {
+.desk-calc-value {
+  font-size: 14px; font-weight: 700; color: #555; font-style: italic;
+}
+
+.desk-dollar {
+  display: flex; align-items: center; border: 1.5px solid rgba(0,0,0,0.1);
+  border-radius: 6px; overflow: hidden; width: 140px;
+  &:focus-within { border-color: $blue; }
+  span { padding: 6px 0 6px 8px; font-weight: 700; color: $muted; font-size: 13px; }
+  input {
+    flex: 1; border: none; padding: 6px 8px 6px 4px; font-size: 14px;
+    font-family: inherit; font-weight: 600; color: #111; outline: none; width: 80px;
+    text-align: right;
+    &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { -webkit-appearance: none; }
+    -moz-appearance: textfield;
+  }
+}
+
+.desk-dollar-big {
+  width: 160px;
+  input { font-size: 18px; font-weight: 800; }
+}
+
+.desk-input-sm {
+  width: 80px; padding: 6px 8px; border: 1.5px solid rgba(0,0,0,0.1);
+  border-radius: 6px; font-size: 14px; font-family: inherit; font-weight: 600;
+  color: #111; outline: none; text-align: right;
+  &:focus { border-color: $blue; }
+  &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { -webkit-appearance: none; }
+  -moz-appearance: textfield;
+}
+
+.desk-totals {
+  padding: 12px 14px; background: #f8f9fb; border-bottom: 1px solid $border;
+}
+
+.desk-total-row {
+  display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; color: #111;
+}
+
+.desk-retail {
+  background: #fafffe;
+  .desk-section-title { color: #16a34a; }
+}
+
+.desk-spread {
+  display: flex; background: #f8f9fb;
+}
+
+.desk-spread-item {
   flex: 1; display: flex; flex-direction: column; align-items: center;
-  padding: 12px 8px; border-right: 1px solid $border;
+  padding: 14px 8px; border-right: 1px solid $border;
   &:last-child { border-right: none; }
 }
 
-.strat-spread-label { font-size: 10px; font-weight: 700; color: $muted; text-transform: uppercase; letter-spacing: 0.5px; }
-.strat-spread-value { font-size: 18px; font-weight: 900; color: #111; }
+.desk-spread-label { font-size: 10px; font-weight: 700; color: $muted; text-transform: uppercase; letter-spacing: 0.5px; }
+.desk-spread-val { font-size: 20px; font-weight: 900; color: #111; }
 
-.strat-spread-profit {
-  &.strat-profit-pos { background: #dcfce7; .strat-spread-value { color: #16a34a; } }
-  &.strat-profit-neg { background: #fee2e2; .strat-spread-value { color: #dc2626; } }
+.desk-pos { background: #dcfce7; .desk-spread-val { color: #16a34a; } }
+.desk-neg { background: #fee2e2; .desk-spread-val { color: #dc2626; } }
+
+.desk-meta {
+  display: flex; gap: 12px; padding: 12px 14px;
 }
-
-.strat-loading { text-align: center; padding: 20px; color: $muted; font-size: 13px; }
 
 /* ── Line Items Editor ── */
 .prop-line-items { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }

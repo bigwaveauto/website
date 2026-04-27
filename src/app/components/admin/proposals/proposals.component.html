@@ -47,102 +47,121 @@
         <button class="prop-copy-btn" (click)="copyLink(s)">Copy</button>
       </div>
 
-      <!-- ═══ STRATEGY DESK ═══ -->
-      @if(strategy(); as st){
-      <div class="strat-desk">
-        <div class="strat-grid">
-          <!-- Cost Side -->
-          <div class="strat-col strat-cost">
-            <div class="strat-col-header">Your Cost Basis</div>
-            <div class="strat-line"><span>Purchase Price</span><span>{{ st.purchase_price | currency:'USD':'symbol':'1.0-0' }}</span></div>
-            <div class="strat-line strat-sub"><span>Cost Adds</span><span>{{ st.cost_adds | currency:'USD':'symbol':'1.0-0' }}</span></div>
-            <div class="strat-line strat-sub"><span>Flooring</span><span>{{ st.flooring_cost | currency:'USD':'symbol':'1.0-0' }}</span></div>
-            <div class="strat-line strat-total"><span>Total Investment</span><span>{{ st.total_investment | currency:'USD':'symbol':'1.0-0' }}</span></div>
-          </div>
+      <!-- ═══ DEAL WORKSHEET ═══ -->
+      <div class="desk">
+        <!-- Auction reference (if available) -->
+        @if(s.auction){
+        <div class="desk-ref">
+          <span class="desk-ref-tag">{{ s.auction.channel || 'Auction' }}</span>
+          @if(s.auction.buy_now){<span class="desk-ref-pill">Buy Now <b>{{ s.auction.buy_now | currency:'USD':'symbol':'1.0-0' }}</b></span>}
+          @if(s.auction.current_bid){<span class="desk-ref-pill">Bid <b>{{ s.auction.current_bid | currency:'USD':'symbol':'1.0-0' }}</b></span>}
+          @if(s.auction.mmr){<span class="desk-ref-pill desk-ref-mmr">MMR <b>{{ s.auction.mmr | currency:'USD':'symbol':'1.0-0' }}</b></span>}
+          @if(s.auction.sale_date){<span class="desk-ref-pill desk-ref-date">{{ s.auction.sale_date }}</span>}
+        </div>
+        }
 
-          <!-- Market / Auction Side -->
-          <div class="strat-col strat-market">
-            @if(s.auction){
-            <div class="strat-col-header">
-              {{ s.page_type === 'live_listing' ? 'Live Listing' : 'Auction' }}
-              @if(s.auction.channel){ — {{ s.auction.channel }} }
-            </div>
-            @if(s.auction.buy_now){
-            <div class="strat-line"><span>Buy Now</span><span class="strat-green">{{ s.auction.buy_now | currency:'USD':'symbol':'1.0-0' }}</span></div>
-            }
-            @if(s.auction.current_bid){
-            <div class="strat-line"><span>Current Bid</span><span>{{ s.auction.current_bid | currency:'USD':'symbol':'1.0-0' }}</span></div>
-            }
-            @if(s.auction.starting_bid){
-            <div class="strat-line strat-sub"><span>Starting Bid</span><span>{{ s.auction.starting_bid | currency:'USD':'symbol':'1.0-0' }}</span></div>
-            }
-            @if(s.auction.mmr){
-            <div class="strat-line strat-total"><span>MMR</span><span class="strat-blue">{{ s.auction.mmr | currency:'USD':'symbol':'1.0-0' }}</span></div>
-            }
-            @if(s.auction.sale_date){
-            <div class="strat-line strat-sub"><span>Sale Date</span><span>{{ s.auction.sale_date }}</span></div>
-            }
-            @if(s.auction.lane){
-            <div class="strat-line strat-sub"><span>Lane</span><span>{{ s.auction.lane }}</span></div>
-            }
-            }@else{
-            <div class="strat-col-header">Market Values</div>
-            }
-            @if(st.mmr > 0 && !s.auction?.mmr){
-            <div class="strat-line"><span>MMR (Wholesale)</span><span>{{ st.mmr | currency:'USD':'symbol':'1.0-0' }}</span></div>
-            }
-            @if(st.kbb > 0){
-            <div class="strat-line"><span>KBB</span><span>{{ st.kbb | currency:'USD':'symbol':'1.0-0' }}</span></div>
-            }
-            @if(st.market_avg > 0){
-            <div class="strat-line strat-total"><span>Market Avg</span><span>{{ st.market_avg | currency:'USD':'symbol':'1.0-0' }}</span></div>
-            }
-            @if(!st.mmr && !st.kbb && !s.auction){
-            <div class="strat-no-data">No market data yet</div>
-            }
+        <!-- Acquisition -->
+        <div class="desk-section">
+          <div class="desk-section-title">Acquisition</div>
+          <div class="desk-row">
+            <label>Auction Price Paid</label>
+            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.purchase_price" /></div>
+          </div>
+          <div class="desk-row">
+            <label>Transport</label>
+            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.transport_cost" /></div>
+          </div>
+          <div class="desk-row">
+            <label>Auction Fees</label>
+            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.auction_fees" /></div>
+          </div>
+        </div>
+
+        <!-- Recon -->
+        <div class="desk-section">
+          <div class="desk-section-title">Reconditioning</div>
+          <div class="desk-row">
+            <label>Mechanical</label>
+            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.recon_mechanical" /></div>
+          </div>
+          <div class="desk-row">
+            <label>Body / Paint</label>
+            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.recon_body" /></div>
+          </div>
+          <div class="desk-row">
+            <label>Tires</label>
+            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.recon_tires" /></div>
+          </div>
+          <div class="desk-row">
+            <label>Detail / Other</label>
+            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.recon_other" /></div>
+          </div>
+        </div>
+
+        <!-- Flooring estimate -->
+        <div class="desk-section">
+          <div class="desk-section-title">Flooring (est.)</div>
+          <div class="desk-row">
+            <label>Est. Days to Sell</label>
+            <input type="number" class="desk-input-sm" [(ngModel)]="s.est_days_to_sell" />
+          </div>
+          <div class="desk-row desk-row-calc">
+            <label>Est. Flooring Cost</label>
+            <span class="desk-calc-value">{{ estFlooringCost(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <!-- Totals -->
+        <div class="desk-totals">
+          <div class="desk-total-row"><span>Total Investment</span><span>{{ totalInvestment(s) | currency:'USD':'symbol':'1.0-0' }}</span></div>
+        </div>
+
+        <!-- Retail pricing -->
+        <div class="desk-section desk-retail">
+          <div class="desk-section-title">Retail</div>
+          <div class="desk-row">
+            <label>Asking Price</label>
+            <div class="desk-dollar desk-dollar-big"><span>$</span><input type="number" [(ngModel)]="s.asking_price" /></div>
+          </div>
+          <div class="desk-row">
+            <label>Min Price (floor)</label>
+            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.min_price" /></div>
           </div>
         </div>
 
         <!-- Spread -->
-        @if(s.asking_price > 0){
-        <div class="strat-spread">
-          <div class="strat-spread-item">
-            <span class="strat-spread-label">Asking</span>
-            <span class="strat-spread-value">{{ s.asking_price | currency:'USD':'symbol':'1.0-0' }}</span>
+        <div class="desk-spread">
+          <div class="desk-spread-item" [class.desk-pos]="grossProfit(s) >= 0" [class.desk-neg]="grossProfit(s) < 0">
+            <span class="desk-spread-label">Gross @ Ask</span>
+            <span class="desk-spread-val">{{ grossProfit(s) | currency:'USD':'symbol':'1.0-0' }}</span>
           </div>
-          <div class="strat-spread-item">
-            <span class="strat-spread-label">Investment</span>
-            <span class="strat-spread-value">{{ st.total_investment | currency:'USD':'symbol':'1.0-0' }}</span>
+          @if(s.min_price > 0){
+          <div class="desk-spread-item" [class.desk-pos]="minGross(s) >= 0" [class.desk-neg]="minGross(s) < 0">
+            <span class="desk-spread-label">Gross @ Min</span>
+            <span class="desk-spread-val">{{ minGross(s) | currency:'USD':'symbol':'1.0-0' }}</span>
           </div>
-          <div class="strat-spread-item strat-spread-profit" [class.strat-profit-pos]="grossProfit >= 0" [class.strat-profit-neg]="grossProfit < 0">
-            <span class="strat-spread-label">Gross Profit</span>
-            <span class="strat-spread-value">{{ grossProfit | currency:'USD':'symbol':'1.0-0' }}</span>
-          </div>
-          <div class="strat-spread-item">
-            <span class="strat-spread-label">Margin</span>
-            <span class="strat-spread-value">{{ grossMargin | number:'1.1-1' }}%</span>
+          }
+          <div class="desk-spread-item">
+            <span class="desk-spread-label">Margin</span>
+            <span class="desk-spread-val">{{ grossMargin(s) | number:'1.1-1' }}%</span>
           </div>
         </div>
-        }
-      </div>
-      }@else if(loadingStrategy()){
-      <div class="strat-loading">Loading cost & market data...</div>
-      }
 
-      <!-- Status -->
-      <div class="prop-field-row">
-        <div class="prop-field">
-          <label>Status</label>
-          <select [(ngModel)]="s.status">
-            <option value="draft">Draft</option>
-            <option value="sent">Sent</option>
-            <option value="viewed">Viewed</option>
-            <option value="closed">Closed</option>
-          </select>
-        </div>
-        <div class="prop-field">
-          <label>Tax Rate %</label>
-          <input type="number" step="0.01" [(ngModel)]="s.tax_rate" placeholder="5.5" />
+        <!-- Status + Tax -->
+        <div class="desk-meta">
+          <div class="prop-field">
+            <label>Status</label>
+            <select [(ngModel)]="s.status">
+              <option value="draft">Draft</option>
+              <option value="sent">Sent</option>
+              <option value="viewed">Viewed</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+          <div class="prop-field">
+            <label>Tax Rate %</label>
+            <input type="number" step="0.01" [(ngModel)]="s.tax_rate" placeholder="5.5" />
+          </div>
         </div>
       </div>
 

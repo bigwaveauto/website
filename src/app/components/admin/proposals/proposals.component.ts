@@ -103,17 +103,30 @@ export class AdminProposalsComponent implements OnInit {
     });
   }
 
-  get grossProfit(): number {
-    const s = this.selected();
-    const st = this.strategy();
-    if (!s || !st) return 0;
-    return (s.asking_price || 0) - (st.total_investment || 0);
+  totalInvestment(s: any): number {
+    return (s.purchase_price || 0) + (s.transport_cost || 0) + (s.auction_fees || 0)
+      + (s.recon_mechanical || 0) + (s.recon_body || 0) + (s.recon_tires || 0) + (s.recon_other || 0)
+      + this.estFlooringCost(s);
   }
 
-  get grossMargin(): number {
-    const s = this.selected();
-    if (!s?.asking_price) return 0;
-    return (this.grossProfit / s.asking_price) * 100;
+  estFlooringCost(s: any): number {
+    const principal = s.purchase_price || 0;
+    const days = s.est_days_to_sell || 45;
+    const rate = 8.25;
+    return Math.round((principal * rate / 100 / 365) * days);
+  }
+
+  grossProfit(s: any): number {
+    return (s.asking_price || 0) - this.totalInvestment(s);
+  }
+
+  minGross(s: any): number {
+    return (s.min_price || 0) - this.totalInvestment(s);
+  }
+
+  grossMargin(s: any): number {
+    if (!s.asking_price) return 0;
+    return (this.grossProfit(s) / s.asking_price) * 100;
   }
 
   close() {
@@ -165,6 +178,15 @@ export class AdminProposalsComponent implements OnInit {
       tax_rate: s.tax_rate || 0,
       down_payment: s.down_payment || 0,
       carfax_url: s.carfax_url || null,
+      purchase_price: s.purchase_price || 0,
+      transport_cost: s.transport_cost || 0,
+      auction_fees: s.auction_fees || 0,
+      recon_mechanical: s.recon_mechanical || 0,
+      recon_body: s.recon_body || 0,
+      recon_tires: s.recon_tires || 0,
+      recon_other: s.recon_other || 0,
+      est_days_to_sell: s.est_days_to_sell || 45,
+      min_price: s.min_price || 0,
     }).subscribe({
       next: () => { this.saving.set(false); this.saved.set(true); setTimeout(() => this.saved.set(false), 3000); },
       error: () => { this.saving.set(false); alert('Failed to save.'); },

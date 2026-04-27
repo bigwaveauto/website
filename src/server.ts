@@ -1815,6 +1815,15 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (tax_rate !== undefined) updates['tax_rate'] = tax_rate;
     if (down_payment !== undefined) updates['down_payment'] = down_payment;
     if (req.body.carfax_url !== undefined) updates['carfax_url'] = req.body.carfax_url;
+    if (req.body.purchase_price !== undefined) updates['purchase_price'] = req.body.purchase_price;
+    if (req.body.transport_cost !== undefined) updates['transport_cost'] = req.body.transport_cost;
+    if (req.body.auction_fees !== undefined) updates['auction_fees'] = req.body.auction_fees;
+    if (req.body.recon_mechanical !== undefined) updates['recon_mechanical'] = req.body.recon_mechanical;
+    if (req.body.recon_body !== undefined) updates['recon_body'] = req.body.recon_body;
+    if (req.body.recon_tires !== undefined) updates['recon_tires'] = req.body.recon_tires;
+    if (req.body.recon_other !== undefined) updates['recon_other'] = req.body.recon_other;
+    if (req.body.est_days_to_sell !== undefined) updates['est_days_to_sell'] = req.body.est_days_to_sell;
+    if (req.body.min_price !== undefined) updates['min_price'] = req.body.min_price;
     updates['updated_at'] = new Date().toISOString();
 
     const { error } = await supabase
