@@ -207,46 +207,101 @@ function extractManheimData() {
   const sellerMatch = pageText.match(/(?:seller|consignor)[:\s]*([^\n]+)/i);
   if (sellerMatch) vehicle.seller = sellerMatch[1].trim();
 
-  // ── Damage ──
-  document.querySelectorAll('[class*="damage" i], [class*="condition" i], [class*="defect" i], [data-testid*="damage" i], [data-testid*="condition" i]').forEach(el => {
+  // ── Damage / Condition Notes ──
+  // Junk filter: skip CSS artifacts, UI chrome, and vague labels
+  const isJunk = (text) => {
+    if (!text || text.length < 5 || text.length > 200) return true;
+    // CSS/SVG artifacts
+    if (/\{|fill:|\.dash|stroke|class=|<svg|<path/i.test(text)) return true;
+    // UI labels, not actual condition data
+    if (/^(sort by|filter|condition details|type|condition|location|severity|miscellaneous)$/i.test(text)) return true;
+    // Generic headers
+    if (/^(view|show|hide|close|expand|collapse|back|next|previous|cancel)$/i.test(text)) return true;
+    return false;
+  };
+
+  // Look for leaf-level damage items (not parent containers)
+  document.querySelectorAll('[class*="damage-item" i], [class*="defect-item" i], [class*="condition-item" i], [data-testid*="damage-item" i]').forEach(el => {
     const text = el.textContent?.trim();
-    if (text && text.length > 3 && text.length < 200) condition.damage.push(text);
+    if (!isJunk(text)) condition.damage.push(text);
   });
 
+  // Fallback: scan text for actual damage descriptions
   if (condition.damage.length === 0) {
     const lines = pageText.split('\n');
+    const damageKeywords = /(?:dent|scratch|scuff|chip|crack|tear|stain|worn|faded|rust|missing|broken|bent|gouge|curb\s*rash|hail)/i;
+    const locationKeywords = /(?:wheel|bumper|fender|hood|door|roof|quarter|trunk|panel|mirror|windshield|rim|tire|LF|LR|RF|RR|front|rear)/i;
+
     for (const line of lines) {
       const trimmed = line.trim();
-      if (trimmed.length > 5 && trimmed.length < 200 &&
-          /(?:dent|scratch|scuff|chip|crack|tear|stain|worn|faded|rust|missing|broken|bent|gouge|paint|panel|bumper|fender|hood|door|roof|quarter|trunk|hail)/i.test(trimmed)) {
+      if (isJunk(trimmed)) continue;
+      // Must have a damage keyword AND a location, or be a clear damage phrase
+      if (damageKeywords.test(trimmed) && (locationKeywords.test(trimmed) || trimmed.split(/\s+/).length >= 3)) {
         condition.damage.push(trimmed);
       }
     }
   }
-  condition.damage = [...new Set(condition.damage)];
+
+  // Consolidate: merge fragments that appear to be parts of the same item
+  // e.g. "LR Wheel" + "Curb Rash" + "Miscellaneous" → "LR Wheel — Curb Rash"
+  const consolidated = [];
+  const seen = new Set();
+  for (const d of condition.damage) {
+    // Skip if this text is a substring of something already added
+    if (seen.has(d)) continue;
+    let dominated = false;
+    for (const s of seen) {
+      if (s.includes(d)) { dominated = true; break; }
+    }
+    if (dominated) continue;
+    // Remove entries that are substrings of this one
+    const filtered = [...seen].filter(s => !d.includes(s));
+    seen.clear();
+    filtered.forEach(s => seen.add(s));
+    seen.add(d);
+    consolidated.push(d);
+  }
+  condition.damage = consolidated;
+
+  // Also pull "No structural damages/issues" as positive signals, not damage
+  const positiveNotes = [];
+  const realDamage = [];
+  for (const d of condition.damage) {
+    if (/^no\s+(structural|other)\s+(damage|issue|condition)/i.test(d)) {
+      positiveNotes.push(d);
+    } else {
+      realDamage.push(d);
+    }
+  }
+  condition.damage = realDamage;
+  if (positiveNotes.length) condition.positive_notes = positiveNotes;
 
   // ── Announcements ──
-  document.querySelectorAll('[class*="announcement" i], [data-testid*="announcement" i]').forEach(el => {
+  document.querySelectorAll('[class*="announcement-item" i], [class*="announcement-text" i], [data-testid*="announcement" i]').forEach(el => {
+    // Only grab leaf text, not parent containers
+    if (el.children.length > 3) return; // likely a container
     const text = el.textContent?.trim();
-    if (text && text.length > 3) condition.announcements.push(text);
+    if (!isJunk(text)) condition.announcements.push(text);
   });
   condition.announcements = [...new Set(condition.announcements)];
 
   // ── Options ──
-  document.querySelectorAll('[class*="option" i], [class*="feature" i], [class*="equipment" i], [class*="package" i]').forEach(el => {
-    const items = el.querySelectorAll('li, [class*="item" i], span');
-    if (items.length > 0) {
-      items.forEach(item => {
-        const text = item.textContent?.trim();
-        if (text && text.length > 2 && text.length < 100) condition.options.push(text);
-      });
-    } else {
-      const text = el.textContent?.trim();
-      if (text && text.length > 2 && text.length < 300) {
-        text.split(/[,\n]/).forEach(t => { if (t.trim().length > 2) condition.options.push(t.trim()); });
-      }
-    }
+  document.querySelectorAll('[class*="option-item" i], [class*="feature-item" i], [class*="equipment-item" i], [class*="package-item" i]').forEach(el => {
+    const text = el.textContent?.trim();
+    if (!isJunk(text) && text.length < 100) condition.options.push(text);
   });
+
+  // Fallback: broader selectors but only grab leaf nodes
+  if (condition.options.length === 0) {
+    document.querySelectorAll('[class*="option" i], [class*="feature" i], [class*="equipment" i]').forEach(el => {
+      const items = el.querySelectorAll('li, span');
+      items.forEach(item => {
+        if (item.children.length > 1) return; // skip containers
+        const text = item.textContent?.trim();
+        if (!isJunk(text) && text.length > 3 && text.length < 100) condition.options.push(text);
+      });
+    });
+  }
   condition.options = [...new Set(condition.options)].slice(0, 50);
 
   // Tires
