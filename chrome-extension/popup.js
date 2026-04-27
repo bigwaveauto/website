@@ -5,13 +5,18 @@ const $ = (s) => document.getElementById(s);
 let extractedPhotos = [];
 let detectedVin = '';
 
-// Load saved server URL
-chrome.storage.local.get(['serverUrl'], (data) => {
+// Load saved settings
+chrome.storage.local.get(['serverUrl', 'apiKey'], (data) => {
   $('serverUrl').value = data.serverUrl || 'https://bigwaveauto.com';
+  $('apiKey').value = data.apiKey || '';
 });
 
 $('serverUrl').addEventListener('change', () => {
   chrome.storage.local.set({ serverUrl: $('serverUrl').value.replace(/\/+$/, '') });
+});
+
+$('apiKey').addEventListener('change', () => {
+  chrome.storage.local.set({ apiKey: $('apiKey').value });
 });
 
 function showStatus(msg, type) {
@@ -83,16 +88,21 @@ $('scanBtn').addEventListener('click', async () => {
 // Send to vehicle profile
 $('sendBtn').addEventListener('click', async () => {
   const serverUrl = $('serverUrl').value.replace(/\/+$/, '');
+  const apiKey = $('apiKey').value;
   if (!serverUrl) { showStatus('Enter your server URL first.', 'error'); return; }
+  if (!apiKey) { showStatus('Enter your API key first.', 'error'); return; }
   if (!extractedPhotos.length) return;
 
   $('sendBtn').disabled = true;
   showStatus(`Sending ${extractedPhotos.length} photos...`, 'working');
 
   try {
-    const response = await fetch(`${serverUrl}/api/admin/vehicle/manheim-photos`, {
+    const response = await fetch(`${serverUrl}/api/ext/manheim-photos`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': apiKey,
+      },
       body: JSON.stringify({
         vin: detectedVin,
         photos: extractedPhotos,

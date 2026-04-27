@@ -1660,9 +1660,15 @@ app.post('/api/admin/vehicle/photo', upload.single('file'), async (req: any, res
 
 /**
  * Manheim Photo Grabber — receive extracted photo URLs from Chrome extension
- * Downloads each image and uploads to Supabase storage
+ * Uses a simple API key since the extension can't carry a Supabase JWT session.
+ * This endpoint is OUTSIDE the /api/admin auth middleware.
  */
-app.post('/api/admin/vehicle/manheim-photos', async (req, res) => {
+app.post('/api/ext/manheim-photos', async (req, res) => {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== process.env['BWA_EXT_API_KEY']) {
+    res.status(401).json({ error: 'Invalid API key' });
+    return;
+  }
   try {
     const { vin, photos } = req.body;
     if (!vin || !photos?.length) { res.status(400).json({ error: 'VIN and photos required' }); return; }
