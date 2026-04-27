@@ -1,14 +1,15 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, SlicePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-proposal',
   templateUrl: './proposal.component.html',
   styleUrl: './proposal.component.scss',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
 })
 export class ProposalComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -17,6 +18,7 @@ export class ProposalComponent implements OnInit {
   proposal = signal<any>(null);
   loading = signal(true);
   notFound = signal(false);
+  selectedPhoto = signal(0);
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -38,6 +40,16 @@ export class ProposalComponent implements OnInit {
   get cr(): any { return this.proposal()?.condition || {}; }
   get photos(): string[] { return this.proposal()?.photos || []; }
   get excluded(): string[] { return this.proposal()?.excluded_fields || []; }
+
+  prevPhoto() {
+    const total = this.photos.length;
+    this.selectedPhoto.update(i => (i - 1 + total) % total);
+  }
+
+  nextPhoto() {
+    const total = this.photos.length;
+    this.selectedPhoto.update(i => (i + 1) % total);
+  }
 
   isExcluded(field: string): boolean {
     return this.excluded.includes(field);

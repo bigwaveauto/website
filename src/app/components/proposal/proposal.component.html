@@ -4,130 +4,216 @@
 <div class="prop-loading">Report not found.</div>
 }@else if(proposal(); as p){
 
-<div class="prop-page">
-  <!-- Header -->
-  <div class="prop-header">
-    <div class="prop-logo">Big Wave Auto</div>
-    <div class="prop-header-sub">Vehicle Report</div>
-  </div>
+<div class="prop-shell">
 
-  <!-- Hero photo -->
-  @if(photos.length > 0){
-  <div class="prop-hero">
-    <img [src]="photos[0]" alt="Vehicle photo" />
-  </div>
-  }
-
-  <!-- Vehicle title -->
-  <div class="prop-title-section">
-    <h1 class="prop-vehicle-name">{{ v.year }} {{ v.make }} {{ v.model }} {{ v.trim }}</h1>
-    <div class="prop-vin">VIN: {{ p.vin }}</div>
-    @if(p.asking_price){
-    <div class="prop-price">{{ p.asking_price | currency:'USD':'symbol':'1.0-0' }}</div>
-    }
-  </div>
-
-  <!-- Key stats -->
-  <div class="prop-stats">
-    @if(v.mileage && !isExcluded('mileage')){
-    <div class="prop-stat"><span class="ps-label">Mileage</span><span class="ps-value">{{ v.mileage }}</span></div>
-    }
-    @if(v.exterior_color && !isExcluded('exterior_color')){
-    <div class="prop-stat"><span class="ps-label">Exterior</span><span class="ps-value">{{ v.exterior_color }}</span></div>
-    }
-    @if(v.interior_color && !isExcluded('interior_color')){
-    <div class="prop-stat"><span class="ps-label">Interior</span><span class="ps-value">{{ v.interior_color }}</span></div>
-    }
-    @if(v.engine && !isExcluded('engine')){
-    <div class="prop-stat"><span class="ps-label">Engine</span><span class="ps-value">{{ v.engine }}</span></div>
-    }
-    @if(v.transmission && !isExcluded('transmission')){
-    <div class="prop-stat"><span class="ps-label">Transmission</span><span class="ps-value">{{ v.transmission }}</span></div>
-    }
-    @if(v.drivetrain && !isExcluded('drivetrain')){
-    <div class="prop-stat"><span class="ps-label">Drivetrain</span><span class="ps-value">{{ v.drivetrain }}</span></div>
-    }
-    @if(v.fuel && !isExcluded('fuel')){
-    <div class="prop-stat"><span class="ps-label">Fuel</span><span class="ps-value">{{ v.fuel }}</span></div>
-    }
-    @if(v.body && !isExcluded('body')){
-    <div class="prop-stat"><span class="ps-label">Body</span><span class="ps-value">{{ v.body }}</span></div>
-    }
-  </div>
-
-  <!-- Custom notes from dealer -->
-  @if(p.custom_notes){
-  <div class="prop-notes">
-    <h2>From Big Wave Auto</h2>
-    <p>{{ p.custom_notes }}</p>
-  </div>
-  }
-
-  <!-- Condition -->
-  @if(cr.overall_grade && !isExcluded('grade')){
-  <div class="prop-section">
-    <h2>Condition Grade</h2>
-    <div class="prop-grade">{{ cr.overall_grade }}</div>
-  </div>
-  }
-
-  <!-- Announcements -->
-  @if(cr.announcements?.length && !isExcluded('announcements')){
-  <div class="prop-section">
-    <h2>Announcements</h2>
-    @for(a of cr.announcements; track $index){
-    <div class="prop-announcement">{{ a }}</div>
-    }
-  </div>
-  }
-
-  <!-- Damage -->
-  @if(visibleDamage().length > 0){
-  <div class="prop-section">
-    <h2>Condition Notes</h2>
-    @for(d of visibleDamage(); track $index){
-    <div class="prop-damage-item">{{ d }}</div>
-    }
-  </div>
-  }
-
-  <!-- Options -->
-  @if(visibleOptions().length > 0){
-  <div class="prop-section">
-    <h2>Features &amp; Options</h2>
-    <div class="prop-options-grid">
-      @for(o of visibleOptions(); track $index){
-      <div class="prop-option">{{ o }}</div>
+  <!-- Left: Photo -->
+  <div class="prop-left">
+    <div class="prop-photo-wrap">
+      @if(photos.length > 0){
+      <div class="prop-photo-main">
+        <img [src]="photos[selectedPhoto()]" alt="Vehicle photo" />
+        @if(photos.length > 1){
+        <button class="prop-arrow left" (click)="prevPhoto()"><lucide-icon name="chevron-left" /></button>
+        <button class="prop-arrow right" (click)="nextPhoto()"><lucide-icon name="chevron-right" /></button>
+        <div class="prop-dots">
+          @for(ph of photos | slice:0:8; track $index; let i = $index){
+          <span class="prop-dot" [class.active]="i === selectedPhoto()" (click)="selectedPhoto.set(i)"></span>
+          }
+          @if(photos.length > 8){<span class="prop-dot-more">+{{ photos.length - 8 }}</span>}
+        </div>
+        }
+      </div>
+      }@else{
+      <div class="prop-no-photo">Photos Coming Soon</div>
       }
     </div>
-  </div>
-  }
 
-  <!-- Tires -->
-  @if(cr.tires && !isExcluded('tires')){
-  <div class="prop-section">
-    <h2>Tires</h2>
-    <p>{{ cr.tires }}</p>
-  </div>
-  }
+    <!-- Below photo -->
+    <div class="prop-below">
 
-  <!-- Photo gallery -->
-  @if(photos.length > 1){
-  <div class="prop-section">
-    <h2>Photos</h2>
-    <div class="prop-gallery">
-      @for(photo of photos; track $index){
-      <img [src]="photo" alt="Vehicle photo" class="prop-gallery-img" />
-      }
+      <!-- Highlights -->
+      <div class="prop-section">
+        <h2 class="prop-heading">Highlights</h2>
+        <div class="prop-highlights-grid">
+          @if(v.mileage && !isExcluded('mileage')){
+          <div class="prop-highlight-card">
+            <div class="prop-highlight-icon"><lucide-icon name="gauge" /></div>
+            <span class="prop-highlight-label">Mileage</span>
+            <span class="prop-highlight-value">{{ v.mileage }} miles</span>
+          </div>}
+          @if(v.exterior_color && !isExcluded('exterior_color')){
+          <div class="prop-highlight-card">
+            <div class="prop-highlight-icon"><lucide-icon name="palette" /></div>
+            <span class="prop-highlight-label">Exterior</span>
+            <span class="prop-highlight-value">{{ v.exterior_color }}</span>
+          </div>}
+          @if(v.interior_color && !isExcluded('interior_color')){
+          <div class="prop-highlight-card">
+            <div class="prop-highlight-icon"><lucide-icon name="armchair" /></div>
+            <span class="prop-highlight-label">Interior</span>
+            <span class="prop-highlight-value">{{ v.interior_color }}</span>
+          </div>}
+          @if(v.engine && !isExcluded('engine')){
+          <div class="prop-highlight-card">
+            <div class="prop-highlight-icon"><lucide-icon name="cog" /></div>
+            <span class="prop-highlight-label">Engine</span>
+            <span class="prop-highlight-value">{{ v.engine }}</span>
+          </div>}
+          @if(v.transmission && !isExcluded('transmission')){
+          <div class="prop-highlight-card">
+            <div class="prop-highlight-icon"><lucide-icon name="settings-2" /></div>
+            <span class="prop-highlight-label">Transmission</span>
+            <span class="prop-highlight-value">{{ v.transmission }}</span>
+          </div>}
+          @if(v.drivetrain && !isExcluded('drivetrain')){
+          <div class="prop-highlight-card">
+            <div class="prop-highlight-icon"><lucide-icon name="circle-dot" /></div>
+            <span class="prop-highlight-label">Drivetrain</span>
+            <span class="prop-highlight-value">{{ v.drivetrain }}</span>
+          </div>}
+          @if(v.fuel && !isExcluded('fuel')){
+          <div class="prop-highlight-card">
+            <div class="prop-highlight-icon"><lucide-icon name="fuel" /></div>
+            <span class="prop-highlight-label">Fuel</span>
+            <span class="prop-highlight-value">{{ v.fuel }}</span>
+          </div>}
+          @if(v.body && !isExcluded('body')){
+          <div class="prop-highlight-card">
+            <div class="prop-highlight-icon"><lucide-icon name="car" /></div>
+            <span class="prop-highlight-label">Body</span>
+            <span class="prop-highlight-value">{{ v.body }}</span>
+          </div>}
+        </div>
+      </div>
+
+      <!-- History & Condition -->
+      @if((cr.overall_grade && !isExcluded('grade')) || cr.announcements?.length || visibleDamage().length){
+      <div class="prop-section">
+        <h2 class="prop-heading">History and Condition</h2>
+        <div class="prop-history-grid">
+          @if(cr.overall_grade && !isExcluded('grade')){
+          <div class="prop-history-card">
+            <div class="prop-history-card-header">
+              <span class="prop-history-card-title">Condition Grade</span>
+              <span class="prop-history-badge"><lucide-icon name="shield-check" /> Inspected</span>
+            </div>
+            <div class="prop-history-card-body">
+              <div class="prop-grade">{{ cr.overall_grade }}</div>
+            </div>
+          </div>}
+
+          @if(cr.announcements?.length && !isExcluded('announcements')){
+          <div class="prop-history-card">
+            <div class="prop-history-card-header">
+              <span class="prop-history-card-title">Announcements</span>
+            </div>
+            <div class="prop-history-card-body">
+              @for(a of cr.announcements; track $index){
+              <div class="prop-check-item">
+                <lucide-icon name="info" class="prop-check-icon prop-check-info" />
+                <span>{{ a }}</span>
+              </div>}
+            </div>
+          </div>}
+        </div>
+
+        @if(visibleDamage().length){
+        <div class="prop-damage-section">
+          <h3 class="prop-sub-heading">Condition Notes</h3>
+          @for(d of visibleDamage(); track $index){
+          <div class="prop-damage-item">
+            <lucide-icon name="alert-triangle" class="prop-damage-icon" />
+            <span>{{ d }}</span>
+          </div>}
+        </div>}
+      </div>}
+
+      <!-- Options -->
+      @if(visibleOptions().length){
+      <div class="prop-section">
+        <h2 class="prop-heading">Features &amp; Options</h2>
+        <div class="prop-options-grid">
+          @for(o of visibleOptions(); track $index){
+          <div class="prop-option-pill">
+            <lucide-icon name="check" class="prop-option-check" />
+            {{ o }}
+          </div>}
+        </div>
+      </div>}
+
+      <!-- Tires -->
+      @if(cr.tires && !isExcluded('tires')){
+      <div class="prop-section">
+        <h2 class="prop-heading">Tires</h2>
+        <p class="prop-text">{{ cr.tires }}</p>
+      </div>}
+
+      <!-- Notes from dealer -->
+      @if(p.custom_notes){
+      <div class="prop-section prop-notes-section">
+        <h2 class="prop-heading">From Big Wave Auto</h2>
+        <p class="prop-text">{{ p.custom_notes }}</p>
+      </div>}
+
+      <!-- Photo gallery -->
+      @if(photos.length > 1){
+      <div class="prop-section">
+        <h2 class="prop-heading">All Photos ({{ photos.length }})</h2>
+        <div class="prop-gallery">
+          @for(photo of photos; track $index; let i = $index){
+          <img [src]="photo" alt="Photo" (click)="selectedPhoto.set(i)" />
+          }
+        </div>
+      </div>}
+
+    </div><!-- /prop-below -->
+  </div><!-- /prop-left -->
+
+  <!-- Right: Buy Box -->
+  <div class="prop-right">
+    <div class="prop-buy-box">
+      <!-- BWA badge -->
+      <div class="prop-bwa-badge">
+        <span class="prop-bwa-name">Big Wave Auto</span>
+        <span class="prop-bwa-tag">Vehicle Report</span>
+      </div>
+
+      <!-- Title -->
+      <div class="prop-title-block">
+        <span class="prop-year">{{ v.year }}</span>
+        <h1 class="prop-title">{{ v.make }} {{ v.model }} {{ v.trim }}</h1>
+        <div class="prop-vin-stock">
+          <span>VIN: {{ p.vin }}</span>
+        </div>
+      </div>
+
+      <!-- Key stats -->
+      <div class="prop-key-stats">
+        @if(v.mileage){<span>{{ v.mileage }} mi</span>}
+        @if(v.fuel){<span>{{ v.fuel }}</span>}
+        @if(v.drivetrain){<span>{{ v.drivetrain }}</span>}
+      </div>
+
+      <!-- Price -->
+      @if(p.asking_price){
+      <div class="prop-price-section">
+        <span class="prop-price">{{ p.asking_price | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>}
+
+      <!-- CTA -->
+      <div class="prop-cta-stack">
+        <a href="tel:+12625551234" class="prop-btn-primary">Call Big Wave Auto</a>
+        <a href="https://bigwaveauto.com/financing" class="prop-btn-outline">Apply for Financing</a>
+      </div>
+
+      <!-- Dealer info -->
+      <div class="prop-dealer-info">
+        <span class="prop-dealer-name">Big Wave Auto</span>
+        <span class="prop-dealer-loc">Sussex, WI &middot; bigwaveauto.com</span>
+      </div>
     </div>
   </div>
-  }
 
-  <!-- Footer -->
-  <div class="prop-footer">
-    <div class="prop-footer-logo">Big Wave Auto</div>
-    <div class="prop-footer-info">Sussex, WI &middot; bigwaveauto.com</div>
-  </div>
-</div>
+</div><!-- /prop-shell -->
 
 }
