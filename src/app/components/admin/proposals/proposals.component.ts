@@ -42,7 +42,19 @@ export class AdminProposalsComponent implements OnInit {
   }
 
   selectProposal(p: any) {
-    this.selected.set({ ...p, excluded_fields: p.excluded_fields || [] });
+    const s = { ...p, excluded_fields: p.excluded_fields || [] };
+    // Auto-apply default line items if none exist
+    if (!s.line_items?.length) {
+      s.line_items = [
+        { label: 'Service Fee', amount: 299, taxable: true },
+        { label: 'Title & Registration', amount: 215, taxable: false },
+        { label: 'Transport', amount: null, taxable: false },
+        { label: 'EV Surcharge', amount: null, taxable: false },
+        { label: 'Loan Filing', amount: null, taxable: false },
+      ];
+      if (!s.tax_rate) s.tax_rate = 5.5;
+    }
+    this.selected.set(s);
     this.sent.set(false);
     this.saved.set(false);
     this.loadStrategy(p.vin);
@@ -238,9 +250,11 @@ export class AdminProposalsComponent implements OnInit {
   applyPreset(s: any) {
     const price = s.asking_price || 0;
     s.line_items = [
-      { label: 'Dealer Retail Price', amount: price, taxable: true },
       { label: 'Service Fee', amount: 299, taxable: true },
       { label: 'Title & Registration', amount: 215, taxable: false },
+      { label: 'Transport', amount: null, taxable: false },
+      { label: 'EV Surcharge', amount: null, taxable: false },
+      { label: 'Loan Filing', amount: null, taxable: false },
     ];
     if (!s.tax_rate) s.tax_rate = 5.5;
     this.selected.set({ ...s });

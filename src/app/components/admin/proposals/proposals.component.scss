@@ -198,26 +198,27 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .desk-calc-value {
-  font-size: 14px; font-weight: 700; color: #555; font-style: italic;
+  font-size: 15px; font-weight: 700; color: #555; font-style: italic; font-family: 'Georgia', serif;
 }
 
 .desk-dollar {
   display: flex; align-items: center; border: 1.5px solid rgba(0,0,0,0.1);
-  border-radius: 6px; overflow: hidden; width: 140px;
+  border-radius: 8px; overflow: hidden; width: 160px;
   &:focus-within { border-color: $blue; }
-  span { padding: 6px 0 6px 8px; font-weight: 700; color: $muted; font-size: 13px; }
+  span { padding: 10px 0 10px 10px; font-weight: 800; color: #333; font-size: 15px; font-family: 'Georgia', serif; }
   input {
-    flex: 1; border: none; padding: 6px 8px 6px 4px; font-size: 14px;
-    font-family: inherit; font-weight: 600; color: #111; outline: none; width: 80px;
+    flex: 1; border: none; padding: 10px 12px 10px 4px; font-size: 16px;
+    font-family: 'Georgia', 'Times New Roman', serif; font-weight: 700; color: #111; outline: none; width: 90px;
     text-align: right;
     &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { -webkit-appearance: none; }
     -moz-appearance: textfield;
+    &::placeholder { color: #ccc; font-weight: 400; }
   }
 }
 
 .desk-dollar-big {
-  width: 160px;
-  input { font-size: 18px; font-weight: 800; }
+  width: 180px;
+  input { font-size: 20px; font-weight: 900; }
 }
 
 .desk-input-sm {
@@ -234,7 +235,8 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .desk-total-row {
-  display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; color: #111;
+  display: flex; justify-content: space-between; font-size: 18px; font-weight: 900; color: #111;
+  font-family: 'Georgia', serif;
 }
 
 .desk-retail {
@@ -253,7 +255,7 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .desk-spread-label { font-size: 10px; font-weight: 700; color: $muted; text-transform: uppercase; letter-spacing: 0.5px; }
-.desk-spread-val { font-size: 20px; font-weight: 900; color: #111; }
+.desk-spread-val { font-size: 20px; font-weight: 900; color: #111; font-family: 'Georgia', serif; }
 
 .desk-pos { background: #dcfce7; .desk-spread-val { color: #16a34a; } }
 .desk-neg { background: #fee2e2; .desk-spread-val { color: #dc2626; } }
@@ -270,18 +272,20 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .prop-li-label {
-  flex: 2; padding: 7px 10px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 6px;
-  font-size: 13px; font-family: inherit; color: #111; outline: none;
+  flex: 2; padding: 10px 14px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px;
+  font-size: 15px; font-weight: 600; font-family: 'Georgia', 'Times New Roman', serif; color: #111; outline: none;
   &:focus { border-color: $blue; }
 }
 
 .prop-li-amount {
-  display: flex; align-items: center; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden;
-  flex: 1;
+  display: flex; align-items: center; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;
+  flex: 1; min-width: 150px;
   &:focus-within { border-color: $blue; }
-  span { padding: 7px 0 7px 8px; font-weight: 700; color: $muted; font-size: 13px; }
-  input { flex: 1; border: none; padding: 7px 8px 7px 4px; font-size: 13px; font-family: inherit; color: #111; outline: none; width: 60px;
+  span { padding: 10px 0 10px 12px; font-weight: 800; color: #333; font-size: 16px; font-family: 'Georgia', 'Times New Roman', serif; }
+  input { flex: 1; border: none; padding: 10px 14px 10px 4px; font-size: 16px; font-weight: 700;
+    font-family: 'Georgia', 'Times New Roman', serif; color: #111; outline: none; width: 80px; text-align: right;
     &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { -webkit-appearance: none; } -moz-appearance: textfield;
+    &::placeholder { color: #ccc; font-weight: 400; }
   }
 }
 
