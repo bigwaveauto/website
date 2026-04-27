@@ -60,10 +60,35 @@
             <div class="strat-line strat-total"><span>Total Investment</span><span>{{ st.total_investment | currency:'USD':'symbol':'1.0-0' }}</span></div>
           </div>
 
-          <!-- Market Side -->
+          <!-- Market / Auction Side -->
           <div class="strat-col strat-market">
+            @if(s.auction){
+            <div class="strat-col-header">
+              {{ s.page_type === 'live_listing' ? 'Live Listing' : 'Auction' }}
+              @if(s.auction.channel){ — {{ s.auction.channel }} }
+            </div>
+            @if(s.auction.buy_now){
+            <div class="strat-line"><span>Buy Now</span><span class="strat-green">{{ s.auction.buy_now | currency:'USD':'symbol':'1.0-0' }}</span></div>
+            }
+            @if(s.auction.current_bid){
+            <div class="strat-line"><span>Current Bid</span><span>{{ s.auction.current_bid | currency:'USD':'symbol':'1.0-0' }}</span></div>
+            }
+            @if(s.auction.starting_bid){
+            <div class="strat-line strat-sub"><span>Starting Bid</span><span>{{ s.auction.starting_bid | currency:'USD':'symbol':'1.0-0' }}</span></div>
+            }
+            @if(s.auction.mmr){
+            <div class="strat-line strat-total"><span>MMR</span><span class="strat-blue">{{ s.auction.mmr | currency:'USD':'symbol':'1.0-0' }}</span></div>
+            }
+            @if(s.auction.sale_date){
+            <div class="strat-line strat-sub"><span>Sale Date</span><span>{{ s.auction.sale_date }}</span></div>
+            }
+            @if(s.auction.lane){
+            <div class="strat-line strat-sub"><span>Lane</span><span>{{ s.auction.lane }}</span></div>
+            }
+            }@else{
             <div class="strat-col-header">Market Values</div>
-            @if(st.mmr > 0){
+            }
+            @if(st.mmr > 0 && !s.auction?.mmr){
             <div class="strat-line"><span>MMR (Wholesale)</span><span>{{ st.mmr | currency:'USD':'symbol':'1.0-0' }}</span></div>
             }
             @if(st.kbb > 0){
@@ -72,7 +97,7 @@
             @if(st.market_avg > 0){
             <div class="strat-line strat-total"><span>Market Avg</span><span>{{ st.market_avg | currency:'USD':'symbol':'1.0-0' }}</span></div>
             }
-            @if(!st.mmr && !st.kbb){
+            @if(!st.mmr && !st.kbb && !s.auction){
             <div class="strat-no-data">No market data yet</div>
             }
           </div>

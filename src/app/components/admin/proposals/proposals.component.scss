@@ -166,6 +166,9 @@ $muted: rgba(0,0,0,0.45);
   font-size: 13px; color: $muted; font-style: italic; padding: 8px 0;
 }
 
+.strat-green { color: #16a34a !important; }
+.strat-blue { color: $blue !important; }
+
 .strat-spread {
   display: flex; border-top: 1px solid $border; background: #fafbfc;
 }

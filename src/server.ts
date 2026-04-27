@@ -1737,7 +1737,7 @@ app.post('/api/ext/proposal', async (req, res) => {
     return;
   }
   try {
-    const { vin, vehicle, condition, photos, source_url, extracted_at } = req.body;
+    const { vin, vehicle, condition, auction, photos, page_type, source_url, extracted_at } = req.body;
     if (!vin) { res.status(400).json({ error: 'VIN required' }); return; }
 
     const id = randomBytes(6).toString('hex');
@@ -1746,7 +1746,9 @@ app.post('/api/ext/proposal', async (req, res) => {
       vin,
       vehicle: vehicle || {},
       condition: condition || {},
+      auction: auction || null,
       photos: photos || [],
+      page_type: page_type || 'unknown',
       source_url: source_url || '',
       extracted_at: extracted_at || new Date().toISOString(),
       status: 'draft',

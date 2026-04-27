@@ -75,6 +75,20 @@ $('scanBtn').addEventListener('click', async () => {
       $('vehicleInfo').style.display = 'block';
     }
 
+    // Show auction / pricing data
+    if (extractedData.auction) {
+      const a = extractedData.auction;
+      let ahtml = `<div class="vi-title">${extractedData.page_type === 'live_listing' ? 'Live Listing' : 'Auction'} ${a.channel ? '— ' + a.channel : ''}</div>`;
+      if (a.buy_now) ahtml += `<div class="vi-row"><span class="vi-label">Buy Now</span><span class="vi-value" style="color:#16a34a;font-size:16px">$${a.buy_now.toLocaleString()}</span></div>`;
+      if (a.current_bid) ahtml += `<div class="vi-row"><span class="vi-label">Current Bid</span><span class="vi-value">$${a.current_bid.toLocaleString()}</span></div>`;
+      if (a.starting_bid) ahtml += `<div class="vi-row"><span class="vi-label">Starting Bid</span><span class="vi-value">$${a.starting_bid.toLocaleString()}</span></div>`;
+      if (a.mmr) ahtml += `<div class="vi-row"><span class="vi-label">MMR</span><span class="vi-value" style="color:#2563eb">$${a.mmr.toLocaleString()}</span></div>`;
+      if (a.sale_date) ahtml += `<div class="vi-row"><span class="vi-label">Sale Date</span><span class="vi-value">${a.sale_date}</span></div>`;
+      if (a.lane) ahtml += `<div class="vi-row"><span class="vi-label">Lane</span><span class="vi-value">${a.lane}</span></div>`;
+      $('auctionInfo').innerHTML = ahtml;
+      $('auctionInfo').style.display = 'block';
+    }
+
     // Show summary
     const cr = extractedData.condition || {};
     const parts = [];
@@ -147,28 +161,103 @@ $('submitBtn').addEventListener('click', async () => {
 
 /**
  * Runs INSIDE the Manheim page. Extracts everything.
+ * Handles both live listings (search.manheim.com) and post-sale CRs.
  */
 function extractManheimData() {
   const photos = new Set();
   const vehicle = {};
   const condition = { damage: [], options: [], announcements: [] };
+  const auction = {};
 
   const pageText = document.body.innerText || '';
+  const url = window.location.href;
 
-  // ── VIN ──
+  // Detect page type
+  const isLiveListing = url.includes('search.manheim.com') || url.includes('/results') || url.includes('/listing');
+  const isOVE = url.includes('/OVE') || pageText.includes('OVE') || pageText.includes('Online Vehicle Exchange');
+  const isCR = url.includes('/cr/') || url.includes('condition-report') || pageText.includes('Condition Report');
+
+  // ── VIN — try URL first (most reliable for search pages) ──
   let vin = '';
-  const metaVin = document.querySelector('meta[name*="vin" i], meta[property*="vin" i]');
-  if (metaVin) vin = metaVin.content;
+  const urlVinMatch = url.match(/\/(?:details|vehicle|cr)\/([A-HJ-NPR-Z0-9]{17})/i);
+  if (urlVinMatch) vin = urlVinMatch[1];
+  if (!vin) {
+    // Hash-based URL: #/details/VIN/OVE
+    const hashMatch = url.match(/[#/]([A-HJ-NPR-Z0-9]{17})/);
+    if (hashMatch) vin = hashMatch[1];
+  }
+  if (!vin) {
+    const metaVin = document.querySelector('meta[name*="vin" i], meta[property*="vin" i]');
+    if (metaVin) vin = metaVin.content;
+  }
   if (!vin) {
     const vinMatch = pageText.match(/VIN[:\s]*([A-HJ-NPR-Z0-9]{17})/i) || pageText.match(/\b([A-HJ-NPR-Z0-9]{17})\b/);
     if (vinMatch) vin = vinMatch[1];
   }
-  if (!vin) {
-    const urlMatch = window.location.href.match(/[A-HJ-NPR-Z0-9]{17}/);
-    if (urlMatch) vin = urlMatch[0];
-  }
 
-  // ── Vehicle info ──
+  // ── Vehicle info — try structured data first (JSON-LD, data attrs) ──
+  // Many Manheim pages embed vehicle data in script tags as JSON
+  document.querySelectorAll('script[type="application/ld+json"], script[type="application/json"]').forEach(script => {
+    try {
+      const data = JSON.parse(script.textContent);
+      const v = data?.vehicle || data?.listing?.vehicle || data;
+      if (v?.year) vehicle.year = String(v.year);
+      if (v?.make) vehicle.make = v.make;
+      if (v?.model) vehicle.model = v.model;
+      if (v?.trim) vehicle.trim = v.trim;
+      if (v?.mileage || v?.odometer) vehicle.mileage = String(v.mileage || v.odometer);
+      if (v?.exteriorColor) vehicle.exterior_color = v.exteriorColor;
+      if (v?.interiorColor) vehicle.interior_color = v.interiorColor;
+      if (v?.engine) vehicle.engine = v.engine;
+      if (v?.transmission) vehicle.transmission = v.transmission;
+      if (v?.drivetrain) vehicle.drivetrain = v.drivetrain;
+      if (v?.fuelType) vehicle.fuel = v.fuelType;
+      if (v?.bodyStyle) vehicle.body = v.bodyStyle;
+    } catch (e) {}
+  });
+
+  // Also check for __NEXT_DATA__ or embedded app state (common in React SPAs)
+  document.querySelectorAll('script').forEach(script => {
+    const text = script.textContent || '';
+    if (text.includes('__NEXT_DATA__') || text.includes('window.__data') || text.includes('window.__INITIAL_STATE__')) {
+      try {
+        const match = text.match(/(?:__NEXT_DATA__|__data|__INITIAL_STATE__)\s*=\s*({.+?});?\s*(?:<\/script>|$)/s);
+        if (match) {
+          const data = JSON.parse(match[1]);
+          // Walk the object looking for vehicle-like data
+          const findVehicle = (obj, depth = 0) => {
+            if (!obj || depth > 5) return;
+            if (obj.vin && obj.year) {
+              if (!vin && obj.vin) vin = obj.vin;
+              if (obj.year) vehicle.year = String(obj.year);
+              if (obj.make) vehicle.make = obj.make;
+              if (obj.model) vehicle.model = obj.model;
+              if (obj.trim) vehicle.trim = obj.trim;
+              if (obj.mileage || obj.odometer) vehicle.mileage = String(obj.mileage || obj.odometer);
+              if (obj.exteriorColor || obj.color) vehicle.exterior_color = obj.exteriorColor || obj.color;
+              if (obj.interiorColor) vehicle.interior_color = obj.interiorColor;
+              if (obj.engine) vehicle.engine = typeof obj.engine === 'string' ? obj.engine : obj.engine?.description;
+              if (obj.transmission) vehicle.transmission = obj.transmission;
+              if (obj.drivetrain || obj.driveType) vehicle.drivetrain = obj.drivetrain || obj.driveType;
+              if (obj.fuelType || obj.fuel) vehicle.fuel = obj.fuelType || obj.fuel;
+              if (obj.bodyStyle || obj.body) vehicle.body = obj.bodyStyle || obj.body;
+              if (obj.seller) vehicle.seller = typeof obj.seller === 'string' ? obj.seller : obj.seller?.name;
+              if (obj.conditionGrade || obj.grade) { condition.overall_grade = String(obj.conditionGrade || obj.grade); vehicle.grade = condition.overall_grade; }
+              return;
+            }
+            if (typeof obj === 'object') {
+              for (const key of Object.keys(obj)) {
+                findVehicle(obj[key], depth + 1);
+              }
+            }
+          };
+          findVehicle(data);
+        }
+      } catch (e) {}
+    }
+  });
+
+  // Fallback: regex from page text
   const fieldPatterns = [
     { key: 'mileage', patterns: [/(?:mileage|odometer|miles)[:\s]*([0-9,]+)/i] },
     { key: 'exterior_color', patterns: [/(?:ext(?:erior)?[\s.]*(?:color)?)[:\s]*([A-Za-z\s]+?)(?:\n|$|Int)/i] },
@@ -181,31 +270,61 @@ function extractManheimData() {
   ];
 
   for (const { key, patterns } of fieldPatterns) {
+    if (vehicle[key]) continue; // already got from structured data
     for (const pat of patterns) {
       const m = pageText.match(pat);
       if (m) { vehicle[key] = m[1].trim().replace(/\s+/g, ' '); break; }
     }
   }
 
-  // Year/Make/Model from title
-  const titleEl = document.querySelector('h1, [class*="vehicle-title"], [class*="vehicleTitle"]');
-  const titleText = titleEl?.textContent?.trim() || document.title || '';
-  const ymmMatch = titleText.match(/(\d{4})\s+([\w-]+)\s+([\w-]+(?:\s+[\w-]+)?)/);
-  if (ymmMatch) {
-    vehicle.year = ymmMatch[1];
-    vehicle.make = ymmMatch[2];
-    vehicle.model = ymmMatch[3];
+  // Year/Make/Model from title if not already set
+  if (!vehicle.year) {
+    const titleEl = document.querySelector('h1, [class*="vehicle-title"], [class*="vehicleTitle"], [class*="VehicleTitle"]');
+    const titleText = titleEl?.textContent?.trim() || document.title || '';
+    const ymmMatch = titleText.match(/(\d{4})\s+([\w-]+)\s+([\w-]+(?:\s+[\w-]+)?)/);
+    if (ymmMatch) {
+      vehicle.year = ymmMatch[1];
+      vehicle.make = ymmMatch[2];
+      vehicle.model = ymmMatch[3];
+    }
+    const trimMatch = titleText.match(/(\d{4})\s+[\w-]+\s+[\w-]+\s+(.*)/);
+    if (trimMatch && trimMatch[2]) vehicle.trim = trimMatch[2].trim();
   }
-  const trimMatch = titleText.match(/(\d{4})\s+[\w-]+\s+[\w-]+\s+(.*)/);
-  if (trimMatch && trimMatch[2]) vehicle.trim = trimMatch[2].trim();
 
   // Grade
-  const gradeMatch = pageText.match(/(?:condition\s*grade|grade|CR\s*Grade)[:\s]*([0-9.]+(?:\s*[-\/]\s*[0-9.]+)?)/i);
-  if (gradeMatch) { condition.overall_grade = gradeMatch[1].trim(); vehicle.grade = gradeMatch[1].trim(); }
+  if (!condition.overall_grade) {
+    const gradeMatch = pageText.match(/(?:condition\s*grade|grade|CR\s*Grade)[:\s]*([0-9.]+(?:\s*[-\/]\s*[0-9.]+)?)/i);
+    if (gradeMatch) { condition.overall_grade = gradeMatch[1].trim(); vehicle.grade = gradeMatch[1].trim(); }
+  }
 
   // Seller
-  const sellerMatch = pageText.match(/(?:seller|consignor)[:\s]*([^\n]+)/i);
-  if (sellerMatch) vehicle.seller = sellerMatch[1].trim();
+  if (!vehicle.seller) {
+    const sellerMatch = pageText.match(/(?:seller|consignor|sold\s*by)[:\s]*([^\n]+)/i);
+    if (sellerMatch) vehicle.seller = sellerMatch[1].trim();
+  }
+
+  // ── Auction / pricing data (live listings) ──
+  const pricePatterns = [
+    { key: 'buy_now', pattern: /(?:buy\s*now|buy\s*it\s*now|purchase\s*price)[:\s]*\$?([\d,]+)/i },
+    { key: 'current_bid', pattern: /(?:current\s*bid|high\s*bid|bid)[:\s]*\$?([\d,]+)/i },
+    { key: 'starting_bid', pattern: /(?:start(?:ing)?\s*bid|floor\s*price|reserve)[:\s]*\$?([\d,]+)/i },
+    { key: 'mmr', pattern: /(?:MMR|manheim\s*market\s*report)[:\s]*\$?([\d,]+)/i },
+  ];
+  for (const { key, pattern } of pricePatterns) {
+    const m = pageText.match(pattern);
+    if (m) auction[key] = parseInt(m[1].replace(/,/g, ''));
+  }
+
+  // Sale channel
+  if (isOVE) auction.channel = 'OVE';
+  const channelMatch = pageText.match(/(?:sale\s*type|channel|auction\s*type)[:\s]*([^\n]+)/i);
+  if (channelMatch) auction.channel = channelMatch[1].trim();
+
+  // Sale date / lane
+  const saleDateMatch = pageText.match(/(?:sale\s*date|auction\s*date)[:\s]*([^\n]+)/i);
+  if (saleDateMatch) auction.sale_date = saleDateMatch[1].trim();
+  const laneMatch = pageText.match(/(?:lane|run)[:\s]*([^\n]+)/i);
+  if (laneMatch) auction.lane = laneMatch[1].trim();
 
   // ── Damage / Condition Notes ──
   // Junk filter: skip CSS artifacts, UI chrome, and vague labels
@@ -340,7 +459,9 @@ function extractManheimData() {
     vin,
     vehicle,
     condition,
+    auction: Object.keys(auction).length > 0 ? auction : null,
     photos: [...photos],
+    page_type: isLiveListing ? 'live_listing' : isCR ? 'condition_report' : 'unknown',
     source_url: window.location.href,
     source_title: document.title,
     extracted_at: new Date().toISOString(),
