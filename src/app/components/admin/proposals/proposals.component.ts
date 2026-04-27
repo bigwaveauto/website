@@ -148,6 +148,11 @@ export class AdminProposalsComponent implements OnInit {
     return s.trade_in;
   }
 
+  removePhoto(s: any, index: number) {
+    s.photos = s.photos.filter((_: any, i: number) => i !== index);
+    this.selected.set({ ...s });
+  }
+
   timeAgo(date: string): string {
     if (!date) return '';
     const diff = Date.now() - new Date(date).getTime();

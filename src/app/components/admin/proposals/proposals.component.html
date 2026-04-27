@@ -169,7 +169,10 @@
       <h3 class="prop-toggle-title">Photos ({{ s.photos.length }})</h3>
       <div class="prop-photo-grid">
         @for(photo of s.photos; track $index){
-        <img [src]="photo" alt="photo" />
+        <div class="prop-photo-item">
+          <img [src]="photo" alt="photo" />
+          <button class="prop-photo-del" (click)="removePhoto(s, $index)"><lucide-icon name="x" /></button>
+        </div>
         }
       </div>
       }
