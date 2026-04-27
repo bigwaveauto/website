@@ -202,6 +202,34 @@
         <textarea [(ngModel)]="s.custom_notes" rows="3" placeholder="Personal message to the buyer..."></textarea>
       </div>
 
+      <!-- ═══ CARFAX REPORT ═══ -->
+      <h3 class="prop-toggle-title">Carfax Report</h3>
+      @if(s.carfax_url){
+      <div class="prop-carfax-preview">
+        <div class="prop-carfax-header">
+          <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="prop-carfax-logo" />
+          <div class="prop-carfax-actions">
+            <a [href]="s.carfax_url" target="_blank" class="prop-carfax-view">View PDF</a>
+            <button class="prop-li-del" (click)="removeCarfax(s)"><lucide-icon name="x" /></button>
+          </div>
+        </div>
+        <iframe [src]="safeCarfaxUrl(s.carfax_url)" class="prop-carfax-iframe"></iframe>
+      </div>
+      }@else{
+      <div class="prop-carfax-drop" [class.dragover]="carfaxDragOver()"
+           (dragover)="onCarfaxDragOver($event)" (dragleave)="carfaxDragOver.set(false)" (drop)="onCarfaxDrop($event, s)"
+           (click)="carfaxInput.click()">
+        <input #carfaxInput type="file" accept="application/pdf" (change)="onCarfaxSelect($event, s)" hidden />
+        @if(uploadingCarfax()){
+          <div class="prop-carfax-spinner"></div>
+          <span>Uploading...</span>
+        }@else{
+          <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="prop-carfax-logo-drop" />
+          <span>Drop Carfax PDF here or click to upload</span>
+        }
+      </div>
+      }
+
       <!-- Toggle visibility -->
       <h3 class="prop-toggle-title">Report Fields (click to hide/show)</h3>
       <div class="prop-toggles">

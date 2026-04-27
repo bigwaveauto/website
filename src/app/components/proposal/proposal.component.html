@@ -128,6 +128,35 @@
         </div>}
       </div>}
 
+      <!-- Carfax Report -->
+      @if(p.carfax_url){
+      <div class="prop-section">
+        <div class="prop-carfax-bar" (click)="carfaxExpanded.set(!carfaxExpanded())">
+          <div class="prop-carfax-bar-left">
+            <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="prop-carfax-logo" />
+            <span class="prop-carfax-label">Vehicle History Report</span>
+          </div>
+          <button class="prop-carfax-toggle">
+            @if(carfaxExpanded()){
+            <lucide-icon name="chevron-up" />
+            }@else{
+            <lucide-icon name="chevron-down" />
+            }
+          </button>
+        </div>
+        @if(carfaxExpanded()){
+        <iframe [src]="safeUrl(p.carfax_url)" class="prop-carfax-full"></iframe>
+        }@else{
+        <div class="prop-carfax-mini" (click)="carfaxExpanded.set(true)">
+          <iframe [src]="safeUrl(p.carfax_url)" class="prop-carfax-half" tabindex="-1"></iframe>
+          <div class="prop-carfax-fade">
+            <span>Click to view full report</span>
+          </div>
+        </div>
+        }
+      </div>
+      }
+
       <!-- Options -->
       @if(visibleOptions().length){
       <div class="prop-section">

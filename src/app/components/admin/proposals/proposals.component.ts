@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
@@ -13,6 +14,7 @@ import { LucideAngularModule } from 'lucide-angular';
 })
 export class AdminProposalsComponent implements OnInit {
   private http = inject(HttpClient);
+  private sanitizer = inject(DomSanitizer);
 
   proposals = signal<any[]>([]);
   loading = signal(true);
@@ -162,6 +164,7 @@ export class AdminProposalsComponent implements OnInit {
       trade_in: s.trade_in || null,
       tax_rate: s.tax_rate || 0,
       down_payment: s.down_payment || 0,
+      carfax_url: s.carfax_url || null,
     }).subscribe({
       next: () => { this.saving.set(false); this.saved.set(true); setTimeout(() => this.saved.set(false), 3000); },
       error: () => { this.saving.set(false); alert('Failed to save.'); },
@@ -219,6 +222,51 @@ export class AdminProposalsComponent implements OnInit {
   getTradeIn(s: any): any {
     if (!s.trade_in) s.trade_in = { year: '', make: '', model: '', vin: '', mileage: '', allowance: 0, payoff: 0, payoff_to: '' };
     return s.trade_in;
+  }
+
+  // ── Carfax ──
+  carfaxDragOver = signal(false);
+  uploadingCarfax = signal(false);
+
+  onCarfaxDragOver(e: DragEvent) { e.preventDefault(); this.carfaxDragOver.set(true); }
+
+  onCarfaxDrop(e: DragEvent, s: any) {
+    e.preventDefault();
+    this.carfaxDragOver.set(false);
+    const file = e.dataTransfer?.files[0];
+    if (file && file.type === 'application/pdf') this.uploadCarfax(file, s);
+  }
+
+  onCarfaxSelect(e: Event, s: any) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) this.uploadCarfax(file, s);
+  }
+
+  uploadCarfax(file: File, s: any) {
+    this.uploadingCarfax.set(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('proposal_id', s.id);
+    formData.append('vin', s.vin);
+
+    this.http.post<any>('/api/admin/proposal/carfax', formData).subscribe({
+      next: (res) => {
+        s.carfax_url = res.url;
+        this.selected.set({ ...s });
+        this.uploadingCarfax.set(false);
+      },
+      error: () => { this.uploadingCarfax.set(false); alert('Upload failed.'); },
+    });
+  }
+
+  removeCarfax(s: any) {
+    s.carfax_url = null;
+    this.selected.set({ ...s });
+  }
+
+  safeCarfaxUrl(url: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   removePhoto(s: any, index: number) {

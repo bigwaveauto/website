@@ -33,7 +33,7 @@ $('scanBtn').addEventListener('click', async () => {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-    if (!tab?.url?.includes('manheim.com')) {
+    if (!tab?.url?.includes('manheim.com') && !tab?.url?.includes('insightcr')) {
       showStatus('Navigate to a Manheim page first.', 'error');
       $('scanBtn').disabled = false;
       return;
@@ -173,9 +173,10 @@ function extractManheimData() {
   const url = window.location.href;
 
   // Detect page type
-  const isLiveListing = url.includes('search.manheim.com') || url.includes('/results') || url.includes('/listing');
+  const isInsightCR = url.includes('insightcr.manheim.com') || url.includes('cr-display');
+  const isLiveListing = !isInsightCR && (url.includes('search.manheim.com') || url.includes('/results') || url.includes('/listing'));
   const isOVE = url.includes('/OVE') || pageText.includes('OVE') || pageText.includes('Online Vehicle Exchange');
-  const isCR = url.includes('/cr/') || url.includes('condition-report') || pageText.includes('Condition Report');
+  const isCR = isInsightCR || url.includes('/cr/') || url.includes('condition-report') || pageText.includes('Condition Report');
 
   // ── VIN — try URL first (most reliable for search pages) ──
   let vin = '';
@@ -193,6 +194,50 @@ function extractManheimData() {
   if (!vin) {
     const vinMatch = pageText.match(/VIN[:\s]*([A-HJ-NPR-Z0-9]{17})/i) || pageText.match(/\b([A-HJ-NPR-Z0-9]{17})\b/);
     if (vinMatch) vin = vinMatch[1];
+  }
+
+  // ── InsightCR-specific extraction (insightcr.manheim.com/cr-display) ──
+  if (isInsightCR) {
+    // InsightCR has detailed panels with location + severity + damage type
+    // Look for damage/condition rows with structured info
+    document.querySelectorAll('tr, [role="row"], [class*="row" i]').forEach(row => {
+      const cells = row.querySelectorAll('td, [role="cell"], [class*="cell" i], span, div');
+      if (cells.length >= 2) {
+        const texts = Array.from(cells).map(c => c.textContent?.trim()).filter(t => t && t.length > 1 && t.length < 100);
+        const combined = texts.join(' — ');
+        // Check if this row contains damage-related info
+        if (/(?:dent|scratch|scuff|chip|crack|tear|curb|rash|worn|faded|missing|broken|gouge|paint|damage)/i.test(combined)) {
+          if (!isJunk(combined)) condition.damage.push(combined);
+        }
+      }
+    });
+
+    // InsightCR often shows damage in card-like panels
+    document.querySelectorAll('[class*="panel" i], [class*="card" i], [class*="detail" i]').forEach(panel => {
+      // Only grab small panels, not huge containers
+      if (panel.textContent && panel.textContent.length > 500) return;
+      const text = panel.textContent?.trim();
+      if (text && /(?:dent|scratch|scuff|chip|crack|tear|curb|rash|worn|faded|missing|broken|gouge)/i.test(text)) {
+        // Clean up: split into meaningful parts
+        const lines = text.split(/\n/).map(l => l.trim()).filter(l => l.length > 3 && l.length < 150 && !isJunk(l));
+        for (const line of lines) {
+          if (/(?:dent|scratch|scuff|chip|crack|tear|curb|rash|worn|faded|missing|broken|gouge|paint|LF|LR|RF|RR|front|rear|hood|bumper|fender|door|roof|quarter|trunk|wheel|rim)/i.test(line)) {
+            condition.damage.push(line);
+          }
+        }
+      }
+    });
+
+    // Dedupe
+    condition.damage = [...new Set(condition.damage)];
+
+    // InsightCR shows tire tread depth per position
+    const tireLines = [];
+    document.querySelectorAll('[class*="tire" i], [class*="tread" i]').forEach(el => {
+      const text = el.textContent?.trim();
+      if (text && text.length > 3 && text.length < 150 && !isJunk(text)) tireLines.push(text);
+    });
+    if (tireLines.length) condition.tires = tireLines.join(' | ');
   }
 
   // ── Vehicle info — try structured data first (JSON-LD, data attrs) ──
@@ -461,7 +506,7 @@ function extractManheimData() {
     condition,
     auction: Object.keys(auction).length > 0 ? auction : null,
     photos: [...photos],
-    page_type: isLiveListing ? 'live_listing' : isCR ? 'condition_report' : 'unknown',
+    page_type: isInsightCR ? 'insight_cr' : isLiveListing ? 'live_listing' : isCR ? 'condition_report' : 'unknown',
     source_url: window.location.href,
     source_title: document.title,
     extracted_at: new Date().toISOString(),

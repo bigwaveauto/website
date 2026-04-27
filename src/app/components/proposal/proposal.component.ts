@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule, SlicePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
@@ -15,10 +16,13 @@ export class ProposalComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
 
+  private sanitizer = inject(DomSanitizer);
+
   proposal = signal<any>(null);
   loading = signal(true);
   notFound = signal(false);
   selectedPhoto = signal(0);
+  carfaxExpanded = signal(false);
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -83,6 +87,10 @@ export class ProposalComponent implements OnInit {
   nextPhoto() {
     const total = this.photos.length;
     this.selectedPhoto.update(i => (i + 1) % total);
+  }
+
+  safeUrl(url: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   isExcluded(field: string): boolean {

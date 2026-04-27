@@ -10,10 +10,8 @@
     "downloads"
   ],
   "host_permissions": [
-    "https://www.manheim.com/*",
-    "https://members.manheim.com/*",
-    "https://publish.manheim.com/*",
     "https://*.manheim.com/*",
+    "https://insightcr.manheim.com/*",
     "https://bigwaveauto.com/*",
     "https://www.bigwaveauto.com/*"
   ],

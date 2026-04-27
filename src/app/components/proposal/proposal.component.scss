@@ -169,6 +169,48 @@ $muted: rgba(0,0,0,0.45);
 
 .prop-text { font-size: 14px; color: #333; line-height: 1.7; margin: 0; }
 
+/* ── Carfax Embed ── */
+.prop-carfax-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; cursor: pointer;
+  border-bottom: 1px solid $border; margin-bottom: 12px;
+}
+
+.prop-carfax-bar-left { display: flex; align-items: center; gap: 10px; }
+.prop-carfax-logo { height: 24px; }
+.prop-carfax-label { font-size: 15px; font-weight: 700; color: #111; }
+
+.prop-carfax-toggle {
+  background: none; border: none; cursor: pointer; color: #555; padding: 4px;
+  lucide-icon { width: 22px; height: 22px; }
+}
+
+.prop-carfax-full {
+  width: 100%; height: 80vh; border: none; border-radius: 8px;
+}
+
+.prop-carfax-mini {
+  position: relative; cursor: pointer; border-radius: 8px; overflow: hidden;
+}
+
+.prop-carfax-half {
+  width: 100%; height: 300px; border: none; pointer-events: none;
+}
+
+.prop-carfax-fade {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 120px;
+  background: linear-gradient(transparent, white);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 16px;
+
+  span {
+    font-size: 14px; font-weight: 700; color: $blue;
+    padding: 8px 20px; background: white; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+}
+
 /* ── Notes from dealer ── */
 .prop-notes-section {
   border-left: 4px solid $blue;
