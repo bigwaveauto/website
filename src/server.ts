@@ -1747,6 +1747,7 @@ app.post('/api/ext/proposal', async (req, res) => {
       vehicle: vehicle || {},
       condition: condition || {},
       auction: auction || null,
+      mmr: auction?.mmr || null,
       photos: photos || [],
       page_type: page_type || 'unknown',
       source_url: source_url || '',
@@ -1824,6 +1825,7 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (req.body.recon_other !== undefined) updates['recon_other'] = req.body.recon_other;
     if (req.body.est_days_to_sell !== undefined) updates['est_days_to_sell'] = req.body.est_days_to_sell;
     if (req.body.min_price !== undefined) updates['min_price'] = req.body.min_price;
+    if (req.body.mmr !== undefined) updates['mmr'] = req.body.mmr;
     updates['updated_at'] = new Date().toISOString();
 
     const { error } = await supabase

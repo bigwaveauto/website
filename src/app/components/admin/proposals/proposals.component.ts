@@ -129,6 +129,12 @@ export class AdminProposalsComponent implements OnInit {
     return (this.grossProfit(s) / s.asking_price) * 100;
   }
 
+  pctToMMR(s: any): number {
+    const mmr = s.auction?.mmr || s.mmr || 0;
+    if (!mmr || !s.asking_price) return 0;
+    return ((s.asking_price - mmr) / mmr) * 100;
+  }
+
   close() {
     this.selected.set(null);
   }

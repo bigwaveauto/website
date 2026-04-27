@@ -131,6 +131,30 @@ $muted: rgba(0,0,0,0.45);
   background: white;
 }
 
+/* ── MMR Banner ── */
+.desk-mmr-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; background: #1e293b; color: white;
+}
+
+.desk-mmr-left { display: flex; align-items: center; gap: 10px; }
+.desk-mmr-label { font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.5); }
+.desk-mmr-value { font-size: 24px; font-weight: 900; }
+
+.desk-mmr-right { text-align: right; }
+.desk-mmr-pct {
+  font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 6px;
+  &.desk-mmr-above { background: rgba(22,163,74,0.2); color: #4ade80; }
+  &.desk-mmr-below { background: rgba(239,68,68,0.2); color: #fca5a5; }
+}
+
+.desk-use-btn {
+  padding: 4px 10px; border: 1px solid $blue; border-radius: 5px;
+  background: white; color: $blue; font-size: 11px; font-weight: 700;
+  font-family: inherit; cursor: pointer; white-space: nowrap;
+  &:hover { background: #f0f4ff; }
+}
+
 .desk-ref {
   display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px;
   background: #f8f9fb; border-bottom: 1px solid $border;
@@ -340,7 +364,7 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .prop-photo-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 8px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px;
 }
 
 .prop-photo-item {

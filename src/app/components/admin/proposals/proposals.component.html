@@ -49,13 +49,29 @@
 
       <!-- ═══ DEAL WORKSHEET ═══ -->
       <div class="desk">
-        <!-- Auction reference (if available) -->
+        <!-- MMR Banner -->
+        @if(s.auction?.mmr || s.mmr){
+        <div class="desk-mmr-banner">
+          <div class="desk-mmr-left">
+            <span class="desk-mmr-label">MMR</span>
+            <span class="desk-mmr-value">{{ (s.auction?.mmr || s.mmr) | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+          @if(s.asking_price > 0){
+          <div class="desk-mmr-right">
+            <span class="desk-mmr-pct" [class.desk-mmr-above]="pctToMMR(s) > 0" [class.desk-mmr-below]="pctToMMR(s) < 0">
+              {{ pctToMMR(s) > 0 ? '+' : '' }}{{ pctToMMR(s) | number:'1.1-1' }}% to retail
+            </span>
+          </div>
+          }
+        </div>
+        }
+
+        <!-- Auction reference -->
         @if(s.auction){
         <div class="desk-ref">
           <span class="desk-ref-tag">{{ s.auction.channel || 'Auction' }}</span>
           @if(s.auction.buy_now){<span class="desk-ref-pill">Buy Now <b>{{ s.auction.buy_now | currency:'USD':'symbol':'1.0-0' }}</b></span>}
           @if(s.auction.current_bid){<span class="desk-ref-pill">Bid <b>{{ s.auction.current_bid | currency:'USD':'symbol':'1.0-0' }}</b></span>}
-          @if(s.auction.mmr){<span class="desk-ref-pill desk-ref-mmr">MMR <b>{{ s.auction.mmr | currency:'USD':'symbol':'1.0-0' }}</b></span>}
           @if(s.auction.sale_date){<span class="desk-ref-pill desk-ref-date">{{ s.auction.sale_date }}</span>}
         </div>
         }
@@ -65,7 +81,10 @@
           <div class="desk-section-title">Acquisition</div>
           <div class="desk-row">
             <label>Auction Price Paid</label>
-            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.purchase_price" /></div>
+            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.purchase_price" [placeholder]="s.auction?.mmr || 0" /></div>
+            @if(!s.purchase_price && s.auction?.mmr){
+            <button class="desk-use-btn" (click)="s.purchase_price = s.auction.mmr">Use MMR</button>
+            }
           </div>
           <div class="desk-row">
             <label>Transport</label>

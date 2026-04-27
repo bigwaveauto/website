@@ -175,7 +175,7 @@ function extractManheimData() {
   // Detect page type
   const isInsightCR = url.includes('insightcr.manheim.com') || url.includes('cr-display');
   const isLiveListing = !isInsightCR && (url.includes('search.manheim.com') || url.includes('/results') || url.includes('/listing'));
-  const isOVE = url.includes('/OVE') || pageText.includes('OVE') || pageText.includes('Online Vehicle Exchange');
+  const isOVE = url.includes('/OVE') || url.includes('channel=OVE');
   const isCR = isInsightCR || url.includes('/cr/') || url.includes('condition-report') || pageText.includes('Condition Report');
 
   // ── VIN — try URL first (most reliable for search pages) ──
@@ -360,10 +360,19 @@ function extractManheimData() {
     if (m) auction[key] = parseInt(m[1].replace(/,/g, ''));
   }
 
-  // Sale channel
-  if (isOVE) auction.channel = 'OVE';
+  // Sale channel — detect from URL and page content
   const channelMatch = pageText.match(/(?:sale\s*type|channel|auction\s*type)[:\s]*([^\n]+)/i);
-  if (channelMatch) auction.channel = channelMatch[1].trim();
+  if (channelMatch) {
+    auction.channel = channelMatch[1].trim();
+  } else if (isOVE) {
+    auction.channel = 'OVE';
+  } else if (/simulcast/i.test(pageText)) {
+    auction.channel = 'Simulcast';
+  } else if (/in[\s-]*lane/i.test(pageText)) {
+    auction.channel = 'In-Lane';
+  } else if (isLiveListing) {
+    auction.channel = 'Digital';
+  }
 
   // Sale date / lane
   const saleDateMatch = pageText.match(/(?:sale\s*date|auction\s*date)[:\s]*([^\n]+)/i);
