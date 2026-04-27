@@ -1659,6 +1659,61 @@ app.post('/api/admin/vehicle/photo', upload.single('file'), async (req: any, res
 });
 
 /**
+ * Manheim Photo Grabber — receive extracted photo URLs from Chrome extension
+ * Downloads each image and uploads to Supabase storage
+ */
+app.post('/api/admin/vehicle/manheim-photos', async (req, res) => {
+  try {
+    const { vin, photos } = req.body;
+    if (!vin || !photos?.length) { res.status(400).json({ error: 'VIN and photos required' }); return; }
+
+    const uploaded: string[] = [];
+    const existing = await supabase.from('vehicle_photos').select('url').eq('vin', vin);
+    const existingUrls = new Set((existing.data || []).map((p: any) => p.url));
+    let sortOrder = existingUrls.size;
+
+    for (const photoUrl of photos) {
+      try {
+        // Download the image from Manheim
+        const imgRes = await fetch(photoUrl);
+        if (!imgRes.ok) continue;
+
+        const buffer = Buffer.from(await imgRes.arrayBuffer());
+        const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+        const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg';
+        const fileName = `${vin}/manheim_${Date.now()}_${sortOrder}.${ext}`;
+
+        // Upload to Supabase storage
+        const { error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(fileName, buffer, { contentType });
+
+        if (uploadError) { console.error('Upload error:', uploadError); continue; }
+
+        const { data: urlData } = supabase.storage
+          .from('vehicle-photos')
+          .getPublicUrl(fileName);
+
+        // Save to vehicle_photos table
+        await supabase.from('vehicle_photos').insert({
+          vin, url: urlData.publicUrl, sort_order: sortOrder,
+        });
+
+        uploaded.push(urlData.publicUrl);
+        sortOrder++;
+      } catch (e) {
+        console.error(`Failed to process ${photoUrl}:`, e);
+      }
+    }
+
+    res.json({ success: true, count: uploaded.length, photos: uploaded });
+  } catch (err) {
+    console.error('Manheim photos error:', err);
+    res.status(500).json({ error: 'Failed to process photos' });
+  }
+});
+
+/**
  * Admin — upload window sticker / Monroney label
  */
 app.post('/api/admin/vehicle/window-sticker', upload.single('file'), async (req: any, res) => {
