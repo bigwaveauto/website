@@ -126,6 +126,19 @@ export class AdminProposalsComponent implements OnInit {
           kbb: data.kbb || 0,
           market_avg: data.market_avg || 0,
         }));
+        // Push MMR into selected proposal so banner + pre-fill work
+        if (data.mmr) {
+          const s = this.selected();
+          if (s) {
+            if (!s.mmr) s.mmr = data.mmr;
+            // Pre-fill purchase price if still empty
+            if (!s.purchase_price) {
+              s.purchase_price = s.auction?.buy_now || s.auction?.current_bid || data.mmr;
+              s.auction_fees = this.calcAuctionFee(s.purchase_price);
+            }
+            this.selected.set({ ...s });
+          }
+        }
       },
       error: () => {},
     });
