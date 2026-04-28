@@ -18,23 +18,23 @@ $muted: rgba(0,0,0,0.45);
 .prop-list { display: flex; flex-direction: column; gap: 6px; max-height: 80vh; overflow-y: auto; }
 
 .prop-card {
-  padding: 12px 14px; background: white; border-radius: 10px; border: 1.5px solid $border;
+  padding: 8px 12px; background: white; border-radius: 8px; border: 1.5px solid $border;
   cursor: pointer; transition: border-color 0.15s;
   &:hover { border-color: #999; }
   &.active { border-color: $blue; background: #f0f4ff; }
 }
 
-.prop-card-top { display: flex; justify-content: space-between; align-items: center; }
-.prop-card-name { font-size: 14px; font-weight: 800; color: #111; }
+.prop-card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.prop-card-name { font-size: 13px; font-weight: 800; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prop-card-status {
-  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+  font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
   &.draft { background: #fef9c3; color: #854d0e; }
   &.sent { background: #dcfce7; color: #166534; }
 }
-.prop-card-noname { color: #ccc; font-style: italic; font-weight: 400; }
-.prop-card-vin { font-size: 11px; color: $muted; font-family: monospace; margin-top: 3px; }
-.prop-card-customer { font-size: 12px; color: #2563eb; font-weight: 600; margin-top: 3px; }
-.prop-card-meta { font-size: 11px; color: $muted; margin-top: 3px; }
+.prop-card-noname { color: #aaa; font-style: italic; font-weight: 400; font-size: 12px; }
+.prop-card-vin { font-size: 10px; color: $muted; font-family: monospace; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prop-card-customer-inline { color: #2563eb; font-weight: 600; font-family: inherit; }
+.prop-card-meta { font-size: 10px; color: $muted; margin-top: 2px; }
 
 .prop-editor {
   background: white; border-radius: 12px; padding: 20px;

@@ -18,12 +18,11 @@
         <div class="prop-card-top">
           <span class="prop-card-name">
             @if(p.vehicle?.year){ {{ p.vehicle.year }} {{ p.vehicle.make }} {{ p.vehicle.model }} }
-            @else { <span class="prop-card-noname">No vehicle data</span> }
+            @else { <span class="prop-card-noname">{{ p.vin }}</span> }
           </span>
           <span class="prop-card-status" [class.draft]="p.status === 'draft'" [class.sent]="p.status === 'sent'">{{ p.status }}</span>
         </div>
-        <div class="prop-card-vin">{{ p.vin }}@if(p.vehicle?.mileage){ &middot; {{ p.vehicle.mileage | number }} mi}</div>
-        @if(p.sent_to){<div class="prop-card-customer">{{ p.sent_to }}</div>}
+        <div class="prop-card-vin">{{ p.vin }}@if(p.vehicle?.mileage){ &middot; {{ p.vehicle.mileage | number }} mi}@if(p.sent_to){ &middot; <span class="prop-card-customer-inline">{{ p.sent_to }}</span>}</div>
         <div class="prop-card-meta">{{ timeAgo(p.created_at) }}</div>
       </div>
       }
