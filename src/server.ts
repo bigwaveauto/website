@@ -2961,11 +2961,11 @@ function parseSalesReportRows(rows: Record<string, string>[]): {
       }
       return '';
     };
-    const signerState = findCol(['Signer State', 'signer state', 'State', 'state']).trim().toUpperCase();
-    const signerZip = findCol(['Signer Zip', 'signer zip', 'Zip', 'zip']).trim().replace(/[^0-9]/g, '').slice(0, 5);
+    const signerState = findCol(['Signer State', 'signer state', 'Buyer State', 'buyer state', 'State', 'state', 'ST']).trim().toUpperCase();
+    const signerZip = findCol(['Signer Zip', 'signer zip', 'Buyer Zip', 'buyer zip', 'Zip', 'zip']).trim().replace(/[^0-9]/g, '').slice(0, 5);
     let vehicleMake = findCol(['Vehicle Make', 'vehicle make', 'Make', 'make']).trim();
     const model = findCol(['Model', 'model']).trim();
-    const dealNo = findCol(['Deal No.', 'deal no.', 'Deal No', 'deal no']).trim();
+    const dealNo = findCol(['Deal No.', 'deal no.', 'Deal No', 'deal no', 'Deal Number', 'deal number']).trim();
 
     // Handle combined "Vehicle Year Make" column (e.g., "2023 RIVIAN")
     if (!vehicleMake) {
@@ -2976,6 +2976,20 @@ function parseSalesReportRows(rows: Record<string, string>[]): {
           vehicleMake = parts.slice(1).join(' ');
         } else {
           vehicleMake = combined;
+        }
+      }
+    }
+
+    // Handle "Vehicle Info" column (e.g., "2024 GMC SIERRA 2500 HD CREW CAB AT4...")
+    // Format: YEAR MAKE MODEL TRIM... — grab just the make (second word)
+    if (!vehicleMake) {
+      const info = findCol(['Vehicle Info', 'vehicle info']).trim();
+      if (info) {
+        const parts = info.split(/\s+/);
+        if (parts.length >= 2 && /^\d{4}$/.test(parts[0])) {
+          vehicleMake = parts[1]; // just the make word (TESLA, BMW, RIVIAN, GMC, etc.)
+        } else {
+          vehicleMake = parts[0];
         }
       }
     }

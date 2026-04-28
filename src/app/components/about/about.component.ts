@@ -38,7 +38,7 @@ export class AboutComponent implements OnInit {
     CO: 1, MA: 1, ND: 1, FL: 1, AZ: 1, PA: 1, IN: 1, GA: 1, WA: 1, NY: 1, MN: 1,
   };
 
-  totalSales = 174;
+  totalSales = 195;
   statesReached = Object.keys(this.salesByState).length;
 
   // All US state paths for SVG map
@@ -178,7 +178,7 @@ export class AboutComponent implements OnInit {
     this.http.get<any>('/api/sales-stats').subscribe({
       next: (data) => {
         if (!data) return;
-        if (data.sales_by_state) {
+        if (data.sales_by_state && Object.keys(data.sales_by_state).length > 0) {
           this.salesByState = data.sales_by_state;
           this.statesReached = Object.keys(this.salesByState).length;
         }
