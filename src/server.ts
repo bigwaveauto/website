@@ -2961,8 +2961,14 @@ function parseSalesReportRows(rows: Record<string, string>[]): {
       }
       return '';
     };
-    const signerState = findCol(['Signer State', 'signer state', 'Buyer State', 'buyer state', 'State', 'state', 'ST']).trim().toUpperCase();
+    let signerState = findCol(['Signer State', 'signer state', 'Buyer State', 'buyer state', 'State', 'state', 'ST']).trim().toUpperCase();
     const signerZip = findCol(['Signer Zip', 'signer zip', 'Buyer Zip', 'buyer zip', 'Zip', 'zip']).trim().replace(/[^0-9]/g, '').slice(0, 5);
+
+    // Derive state from zip if state column missing or empty
+    if (!signerState && signerZip.length === 5) {
+      const info = (zipcodes as any).lookup(signerZip);
+      if (info?.state) signerState = info.state.toUpperCase();
+    }
     let vehicleMake = findCol(['Vehicle Make', 'vehicle make', 'Make', 'make']).trim();
     const model = findCol(['Model', 'model']).trim();
     const dealNo = findCol(['Deal No.', 'deal no.', 'Deal No', 'deal no', 'Deal Number', 'deal number']).trim();
