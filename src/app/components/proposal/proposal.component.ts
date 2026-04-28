@@ -26,7 +26,7 @@ export class ProposalComponent implements OnInit {
   carfaxExpanded = signal(false);
 
   // Feedback signals (Info Only mode)
-  interest = signal<'yes' | 'no' | null>(null);
+  interest = signal<'yes' | 'meh' | 'no' | null>(null);
   reason = signal('');
   feedbackSent = signal(false);
   feedbackSending = signal(false);
