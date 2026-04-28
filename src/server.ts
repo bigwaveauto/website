@@ -2562,6 +2562,118 @@ app.get('/api/admin/vauto/inventory', async (_req, res) => {
   }
 });
 
+// DealerCenter CSV export — Nowcom format, filename: 18548085_YYYYMMDD.csv
+app.get('/api/admin/dealercenter-export', async (_req, res) => {
+  try {
+    const vehicles = await readVautoCsv();
+    const DCID = '18548085';
+    const today = new Date();
+    const dateStr = today.getFullYear().toString()
+      + String(today.getMonth() + 1).padStart(2, '0')
+      + String(today.getDate()).padStart(2, '0');
+    const filename = `${DCID}_${dateStr}.csv`;
+
+    const headers = [
+      'Dealer ID','Type','Stock','VIN','Year','Make','Model','Body','Trim',
+      'ModelNumber','Doors','ExteriorColor','InteriorColor','EngineCylinders',
+      'EngineDisplacement','Transmission','Miles','SellingPrice','MSRP',
+      'BookValue','Cost','Invoice','Certified','DateInStock','Description',
+      'Options','Categorized Options','Dealer Name','Dealer Address',
+      'Dealer City','Dealer State','Dealer Zip','Dealer Phone','Dealer Fax',
+      'Dealer Email','Comment 1','Comment 2','Comment 3','Comment 4','Comment 5',
+      'Style_Description','Ext_Color_Generic','Ext_Color_Code',
+      'Engine_Aspiration_Type','Engine_Description','Transmission_Speed',
+      'Transmission_Description','Drivetrain','Fuel_Type','CityMPG','HighwayMPG',
+      'EPAClassification','Internet_Price','Misc_Price1','Misc_Price2','Misc_Price3',
+      'Factory_Codes','MarketClass','PassengerCapacity','ImageList',
+    ];
+
+    const escCsv = (val: any): string => {
+      const s = String(val ?? '');
+      if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+        return `"${s.replace(/"/g, '""')}"`;
+      }
+      return s;
+    };
+
+    const rows: string[] = [headers.join(',')];
+
+    for (const v of vehicles) {
+      const type = v.condition === 'New' ? 'New' : 'H_Used';
+      const dateInStock = v.dateinstock ? new Date(v.dateinstock).toLocaleDateString('en-US') : '';
+      const images = (v.photos || []).join(',');
+      const options = (v.highlights || []).join(',');
+
+      const row = [
+        DCID,
+        type,
+        v.stocknumber || '',
+        v.vin || '',
+        v.year || '',
+        v.make || '',
+        v.model || '',
+        v.body || '',
+        v.trim || '',
+        '', // ModelNumber
+        v.doors || '',
+        v.exteriorcolor || '',
+        v.interiorcolor || '',
+        '', // EngineCylinders
+        '', // EngineDisplacement
+        v.transmission || '',
+        v.mileage || 0,
+        v.price || 0,
+        v.msrp || v.originalprice || 0,
+        '', // BookValue
+        '', // Cost
+        '', // Invoice
+        v.certified ? 'TRUE' : 'FALSE',
+        dateInStock,
+        v.description || '',
+        options,
+        '', // Categorized Options
+        'Big Wave Auto',
+        'N69W25055 Indian Grass Lane, Unit H',
+        'Sussex',
+        'WI',
+        '53089',
+        '(262) 281-1295',
+        '', // Fax
+        '', // Email
+        '', '', '', '', '', // Comments 1-5
+        v.trim || '', // Style_Description
+        v.exteriorcolorstandard || v.exteriorcolor || '',
+        '', // Ext_Color_Code
+        '', // Engine_Aspiration_Type
+        v.engine || '',
+        '', // Transmission_Speed
+        v.transmission || '',
+        v.drivetrainstandard || '',
+        v.fuel || '',
+        v.citympg || '',
+        v.hwympg || '',
+        '', // EPAClassification
+        v.price || 0,
+        '', '', '', // Misc prices
+        '', // Factory_Codes
+        '', // MarketClass
+        '', // PassengerCapacity
+        images,
+      ].map(escCsv).join(',');
+
+      rows.push(row);
+    }
+
+    const csv = rows.join('\r\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(csv);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to generate DealerCenter export' });
+  }
+});
+
 /**
  * Public inventory endpoints — serves vAuto CSV data in Overfuel-compatible format
  * so the Angular frontend works without changes to component templates.
