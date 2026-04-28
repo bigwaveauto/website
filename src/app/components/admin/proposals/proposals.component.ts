@@ -181,6 +181,11 @@ export class AdminProposalsComponent implements OnInit {
     navigator.clipboard.writeText(this.proposalUrl(p));
   }
 
+  printProposal(p: any) {
+    const w = window.open(this.proposalUrl(p), '_blank');
+    if (w) w.addEventListener('load', () => w.print());
+  }
+
   toggleExclude(field: string) {
     const s = this.selected();
     if (!s) return;
