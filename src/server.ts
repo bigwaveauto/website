@@ -1740,11 +1740,43 @@ app.post('/api/ext/proposal', async (req, res) => {
     const { vin, vehicle, condition, auction, photos, page_type, source_url, extracted_at } = req.body;
     if (!vin) { res.status(400).json({ error: 'VIN required' }); return; }
 
+    // Decode VIN via NHTSA for reliable year/make/model/trim
+    let vinData: any = vehicle || {};
+    try {
+      const nhtsaRes = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/${vin}?format=json`);
+      if (nhtsaRes.ok) {
+        const nhtsaJson = await nhtsaRes.json();
+        const r = nhtsaJson?.Results?.[0];
+        if (r && r.ModelYear) {
+          vinData = {
+            ...vinData,
+            year: r.ModelYear || vinData.year,
+            make: r.Make || vinData.make,
+            model: r.Model || vinData.model,
+            trim: r.Trim || vinData.trim,
+            engine: r.DisplacementL ? `${r.DisplacementL}L ${r.FuelTypePrimary || ''}`.trim() : (vinData.engine || ''),
+            transmission: r.TransmissionStyle || vinData.transmission,
+            drivetrain: r.DriveType || vinData.drivetrain,
+            fuel: r.FuelTypePrimary || vinData.fuel,
+            body: r.BodyClass || vinData.body,
+            // Keep scrape-sourced fields that NHTSA won't have
+            mileage: vinData.mileage,
+            exterior_color: vinData.exterior_color,
+            interior_color: vinData.interior_color,
+            grade: vinData.grade,
+            seller: vinData.seller,
+          };
+        }
+      }
+    } catch (e) {
+      console.error('NHTSA decode error:', e);
+    }
+
     const id = randomBytes(6).toString('hex');
     const { error } = await supabase.from('vehicle_proposals').insert({
       id,
       vin,
-      vehicle: vehicle || {},
+      vehicle: vinData,
       condition: condition || {},
       auction: auction || null,
       mmr: auction?.mmr || null,
@@ -1778,6 +1810,54 @@ app.get('/api/proposal/:id', async (req, res) => {
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: 'Failed to load proposal' });
+  }
+});
+
+/**
+ * Admin — backfill existing proposals with NHTSA VIN data
+ */
+app.post('/api/admin/proposals/backfill-vin', async (_req, res) => {
+  try {
+    const { data: proposals, error } = await supabase
+      .from('vehicle_proposals')
+      .select('id, vin, vehicle')
+      .order('created_at', { ascending: false });
+    if (error) { res.status(500).json({ error: error.message }); return; }
+
+    let updated = 0;
+    for (const p of (proposals || [])) {
+      if (p.vehicle?.year && p.vehicle?.make) continue; // already has good data
+      try {
+        const nhtsaRes = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/${p.vin}?format=json`);
+        if (!nhtsaRes.ok) continue;
+        const nhtsaJson = await nhtsaRes.json();
+        const r = nhtsaJson?.Results?.[0];
+        if (!r?.ModelYear) continue;
+        const vehicle = {
+          ...(p.vehicle || {}),
+          year: r.ModelYear,
+          make: r.Make,
+          model: r.Model,
+          trim: r.Trim || (p.vehicle?.trim),
+          engine: r.DisplacementL ? `${r.DisplacementL}L ${r.FuelTypePrimary || ''}`.trim() : undefined,
+          transmission: r.TransmissionStyle || undefined,
+          drivetrain: r.DriveType || undefined,
+          fuel: r.FuelTypePrimary || undefined,
+          body: r.BodyClass || undefined,
+        };
+        // Remove junk fields
+        for (const key of ['engine', 'transmission', 'drivetrain', 'fuel', 'body', 'exterior_color', 'interior_color', 'seller']) {
+          if (vehicle[key] && (vehicle[key].length > 60 || /manage|run list|international|vehicle\b/i.test(vehicle[key]))) {
+            delete vehicle[key];
+          }
+        }
+        await supabase.from('vehicle_proposals').update({ vehicle }).eq('id', p.id);
+        updated++;
+      } catch (e) { /* skip */ }
+    }
+    res.json({ success: true, updated, total: proposals?.length });
+  } catch (err) {
+    res.status(500).json({ error: 'Backfill failed' });
   }
 });
 

@@ -302,16 +302,12 @@ function extractManheimData() {
     }
   });
 
-  // Fallback: regex from page text
+  // Fallback: only scrape fields NHTSA won't have (mileage, colors, grade)
+  // Year/make/model/engine/transmission come from NHTSA VIN decode server-side
   const fieldPatterns = [
     { key: 'mileage', patterns: [/(?:mileage|odometer|miles)[:\s]*([0-9,]+)/i] },
-    { key: 'exterior_color', patterns: [/(?:ext(?:erior)?[\s.]*(?:color)?)[:\s]*([A-Za-z\s]+?)(?:\n|$|Int)/i] },
-    { key: 'interior_color', patterns: [/(?:int(?:erior)?[\s.]*(?:color)?)[:\s]*([A-Za-z\s]+?)(?:\n|$)/i] },
-    { key: 'engine', patterns: [/(?:engine|motor)[:\s]*([^\n]+)/i] },
-    { key: 'transmission', patterns: [/(?:trans(?:mission)?)[:\s]*([^\n]+)/i] },
-    { key: 'drivetrain', patterns: [/(?:drive\s*train|drivetrain|drive\s*type)[:\s]*([^\n]+)/i] },
-    { key: 'fuel', patterns: [/(?:fuel(?:\s*type)?)[:\s]*([^\n]+)/i] },
-    { key: 'body', patterns: [/(?:body\s*(?:style|type)?)[:\s]*([^\n]+)/i] },
+    { key: 'exterior_color', patterns: [/(?:ext(?:erior)?\s+color)[:\s]*([A-Za-z][A-Za-z\s]{1,20}?)(?:\n|$|int)/i] },
+    { key: 'interior_color', patterns: [/(?:int(?:erior)?\s+color)[:\s]*([A-Za-z][A-Za-z\s]{1,20}?)(?:\n|$)/i] },
   ];
 
   for (const { key, patterns } of fieldPatterns) {
@@ -319,6 +315,14 @@ function extractManheimData() {
     for (const pat of patterns) {
       const m = pageText.match(pat);
       if (m) { vehicle[key] = m[1].trim().replace(/\s+/g, ' '); break; }
+    }
+  }
+
+  // Clear out any garbage values from structured data parse (sanity check)
+  const MAX_FIELD_LEN = 60;
+  for (const key of ['engine', 'transmission', 'drivetrain', 'fuel', 'body', 'exterior_color', 'interior_color']) {
+    if (vehicle[key] && (vehicle[key].length > MAX_FIELD_LEN || /manage|run list|international|vehicle\b/i.test(vehicle[key]))) {
+      delete vehicle[key];
     }
   }
 
