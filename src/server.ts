@@ -605,7 +605,7 @@ const chatPerMinute = rateLimit({
 const chatPerHour = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 30, // 30 messages per hour per IP
-  message: { error: 'You\'ve reached the hourly limit. Please try again later or call us at (262) 592-4795.' },
+  message: { error: 'You\'ve reached the hourly limit. Please try again later or call us at (262) 281-1295.' },
   standardHeaders: true, legacyHeaders: false,
 });
 
@@ -716,7 +716,7 @@ app.post('/api/chat', chatPerMinute, chatPerHour, async (req, res) => {
 
     // Max conversation length
     if (messages.length > 40) {
-      res.status(400).json({ error: 'Conversation too long. Please start a new chat or call us at (262) 592-4795.' }); return;
+      res.status(400).json({ error: 'Conversation too long. Please start a new chat or call us at (262) 281-1295.' }); return;
     }
 
     // Max input length on latest message
@@ -729,7 +729,7 @@ app.post('/api/chat', chatPerMinute, chatPerHour, async (req, res) => {
     const today = new Date().toDateString();
     if (today !== dailyTokensDate) { dailyTokensUsed = 0; dailyTokensDate = today; }
     if (dailyTokensUsed > DAILY_TOKEN_BUDGET) {
-      res.status(429).json({ error: 'Our AI assistant is resting for the day. Please call us at (262) 592-4795 or try again tomorrow.' }); return;
+      res.status(429).json({ error: 'Our AI assistant is resting for the day. Please call us at (262) 281-1295 or try again tomorrow.' }); return;
     }
 
     const inventory = await readVautoCsv();

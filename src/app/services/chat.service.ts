@@ -31,7 +31,7 @@ export class ChatService {
     // Client-side session limit
     const userMsgCount = this.messages().filter(m => m.role === 'user').length;
     if (userMsgCount >= 20) {
-      this.appendAssistant('You\'ve reached the message limit for this session. Please call us at (262) 592-4795 or refresh to start a new conversation.');
+      this.appendAssistant('You\'ve reached the message limit for this session. Please call us at (262) 281-1295 or refresh to start a new conversation.');
       return;
     }
 
@@ -51,7 +51,7 @@ export class ChatService {
       });
 
       if (!res.ok || !res.body) {
-        this.appendAssistant('Sorry, I had trouble connecting. Please try again or call us at (262) 592-4795.');
+        this.appendAssistant('Sorry, I had trouble connecting. Please try again or call us at (262) 281-1295.');
         this.isLoading.set(false);
         return;
       }

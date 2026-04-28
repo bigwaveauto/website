@@ -129,7 +129,7 @@ export class ReservationPanelComponent {
       },
       error: () => {
         this.submitting.set(false);
-        alert('Sorry, something went wrong. Please call us at (262) 592-4795.');
+        alert('Sorry, something went wrong. Please call us at (262) 281-1295.');
       },
     });
   }
