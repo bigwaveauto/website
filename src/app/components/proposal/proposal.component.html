@@ -263,7 +263,7 @@
             <lucide-icon name="phone" />
             Call Big Wave Auto
           </a>
-          <button class="prop-btn-outline prop-btn-question" (click)="interest.set('meh'); reason.set('I have a question — ')">
+          <button class="prop-btn-outline prop-btn-question" (click)="showQuestion.set(true)">
             <lucide-icon name="help-circle" />
             I Have a Question
           </button>
@@ -408,5 +408,30 @@
   </div>
 
 </div><!-- /prop-shell -->
+
+<!-- Question Modal -->
+@if(showQuestion()){
+<div class="q-backdrop" (click)="showQuestion.set(false)">
+  <div class="q-modal" (click)="$event.stopPropagation()">
+    @if(!questionSent()){
+    <div class="q-header">
+      <span class="q-title">Send Us a Question</span>
+      <button class="q-close" (click)="showQuestion.set(false)"><lucide-icon name="x" /></button>
+    </div>
+    <textarea class="q-input" [ngModel]="questionText()" (ngModelChange)="questionText.set($event)"
+      placeholder="What would you like to know?" rows="4" autofocus></textarea>
+    <button class="q-submit" [disabled]="questionSending() || !questionText().trim()" (click)="submitQuestion()">
+      @if(questionSending()){ Sending... }@else{ Send Question }
+    </button>
+    }@else{
+    <div class="q-sent">
+      <lucide-icon name="check-circle" />
+      <span>Got it! We'll get back to you shortly.</span>
+      <button class="q-submit" (click)="showQuestion.set(false)">Close</button>
+    </div>
+    }
+  </div>
+</div>
+}
 
 }

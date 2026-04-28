@@ -384,6 +384,52 @@ $muted: rgba(0,0,0,0.45);
   margin-top: 4px;
 }
 
+/* ── Question Modal ── */
+.q-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+
+.q-modal {
+  background: white; border-radius: 20px; padding: 24px; width: 100%; max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+.q-header {
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.q-title { font-size: 18px; font-weight: 800; color: #111; }
+
+.q-close {
+  background: none; border: none; cursor: pointer; color: #999; padding: 4px;
+  border-radius: 8px; display: flex;
+  lucide-icon { width: 22px; height: 22px; }
+  &:hover { background: #f1f5f9; color: #333; }
+}
+
+.q-input {
+  width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 12px;
+  font-size: 15px; font-family: inherit; color: #111; resize: vertical;
+  box-sizing: border-box;
+  &:focus { outline: none; border-color: $blue; }
+}
+
+.q-submit {
+  padding: 14px; background: $blue; color: white; border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer;
+  &:hover { background: #1d4ed8; }
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+.q-sent {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 12px 0; text-align: center;
+  lucide-icon { width: 40px; height: 40px; color: #16a34a; }
+  span { font-size: 16px; font-weight: 600; color: #111; }
+}
+
 /* ── Feedback (Info Only mode) ── */
 .fb-section {
   padding: 16px 0 4px;

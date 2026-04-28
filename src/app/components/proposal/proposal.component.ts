@@ -31,6 +31,12 @@ export class ProposalComponent implements OnInit {
   feedbackSent = signal(false);
   feedbackSending = signal(false);
 
+  // Question modal
+  showQuestion = signal(false);
+  questionText = signal('');
+  questionSent = signal(false);
+  questionSending = signal(false);
+
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) { this.notFound.set(true); this.loading.set(false); return; }
@@ -103,6 +109,19 @@ export class ProposalComponent implements OnInit {
   get isInfoMode(): boolean {
     const mode = this.proposal()?.proposal_mode;
     return !mode || mode === 'info';
+  }
+
+  submitQuestion() {
+    const id = this.proposal()?.id;
+    if (!id || !this.questionText().trim()) return;
+    this.questionSending.set(true);
+    this.http.post(`/api/proposal/${id}/feedback`, {
+      interest: 'question',
+      reason: this.questionText(),
+    }).subscribe({
+      next: () => { this.questionSending.set(false); this.questionSent.set(true); },
+      error: () => { this.questionSending.set(false); },
+    });
   }
 
   submitFeedback() {
