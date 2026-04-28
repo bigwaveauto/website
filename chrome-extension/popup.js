@@ -302,26 +302,68 @@ function extractManheimData() {
     }
   });
 
-  // Fallback: only scrape fields NHTSA won't have (mileage, colors, grade)
-  // Year/make/model/engine/transmission come from NHTSA VIN decode server-side
-  const fieldPatterns = [
-    { key: 'mileage', patterns: [/(?:mileage|odometer|miles)[:\s]*([0-9,]+)/i] },
-    { key: 'exterior_color', patterns: [/(?:ext(?:erior)?\s+color)[:\s]*([A-Za-z][A-Za-z\s]{1,20}?)(?:\n|$|int)/i] },
-    { key: 'interior_color', patterns: [/(?:int(?:erior)?\s+color)[:\s]*([A-Za-z][A-Za-z\s]{1,20}?)(?:\n|$)/i] },
-  ];
+  // ── Targeted DOM label/value extraction for Manheim live listings ──
+  // Manheim renders specs as dt/dd pairs, table rows, or labeled divs.
+  // Map label text → vehicle field key. NHTSA handles year/make/model server-side
+  // so we focus on what NHTSA won't have: mileage, colors, grade, options/packages.
+  const labelMap = {
+    'odometer': 'mileage', 'mileage': 'mileage', 'miles': 'mileage',
+    'exterior color': 'exterior_color', 'ext color': 'exterior_color', 'exterior': 'exterior_color',
+    'interior color': 'interior_color', 'int color': 'interior_color', 'interior': 'interior_color',
+    'engine': 'engine', 'displacement': 'engine',
+    'transmission': 'transmission', 'trans': 'transmission',
+    'drive': 'drivetrain', 'drivetrain': 'drivetrain', 'drive type': 'drivetrain',
+    'fuel': 'fuel', 'fuel type': 'fuel',
+    'body': 'body', 'body style': 'body', 'body type': 'body',
+    'condition grade': 'grade', 'cr grade': 'grade', 'grade': 'grade',
+    'cylinders': 'cylinders',
+    'doors': 'doors',
+  };
 
-  for (const { key, patterns } of fieldPatterns) {
-    if (vehicle[key]) continue; // already got from structured data
-    for (const pat of patterns) {
-      const m = pageText.match(pat);
-      if (m) { vehicle[key] = m[1].trim().replace(/\s+/g, ' '); break; }
-    }
+  // Strategy 1: dt/dd pairs
+  document.querySelectorAll('dl, [class*="specs" i], [class*="detail" i], [class*="vehicle-info" i]').forEach(container => {
+    const dts = container.querySelectorAll('dt, [class*="label" i], th');
+    const dds = container.querySelectorAll('dd, [class*="value" i], td');
+    dts.forEach((dt, i) => {
+      const label = dt.textContent?.trim().toLowerCase().replace(/[:\s]+$/, '');
+      const val = dds[i]?.textContent?.trim();
+      if (!label || !val || val.length > 80) return;
+      const field = labelMap[label];
+      if (field && !vehicle[field]) vehicle[field] = val;
+    });
+  });
+
+  // Strategy 2: sibling pairs — a label span next to a value span
+  document.querySelectorAll('[class*="spec-row" i], [class*="info-row" i], [class*="detail-row" i], [class*="attribute" i]').forEach(row => {
+    const children = Array.from(row.children).filter(c => c.textContent?.trim());
+    if (children.length < 2) return;
+    const label = children[0].textContent?.trim().toLowerCase().replace(/[:\s]+$/, '');
+    const val = children[children.length - 1].textContent?.trim();
+    if (!label || !val || val.length > 80) return;
+    const field = labelMap[label];
+    if (field && !vehicle[field]) vehicle[field] = val;
+  });
+
+  // Strategy 3: mileage regex on page text (very specific pattern, numbers only)
+  if (!vehicle.mileage) {
+    const m = pageText.match(/(?:odometer|mileage|miles)[:\s]*([0-9,]+)\s*(?:mi|miles)?/i);
+    if (m) vehicle.mileage = m[1].replace(/,/g, '');
   }
 
-  // Clear out any garbage values from structured data parse (sanity check)
-  const MAX_FIELD_LEN = 60;
-  for (const key of ['engine', 'transmission', 'drivetrain', 'fuel', 'body', 'exterior_color', 'interior_color']) {
-    if (vehicle[key] && (vehicle[key].length > MAX_FIELD_LEN || /manage|run list|international|vehicle\b/i.test(vehicle[key]))) {
+  // Strategy 4: color from tightly-bounded regex (require "color" keyword)
+  if (!vehicle.exterior_color) {
+    const m = pageText.match(/ext(?:erior)?\s+color[:\s]+([A-Za-z][A-Za-z\s]{1,25}?)(?:\n|int|$)/im);
+    if (m) vehicle.exterior_color = m[1].trim();
+  }
+  if (!vehicle.interior_color) {
+    const m = pageText.match(/int(?:erior)?\s+color[:\s]+([A-Za-z][A-Za-z\s]{1,25}?)(?:\n|$)/im);
+    if (m) vehicle.interior_color = m[1].trim();
+  }
+
+  // Clear out garbage values (too long, or clearly UI chrome text)
+  const JUNK_RE = /manage|run list|international|^vehicle$|^cycle$|selectable mode|search/i;
+  for (const key of ['engine','transmission','drivetrain','fuel','body','exterior_color','interior_color','seller','grade']) {
+    if (vehicle[key] && (vehicle[key].length > 80 || JUNK_RE.test(vehicle[key]))) {
       delete vehicle[key];
     }
   }

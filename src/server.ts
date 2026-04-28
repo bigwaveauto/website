@@ -1765,6 +1765,8 @@ app.post('/api/ext/proposal', async (req, res) => {
             interior_color: vinData.interior_color,
             grade: vinData.grade,
             seller: vinData.seller,
+            cylinders: vinData.cylinders,
+            doors: vinData.doors,
           };
         }
       }
