@@ -162,7 +162,7 @@
       if (val) tryLabel(lbl.textContent, val.textContent);
     });
 
-    // Strategy 4: Tight regex fallbacks (mileage + colors only — most reliable)
+    // Strategy 4: Tight regex fallbacks
     const pageText = document.body.innerText || '';
     if (!vehicle.mileage) {
       const m = pageText.match(/(?:odometer|mileage)[^\d]*([0-9,]+)\s*(?:mi|miles)?/i);
@@ -176,10 +176,36 @@
       const m = pageText.match(/int(?:erior)?\s+color[:\s]+([A-Za-z][A-Za-z /]{1,25}?)(?:\n|ext|$)/im);
       if (m) vehicle.interior_color = cleanVal(m[1]);
     }
+    if (!vehicle.engine) {
+      const m = pageText.match(/engine[:\s]+([^\n]{4,60})/i);
+      if (m) vehicle.engine = cleanVal(m[1]);
+    }
+    if (!vehicle.transmission) {
+      const m = pageText.match(/transmission[:\s]+([^\n]{4,60})/i);
+      if (m) vehicle.transmission = cleanVal(m[1]);
+    }
+    if (!vehicle.drivetrain) {
+      const m = pageText.match(/(?:drive\s*type|drivetrain)[:\s]+([^\n]{2,40})/i);
+      if (m) vehicle.drivetrain = cleanVal(m[1]);
+    }
+    if (!vehicle.fuel) {
+      const m = pageText.match(/fuel\s*(?:type)?[:\s]+([^\n]{2,30})/i);
+      if (m) vehicle.fuel = cleanVal(m[1]);
+    }
 
-    // Final cleanup — remove any junk that slipped through
+    // Extra fields
+    const keysM = pageText.match(/(?:keys?)[:\s]+([0-9]+)/i);
+    if (keysM) vehicle.keys = keysM[1];
+
+    const msrpM = pageText.match(/msrp[:\s]*\$?([\d,]+)/i);
+    if (msrpM) vehicle.msrp = parseInt(msrpM[1].replace(/,/g, ''));
+
+    const stateM = pageText.match(/(?:location|state|region)[:\s]+([A-Z]{2}|[A-Za-z\s]{3,25}?)(?:\n|$)/i);
+    if (stateM) vehicle.location = cleanVal(stateM[1]);
+
+    // Final cleanup
     for (const key of Object.keys(vehicle)) {
-      if (!cleanVal(vehicle[key])) delete vehicle[key];
+      if (!cleanVal(String(vehicle[key] ?? ''))) delete vehicle[key];
     }
 
     return vehicle;
@@ -375,11 +401,56 @@
     });
     condition.announcements = [...new Set(condition.announcements)].slice(0, 20);
 
-    // ── Grade + Tires ──
+    // ── Standard Equipment ──
+    const stdSection = Array.from(document.querySelectorAll('*')).find(el =>
+      /standard equipment/i.test(el.textContent) && el.textContent.length < 20000 &&
+      el.querySelectorAll('li').length > 2
+    );
+    if (stdSection) {
+      let inStd = false;
+      stdSection.querySelectorAll('li, span, div').forEach(el => {
+        if (/standard equipment/i.test(el.textContent) && el.textContent.length < 40) { inStd = true; return; }
+        if (!inStd || el.children.length > 0) return;
+        const t = el.textContent?.trim();
+        if (!isJunk(t) && t.length < 150) condition.standard_equipment = [...(condition.standard_equipment || []), t];
+      });
+    }
+    if (condition.standard_equipment?.length) {
+      condition.standard_equipment = [...new Set(condition.standard_equipment)].slice(0, 100);
+    }
+
+    // ── Grade + Tires + Title ──
     const gm = pageText.match(/(?:condition\s*grade|cr\s*grade)[:\s]*([0-9.]+)/i);
     if (gm) condition.overall_grade = gm[1];
-    const tm = pageText.match(/tires?[:\s]+([^\n]{3,60})/i);
+
+    const tm = pageText.match(/tires?[:\s]+([^\n]{3,80})/i);
     if (tm) condition.tires = tm[1].trim();
+
+    // Tire tread by position
+    const tireTread = {};
+    for (const pos of ['LF', 'RF', 'LR', 'RR']) {
+      const m = pageText.match(new RegExp(pos + '[:\\s]*([0-9]+(?:\\.[0-9]+)?(?:\\s*\\/\\s*[0-9]+)?\\s*(?:32nds?|mm)?)', 'i'));
+      if (m) tireTread[pos] = m[1].trim();
+    }
+    if (Object.keys(tireTread).length) condition.tire_tread = tireTread;
+
+    // Title status
+    const titleM = pageText.match(/title[:\s]+([^\n]{2,40})/i);
+    if (titleM && !/fee|transfer|cost/i.test(titleM[1])) condition.title_status = titleM[1].trim();
+
+    // Seller
+    const sellerM = pageText.match(/(?:seller|consignor|sold\s*by)[:\s]+([^\n]{2,60})/i);
+    if (sellerM) condition.seller = sellerM[1].trim();
+
+    // Panel grades (A/B/C or numeric per panel)
+    const panelGrades = {};
+    const panels = ['Hood', 'Roof', 'Trunk', 'Left Front', 'Right Front', 'Left Rear', 'Right Rear', 'Left Front Door', 'Right Front Door'];
+    for (const panel of panels) {
+      const re = new RegExp(panel.replace(' ', '[\\s-]*') + '[:\\s]*([A-E]|[0-9](?:\\.[0-9])?)', 'i');
+      const m = pageText.match(re);
+      if (m) panelGrades[panel] = m[1];
+    }
+    if (Object.keys(panelGrades).length) condition.panel_grades = panelGrades;
 
     return condition;
   }
