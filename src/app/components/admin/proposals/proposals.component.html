@@ -16,14 +16,15 @@
       @for(p of proposals(); track p.id){
       <div class="prop-card" [class.active]="selected()?.id === p.id" (click)="selectProposal(p)">
         <div class="prop-card-top">
-          <span class="prop-card-name">{{ vehicleName(p) }}</span>
+          <span class="prop-card-name">
+            @if(p.vehicle?.year){ {{ p.vehicle.year }} {{ p.vehicle.make }} {{ p.vehicle.model }} }
+            @else { <span class="prop-card-noname">No vehicle data</span> }
+          </span>
           <span class="prop-card-status" [class.draft]="p.status === 'draft'" [class.sent]="p.status === 'sent'">{{ p.status }}</span>
         </div>
-        <div class="prop-card-vin">{{ p.vin }}</div>
-        <div class="prop-card-meta">
-          {{ p.vehicle?.mileage || '' }} &middot; {{ timeAgo(p.created_at) }}
-          @if(p.sent_to){ &middot; Sent to {{ p.sent_to }} }
-        </div>
+        <div class="prop-card-vin">{{ p.vin }}@if(p.vehicle?.mileage){ &middot; {{ p.vehicle.mileage | number }} mi}</div>
+        @if(p.sent_to){<div class="prop-card-customer">{{ p.sent_to }}</div>}
+        <div class="prop-card-meta">{{ timeAgo(p.created_at) }}</div>
       </div>
       }
     </div>
@@ -47,197 +48,217 @@
         <button class="prop-copy-btn" (click)="copyLink(s)">Copy</button>
       </div>
 
-      <!-- ═══ DEAL WORKSHEET ═══ -->
-      <div class="desk">
-        <!-- MMR Banner -->
-        @if(s.auction?.mmr || s.mmr){
-        <div class="desk-mmr-banner">
-          <div class="desk-mmr-left">
-            <span class="desk-mmr-label">MMR</span>
-            <span class="desk-mmr-value">{{ (s.auction?.mmr || s.mmr) | currency:'USD':'symbol':'1.0-0' }}</span>
-          </div>
-          @if(s.asking_price > 0){
-          <div class="desk-mmr-right">
-            <span class="desk-mmr-pct" [class.desk-mmr-above]="pctToMMR(s) > 0" [class.desk-mmr-below]="pctToMMR(s) < 0">
-              {{ pctToMMR(s) > 0 ? '+' : '' }}{{ pctToMMR(s) | number:'1.1-1' }}% to retail
-            </span>
-          </div>
-          }
-        </div>
-        }
+      <!-- ═══ TWO-COLUMN DEAL VIEW ═══ -->
+      <div class="desk-cols">
 
-        <!-- Auction reference -->
-        @if(s.auction){
-        <div class="desk-ref">
-          <span class="desk-ref-tag">{{ s.auction.channel || 'Auction' }}</span>
-          @if(s.auction.buy_now){<span class="desk-ref-pill">Buy Now <b>{{ s.auction.buy_now | currency:'USD':'symbol':'1.0-0' }}</b></span>}
-          @if(s.auction.current_bid){<span class="desk-ref-pill">Bid <b>{{ s.auction.current_bid | currency:'USD':'symbol':'1.0-0' }}</b></span>}
-          @if(s.auction.sale_date){<span class="desk-ref-pill desk-ref-date">{{ s.auction.sale_date }}</span>}
-        </div>
-        }
+        <!-- LEFT: Retail -->
+        <div class="desk-retail-col">
+          <div class="desk-col-title">Retail</div>
 
-        <!-- Acquisition -->
-        <div class="desk-section">
-          <div class="desk-section-title">Acquisition</div>
-          <div class="desk-row">
-            <label>Auction Price Paid</label>
-            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.purchase_price" [placeholder]="s.auction?.mmr || 0" /></div>
-            @if(!s.purchase_price && s.auction?.mmr){
-            <button class="desk-use-btn" (click)="s.purchase_price = s.auction.mmr">Use MMR</button>
+          <!-- Asking Price -->
+          <div class="desk-asking-row">
+            <label>Asking Price</label>
+            <div class="desk-dollar desk-dollar-big"><span>$</span><input type="text" [ngModel]="fmt(s.asking_price)" (ngModelChange)="s.asking_price = parse($event)" placeholder="" /></div>
+          </div>
+
+          <!-- Line Items -->
+          <div class="desk-li-section">
+            <div class="desk-section-title" style="padding:10px 0 6px">Line Items</div>
+            @for(li of getLineItems(s); track $index; let i = $index){
+            <div class="prop-li-row">
+              <input class="prop-li-label" [(ngModel)]="li.label" placeholder="Label" [ngModelOptions]="{standalone: true}" />
+              <div class="prop-li-amount"><span>$</span><input type="text" [ngModel]="fmt(li.amount)" (ngModelChange)="li.amount = parse($event)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
+              <label class="prop-li-check"><input type="checkbox" [(ngModel)]="li.taxable" [ngModelOptions]="{standalone: true}" /> Tax</label>
+              <button class="prop-li-del" (click)="removeLineItem(s, i)"><lucide-icon name="x" /></button>
+            </div>
+            }
+            <div class="prop-li-actions" style="margin-top:6px">
+              <button class="prop-li-add" (click)="addLineItem(s, 'Item', 0, true)"><lucide-icon name="plus" /> Taxable</button>
+              <button class="prop-li-add" (click)="addLineItem(s, 'Item', 0, false)"><lucide-icon name="plus" /> Non-Taxable</button>
+              <button class="prop-li-add" (click)="applyPreset(s)">WI Defaults</button>
+            </div>
+          </div>
+
+          <!-- Tax Rate -->
+          <div class="desk-tax-row">
+            <span>Tax Rate</span>
+            <div class="desk-tax-input">
+              <input type="number" step="0.01" [(ngModel)]="s.tax_rate" placeholder="5.5" />
+              <span>%</span>
+            </div>
+          </div>
+
+          <!-- Trade-In -->
+          <div class="desk-trade-section">
+            <div class="desk-section-title" style="margin-bottom:8px">Trade-In</div>
+            <div class="prop-field-row">
+              <div class="prop-field"><label>Year</label><input [(ngModel)]="getTradeIn(s).year" [ngModelOptions]="{standalone: true}" /></div>
+              <div class="prop-field"><label>Make</label><input [(ngModel)]="getTradeIn(s).make" [ngModelOptions]="{standalone: true}" /></div>
+              <div class="prop-field"><label>Model</label><input [(ngModel)]="getTradeIn(s).model" [ngModelOptions]="{standalone: true}" /></div>
+            </div>
+            <div class="prop-field-row">
+              <div class="prop-field"><label>VIN</label><input [(ngModel)]="getTradeIn(s).vin" [ngModelOptions]="{standalone: true}" /></div>
+              <div class="prop-field"><label>Mileage</label><input [(ngModel)]="getTradeIn(s).mileage" [ngModelOptions]="{standalone: true}" /></div>
+            </div>
+            <div class="prop-field-row">
+              <div class="prop-field">
+                <label>Allowance</label>
+                <div class="prop-price-input"><span>$</span><input type="text" [ngModel]="fmt(getTradeIn(s).allowance)" (ngModelChange)="getTradeIn(s).allowance = parse($event)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
+              </div>
+              <div class="prop-field">
+                <label>Payoff</label>
+                <div class="prop-price-input"><span>$</span><input type="text" [ngModel]="fmt(getTradeIn(s).payoff)" (ngModelChange)="getTradeIn(s).payoff = parse($event)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
+              </div>
+            </div>
+            <div class="prop-field">
+              <label>Payoff Owed To</label>
+              <input [(ngModel)]="getTradeIn(s).payoff_to" [ngModelOptions]="{standalone: true}" placeholder="Lender name" />
+            </div>
+          </div>
+
+          <!-- Down Payment -->
+          <div class="desk-tax-row">
+            <span>Down Payment</span>
+            <div class="prop-price-input" style="width:160px">
+              <span>$</span>
+              <input type="text" [ngModel]="fmt(s.down_payment)" (ngModelChange)="s.down_payment = parse($event)" placeholder="" />
+            </div>
+          </div>
+
+          <!-- Custom Notes -->
+          <div class="prop-field" style="padding:10px 14px">
+            <label>Notes to Customer</label>
+            <textarea [(ngModel)]="s.custom_notes" rows="2" placeholder="Personal message to the buyer..."></textarea>
+          </div>
+        </div>
+
+        <!-- RIGHT: Cost Details -->
+        <div class="desk-cost-col">
+          <div class="desk-col-title">Cost Details</div>
+
+          <!-- MMR Banner -->
+          @if(s.auction?.mmr || s.mmr){
+          <div class="desk-mmr-banner" style="border-radius:0">
+            <div class="desk-mmr-left">
+              <span class="desk-mmr-label">MMR</span>
+              <span class="desk-mmr-value">{{ (s.auction?.mmr || s.mmr) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            @if(s.asking_price > 0){
+            <div class="desk-mmr-right">
+              <span class="desk-mmr-pct" [class.desk-mmr-above]="pctToMMR(s) > 0" [class.desk-mmr-below]="pctToMMR(s) < 0">
+                {{ pctToMMR(s) > 0 ? '+' : '' }}{{ pctToMMR(s) | number:'1.1-1' }}% to retail
+              </span>
+            </div>
             }
           </div>
-          <div class="desk-row">
-            <label>Transport</label>
-            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.transport_cost" /></div>
-          </div>
-          <div class="desk-row">
-            <label>Auction Fees</label>
-            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.auction_fees" /></div>
-          </div>
-        </div>
+          }
 
-        <!-- Recon -->
-        <div class="desk-section">
-          <div class="desk-section-title">Reconditioning</div>
-          <div class="desk-row">
-            <label>Mechanical</label>
-            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.recon_mechanical" /></div>
-          </div>
-          <div class="desk-row">
-            <label>Body / Paint</label>
-            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.recon_body" /></div>
-          </div>
-          <div class="desk-row">
-            <label>Tires</label>
-            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.recon_tires" /></div>
-          </div>
-          <div class="desk-row">
-            <label>Detail / Other</label>
-            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.recon_other" /></div>
-          </div>
-        </div>
-
-        <!-- Flooring estimate -->
-        <div class="desk-section">
-          <div class="desk-section-title">Flooring (est.)</div>
-          <div class="desk-row">
-            <label>Est. Days to Sell</label>
-            <input type="number" class="desk-input-sm" [(ngModel)]="s.est_days_to_sell" />
-          </div>
-          <div class="desk-row desk-row-calc">
-            <label>Est. Flooring Cost</label>
-            <span class="desk-calc-value">{{ estFlooringCost(s) | currency:'USD':'symbol':'1.0-0' }}</span>
-          </div>
-        </div>
-
-        <!-- Totals -->
-        <div class="desk-totals">
-          <div class="desk-total-row"><span>Total Investment</span><span>{{ totalInvestment(s) | currency:'USD':'symbol':'1.0-0' }}</span></div>
-        </div>
-
-        <!-- Retail pricing -->
-        <div class="desk-section desk-retail">
-          <div class="desk-section-title">Retail</div>
-          <div class="desk-row">
-            <label>Asking Price</label>
-            <div class="desk-dollar desk-dollar-big"><span>$</span><input type="number" [(ngModel)]="s.asking_price" /></div>
-          </div>
-          <div class="desk-row">
-            <label>Min Price (floor)</label>
-            <div class="desk-dollar"><span>$</span><input type="number" [(ngModel)]="s.min_price" /></div>
-          </div>
-        </div>
-
-        <!-- Spread -->
-        <div class="desk-spread">
-          <div class="desk-spread-item" [class.desk-pos]="grossProfit(s) >= 0" [class.desk-neg]="grossProfit(s) < 0">
-            <span class="desk-spread-label">Gross @ Ask</span>
-            <span class="desk-spread-val">{{ grossProfit(s) | currency:'USD':'symbol':'1.0-0' }}</span>
-          </div>
-          @if(s.min_price > 0){
-          <div class="desk-spread-item" [class.desk-pos]="minGross(s) >= 0" [class.desk-neg]="minGross(s) < 0">
-            <span class="desk-spread-label">Gross @ Min</span>
-            <span class="desk-spread-val">{{ minGross(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+          <!-- Auction reference -->
+          @if(s.auction){
+          <div class="desk-ref">
+            <span class="desk-ref-tag">{{ s.auction.channel || 'Auction' }}</span>
+            @if(s.auction.buy_now){<span class="desk-ref-pill">Buy Now <b>{{ s.auction.buy_now | currency:'USD':'symbol':'1.0-0' }}</b></span>}
+            @if(s.auction.current_bid){<span class="desk-ref-pill">Bid <b>{{ s.auction.current_bid | currency:'USD':'symbol':'1.0-0' }}</b></span>}
+            @if(s.auction.sale_date){<span class="desk-ref-pill desk-ref-date">{{ s.auction.sale_date }}</span>}
           </div>
           }
-          <div class="desk-spread-item">
-            <span class="desk-spread-label">Margin</span>
-            <span class="desk-spread-val">{{ grossMargin(s) | number:'1.1-1' }}%</span>
+
+          <!-- Acquisition -->
+          <div class="desk-section">
+            <div class="desk-section-title">Acquisition</div>
+            <div class="desk-row">
+              <label>Purchase Price</label>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.purchase_price)" (ngModelChange)="s.purchase_price = parse($event)" placeholder="" /></div>
+            </div>
+            <div class="desk-row">
+              <label>Transport</label>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.transport_cost)" (ngModelChange)="s.transport_cost = parse($event)" placeholder="" /></div>
+            </div>
+            <div class="desk-row">
+              <label>Auction Fees</label>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.auction_fees)" (ngModelChange)="s.auction_fees = parse($event)" placeholder="" /></div>
+            </div>
+          </div>
+
+          <!-- Recon -->
+          <div class="desk-section">
+            <div class="desk-section-title">Reconditioning</div>
+            <div class="desk-row">
+              <label>Mechanical</label>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.recon_mechanical)" (ngModelChange)="s.recon_mechanical = parse($event)" placeholder="" /></div>
+            </div>
+            <div class="desk-row">
+              <label>Body / Paint</label>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.recon_body)" (ngModelChange)="s.recon_body = parse($event)" placeholder="" /></div>
+            </div>
+            <div class="desk-row">
+              <label>Tires</label>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.recon_tires)" (ngModelChange)="s.recon_tires = parse($event)" placeholder="" /></div>
+            </div>
+            <div class="desk-row">
+              <label>Detail / Other</label>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.recon_other)" (ngModelChange)="s.recon_other = parse($event)" placeholder="" /></div>
+            </div>
+          </div>
+
+          <!-- Flooring -->
+          <div class="desk-section">
+            <div class="desk-section-title">Flooring (est.)</div>
+            <div class="desk-row">
+              <label>Est. Days to Sell</label>
+              <input type="number" class="desk-input-sm" [(ngModel)]="s.est_days_to_sell" />
+            </div>
+            <div class="desk-row desk-row-calc">
+              <label>Est. Flooring Cost</label>
+              <span class="desk-calc-value">{{ estFlooringCost(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+
+          <!-- Total Investment -->
+          <div class="desk-totals">
+            <div class="desk-total-row"><span>Total Investment</span><span>{{ totalInvestment(s) | currency:'USD':'symbol':'1.0-0' }}</span></div>
+          </div>
+
+          <!-- Min Price -->
+          <div class="desk-section">
+            <div class="desk-row">
+              <label>Min Price (floor)</label>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.min_price)" (ngModelChange)="s.min_price = parse($event)" placeholder="" /></div>
+            </div>
+          </div>
+
+          <!-- Spread -->
+          <div class="desk-spread">
+            <div class="desk-spread-item" [class.desk-pos]="grossProfit(s) >= 0" [class.desk-neg]="grossProfit(s) < 0">
+              <span class="desk-spread-label">Gross @ Ask</span>
+              <span class="desk-spread-val">{{ grossProfit(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            @if(s.min_price > 0){
+            <div class="desk-spread-item" [class.desk-pos]="minGross(s) >= 0" [class.desk-neg]="minGross(s) < 0">
+              <span class="desk-spread-label">Gross @ Min</span>
+              <span class="desk-spread-val">{{ minGross(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            }
+            <div class="desk-spread-item">
+              <span class="desk-spread-label">Margin</span>
+              <span class="desk-spread-val">{{ grossMargin(s) | number:'1.1-1' }}%</span>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="desk-meta">
+            <div class="prop-field">
+              <label>Status</label>
+              <select [(ngModel)]="s.status">
+                <option value="draft">Draft</option>
+                <option value="sent">Sent</option>
+                <option value="viewed">Viewed</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        <!-- Status + Tax -->
-        <div class="desk-meta">
-          <div class="prop-field">
-            <label>Status</label>
-            <select [(ngModel)]="s.status">
-              <option value="draft">Draft</option>
-              <option value="sent">Sent</option>
-              <option value="viewed">Viewed</option>
-              <option value="closed">Closed</option>
-            </select>
-          </div>
-          <div class="prop-field">
-            <label>Tax Rate %</label>
-            <input type="number" step="0.01" [(ngModel)]="s.tax_rate" placeholder="5.5" />
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══ DEAL SHEET: Line Items ═══ -->
-      <h3 class="prop-toggle-title">Deal Sheet — Line Items</h3>
-      <div class="prop-line-items">
-        @for(li of getLineItems(s); track $index; let i = $index){
-        <div class="prop-li-row">
-          <input class="prop-li-label" [(ngModel)]="li.label" placeholder="Label" [ngModelOptions]="{standalone: true}" />
-          <div class="prop-li-amount"><span>$</span><input type="number" [(ngModel)]="li.amount" [ngModelOptions]="{standalone: true}" /></div>
-          <label class="prop-li-check"><input type="checkbox" [(ngModel)]="li.taxable" [ngModelOptions]="{standalone: true}" /> Tax</label>
-          <button class="prop-li-del" (click)="removeLineItem(s, i)"><lucide-icon name="x" /></button>
-        </div>
-        }
-      </div>
-      <div class="prop-li-actions">
-        <button class="prop-li-add" (click)="addLineItem(s, 'Dealer Retail Price', 0, true)"><lucide-icon name="plus" /> Taxable</button>
-        <button class="prop-li-add" (click)="addLineItem(s, 'Title/Registration Fees', 0, false)"><lucide-icon name="plus" /> Non-Taxable</button>
-      </div>
-      <div class="prop-li-presets">
-        <button (click)="applyPreset(s)">Auto-fill WI defaults</button>
-      </div>
-
-      <!-- ═══ TRADE-IN ═══ -->
-      <h3 class="prop-toggle-title">Trade-In</h3>
-      <div class="prop-trade-section">
-        <div class="prop-field-row">
-          <div class="prop-field"><label>Year</label><input [(ngModel)]="getTradeIn(s).year" [ngModelOptions]="{standalone: true}" /></div>
-          <div class="prop-field"><label>Make</label><input [(ngModel)]="getTradeIn(s).make" [ngModelOptions]="{standalone: true}" /></div>
-          <div class="prop-field"><label>Model</label><input [(ngModel)]="getTradeIn(s).model" [ngModelOptions]="{standalone: true}" /></div>
-        </div>
-        <div class="prop-field-row">
-          <div class="prop-field"><label>VIN</label><input [(ngModel)]="getTradeIn(s).vin" [ngModelOptions]="{standalone: true}" /></div>
-          <div class="prop-field"><label>Mileage</label><input [(ngModel)]="getTradeIn(s).mileage" [ngModelOptions]="{standalone: true}" /></div>
-        </div>
-        <div class="prop-field-row">
-          <div class="prop-field"><label>Trade Allowance</label><div class="prop-price-input"><span>$</span><input type="number" [(ngModel)]="getTradeIn(s).allowance" [ngModelOptions]="{standalone: true}" /></div></div>
-          <div class="prop-field"><label>Payoff Amount</label><div class="prop-price-input"><span>$</span><input type="number" [(ngModel)]="getTradeIn(s).payoff" [ngModelOptions]="{standalone: true}" /></div></div>
-        </div>
-        <div class="prop-field">
-          <label>Payoff Owed To</label>
-          <input [(ngModel)]="getTradeIn(s).payoff_to" [ngModelOptions]="{standalone: true}" placeholder="Lender name" />
-        </div>
-      </div>
-
-      <!-- Down Payment -->
-      <div class="prop-field-row" style="margin-top:12px">
-        <div class="prop-field">
-          <label>Down Payment</label>
-          <div class="prop-price-input"><span>$</span><input type="number" [(ngModel)]="s.down_payment" /></div>
-        </div>
-      </div>
-
-      <!-- Custom Notes -->
-      <div class="prop-field" style="margin:12px 0">
-        <label>Custom Notes (shown to customer)</label>
-        <textarea [(ngModel)]="s.custom_notes" rows="3" placeholder="Personal message to the buyer..."></textarea>
       </div>
 
       <!-- ═══ CARFAX REPORT ═══ -->

@@ -54,6 +54,10 @@ export class AdminProposalsComponent implements OnInit {
       ];
       if (!s.tax_rate) s.tax_rate = 5.5;
     }
+    // Pre-fill purchase price from MMR if not already set
+    if (!s.purchase_price && s.auction?.mmr) {
+      s.purchase_price = s.auction.mmr;
+    }
     this.selected.set(s);
     this.sent.set(false);
     this.saved.set(false);
@@ -139,6 +143,19 @@ export class AdminProposalsComponent implements OnInit {
   grossMargin(s: any): number {
     if (!s.asking_price) return 0;
     return (this.grossProfit(s) / s.asking_price) * 100;
+  }
+
+  // ── Formatting ──
+  fmt(val: any): string {
+    if (!val && val !== 0) return '';
+    const n = Number(val);
+    if (!n) return '';
+    return n.toLocaleString('en-US');
+  }
+
+  parse(val: string): number | null {
+    const n = Number(val.replace(/[^0-9.-]/g, ''));
+    return n || null;
   }
 
   pctToMMR(s: any): number {
