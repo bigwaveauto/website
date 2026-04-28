@@ -340,30 +340,30 @@ $muted: rgba(0,0,0,0.45);
 .prop-line-items { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
 
 .prop-li-row {
-  display: flex; gap: 6px; align-items: center;
+  display: flex; gap: 6px; align-items: center; width: 100%;
 }
 
 .prop-li-label {
-  flex: 2; padding: 10px 14px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px;
-  font-size: 15px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #111; outline: none;
+  flex: 1; min-width: 0; padding: 8px 10px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px;
+  font-size: 13px; font-weight: 600; font-family: inherit; color: #111; outline: none;
   &:focus { border-color: $blue; }
 }
 
 .prop-li-amount {
   display: flex; align-items: center; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;
-  flex: 1; min-width: 150px;
+  width: 110px; flex-shrink: 0;
   &:focus-within { border-color: $blue; }
-  span { padding: 10px 0 10px 12px; font-weight: 800; color: #333; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-  input { flex: 1; border: none; padding: 10px 14px 10px 4px; font-size: 16px; font-weight: 700;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #111; outline: none; width: 80px; text-align: right;
-    &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { -webkit-appearance: none; } -moz-appearance: textfield;
+  span { padding: 8px 0 8px 8px; font-weight: 700; color: #999; font-size: 13px; }
+  input { flex: 1; border: none; padding: 8px 8px 8px 2px; font-size: 13px; font-weight: 600;
+    font-family: 'SF Mono', 'Fira Code', monospace; color: #111; outline: none; width: 0;
+    text-align: right; font-variant-numeric: tabular-nums;
     &::placeholder { color: #ccc; font-weight: 400; }
   }
 }
 
 .prop-li-check {
   display: flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; color: $muted;
-  white-space: nowrap; cursor: pointer;
+  white-space: nowrap; cursor: pointer; flex-shrink: 0;
   input { width: 14px; height: 14px; cursor: pointer; }
 }
 
