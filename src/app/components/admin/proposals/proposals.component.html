@@ -58,88 +58,7 @@
       <!-- ═══ TWO-COLUMN DEAL VIEW ═══ -->
       <div class="desk-cols">
 
-        <!-- LEFT: Retail -->
-        <div class="desk-retail-col">
-          <div class="desk-col-title">Retail</div>
-
-          <!-- Asking Price -->
-          <div class="desk-asking-row">
-            <label>Asking Price</label>
-            <div class="desk-dollar desk-dollar-big"><span>$</span><input type="text" [ngModel]="fmt(s.asking_price)" (ngModelChange)="s.asking_price = parse($event)" placeholder="" /></div>
-          </div>
-
-          <!-- Line Items -->
-          <div class="desk-li-section">
-            <div class="desk-section-title" style="padding:10px 0 6px">Line Items</div>
-            @for(li of getLineItems(s); track $index; let i = $index){
-            <div class="prop-li-row">
-              <input class="prop-li-label" [(ngModel)]="li.label" placeholder="Label" [ngModelOptions]="{standalone: true}" />
-              <div class="prop-li-amount"><span>$</span><input type="text" [ngModel]="fmt(li.amount)" (ngModelChange)="li.amount = parse($event)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
-              <label class="prop-li-check"><input type="checkbox" [(ngModel)]="li.taxable" [ngModelOptions]="{standalone: true}" /> Tax</label>
-              <button class="prop-li-del" (click)="removeLineItem(s, i)"><lucide-icon name="x" /></button>
-            </div>
-            }
-            <div class="prop-li-actions" style="margin-top:6px">
-              <button class="prop-li-add" (click)="addLineItem(s, 'Item', 0, true)"><lucide-icon name="plus" /> Taxable</button>
-              <button class="prop-li-add" (click)="addLineItem(s, 'Item', 0, false)"><lucide-icon name="plus" /> Non-Taxable</button>
-              <button class="prop-li-add" (click)="applyPreset(s)">WI Defaults</button>
-            </div>
-          </div>
-
-          <!-- Tax Rate -->
-          <div class="desk-tax-row">
-            <span>Tax Rate</span>
-            <div class="desk-tax-input">
-              <input type="number" step="0.01" [(ngModel)]="s.tax_rate" placeholder="5.5" />
-              <span>%</span>
-            </div>
-          </div>
-
-          <!-- Trade-In -->
-          <div class="desk-trade-section">
-            <div class="desk-section-title" style="margin-bottom:8px">Trade-In</div>
-            <div class="prop-field-row">
-              <div class="prop-field"><label>Year</label><input [(ngModel)]="getTradeIn(s).year" [ngModelOptions]="{standalone: true}" /></div>
-              <div class="prop-field"><label>Make</label><input [(ngModel)]="getTradeIn(s).make" [ngModelOptions]="{standalone: true}" /></div>
-              <div class="prop-field"><label>Model</label><input [(ngModel)]="getTradeIn(s).model" [ngModelOptions]="{standalone: true}" /></div>
-            </div>
-            <div class="prop-field-row">
-              <div class="prop-field"><label>VIN</label><input [(ngModel)]="getTradeIn(s).vin" [ngModelOptions]="{standalone: true}" /></div>
-              <div class="prop-field"><label>Mileage</label><input [(ngModel)]="getTradeIn(s).mileage" [ngModelOptions]="{standalone: true}" /></div>
-            </div>
-            <div class="prop-field-row">
-              <div class="prop-field">
-                <label>Allowance</label>
-                <div class="prop-price-input"><span>$</span><input type="text" [ngModel]="fmt(getTradeIn(s).allowance)" (ngModelChange)="getTradeIn(s).allowance = parse($event)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
-              </div>
-              <div class="prop-field">
-                <label>Payoff</label>
-                <div class="prop-price-input"><span>$</span><input type="text" [ngModel]="fmt(getTradeIn(s).payoff)" (ngModelChange)="getTradeIn(s).payoff = parse($event)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
-              </div>
-            </div>
-            <div class="prop-field">
-              <label>Payoff Owed To</label>
-              <input [(ngModel)]="getTradeIn(s).payoff_to" [ngModelOptions]="{standalone: true}" placeholder="Lender name" />
-            </div>
-          </div>
-
-          <!-- Down Payment -->
-          <div class="desk-tax-row">
-            <span>Down Payment</span>
-            <div class="prop-price-input" style="width:160px">
-              <span>$</span>
-              <input type="text" [ngModel]="fmt(s.down_payment)" (ngModelChange)="s.down_payment = parse($event)" placeholder="" />
-            </div>
-          </div>
-
-          <!-- Custom Notes -->
-          <div class="prop-field" style="padding:10px 14px">
-            <label>Notes to Customer</label>
-            <textarea [(ngModel)]="s.custom_notes" rows="2" placeholder="Personal message to the buyer..."></textarea>
-          </div>
-        </div>
-
-        <!-- RIGHT: Cost Details -->
+        <!-- LEFT: Cost Details -->
         <div class="desk-cost-col">
           <div class="desk-col-title">Cost Details</div>
 
@@ -175,14 +94,14 @@
             <div class="desk-section-title">Acquisition</div>
             <div class="desk-row">
               <label>Purchase Price</label>
-              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.purchase_price)" (ngModelChange)="s.purchase_price = parse($event)" placeholder="" /></div>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.purchase_price)" (ngModelChange)="onPurchasePriceChange(s, $event)" placeholder="" /></div>
             </div>
             <div class="desk-row">
               <label>Transport</label>
               <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.transport_cost)" (ngModelChange)="s.transport_cost = parse($event)" placeholder="" /></div>
             </div>
             <div class="desk-row">
-              <label>Auction Fees</label>
+              <button class="desk-fee-label" (click)="showFeeModal.set(true)">Auction Fee <lucide-icon name="settings-2" /></button>
               <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.auction_fees)" (ngModelChange)="s.auction_fees = parse($event)" placeholder="" /></div>
             </div>
           </div>
@@ -266,7 +185,118 @@
           </div>
         </div>
 
+        <!-- RIGHT: Retail -->
+        <div class="desk-retail-col">
+          <div class="desk-col-title">Retail</div>
+
+          <!-- Asking Price -->
+          <div class="desk-asking-row">
+            <label>Asking Price</label>
+            <div class="desk-dollar desk-dollar-big"><span>$</span><input type="text" [ngModel]="fmt(s.asking_price)" (ngModelChange)="s.asking_price = parse($event)" placeholder="" /></div>
+          </div>
+
+          <!-- Line Items -->
+          <div class="desk-li-section">
+            <div class="desk-section-title" style="padding:10px 0 6px">Line Items</div>
+            @for(li of getLineItems(s); track $index; let i = $index){
+            <div class="prop-li-row">
+              <input class="prop-li-label" [(ngModel)]="li.label" placeholder="Label" [ngModelOptions]="{standalone: true}" />
+              <div class="prop-li-amount"><span>$</span><input type="text" [ngModel]="fmt(li.amount)" (ngModelChange)="li.amount = parse($event)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
+              <label class="prop-li-check"><input type="checkbox" [(ngModel)]="li.taxable" [ngModelOptions]="{standalone: true}" /> Tax</label>
+              <button class="prop-li-del" (click)="removeLineItem(s, i)"><lucide-icon name="x" /></button>
+            </div>
+            }
+            <div class="prop-li-actions" style="margin-top:6px">
+              <button class="prop-li-add" (click)="addLineItem(s, 'Item', 0, true)"><lucide-icon name="plus" /> Taxable</button>
+              <button class="prop-li-add" (click)="addLineItem(s, 'Item', 0, false)"><lucide-icon name="plus" /> Non-Taxable</button>
+              <button class="prop-li-add" (click)="applyPreset(s)">WI Defaults</button>
+            </div>
+          </div>
+
+          <!-- Tax Rate -->
+          <div class="desk-tax-row">
+            <span>Tax Rate</span>
+            <div class="desk-tax-input">
+              <input type="number" step="0.01" [(ngModel)]="s.tax_rate" placeholder="5.5" />
+              <span>%</span>
+            </div>
+          </div>
+
+          <!-- Trade-In -->
+          <div class="desk-trade-section">
+            <div class="desk-section-title" style="margin-bottom:8px">Trade-In</div>
+            <div class="prop-field-row">
+              <div class="prop-field"><label>Year</label><input [(ngModel)]="getTradeIn(s).year" [ngModelOptions]="{standalone: true}" /></div>
+              <div class="prop-field"><label>Make</label><input [(ngModel)]="getTradeIn(s).make" [ngModelOptions]="{standalone: true}" /></div>
+              <div class="prop-field"><label>Model</label><input [(ngModel)]="getTradeIn(s).model" [ngModelOptions]="{standalone: true}" /></div>
+            </div>
+            <div class="prop-field-row">
+              <div class="prop-field"><label>VIN</label><input [(ngModel)]="getTradeIn(s).vin" [ngModelOptions]="{standalone: true}" /></div>
+              <div class="prop-field"><label>Mileage</label><input [(ngModel)]="getTradeIn(s).mileage" [ngModelOptions]="{standalone: true}" /></div>
+            </div>
+            <div class="prop-field-row">
+              <div class="prop-field">
+                <label>Allowance</label>
+                <div class="prop-price-input"><span>$</span><input type="text" [ngModel]="fmt(getTradeIn(s).allowance)" (ngModelChange)="getTradeIn(s).allowance = parse($event)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
+              </div>
+              <div class="prop-field">
+                <label>Payoff</label>
+                <div class="prop-price-input"><span>$</span><input type="text" [ngModel]="fmt(getTradeIn(s).payoff)" (ngModelChange)="getTradeIn(s).payoff = parse($event)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
+              </div>
+            </div>
+            <div class="prop-field">
+              <label>Payoff Owed To</label>
+              <input [(ngModel)]="getTradeIn(s).payoff_to" [ngModelOptions]="{standalone: true}" placeholder="Lender name" />
+            </div>
+          </div>
+
+          <!-- Down Payment -->
+          <div class="desk-tax-row">
+            <span>Down Payment</span>
+            <div class="prop-price-input" style="width:160px">
+              <span>$</span>
+              <input type="text" [ngModel]="fmt(s.down_payment)" (ngModelChange)="s.down_payment = parse($event)" placeholder="" />
+            </div>
+          </div>
+
+          <!-- Custom Notes -->
+          <div class="prop-field" style="padding:10px 14px">
+            <label>Notes to Customer</label>
+            <textarea [(ngModel)]="s.custom_notes" rows="2" placeholder="Personal message to the buyer..."></textarea>
+          </div>
+        </div>
+
       </div>
+
+      <!-- ═══ AUCTION FEE MODAL ═══ -->
+      @if(showFeeModal()){
+      <div class="fee-modal-backdrop" (click)="showFeeModal.set(false)">
+        <div class="fee-modal" (click)="$event.stopPropagation()">
+          <div class="fee-modal-header">
+            <span>Auction Fee Tiers</span>
+            <button (click)="showFeeModal.set(false)"><lucide-icon name="x" /></button>
+          </div>
+          <div class="fee-modal-body">
+            <p class="fee-modal-hint">Fee is auto-calculated from purchase price when you load a proposal.</p>
+            @for(tier of auctionFeeTiers(); track $index; let i = $index){
+            <div class="fee-tier-row">
+              <span class="fee-tier-label">
+                @if(i === 0){ Up to }@else{ ${{ fmt(auctionFeeTiers()[i-1].upTo) }} – }
+                @if(tier.upTo > 999999){ and above }@else{ ${{ fmt(tier.upTo) }} }
+              </span>
+              <div class="desk-dollar" style="width:120px">
+                <span>$</span>
+                <input type="text" [ngModel]="fmt(tier.fee)" (ngModelChange)="tier.fee = parse($event) || 0" placeholder="0" />
+              </div>
+            </div>
+            }
+          </div>
+          <div class="fee-modal-footer">
+            <button class="prop-save-btn" (click)="showFeeModal.set(false)">Done</button>
+          </div>
+        </div>
+      </div>
+      }
 
       <!-- ═══ CARFAX REPORT ═══ -->
       <h3 class="prop-toggle-title">Carfax Report</h3>

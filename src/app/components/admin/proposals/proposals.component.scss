@@ -464,3 +464,50 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .prop-photo-item:hover .prop-photo-del { opacity: 1; }
+
+/* ── Auction Fee Label Button ── */
+.desk-fee-label {
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-size: 13px; color: #555; font-weight: 500; font-family: inherit;
+  lucide-icon { width: 13px; height: 13px; color: $blue; }
+  &:hover { color: $blue; }
+}
+
+/* ── Auction Fee Modal ── */
+.fee-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  z-index: 1000; display: flex; align-items: center; justify-content: center;
+}
+
+.fee-modal {
+  background: white; border-radius: 14px; width: 380px; max-width: 95vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden;
+}
+
+.fee-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.07);
+  font-size: 15px; font-weight: 700;
+  button { background: none; border: none; cursor: pointer; color: #999; padding: 4px;
+    lucide-icon { width: 18px; height: 18px; }
+    &:hover { color: #333; }
+  }
+}
+
+.fee-modal-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+
+.fee-modal-hint { font-size: 12px; color: #999; margin: 0 0 4px; }
+
+.fee-tier-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+
+.fee-tier-label {
+  font-size: 13px; color: #555; font-weight: 500; flex: 1;
+}
+
+.fee-modal-footer {
+  padding: 12px 20px; border-top: 1px solid rgba(0,0,0,0.07);
+  display: flex; justify-content: flex-end;
+}

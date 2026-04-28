@@ -34,6 +34,14 @@ export class AdminProposalsComponent implements OnInit {
   saving = signal(false);
   saved = signal(false);
 
+  // Auction fee tiers
+  auctionFeeTiers = signal([
+    { upTo: 20000, fee: 500 },
+    { upTo: 50000, fee: 800 },
+    { upTo: Infinity, fee: 1100 },
+  ]);
+  showFeeModal = signal(false);
+
   ngOnInit() {
     this.http.get<any[]>('/api/admin/proposals').subscribe({
       next: (data) => { this.proposals.set(data || []); this.loading.set(false); },
@@ -54,9 +62,13 @@ export class AdminProposalsComponent implements OnInit {
       ];
       if (!s.tax_rate) s.tax_rate = 5.5;
     }
-    // Pre-fill purchase price from MMR if not already set
-    if (!s.purchase_price && s.auction?.mmr) {
-      s.purchase_price = s.auction.mmr;
+    // Pre-fill purchase price: buy_now > current_bid > mmr
+    if (!s.purchase_price) {
+      s.purchase_price = s.auction?.buy_now || s.auction?.current_bid || s.auction?.mmr || null;
+    }
+    // Auto-calc auction fee from tiers if not already set
+    if (!s.auction_fees && s.purchase_price) {
+      s.auction_fees = this.calcAuctionFee(s.purchase_price);
     }
     this.selected.set(s);
     this.sent.set(false);
@@ -117,6 +129,20 @@ export class AdminProposalsComponent implements OnInit {
       },
       error: () => {},
     });
+  }
+
+  calcAuctionFee(price: number): number {
+    const tiers = this.auctionFeeTiers();
+    for (const tier of tiers) {
+      if (price <= tier.upTo) return tier.fee;
+    }
+    return tiers[tiers.length - 1].fee;
+  }
+
+  onPurchasePriceChange(s: any, val: string) {
+    s.purchase_price = this.parse(val);
+    if (s.purchase_price) s.auction_fees = this.calcAuctionFee(s.purchase_price);
+    this.selected.set({ ...s });
   }
 
   totalInvestment(s: any): number {
