@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule, SlicePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -10,7 +11,7 @@ import { LucideAngularModule } from 'lucide-angular';
   templateUrl: './proposal.component.html',
   styleUrl: './proposal.component.scss',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
 })
 export class ProposalComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -23,6 +24,12 @@ export class ProposalComponent implements OnInit {
   notFound = signal(false);
   selectedPhoto = signal(0);
   carfaxExpanded = signal(false);
+
+  // Feedback signals (Info Only mode)
+  interest = signal<'yes' | 'no' | null>(null);
+  reason = signal('');
+  feedbackSent = signal(false);
+  feedbackSending = signal(false);
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -91,6 +98,24 @@ export class ProposalComponent implements OnInit {
 
   safeUrl(url: string): SafeResourceUrl {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  get isInfoMode(): boolean {
+    const mode = this.proposal()?.proposal_mode;
+    return !mode || mode === 'info';
+  }
+
+  submitFeedback() {
+    const id = this.proposal()?.id;
+    if (!id || !this.interest()) return;
+    this.feedbackSending.set(true);
+    this.http.post(`/api/proposal/${id}/feedback`, {
+      interest: this.interest(),
+      reason: this.reason(),
+    }).subscribe({
+      next: () => { this.feedbackSending.set(false); this.feedbackSent.set(true); },
+      error: () => { this.feedbackSending.set(false); },
+    });
   }
 
   isExcluded(field: string): boolean {

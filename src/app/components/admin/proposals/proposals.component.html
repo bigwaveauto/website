@@ -42,6 +42,16 @@
         </div>
       </div>
 
+      <!-- Mode Toggle -->
+      <div class="prop-mode-toggle">
+        <button class="prop-mode-btn" [class.active]="!s.proposal_mode || s.proposal_mode === 'info'" (click)="setMode(s, 'info')">
+          <lucide-icon name="info" /> Info Only
+        </button>
+        <button class="prop-mode-btn" [class.active]="s.proposal_mode === 'proposal'" (click)="setMode(s, 'proposal')">
+          <lucide-icon name="file-text" /> Price Proposal
+        </button>
+      </div>
+
       <!-- Actions -->
       <div class="prop-action-row">
         <button class="prop-action-btn prop-action-copy" (click)="copyLink(s)">

@@ -30,6 +30,12 @@ export class AdminProposalsComponent implements OnInit {
   sending = signal(false);
   sent = signal(false);
 
+  // Mode toggle
+  setMode(s: any, mode: 'info' | 'proposal') {
+    s.proposal_mode = mode;
+    this.selected.set({ ...s });
+  }
+
   // Edit
   saving = signal(false);
   saved = signal(false);
@@ -252,6 +258,7 @@ export class AdminProposalsComponent implements OnInit {
       custom_notes: s.custom_notes,
       asking_price: s.asking_price,
       status: s.status,
+      proposal_mode: s.proposal_mode || 'info',
       line_items: s.line_items || [],
       trade_in: s.trade_in || null,
       tax_rate: s.tax_rate || 0,

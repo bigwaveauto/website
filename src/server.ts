@@ -1816,6 +1816,31 @@ app.get('/api/proposal/:id', async (req, res) => {
 });
 
 /**
+ * Public — proposal feedback (interest / pass)
+ */
+app.post('/api/proposal/:id/feedback', async (req, res) => {
+  try {
+    const { interest, reason } = req.body;
+    const { data: proposal } = await supabase
+      .from('vehicle_proposals')
+      .select('id, feedback')
+      .eq('id', req.params['id'])
+      .maybeSingle();
+    if (!proposal) { res.status(404).json({ error: 'Not found' }); return; }
+
+    const feedback = {
+      interest, // 'yes' | 'no'
+      reason: reason || null,
+      submitted_at: new Date().toISOString(),
+    };
+    await supabase.from('vehicle_proposals').update({ feedback }).eq('id', req.params['id']);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save feedback' });
+  }
+});
+
+/**
  * Admin — backfill existing proposals with NHTSA VIN data
  */
 app.post('/api/admin/proposals/backfill-vin', async (_req, res) => {
@@ -1908,6 +1933,7 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (req.body.est_days_to_sell !== undefined) updates['est_days_to_sell'] = req.body.est_days_to_sell;
     if (req.body.min_price !== undefined) updates['min_price'] = req.body.min_price;
     if (req.body.mmr !== undefined) updates['mmr'] = req.body.mmr;
+    if (req.body.proposal_mode !== undefined) updates['proposal_mode'] = req.body.proposal_mode;
     updates['updated_at'] = new Date().toISOString();
 
     const { error } = await supabase

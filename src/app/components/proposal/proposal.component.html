@@ -198,13 +198,13 @@
     </div><!-- /prop-below -->
   </div><!-- /prop-left -->
 
-  <!-- Right: Deal Sheet -->
+  <!-- Right: Buy Box -->
   <div class="prop-right">
     <div class="prop-buy-box">
       <!-- BWA badge -->
       <div class="prop-bwa-badge">
         <span class="prop-bwa-name">Big Wave Auto</span>
-        <span class="prop-bwa-tag">Proposal</span>
+        <span class="prop-bwa-tag">{{ isInfoMode ? 'Vehicle Report' : 'Price Proposal' }}</span>
       </div>
 
       <!-- Title -->
@@ -213,8 +213,50 @@
         <h1 class="prop-title">{{ v.make }} {{ v.model }} {{ v.trim }}</h1>
         <div class="prop-vin-stock">
           <span>VIN: {{ p.vin }}</span>
+          @if(v.mileage){ <span>&middot; {{ v.mileage }} miles</span> }
         </div>
       </div>
+
+      <!-- ═══ INFO ONLY MODE: Feedback capture ═══ -->
+      @if(isInfoMode){
+        @if(!feedbackSent()){
+        <div class="fb-section">
+          <div class="fb-prompt">Are you interested in this vehicle?</div>
+          <div class="fb-thumbs">
+            <button class="fb-thumb" [class.active-yes]="interest() === 'yes'" (click)="interest.set('yes')">
+              <lucide-icon name="thumbs-up" />
+              <span>I like this</span>
+            </button>
+            <button class="fb-thumb" [class.active-no]="interest() === 'no'" (click)="interest.set('no')">
+              <lucide-icon name="thumbs-down" />
+              <span>Not for me</span>
+            </button>
+          </div>
+          @if(interest()){
+          <div class="fb-reason-wrap">
+            <label class="fb-reason-label">Tell us why (optional)</label>
+            <textarea class="fb-reason-input" [ngModel]="reason()" (ngModelChange)="reason.set($event)" placeholder="What do you love about it, or what's holding you back?" rows="3"></textarea>
+            <button class="fb-submit" [disabled]="feedbackSending()" (click)="submitFeedback()">
+              @if(feedbackSending()){ Sending... }@else{ Send Feedback }
+            </button>
+          </div>
+          }
+        </div>
+        }@else{
+        <div class="fb-sent">
+          <lucide-icon name="check-circle" />
+          <span>Thanks for your feedback! We'll follow up shortly.</span>
+        </div>
+        }
+
+        <!-- CTA for info mode -->
+        <div class="prop-cta-stack">
+          <a href="tel:+12625551234" class="prop-btn-primary">Call Big Wave Auto</a>
+        </div>
+      }
+
+      <!-- ═══ PRICE PROPOSAL MODE: Full deal sheet ═══ -->
+      @if(!isInfoMode){
 
       <!-- ═══ PRICE OF THE VEHICLE ═══ -->
       @if(lineItems.length > 0){
@@ -327,7 +369,6 @@
         <div class="deal-total-value">{{ totalDue | currency:'USD':'symbol':'1.2-2' }}</div>
       </div>
       }@else{
-      <!-- No line items yet -->
       @if(p.asking_price){
       <div class="prop-price-section">
         <span class="prop-price">{{ p.asking_price | currency:'USD':'symbol':'1.0-0' }}</span>
@@ -335,11 +376,13 @@
       }
       }
 
-      <!-- CTA -->
+      <!-- CTA for proposal mode -->
       <div class="prop-cta-stack">
         <a href="tel:+12625551234" class="prop-btn-primary">Call Big Wave Auto</a>
         <a href="https://bigwaveauto.com/financing" class="prop-btn-outline">Apply for Financing</a>
       </div>
+
+      }<!-- /price proposal mode -->
 
       <!-- Dealer info -->
       <div class="prop-dealer-info">
