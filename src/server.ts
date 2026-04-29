@@ -1535,6 +1535,80 @@ app.post('/api/admin/appraisals', async (req, res) => {
   }
 });
 
+// In-memory NeoVIN cache (24hr TTL)
+const neovinCache = new Map<string, { data: any; ts: number }>();
+
+app.get('/api/admin/vehicle/neovin/:vin', async (req, res) => {
+  try {
+    const vin = req.params['vin']?.toUpperCase();
+    if (!vin || vin.length !== 17) { res.status(400).json({ error: 'Invalid VIN' }); return; }
+
+    const cached = neovinCache.get(vin);
+    if (cached && Date.now() - cached.ts < 86400000) {
+      res.json(cached.data); return;
+    }
+
+    const mcKey = process.env['MARKETCHECK_API_KEY'];
+    if (!mcKey) { res.status(503).json({ error: 'MarketCheck not configured' }); return; }
+
+    const [specsRes, pkgRes] = await Promise.allSettled([
+      fetch(`https://api.marketcheck.com/v2/decode/car/neovin/${vin}/specs?api_key=${mcKey}&include_generic=true`, { headers: { Accept: 'application/json' } }),
+      fetch(`https://api.marketcheck.com/v2/decode/car/neovin/${vin}/options-packages?api_key=${mcKey}`, { headers: { Accept: 'application/json' } }),
+    ]);
+
+    if (specsRes.status === 'rejected' || !specsRes.value.ok) {
+      res.status(422).json({ error: 'NeoVIN decode failed' }); return;
+    }
+
+    const raw = await specsRes.value.json();
+    let available_packages: any[] = [];
+    if (pkgRes.status === 'fulfilled' && pkgRes.value.ok) {
+      try {
+        const pkgData = await pkgRes.value.json();
+        available_packages = pkgData?.available_options_packages || [];
+      } catch {}
+    }
+
+    // Shape the response to only what the appraisal tool needs
+    const data = {
+      vin: raw.vin,
+      year: raw.year,
+      make: raw.make,
+      model: raw.model,
+      trim: raw.trim,
+      trim_confidence: raw.trim_confidence,
+      engine: raw.engine,
+      transmission: raw.transmission,
+      drivetrain: raw.drivetrain,
+      fuel_type: raw.fuel_type,
+      body_type: raw.body_type,
+      doors: raw.doors,
+      seating_capacity: raw.seating_capacity,
+      city_mpg: raw.city_mpg,
+      highway_mpg: raw.highway_mpg,
+      msrp: raw.msrp,
+      combined_msrp: raw.combined_msrp,
+      installed_options_msrp: raw.installed_options_msrp,
+      original_msrp: raw.original_msrp,
+      exterior_color: raw.exterior_color,
+      interior_color: raw.interior_color,
+      installed_options: (raw.installed_options_details || []).map((o: any) => ({
+        code: o.code, name: o.name, msrp: o.msrp, verified: o.verified,
+      })),
+      available_packages,
+      high_value_features: raw.high_value_features || {},
+      options_packages: raw.options_packages,
+      powertrain_type: raw.powertrain_type,
+    };
+
+    neovinCache.set(vin, { data, ts: Date.now() });
+    res.json(data);
+  } catch (err) {
+    console.error('NeoVIN error:', err);
+    res.status(500).json({ error: 'NeoVIN decode error' });
+  }
+});
+
 app.post('/api/admin/vehicle/market-data', async (req, res) => {
   try {
     const { vin, year, make, model, trim, mileage } = req.body;

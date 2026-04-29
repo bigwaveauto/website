@@ -102,6 +102,8 @@ $page-bg: #f1f5f9;
 
 .appr-veh-vin { font-family: 'SF Mono', monospace; letter-spacing: 1px; }
 .appr-veh-dot { font-size: 16px; }
+.appr-veh-mpg { font-size: 12px; color: rgba(255,255,255,0.5); }
+.appr-veh-neovin-loading { font-size: 11px; color: rgba(255,255,255,0.35); font-style: italic; }
 
 .appr-veh-actions {
   display: flex; align-items: center; gap: 8px; margin-top: 8px;
@@ -123,6 +125,7 @@ $page-bg: #f1f5f9;
 /* ── Book Value Bar ── */
 .appr-book-bar {
   display: grid; grid-template-columns: repeat(5, 1fr);
+  &:has(.appr-book-cell--msrp) { grid-template-columns: repeat(6, 1fr); }
   background: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.06);
   @media (max-width: 900px) { grid-template-columns: repeat(3, 1fr); }
   @media (max-width: 600px) { grid-template-columns: repeat(2, 1fr); }
@@ -133,6 +136,7 @@ $page-bg: #f1f5f9;
   padding: 16px 20px; border-right: 1px solid rgba(255,255,255,0.06);
   &:last-child { border-right: none; }
   &--highlight { background: rgba($blue, 0.2); }
+  &--msrp { background: rgba(255,255,255,0.04); }
 }
 
 .appr-book-label {
@@ -194,6 +198,16 @@ $page-bg: #f1f5f9;
 
 .appr-adj-header {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+}
+
+.appr-adj-header-right {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.appr-neovin-badge {
+  font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 10px;
+  background: #f0fdf4; color: $green; border: 1px solid rgba($green, 0.3); letter-spacing: 0.3px;
+  &--loading { background: #f8fafc; color: $muted; border-color: #e2e8f0; }
 }
 
 .appr-adj-title {
@@ -285,6 +299,32 @@ $page-bg: #f1f5f9;
   font-size: 11px; font-weight: 700; opacity: 0.75;
   &.pos { color: $green; }
   &.neg { color: $red; }
+}
+
+/* ── Installed Options / Available Packages ── */
+.appr-installed-opts {
+  margin-top: 16px; padding-top: 14px; border-top: 1px solid #f1f5f9;
+}
+
+.appr-installed-opts-label {
+  font-size: 10px; font-weight: 700; color: $muted; text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 8px;
+}
+
+.appr-installed-opts-list {
+  display: flex; flex-direction: column; gap: 4px;
+}
+
+.appr-installed-opt {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 10px; background: #f8fafc; border-radius: 6px;
+  font-size: 12px; color: #475569; border-left: 3px solid #e2e8f0;
+  &--verified { border-left-color: $green; }
+  &--avail { background: #fffbeb; border-left-color: #fde68a; color: #92400e; }
+}
+
+.appr-installed-opt-msrp {
+  font-size: 11px; font-weight: 700; color: $muted; flex-shrink: 0; margin-left: 8px;
 }
 
 /* ── VIN Listing History ── */

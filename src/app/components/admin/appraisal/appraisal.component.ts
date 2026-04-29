@@ -28,6 +28,13 @@ export class AdminAppraisalComponent {
   marketData = signal<any>(null);
   loadingMarket = signal(false);
 
+  // NeoVIN data
+  neovinData = signal<any>(null);
+  loadingNeovin = signal(false);
+  msrp = signal(0);
+  cityMpg = signal(0);
+  hwyMpg = signal(0);
+
   // History
   vehicleHistory = signal<any>(null);
   loadingHistory = signal(false);
@@ -168,6 +175,7 @@ export class AdminAppraisalComponent {
         });
         this.decoding.set(false);
         this.loadMarketData(vin, r.ModelYear, r.Make, r.Model, r.Trim, mileage);
+        this.loadNeovinData(vin);
       },
       error: () => { this.decodeError.set('Failed to decode VIN.'); this.decoding.set(false); },
     });
@@ -179,6 +187,59 @@ export class AdminAppraisalComponent {
       next: (data) => { this.marketData.set(data); this.loadingMarket.set(false); },
       error: () => this.loadingMarket.set(false),
     });
+  }
+
+  loadNeovinData(vin: string) {
+    this.loadingNeovin.set(true);
+    this.http.get<any>(`/api/admin/vehicle/neovin/${vin}`).subscribe({
+      next: (data) => {
+        this.neovinData.set(data);
+        this.loadingNeovin.set(false);
+        this.applyNeovinData(data);
+      },
+      error: () => this.loadingNeovin.set(false),
+    });
+  }
+
+  applyNeovinData(nv: any) {
+    // Auto-fill colors from factory data
+    if (nv.exterior_color?.name) this.exteriorColor.set(nv.exterior_color.name);
+    if (nv.interior_color?.name) this.interiorColor.set(nv.interior_color.name);
+
+    // MSRP + MPG
+    if (nv.combined_msrp || nv.msrp) this.msrp.set(nv.combined_msrp || nv.msrp);
+    if (nv.city_mpg) this.cityMpg.set(nv.city_mpg);
+    if (nv.highway_mpg) this.hwyMpg.set(nv.highway_mpg);
+
+    // Build full text from installed options + high-value features + drivetrain
+    const texts: string[] = [
+      nv.drivetrain || '',
+      nv.powertrain_type || '',
+      ...(nv.installed_options || []).map((o: any) => o.name || ''),
+      ...Object.values(nv.high_value_features || {}).flat().map((f: any) => (f as any).description || ''),
+    ];
+    const allText = texts.join(' ').toLowerCase();
+
+    const detectionMap: { label: string; value: number; keywords: string[] }[] = [
+      { label: 'Sunroof/Moonroof',  value:  400, keywords: ['sunroof', 'moonroof', 'panoramic roof', 'glass roof', 'sky'] },
+      { label: 'Navigation',        value:  300, keywords: ['navigation', 'nav system', 'gps', 'infotainment nav'] },
+      { label: 'Leather Seats',     value:  350, keywords: ['leather', 'leatherette', 'perforated leather', 'nappa'] },
+      { label: 'Heated Seats',      value:  200, keywords: ['heated seat', 'heated front seat', 'seat heat'] },
+      { label: 'AWD / 4WD',         value:  500, keywords: ['awd', 'all-wheel drive', 'all wheel drive', '4wd', '4x4', 'four-wheel drive', '4motion', 'quattro', 'xdrive', 'e-four'] },
+      { label: 'Third Row',         value:  600, keywords: ['third row', '3rd row', 'third-row', '7 passenger', '8 passenger'] },
+      { label: 'Tow Package',       value:  400, keywords: ['tow', 'trailer hitch', 'towing package', 'trailer brake'] },
+      { label: 'Premium Audio',     value:  250, keywords: ['bose', 'harman', 'meridian', 'jbl', 'bang & olufsen', 'mark levinson', 'burmester', 'premium audio', 'premium sound'] },
+      { label: 'Backup Camera',     value:  150, keywords: ['backup camera', 'rear camera', 'rearview camera', 'rear-view camera'] },
+      { label: 'Remote Start',      value:  200, keywords: ['remote start', 'remote engine start'] },
+      { label: 'Power Liftgate',    value:  300, keywords: ['power liftgate', 'power lift gate', 'hands-free liftgate', 'power tailgate'] },
+      { label: 'Blind Spot Monitor',value:  250, keywords: ['blind spot', 'blind-spot', 'lane change assist', 'bsm', 'side assist'] },
+    ];
+
+    const detected = detectionMap
+      .filter(({ keywords }) => keywords.some(kw => allText.includes(kw)))
+      .map(({ label, value }) => ({ label, value }));
+
+    if (detected.length > 0) this.selectedOptions.set(detected);
   }
 
   toggleOption(label: string, value: number) {
@@ -220,7 +281,11 @@ export class AdminAppraisalComponent {
     this.odometerInput = '';
     this.vehicle.set(null);
     this.marketData.set(null);
+    this.neovinData.set(null);
     this.vehicleHistory.set(null);
+    this.msrp.set(0);
+    this.cityMpg.set(0);
+    this.hwyMpg.set(0);
     this.decodeError.set('');
     this.selectedOptions.set([]);
     this.appraisedValue.set(null);

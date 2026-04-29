@@ -43,6 +43,13 @@
           <span class="appr-veh-vin">{{ v.vin }}</span>
           <span class="appr-veh-dot">&middot;</span>
           <span class="appr-veh-miles">{{ v.mileage | number }} Mi</span>
+          @if(cityMpg()){
+          <span class="appr-veh-dot">&middot;</span>
+          <span class="appr-veh-mpg">{{ cityMpg() }}/{{ hwyMpg() }} mpg</span>
+          }
+          @if(loadingNeovin()){
+          <span class="appr-veh-neovin-loading">decoding options…</span>
+          }
         </div>
         <div class="appr-veh-actions">
           <button class="appr-veh-action" (click)="copyVin()" title="Copy VIN">
@@ -57,6 +64,15 @@
 
     <!-- Book Value Bar -->
     <div class="appr-book-bar">
+      @if(msrp()){
+      <div class="appr-book-cell appr-book-cell--msrp">
+        <span class="appr-book-label">Original MSRP</span>
+        <span class="appr-book-val appr-book-val--neutral">{{ msrp() | currency:'USD':'symbol':'1.0-0' }}</span>
+        @if(neovinData()?.installed_options_msrp){
+        <span class="appr-book-sub">+{{ neovinData().installed_options_msrp | currency:'USD':'symbol':'1.0-0' }} options</span>
+        }
+      </div>
+      }
       <div class="appr-book-cell appr-book-cell--highlight">
         <span class="appr-book-label">Instant Offer</span>
         @if(loadingMarket()){ <div class="appr-spin appr-spin--dark"></div> }
@@ -186,13 +202,17 @@
           </div>
         </div>
 
-        <!-- Common Options -->
+        <!-- Options — enhanced with NeoVIN auto-detection -->
         <div class="appr-adj-card">
           <div class="appr-adj-header">
             <span class="appr-adj-title">Options</span>
-            <span class="appr-adj-delta" [class.pos]="optionsTotal > 0" [class.neg]="optionsTotal < 0">
-              {{ fmtAdj(optionsTotal) }}
-            </span>
+            <div class="appr-adj-header-right">
+              @if(loadingNeovin()){ <span class="appr-neovin-badge appr-neovin-badge--loading">Decoding…</span> }
+              @else if(neovinData()){ <span class="appr-neovin-badge">NeoVIN ✓</span> }
+              <span class="appr-adj-delta" [class.pos]="optionsTotal > 0" [class.neg]="optionsTotal < 0">
+                {{ fmtAdj(optionsTotal) }}
+              </span>
+            </div>
           </div>
           <div class="appr-option-pills">
             @for(opt of [
@@ -223,6 +243,36 @@
             </button>
             }
           </div>
+
+          <!-- NeoVIN Installed Options list -->
+          @if(neovinData()?.installed_options?.length > 0){
+          <div class="appr-installed-opts">
+            <div class="appr-installed-opts-label">Factory Installed</div>
+            <div class="appr-installed-opts-list">
+              @for(o of neovinData().installed_options; track o.code){
+              <div class="appr-installed-opt" [class.appr-installed-opt--verified]="o.verified">
+                <span>{{ o.name }}</span>
+                @if(o.msrp){ <span class="appr-installed-opt-msrp">+{{ o.msrp | currency:'USD':'symbol':'1.0-0' }}</span> }
+              </div>
+              }
+            </div>
+          </div>
+          }
+
+          <!-- Available Packages -->
+          @if(neovinData()?.available_packages?.length > 0){
+          <div class="appr-installed-opts">
+            <div class="appr-installed-opts-label">Available Packages (not installed)</div>
+            <div class="appr-installed-opts-list">
+              @for(p of neovinData().available_packages; track p.code){
+              <div class="appr-installed-opt appr-installed-opt--avail">
+                <span>{{ p.name }}</span>
+                @if(p.msrp){ <span class="appr-installed-opt-msrp">{{ p.msrp | currency:'USD':'symbol':'1.0-0' }}</span> }
+              </div>
+              }
+            </div>
+          </div>
+          }
         </div>
 
         <!-- Service Status -->
