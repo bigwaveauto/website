@@ -5,7 +5,10 @@ $hover-bg: rgba(255,255,255,0.06);
 $text: rgba(255,255,255,0.85);
 $text-muted: rgba(255,255,255,0.45);
 
-:host { display: block; min-height: 100vh; background: #f1f3f9; }
+:host {
+  display: block; min-height: 100vh; background: #f1f3f9;
+  font-family: 'Source Sans 3', 'Source Sans Pro', sans-serif;
+}
 
 /* ── Loading ── */
 .adm-loading {
