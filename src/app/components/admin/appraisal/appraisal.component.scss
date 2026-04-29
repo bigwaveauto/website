@@ -35,8 +35,28 @@ $page-bg: #f1f5f9;
   span { font-size: 20px; font-weight: 900; color: #1e293b; letter-spacing: -0.5px; }
 }
 
+.appr-entry-toggle {
+  display: flex; gap: 4px; background: #f1f5f9; border-radius: 10px; padding: 4px; margin-bottom: 24px;
+}
+
+.appr-entry-toggle-btn {
+  flex: 1; padding: 8px; border: none; border-radius: 8px; background: transparent;
+  font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; color: $muted;
+  transition: all 0.15s;
+  &.active { background: white; color: #1e293b; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  &:hover:not(.active) { color: #1e293b; }
+}
+
 .appr-entry-fields {
   display: flex; flex-direction: column; gap: 16px;
+}
+
+.appr-entry-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+
+.appr-entry-optional {
+  font-size: 10px; font-weight: 600; color: $muted; text-transform: none; letter-spacing: 0; margin-left: 4px;
 }
 
 .appr-entry-field {

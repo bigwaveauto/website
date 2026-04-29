@@ -15,10 +15,26 @@ export class AdminAppraisalComponent {
   private http = inject(HttpClient);
 
   // Entry
+  entryMode = signal<'vin' | 'manual'>('vin');
   vinInput = '';
   odometerInput = '';
   decoding = signal(false);
   decodeError = signal('');
+
+  // Manual entry fields
+  manualYear = '';
+  manualMake = '';
+  manualModel = '';
+  manualTrim = '';
+
+  readonly currentYear = new Date().getFullYear();
+  readonly years = Array.from({ length: 30 }, (_, i) => this.currentYear + 1 - i);
+  readonly makes = [
+    'Acura','Audi','BMW','Buick','Cadillac','Chevrolet','Chrysler','Dodge','Ford',
+    'GMC','Honda','Hyundai','Infiniti','Jeep','Kia','Land Rover','Lexus','Lincoln',
+    'Lucid','Mazda','Mercedes-Benz','Nissan','Polestar','Porsche','Ram','Rivian',
+    'Subaru','Tesla','Toyota','Volkswagen','Volvo',
+  ];
 
   // Vehicle
   vehicle = signal<any>(null);
@@ -181,6 +197,25 @@ export class AdminAppraisalComponent {
     });
   }
 
+  decodeManual() {
+    if (!this.manualYear || !this.manualMake || !this.manualModel) {
+      this.decodeError.set('Year, Make, and Model are required.');
+      return;
+    }
+    const mileage = parseInt(this.odometerInput.replace(/[^0-9]/g, ''), 10) || 0;
+    this.decodeError.set('');
+    this.vehicle.set({
+      vin: '',
+      year: this.manualYear,
+      make: this.manualMake,
+      model: this.manualModel,
+      trim: this.manualTrim,
+      body: '', engine: '', transmission: '', drivetrain: '', fuel: '',
+      mileage,
+    });
+    this.loadMarketData('', this.manualYear, this.manualMake, this.manualModel, this.manualTrim, mileage);
+  }
+
   loadMarketData(vin: string, year: string, make: string, model: string, trim: string, mileage: number) {
     this.loadingMarket.set(true);
     this.http.post<any>('/api/admin/vehicle/market-data', { vin, year, make, model, trim, mileage }).subscribe({
@@ -279,6 +314,11 @@ export class AdminAppraisalComponent {
   reset() {
     this.vinInput = '';
     this.odometerInput = '';
+    this.manualYear = '';
+    this.manualMake = '';
+    this.manualModel = '';
+    this.manualTrim = '';
+    this.entryMode.set('vin');
     this.vehicle.set(null);
     this.marketData.set(null);
     this.neovinData.set(null);

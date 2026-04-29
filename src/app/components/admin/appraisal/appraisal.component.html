@@ -9,6 +9,19 @@
         <span>Appraisal</span>
       </div>
       <h2>Enter Vehicle Information</h2>
+
+      <!-- Mode toggle -->
+      <div class="appr-entry-toggle">
+        <button class="appr-entry-toggle-btn" [class.active]="entryMode() === 'vin'" (click)="entryMode.set('vin')">
+          VIN Decode
+        </button>
+        <button class="appr-entry-toggle-btn" [class.active]="entryMode() === 'manual'" (click)="entryMode.set('manual')">
+          Year / Make / Model
+        </button>
+      </div>
+
+      <!-- VIN mode -->
+      @if(entryMode() === 'vin'){
       <div class="appr-entry-fields">
         <div class="appr-entry-field">
           <label>VIN *</label>
@@ -23,6 +36,47 @@
           @if(decoding()){ <div class="appr-spin"></div> Decoding... }@else{ Go }
         </button>
       </div>
+      }
+
+      <!-- Manual mode -->
+      @if(entryMode() === 'manual'){
+      <div class="appr-entry-fields">
+        <div class="appr-entry-row">
+          <div class="appr-entry-field">
+            <label>Year *</label>
+            <select class="appr-entry-input" [(ngModel)]="manualYear">
+              <option value="">Select year</option>
+              @for(y of years; track y){ <option [value]="y">{{ y }}</option> }
+            </select>
+          </div>
+          <div class="appr-entry-field">
+            <label>Make *</label>
+            <select class="appr-entry-input" [(ngModel)]="manualMake">
+              <option value="">Select make</option>
+              @for(m of makes; track m){ <option [value]="m">{{ m }}</option> }
+            </select>
+          </div>
+        </div>
+        <div class="appr-entry-row">
+          <div class="appr-entry-field">
+            <label>Model *</label>
+            <input class="appr-entry-input" [(ngModel)]="manualModel" placeholder="e.g. F-150, Model 3" />
+          </div>
+          <div class="appr-entry-field">
+            <label>Trim <span class="appr-entry-optional">Optional</span></label>
+            <input class="appr-entry-input" [(ngModel)]="manualTrim" placeholder="e.g. XLT, Long Range" />
+          </div>
+        </div>
+        <div class="appr-entry-field">
+          <label>Odometer *</label>
+          <input class="appr-entry-input" [(ngModel)]="odometerInput" placeholder="Miles" />
+        </div>
+        <button class="appr-go-btn" (click)="decodeManual()">
+          Go
+        </button>
+      </div>
+      }
+
       @if(decodeError()){ <div class="appr-entry-error"><lucide-icon name="alert-circle" />{{ decodeError() }}</div> }
     </div>
   </div>
