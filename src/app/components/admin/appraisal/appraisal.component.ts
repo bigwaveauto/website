@@ -30,9 +30,12 @@ export class AdminAppraisalComponent {
   readonly currentYear = new Date().getFullYear();
   readonly years = Array.from({ length: 30 }, (_, i) => this.currentYear + 1 - i);
   readonly makes = [
-    'Acura','Audi','BMW','Buick','Cadillac','Chevrolet','Chrysler','Dodge','Ford',
-    'GMC','Honda','Hyundai','Infiniti','Jeep','Kia','Land Rover','Lexus','Lincoln',
-    'Lucid','Mazda','Mercedes-Benz','MINI','Nissan','Polestar','Porsche','Ram','Rivian',
+    'Acura','Alfa Romeo','Aston Martin','Audi','Bentley','BMW','Buick',
+    'Cadillac','Chevrolet','Chrysler','Dodge','Ferrari','Ford',
+    'Genesis','GMC','Honda','Hyundai','Infiniti','Jaguar','Jeep','Kia',
+    'Lamborghini','Land Rover','Lexus','Lincoln','Lotus',
+    'Lucid','Maserati','Mazda','McLaren','Mercedes-Benz','MINI',
+    'Nissan','Polestar','Porsche','Ram','Rivian','Rolls-Royce',
     'Subaru','Tesla','Toyota','Volkswagen','Volvo',
   ];
 
