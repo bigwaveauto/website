@@ -44,25 +44,6 @@
       </button>
     </nav>
 
-    <!-- Wave it Forward bubble -->
-    <div class="acct-rewards-card">
-      <div class="acct-rewards-top">
-        <div class="acct-rewards-logo">
-          <lucide-icon name="waves" />
-          <span>Share the Wave</span>
-        </div>
-      </div>
-
-      <p class="acct-rewards-headline">Share the<br>Wave. 🌊</p>
-      <p class="acct-rewards-sub">Know someone looking for a car? <strong>Share Big Wave Auto</strong> with them — we'll take great care of them.</p>
-
-      <button class="acct-rewards-refer-btn" (click)="shareReferral()">
-        <lucide-icon name="send" />
-        Share Big Wave
-      </button>
-
-      <p class="acct-rewards-footer">Share via text, email, or social</p>
-    </div>
   </aside>
 
   <!-- Content -->
@@ -128,12 +109,6 @@
         }
 
         <div class="agv-action-btns">
-          <button class="agv-bwa-btn" (click)="activeTab = 'offers'">
-            <lucide-icon name="tag" /> Get Big Wave Trade Value
-          </button>
-          <button class="agv-deal-btn" (click)="activeTab = 'reservations'">
-            <lucide-icon name="handshake" /> Create a Deal
-          </button>
           <a class="agv-carfax-btn" href="https://www.carfax.com/vehicle/{{ v.vin }}" target="_blank" rel="noopener">
             <lucide-icon name="badge-check" /> Get Carfax Report — $9
           </a>
@@ -343,18 +318,13 @@
     </div>
     }
 
-    @if(activeTab === 'reservations'){
-    <h1 class="acct-heading">My Reservations</h1>
+    @if(activeTab === 'requests'){
+    <h1 class="acct-heading">Find My Car</h1>
     <div class="acct-empty">
-      <lucide-icon name="car" />
-      <p>No reservations yet.</p>
-      <a routerLink="/showroom" class="acct-cta-link">Browse inventory →</a>
+      <lucide-icon name="search" />
+      <p>No active searches yet.</p>
+      <a routerLink="/search" class="acct-cta-link">Start a search →</a>
     </div>
-    }
-
-    @if(activeTab === 'offers'){
-    <h1 class="acct-heading">My Offers</h1>
-    <div class="acct-empty"><lucide-icon name="tag" /><p>No offers submitted yet.</p></div>
     }
 
     @if(activeTab === 'saved'){
@@ -365,26 +335,6 @@
     @if(activeTab === 'searches'){
     <h1 class="acct-heading">Saved Searches</h1>
     <div class="acct-empty"><lucide-icon name="bell-off" /><p>No saved searches yet.</p></div>
-    }
-
-    @if(activeTab === 'referral'){
-    <h1 class="acct-heading">Share the Wave</h1>
-
-    <div class="acct-referral-banner">
-      <lucide-icon name="waves" />
-      <div>
-        <p class="acct-referral-banner-title">Share Big Wave Auto</p>
-        <p class="acct-referral-banner-sub">Know someone looking for a car? Send them our way — we'll take great care of them.</p>
-      </div>
-    </div>
-
-    <div class="acct-referral-form-card">
-      <h3 class="acct-referral-form-title">Share with a friend</h3>
-      <p style="font-size:14px;color:#666;margin:0 0 16px;">Send them a link to Big Wave Auto via text, email, or your favorite app.</p>
-      <button class="acct-referral-submit" (click)="shareReferral()">
-        <lucide-icon name="send" /> Share Big Wave
-      </button>
-    </div>
     }
 
     @if(activeTab === 'settings'){

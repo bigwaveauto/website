@@ -38,12 +38,11 @@ export class AccountComponent implements OnInit {
   private fb     = inject(FormBuilder);
   private http   = inject(HttpClient);
 
-  activeTab = 'reservations';
+  activeTab = 'requests';
   tabs = [
-    { id: 'reservations', label: 'My Reservations', icon: 'list-checks' },
-    { id: 'offers',       label: 'My Offers',       icon: 'tag'         },
-    { id: 'saved',        label: 'Saved Vehicles',  icon: 'heart'       },
-    { id: 'searches',     label: 'Saved Searches',  icon: 'bell'        },
+    { id: 'requests', label: 'Find My Car',      icon: 'search'  },
+    { id: 'saved',    label: 'Saved Vehicles',   icon: 'heart'   },
+    { id: 'searches', label: 'Saved Searches',   icon: 'bell'    },
   ];
 
   // Garage state
@@ -219,7 +218,7 @@ export class AccountComponent implements OnInit {
     if (!this.auth.isLoggedIn() && !this.auth.loading()) {
       this.auth.openAuthModal();
     }
-    const allValidTabs = [...this.tabs.map(t => t.id), 'garage', 'referral', 'wavecash', 'settings'];
+    const allValidTabs = [...this.tabs.map(t => t.id), 'garage', 'settings'];
     this.route.queryParamMap.subscribe(params => {
       const tab = params.get('tab');
       if (tab && allValidTabs.includes(tab)) {
@@ -228,14 +227,4 @@ export class AccountComponent implements OnInit {
     });
   }
 
-  shareReferral() {
-    const url = 'https://bigwaveauto.com';
-    const msg = `Check out Big Wave Auto at: ${url}`;
-    if (navigator.share) {
-      navigator.share({ title: 'Big Wave Auto', text: msg });
-    } else {
-      navigator.clipboard.writeText(msg);
-      alert('Message copied to clipboard!');
-    }
-  }
 }

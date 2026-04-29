@@ -1,329 +1,462 @@
-<div class="appr-shell">
-
-  <div class="appr-header">
-    <h1>Appraisal</h1>
-    @if(vehicle()){
-    <button class="appr-reset" (click)="reset()"><lucide-icon name="x" /> New Appraisal</button>
-    }
-  </div>
+<div class="appr">
 
   <!-- ── VIN Entry ── -->
   @if(!vehicle()){
-  <div class="appr-vin-card">
-    <h2 class="appr-section-title">Vehicle Information</h2>
-    <div class="appr-vin-row">
-      <div class="appr-field-group">
-        <label>VIN *</label>
-        <input class="appr-input appr-vin-input" [(ngModel)]="vinInput" placeholder="Enter 17-character VIN"
-          (keyup.enter)="decodeVin()" maxlength="17" [style.text-transform]="'uppercase'" />
+  <div class="appr-entry">
+    <div class="appr-entry-card">
+      <div class="appr-entry-logo">
+        <lucide-icon name="search" />
+        <span>Appraisal</span>
       </div>
-      <div class="appr-field-group">
-        <label>Odometer *</label>
-        <input class="appr-input" [(ngModel)]="odometerInput" placeholder="Miles" />
+      <h2>Enter Vehicle Information</h2>
+      <div class="appr-entry-fields">
+        <div class="appr-entry-field">
+          <label>VIN *</label>
+          <input class="appr-entry-input appr-vin-input" [(ngModel)]="vinInput"
+            placeholder="17-character VIN" maxlength="17" (keyup.enter)="decodeVin()" />
+        </div>
+        <div class="appr-entry-field">
+          <label>Odometer *</label>
+          <input class="appr-entry-input" [(ngModel)]="odometerInput" placeholder="Miles" (keyup.enter)="decodeVin()" />
+        </div>
+        <button class="appr-go-btn" (click)="decodeVin()" [disabled]="decoding()">
+          @if(decoding()){ <div class="appr-spin"></div> Decoding... }@else{ Go }
+        </button>
       </div>
-      <button class="appr-go-btn" (click)="decodeVin()" [disabled]="decoding()">
-        @if(decoding()){ <div class="appr-spinner"></div> }@else{ Go }
-      </button>
+      @if(decodeError()){ <div class="appr-entry-error"><lucide-icon name="alert-circle" />{{ decodeError() }}</div> }
     </div>
-    @if(decodeError()){ <div class="appr-error">{{ decodeError() }}</div> }
   </div>
   }
 
-  <!-- ── Main Layout (after decode) ── -->
+  <!-- ── Appraisal Workspace ── -->
   @if(vehicle(); as v){
-  <div class="appr-layout">
+  <div class="appr-workspace">
 
-    <!-- Left Column -->
-    <div class="appr-left">
-
-      <!-- Vehicle Info -->
-      <div class="appr-card">
-        <div class="appr-card-header">
-          <lucide-icon name="car" />
-          <span>Vehicle Information</span>
+    <!-- Vehicle Header Bar -->
+    <div class="appr-veh-header">
+      <div class="appr-veh-header-left">
+        <div class="appr-veh-title-row">
+          <h1 class="appr-veh-title">{{ v.year }} {{ v.make | uppercase }} {{ v.model | uppercase }}</h1>
+          <span class="appr-veh-trim">{{ v.trim }} {{ v.engine }} {{ v.drivetrain }}</span>
         </div>
-        <div class="appr-vi-title">{{ v.year }} {{ v.make }} {{ v.model }} {{ v.trim }}</div>
-        <div class="appr-vi-vin">{{ v.vin }} &middot; {{ v.mileage | number }} mi</div>
+        <div class="appr-veh-meta">
+          <span class="appr-veh-vin">{{ v.vin }}</span>
+          <span class="appr-veh-dot">&middot;</span>
+          <span class="appr-veh-miles">{{ v.mileage | number }} Mi</span>
+        </div>
+        <div class="appr-veh-actions">
+          <button class="appr-veh-action" (click)="copyVin()" title="Copy VIN">
+            <lucide-icon name="copy" /> Copy VIN
+          </button>
+          <button class="appr-veh-action appr-veh-action--danger" (click)="reset()">
+            <lucide-icon name="x" /> New
+          </button>
+        </div>
+      </div>
+    </div>
 
-        <div class="appr-fields-grid">
-          <div class="appr-field">
-            <label>Year</label>
-            <input class="appr-input" [ngModel]="v.year" (ngModelChange)="updateVehicleField('year', $event)" />
+    <!-- Book Value Bar -->
+    <div class="appr-book-bar">
+      <div class="appr-book-cell appr-book-cell--highlight">
+        <span class="appr-book-label">Instant Offer</span>
+        @if(loadingMarket()){ <div class="appr-spin appr-spin--dark"></div> }
+        @else if(instantOffer){ <span class="appr-book-val">{{ instantOffer | currency:'USD':'symbol':'1.0-0' }}</span> }
+        @else{ <span class="appr-book-empty">—</span> }
+      </div>
+      <div class="appr-book-cell">
+        <span class="appr-book-label">Target Auction</span>
+        @if(loadingMarket()){ <div class="appr-spin appr-spin--dark"></div> }
+        @else if(targetAuction){ <span class="appr-book-val">{{ targetAuction | currency:'USD':'symbol':'1.0-0' }}</span> }
+        @else{ <span class="appr-book-empty">Pending MMR</span> }
+        @if(mmr){ <span class="appr-book-sub">MMR {{ mmr | currency:'USD':'symbol':'1.0-0' }}</span> }
+      </div>
+      <div class="appr-book-cell">
+        <span class="appr-book-label">Target Retail</span>
+        @if(loadingMarket()){ <div class="appr-spin appr-spin--dark"></div> }
+        @else if(targetRetail){ <span class="appr-book-val">{{ targetRetail | currency:'USD':'symbol':'1.0-0' }}</span> }
+        @else{ <span class="appr-book-empty">Pending Market Avg</span> }
+        @if(marketAvg){ <span class="appr-book-sub">Market Avg {{ marketAvg | currency:'USD':'symbol':'1.0-0' }}</span> }
+      </div>
+      <div class="appr-book-cell">
+        <span class="appr-book-label">Market Days Supply</span>
+        @if(loadingMarket()){ <div class="appr-spin appr-spin--dark"></div> }
+        @else if(marketDaysSupply){ <span class="appr-book-val appr-book-val--neutral">{{ marketDaysSupply }}</span> }
+        @else{ <span class="appr-book-empty">—</span> }
+        @if(activeComps.length){ <span class="appr-book-sub">{{ activeComps.length }} comps found</span> }
+      </div>
+      <div class="appr-book-cell">
+        <span class="appr-book-label">Adj % of Market</span>
+        @if(adjPctOfMarket !== null){
+        <span class="appr-book-val" [class.appr-book-val--good]="adjPctOfMarket! >= 95 && adjPctOfMarket! <= 105"
+              [class.appr-book-val--warn]="adjPctOfMarket! > 105 || adjPctOfMarket! < 90">
+          {{ adjPctOfMarket }}%
+        </span>
+        <span class="appr-book-sub">Target 95–105%</span>
+        }@else{
+        <span class="appr-book-empty">Set asking price</span>
+        }
+      </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="appr-tabs">
+      <button class="appr-tab" [class.active]="activeTab() === 'detailed'" (click)="activeTab.set('detailed')">Detailed</button>
+      <button class="appr-tab" [class.active]="activeTab() === 'comps'" (click)="activeTab.set('comps')">
+        Market Comps
+        @if(activeComps.length){ <span class="appr-tab-badge">{{ activeComps.length }}</span> }
+      </button>
+    </div>
+
+    <!-- Main Panel -->
+    <div class="appr-main">
+
+      @if(activeTab() === 'detailed'){
+      <!-- Left: Condition Adjustments -->
+      <div class="appr-detail-left">
+
+        <!-- Odometer -->
+        <div class="appr-adj-card">
+          <div class="appr-adj-header">
+            <span class="appr-adj-title">Odometer</span>
+            <span class="appr-adj-delta" [class.pos]="odometerDelta > 0" [class.neg]="odometerDelta < 0">
+              {{ fmtAdj(odometerDelta) }}
+            </span>
           </div>
-          <div class="appr-field">
-            <label>Make</label>
-            <input class="appr-input" [ngModel]="v.make" (ngModelChange)="updateVehicleField('make', $event)" />
+          <div class="appr-odo-display">{{ v.mileage | number }} mi</div>
+          @if(marketData()?.stats?.miles?.mean){
+          <div class="appr-adj-note">Market avg: {{ marketData().stats.miles.mean | number:'1.0-0' }} mi</div>
+          }
+        </div>
+
+        <!-- Color -->
+        <div class="appr-adj-card">
+          <div class="appr-adj-header">
+            <span class="appr-adj-title">Color</span>
+            <span class="appr-adj-delta" [class.pos]="colorAdj > 0" [class.neg]="colorAdj < 0">
+              {{ fmtAdj(colorAdj) }}
+            </span>
           </div>
-          <div class="appr-field">
-            <label>Model</label>
-            <input class="appr-input" [ngModel]="v.model" (ngModelChange)="updateVehicleField('model', $event)" />
+          <div class="appr-color-row">
+            <div class="appr-color-field">
+              <label>Exterior</label>
+              <input class="appr-inline-input" [ngModel]="exteriorColor()" (ngModelChange)="exteriorColor.set($event)" placeholder="e.g. White" />
+            </div>
+            <div class="appr-color-field">
+              <label>Interior</label>
+              <input class="appr-inline-input" [ngModel]="interiorColor()" (ngModelChange)="interiorColor.set($event)" placeholder="e.g. Black" />
+            </div>
           </div>
-          <div class="appr-field">
-            <label>Trim / Series</label>
-            <input class="appr-input" [ngModel]="v.trim" (ngModelChange)="updateVehicleField('trim', $event)" />
+        </div>
+
+        <!-- Keys -->
+        <div class="appr-adj-card">
+          <div class="appr-adj-header">
+            <span class="appr-adj-title">Keys</span>
+            <span class="appr-adj-delta" [class.neg]="keyAdj < 0">{{ fmtAdj(keyAdj) }}</span>
           </div>
-          <div class="appr-field">
-            <label>Body</label>
-            <input class="appr-input" [ngModel]="v.body" (ngModelChange)="updateVehicleField('body', $event)" />
+          <div class="appr-key-row">
+            @for(k of [0,1,2]; track k){
+            <button class="appr-key-btn" [class.active]="keyCount() === k" (click)="keyCount.set(k)">{{ k }}</button>
+            }
+            <button class="appr-key-btn" [class.active]="keyCount() >= 3" (click)="keyCount.set(3)">3+</button>
           </div>
-          <div class="appr-field">
-            <label>Color</label>
-            <input class="appr-input" [ngModel]="v.color" (ngModelChange)="updateVehicleField('color', $event)" placeholder="Enter color" />
+        </div>
+
+        <!-- Vehicle History -->
+        <div class="appr-adj-card">
+          <div class="appr-adj-header">
+            <span class="appr-adj-title">Vehicle History</span>
+            <span class="appr-adj-delta" [class.neg]="conditionAdj < 0">{{ fmtAdj(conditionAdj) }}</span>
           </div>
-          <div class="appr-field appr-field--wide">
-            <label>Engine</label>
-            <input class="appr-input" [ngModel]="v.engine" (ngModelChange)="updateVehicleField('engine', $event)" />
+          <div class="appr-badge-row">
+            <button class="appr-badge-btn" [class.active-danger]="hasBadVhr()" (click)="hasBadVhr.set(!hasBadVhr())">
+              BAD VHR
+            </button>
+            <button class="appr-badge-btn" [class.active-danger]="hasFrameDamage()" (click)="hasFrameDamage.set(!hasFrameDamage())">
+              FRAME DAMAGE
+            </button>
           </div>
-          <div class="appr-field">
-            <label>Transmission</label>
-            <input class="appr-input" [ngModel]="v.transmission" (ngModelChange)="updateVehicleField('transmission', $event)" />
+          <div class="appr-adj-row" style="margin-top:12px">
+            <label>Owners</label>
+            <select class="appr-select" [ngModel]="owners()" (ngModelChange)="owners.set($event)">
+              <option value="1">1 Owner</option>
+              <option value="2">2 Owners</option>
+              <option value="3+">3+ Owners</option>
+            </select>
           </div>
-          <div class="appr-field">
-            <label>Drivetrain</label>
-            <input class="appr-input" [ngModel]="v.drivetrain" (ngModelChange)="updateVehicleField('drivetrain', $event)" />
+        </div>
+
+        <!-- Common Options -->
+        <div class="appr-adj-card">
+          <div class="appr-adj-header">
+            <span class="appr-adj-title">Options</span>
+            <span class="appr-adj-delta" [class.pos]="optionsTotal > 0" [class.neg]="optionsTotal < 0">
+              {{ fmtAdj(optionsTotal) }}
+            </span>
+          </div>
+          <div class="appr-option-pills">
+            @for(opt of [
+              {label:'Sunroof/Moonroof', value:400},
+              {label:'Navigation', value:300},
+              {label:'Leather Seats', value:350},
+              {label:'Heated Seats', value:200},
+              {label:'AWD / 4WD', value:500},
+              {label:'Third Row', value:600},
+              {label:'Tow Package', value:400},
+              {label:'Premium Audio', value:250},
+              {label:'Backup Camera', value:150},
+              {label:'Remote Start', value:200},
+              {label:'Power Liftgate', value:300},
+              {label:'Blind Spot Monitor', value:250},
+              {label:'No Spare Tire', value:-150},
+              {label:'Aftermarket Wheels', value:-200},
+              {label:'High Miles Package', value:-500}
+            ]; track opt.label){
+            <button class="appr-option-pill"
+              [class.active-pos]="isOptionSelected(opt.label) && opt.value > 0"
+              [class.active-neg]="isOptionSelected(opt.label) && opt.value < 0"
+              (click)="toggleOption(opt.label, opt.value)">
+              {{ opt.label }}
+              <span class="appr-option-val" [class.pos]="opt.value > 0" [class.neg]="opt.value < 0">
+                {{ fmtAdj(opt.value) }}
+              </span>
+            </button>
+            }
+          </div>
+        </div>
+
+        <!-- Service Status -->
+        <div class="appr-adj-card">
+          <div class="appr-adj-header">
+            <span class="appr-adj-title">Service Status</span>
+          </div>
+          <div class="appr-badge-row">
+            <button class="appr-badge-btn" [class.active-pos]="serviceStatus() === 'certified'" (click)="serviceStatus.set('certified')">CERTIFIED USED CAR</button>
+            <button class="appr-badge-btn" [class.active-neutral]="serviceStatus() === 'as-traded'" (click)="serviceStatus.set('as-traded')">AS TRADED</button>
+          </div>
+        </div>
+
+        <!-- VIN History from MarketCheck -->
+        @if(vinHistory.length > 0){
+        <div class="appr-adj-card">
+          <div class="appr-adj-header"><span class="appr-adj-title">This VIN's Listing History</span></div>
+          <div class="appr-hist-list">
+            @for(h of vinHistory; track $index){
+            <div class="appr-hist-row">
+              <div class="appr-hist-price">{{ h.price | currency:'USD':'symbol':'1.0-0' }}</div>
+              <div class="appr-hist-detail">
+                {{ h.miles | number }} mi &middot; {{ h.dealer }} {{ h.city }}, {{ h.state }}
+              </div>
+              <div class="appr-hist-meta">{{ timeAgo(h.first_seen) }} &rarr; {{ timeAgo(h.last_seen) }} ({{ h.days_on_market }}d)</div>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+      </div>
+
+      <!-- Right: Pricing Panel -->
+      <div class="appr-detail-right">
+        <div class="appr-pricing-panel">
+          <div class="appr-pricing-header">Review &amp; Price</div>
+
+          <!-- Adjustment breakdown -->
+          <div class="appr-pricing-section">
+            <div class="appr-pricing-row">
+              <span>Base (Market Avg)</span>
+              <span>{{ marketAvg ? (marketAvg | currency:'USD':'symbol':'1.0-0') : '—' }}</span>
+            </div>
+            @if(odometerDelta !== 0){
+            <div class="appr-pricing-row appr-adj-row-sm">
+              <span>Odometer</span>
+              <span [class.pos]="odometerDelta>0" [class.neg]="odometerDelta<0">{{ fmtAdj(odometerDelta) }}</span>
+            </div>
+            }
+            @if(colorAdj !== 0){
+            <div class="appr-pricing-row appr-adj-row-sm">
+              <span>Color ({{ exteriorColor() || '—' }})</span>
+              <span [class.pos]="colorAdj>0" [class.neg]="colorAdj<0">{{ fmtAdj(colorAdj) }}</span>
+            </div>
+            }
+            @if(keyAdj !== 0){
+            <div class="appr-pricing-row appr-adj-row-sm">
+              <span>Keys ({{ keyCount() }})</span>
+              <span [class.neg]="keyAdj<0">{{ fmtAdj(keyAdj) }}</span>
+            </div>
+            }
+            @for(opt of selectedOptions(); track opt.label){
+            <div class="appr-pricing-row appr-adj-row-sm">
+              <span>{{ opt.label }}</span>
+              <span [class.pos]="opt.value>0" [class.neg]="opt.value<0">{{ fmtAdj(opt.value) }}</span>
+            </div>
+            }
+            @if(conditionAdj !== 0){
+            <div class="appr-pricing-row appr-adj-row-sm">
+              <span>Condition</span>
+              <span class="neg">{{ fmtAdj(conditionAdj) }}</span>
+            </div>
+            }
+            <div class="appr-pricing-divider"></div>
+            <div class="appr-pricing-row appr-pricing-row--total">
+              <span>Adjusted Value</span>
+              <span>{{ marketAvg ? ((marketAvg + totalAdjustments) | currency:'USD':'symbol':'1.0-0') : '—' }}</span>
+            </div>
+          </div>
+
+          <!-- Cost build-up -->
+          <div class="appr-pricing-section">
+            <div class="appr-pricing-section-label">Acquisition Costs</div>
+            <div class="appr-cost-row">
+              <label>Offer / Appraised</label>
+              <div class="appr-dollar"><span>$</span>
+                <input type="text" [ngModel]="fmt(appraisedValue())"
+                  (ngModelChange)="appraisedValue.set(parse($event)); onCostChange()" placeholder="0" />
+              </div>
+            </div>
+            <div class="appr-cost-row">
+              <label>Recon</label>
+              <div class="appr-dollar"><span>$</span>
+                <input type="text" [ngModel]="fmt(recon())"
+                  (ngModelChange)="recon.set(parse($event)); onCostChange()" placeholder="0" />
+              </div>
+            </div>
+            <div class="appr-cost-row">
+              <label>Transport</label>
+              <div class="appr-dollar"><span>$</span>
+                <input type="text" [ngModel]="fmt(transportation())"
+                  (ngModelChange)="transportation.set(parse($event)); onCostChange()" placeholder="0" />
+              </div>
+            </div>
+            <div class="appr-cost-row">
+              <label>Auction Fee</label>
+              <div class="appr-dollar"><span>$</span>
+                <input type="text" [ngModel]="fmt(auctionFee())"
+                  (ngModelChange)="auctionFee.set(parse($event)); onCostChange()" placeholder="0" />
+              </div>
+            </div>
+            <div class="appr-cost-row">
+              <label>Other</label>
+              <div class="appr-dollar"><span>$</span>
+                <input type="text" [ngModel]="fmt(otherCost())"
+                  (ngModelChange)="otherCost.set(parse($event)); onCostChange()" placeholder="0" />
+              </div>
+            </div>
+
+            <div class="appr-pricing-divider"></div>
+
+            <!-- Total Cost + Lock + Profit -->
+            <div class="appr-profit-row">
+              <div class="appr-profit-box">
+                <span class="appr-profit-label">Total Cost</span>
+                <span class="appr-profit-val">{{ totalCost | currency:'USD':'symbol':'1.0-0' }}</span>
+              </div>
+              <button class="appr-lock-btn" [class.locked]="profitLocked()" (click)="toggleLock()">
+                <lucide-icon [name]="profitLocked() ? 'lock' : 'lock-open'" />
+              </button>
+              <div class="appr-profit-box" [class.appr-profit-box--pos]="profit > 0" [class.appr-profit-box--neg]="profit < 0">
+                <span class="appr-profit-label">Gross Profit</span>
+                <span class="appr-profit-val">{{ profit | currency:'USD':'symbol':'1.0-0' }}</span>
+              </div>
+            </div>
+
+            <!-- Asking Price -->
+            <div class="appr-cost-row appr-asking-row">
+              <label>Asking Price</label>
+              <div class="appr-dollar appr-dollar--lg"><span>$</span>
+                <input type="text" [ngModel]="fmt(askingPrice())"
+                  (ngModelChange)="askingPrice.set(parse($event))" placeholder="Set price" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="appr-actions-panel">
+            <div class="appr-actions-label">SELECT ACTION</div>
+            <button class="appr-action-row-btn appr-action-row-btn--primary" (click)="saveAppraisal()" [disabled]="saving()">
+              <span>@if(saved()){ ✓ Saved }@else if(saving()){ Saving... }@else{ Save Appraisal }</span>
+              <lucide-icon name="save" />
+            </button>
+            <button class="appr-action-row-btn">
+              <span>Convert to Purchase</span>
+              <lucide-icon name="arrow-right" />
+            </button>
+            <button class="appr-action-row-btn">
+              <span>Send Offer to Customer</span>
+              <lucide-icon name="arrow-right" />
+            </button>
+            <button class="appr-action-row-btn">
+              <span>Add to Inventory</span>
+              <lucide-icon name="arrow-right" />
+            </button>
           </div>
         </div>
       </div>
+      }
 
-      <!-- Vehicle History (Bumper) -->
-      <div class="appr-card">
-        <div class="appr-card-header">
-          <lucide-icon name="shield-check" />
-          <span>Vehicle History</span>
-          @if(loadingHistory()){ <div class="appr-spinner appr-spinner--sm"></div> }
-        </div>
-        @if(vehicleHistory(); as h){
-          <div class="appr-history-grid">
-            @if(h.owners){ <div class="appr-hist-item"><span class="appr-hist-label">Owners</span><span class="appr-hist-val">{{ h.owners }}</span></div> }
-            @if(h.accidents){ <div class="appr-hist-item appr-hist-item--warn"><span class="appr-hist-label">Accidents</span><span class="appr-hist-val">{{ h.accidents }}</span></div> }
-            @if(h.title_issues){ <div class="appr-hist-item appr-hist-item--danger"><span class="appr-hist-label">Title Issues</span><span class="appr-hist-val">{{ h.title_issues }}</span></div> }
-            @if(h.last_sale_price){ <div class="appr-hist-item"><span class="appr-hist-label">Last Sale</span><span class="appr-hist-val">{{ h.last_sale_price | currency:'USD':'symbol':'1.0-0' }}</span></div> }
-            @if(h.last_sale_date){ <div class="appr-hist-item"><span class="appr-hist-label">Sale Date</span><span class="appr-hist-val">{{ h.last_sale_date }}</span></div> }
+      <!-- Comps Tab -->
+      @if(activeTab() === 'comps'){
+      <div class="appr-comps">
+
+        @if(loadingMarket()){
+        <div class="appr-comps-loading"><div class="appr-spin appr-spin--dark"></div> Loading market data...</div>
+        }
+
+        <!-- Active Comps -->
+        @if(activeComps.length > 0){
+        <div class="appr-comps-section">
+          <h3 class="appr-comps-title">Active Listings ({{ activeComps.length }})</h3>
+          <div class="appr-comps-table">
+            <div class="appr-comps-thead">
+              <span>Price</span><span>Miles</span><span>Days</span><span>Trim</span><span>Location</span>
+            </div>
+            @for(c of activeComps; track $index){
+            <div class="appr-comps-row" [class.appr-comps-row--highlight]="askingPrice() && c.price === askingPrice()">
+              <span class="appr-comp-price">{{ c.price | currency:'USD':'symbol':'1.0-0' }}</span>
+              <span>{{ c.miles | number }} mi</span>
+              <span [class.appr-comp-aged]="c.days_on_market > 60">{{ c.days_on_market }}d</span>
+              <span class="appr-comp-trim">{{ c.trim }}</span>
+              <span class="appr-comp-loc">{{ c.city }}, {{ c.state }}
+                @if(c.distance){ <span class="appr-comp-dist">{{ c.distance | number:'1.0-0' }}mi</span> }
+              </span>
+            </div>
+            }
           </div>
-        }@else if(!loadingHistory()){
-        <div class="appr-pending">
-          <lucide-icon name="plug" />
-          <span>Bumper API key needed for history data</span>
+        </div>
+        }
+
+        <!-- Sold Comps -->
+        @if(soldComps.length > 0){
+        <div class="appr-comps-section">
+          <h3 class="appr-comps-title">Recently Sold ({{ soldComps.length }})</h3>
+          <div class="appr-comps-table">
+            <div class="appr-comps-thead">
+              <span>Price</span><span>Miles</span><span>Days</span><span>Sold</span><span>Location</span>
+            </div>
+            @for(c of soldComps; track $index){
+            <div class="appr-comps-row appr-comps-row--sold">
+              <span class="appr-comp-price">{{ c.price | currency:'USD':'symbol':'1.0-0' }}</span>
+              <span>{{ c.miles | number }} mi</span>
+              <span>{{ c.days_on_market }}d</span>
+              <span class="appr-comp-trim">{{ timeAgo(c.sold_date) }}</span>
+              <span class="appr-comp-loc">{{ c.city }}, {{ c.state }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if(!loadingMarket() && activeComps.length === 0 && soldComps.length === 0){
+        <div class="appr-comps-empty">
+          <lucide-icon name="search" />
+          <span>No market comps found for this vehicle.</span>
         </div>
         }
       </div>
+      }
 
-    </div>
-
-    <!-- Right Column -->
-    <div class="appr-right">
-
-      <!-- Book Values -->
-      <div class="appr-card">
-        <div class="appr-card-header">
-          <lucide-icon name="bar-chart-2" />
-          <span>Book Values</span>
-          @if(loadingMarket()){ <div class="appr-spinner appr-spinner--sm"></div> }
-        </div>
-        <div class="appr-book-grid">
-          <div class="appr-book-item" [class.appr-book-live]="mmr()">
-            <span class="appr-book-label">MMR (Wholesale)</span>
-            @if(mmr()){ <span class="appr-book-val">{{ mmr() | currency:'USD':'symbol':'1.0-0' }}</span> }
-            @else{ <span class="appr-book-pending">Pending Manheim key</span> }
-          </div>
-          <div class="appr-book-item" [class.appr-book-live]="marketAvg()">
-            <span class="appr-book-label">Market Avg (Retail)</span>
-            @if(marketAvg()){ <span class="appr-book-val">{{ marketAvg() | currency:'USD':'symbol':'1.0-0' }}</span> }
-            @else{ <span class="appr-book-pending">Pending MarketCheck</span> }
-          </div>
-          <div class="appr-book-item">
-            <span class="appr-book-label">KBB</span>
-            <span class="appr-book-pending">Pending KBB key</span>
-          </div>
-          <div class="appr-book-item">
-            <span class="appr-book-label">Black Book</span>
-            <span class="appr-book-pending">Pending BB key</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Disposition + Cost Build-up -->
-      <div class="appr-card">
-        <div class="appr-card-header">
-          <lucide-icon name="calculator" />
-          <span>Disposition &amp; Costs</span>
-        </div>
-
-        <!-- Disposition toggle -->
-        <div class="appr-disp-toggle">
-          <label class="appr-radio">
-            <input type="radio" name="disp" value="retail" [checked]="disposition()==='retail'" (change)="disposition.set('retail')" />
-            Retail
-          </label>
-          <label class="appr-radio">
-            <input type="radio" name="disp" value="wholesale" [checked]="disposition()==='wholesale'" (change)="disposition.set('wholesale')" />
-            Wholesale
-          </label>
-        </div>
-
-        <!-- Cost rows -->
-        <div class="appr-cost-rows">
-          <div class="appr-cost-row">
-            <label>Appraised Value</label>
-            <div class="appr-dollar-wrap">
-              <span class="appr-dollar-sign">$</span>
-              <input class="appr-cost-input" type="text"
-                [ngModel]="fmt(appraisedValue())" (ngModelChange)="appraisedValue.set(parse($event)); onCostChange()"
-                placeholder="0" />
-            </div>
-          </div>
-          <div class="appr-cost-row">
-            <label>Reconditioning</label>
-            <div class="appr-dollar-wrap">
-              <span class="appr-dollar-sign">$</span>
-              <input class="appr-cost-input" type="text"
-                [ngModel]="fmt(recon())" (ngModelChange)="recon.set(parse($event)); onCostChange()"
-                placeholder="0" />
-            </div>
-          </div>
-          <div class="appr-cost-row">
-            <label>Certification</label>
-            <div class="appr-dollar-wrap">
-              <span class="appr-dollar-sign">$</span>
-              <input class="appr-cost-input" type="text"
-                [ngModel]="fmt(certification())" (ngModelChange)="certification.set(parse($event)); onCostChange()"
-                placeholder="0" />
-            </div>
-          </div>
-          <div class="appr-cost-row">
-            <label>Transportation</label>
-            <div class="appr-dollar-wrap">
-              <span class="appr-dollar-sign">$</span>
-              <input class="appr-cost-input" type="text"
-                [ngModel]="fmt(transportation())" (ngModelChange)="transportation.set(parse($event)); onCostChange()"
-                placeholder="0" />
-            </div>
-          </div>
-          <div class="appr-cost-row">
-            <label>Auction Fee</label>
-            <div class="appr-dollar-wrap">
-              <span class="appr-dollar-sign">$</span>
-              <input class="appr-cost-input" type="text"
-                [ngModel]="fmt(auctionFee())" (ngModelChange)="auctionFee.set(parse($event)); onCostChange()"
-                placeholder="0" />
-            </div>
-          </div>
-          <div class="appr-cost-row">
-            <label>Pack</label>
-            <div class="appr-dollar-wrap">
-              <span class="appr-dollar-sign">$</span>
-              <input class="appr-cost-input" type="text"
-                [ngModel]="fmt(pack())" (ngModelChange)="pack.set(parse($event)); onCostChange()"
-                placeholder="0" />
-            </div>
-          </div>
-          <div class="appr-cost-row">
-            <label>Other</label>
-            <div class="appr-dollar-wrap">
-              <span class="appr-dollar-sign">$</span>
-              <input class="appr-cost-input" type="text"
-                [ngModel]="fmt(otherCost())" (ngModelChange)="otherCost.set(parse($event)); onCostChange()"
-                placeholder="0" />
-            </div>
-          </div>
-
-          <div class="appr-cost-divider"></div>
-
-          <!-- Appraised Value + Profit with lock -->
-          <div class="appr-result-row">
-            <div class="appr-result-box">
-              <span class="appr-result-label">Total Cost</span>
-              <span class="appr-result-val">{{ totalCost | currency:'USD':'symbol':'1.0-0' }}</span>
-            </div>
-            <button class="appr-lock-btn" [class.locked]="profitLocked()" (click)="toggleLock()" [title]="profitLocked() ? 'Unlock profit' : 'Lock profit target'">
-              <lucide-icon [name]="profitLocked() ? 'lock' : 'lock-open'" />
-            </button>
-            <div class="appr-result-box">
-              <span class="appr-result-label">Profit</span>
-              <span class="appr-result-val" [class.appr-profit-pos]="profit > 0" [class.appr-profit-neg]="profit < 0">
-                {{ profit | currency:'USD':'symbol':'1.0-0' }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Asking Price -->
-          <div class="appr-cost-row appr-asking-row">
-            <label>Asking Price</label>
-            <div class="appr-dollar-wrap">
-              <span class="appr-dollar-sign">$</span>
-              <input class="appr-cost-input appr-cost-input--asking" type="text"
-                [ngModel]="fmt(askingPrice())" (ngModelChange)="onAskingPriceChange($event)"
-                placeholder="Set price" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Market Positioning -->
-      <div class="appr-card">
-        <div class="appr-card-header">
-          <lucide-icon name="trending-up" />
-          <span>Market Positioning</span>
-        </div>
-        <div class="appr-market-grid">
-          <div class="appr-market-item">
-            <span class="appr-market-label">Adj % of Market</span>
-            @if(adjPctOfMarket() !== null){
-            <span class="appr-market-val" [class.appr-market-good]="adjPctOfMarket()! >= 95 && adjPctOfMarket()! <= 105">
-              {{ adjPctOfMarket() }}%
-            </span>
-            <span class="appr-market-target">Target: 95–105%</span>
-            }@else{
-            <span class="appr-book-pending">Set asking price + market avg</span>
-            }
-          </div>
-          <div class="appr-market-item">
-            <span class="appr-market-label">Adj % Cost to Market</span>
-            @if(adjCostToMarket() !== null){
-            <span class="appr-market-val" [class.appr-market-good]="adjCostToMarket()! <= 90">
-              {{ adjCostToMarket() }}%
-            </span>
-            }@else{
-            <span class="appr-book-pending">Set costs + market avg</span>
-            }
-          </div>
-          <div class="appr-market-item">
-            <span class="appr-market-label">Market Days Supply</span>
-            @if(marketDaysSupply() !== null){
-            <span class="appr-market-val">{{ marketDaysSupply() }}</span>
-            }@else{
-            <span class="appr-book-pending">Pending MarketCheck</span>
-            }
-          </div>
-          <div class="appr-market-item">
-            <span class="appr-market-label">Like Mine</span>
-            @if(likeMine() !== null){
-            <span class="appr-market-val">{{ likeMine() }}</span>
-            }@else{
-            <span class="appr-book-pending">Pending MarketCheck</span>
-            }
-          </div>
-          @if(priceRank()){
-          <div class="appr-market-item appr-market-item--wide">
-            <span class="appr-market-label">Price Rank</span>
-            <span class="appr-market-val">{{ priceRank()!.rank }} of {{ priceRank()!.total }}</span>
-          </div>
-          }
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="appr-actions">
-        <button class="appr-btn appr-btn-save" (click)="saveAppraisal()">
-          <lucide-icon name="save" /> Save Appraisal
-        </button>
-        <button class="appr-btn appr-btn-convert">
-          <lucide-icon name="arrow-right-circle" /> Convert to Purchase
-        </button>
-      </div>
-
-    </div>
-  </div>
+    </div><!-- /appr-main -->
+  </div><!-- /appr-workspace -->
   }
 
 </div>

@@ -1550,7 +1550,12 @@ app.post('/api/admin/vehicle/market-data', async (req, res) => {
     if (cached && cached.fetched_at) {
       const age = Date.now() - new Date(cached.fetched_at).getTime();
       if (age < 7 * 86400000) {
-        res.json({ mmr: cached.mmr, kbb: cached.kbb, market_avg: cached.market_avg });
+        res.json({
+          mmr: cached.mmr, kbb: cached.kbb, market_avg: cached.market_avg,
+          market_days_supply: cached.market_days_supply,
+          stats: cached.stats, vin_history: cached.vin_history,
+          active_comps: cached.active_comps, sold_comps: cached.sold_comps,
+        });
         return;
       }
     }
@@ -1591,60 +1596,116 @@ app.post('/api/admin/vehicle/market-data', async (req, res) => {
       } catch (e) { console.error('KBB fetch error:', e); }
     }
 
-    // MarketCheck — active listings market average, days supply, price rank
+    // MarketCheck — parallel fetch of stats, active comps, sold comps, VIN history
     let market_avg = 0;
     let market_days_supply = 0;
-    let like_mine = 0;
-    let price_rank: { rank: number; total: number } | null = null;
+    let stats: any = null;
+    let active_comps: any[] = [];
+    let sold_comps: any[] = [];
+    let vin_history: any[] = [];
 
     const mcKey = process.env['MARKETCHECK_API_KEY'];
     if (mcKey && year && make && model) {
-      try {
-        const mcParams = new URLSearchParams({
-          api_key: mcKey,
-          year: String(year),
-          make,
-          model,
-          ...(trim ? { trim } : {}),
-          radius: '500',
-          rows: '50',
-          fields: 'price,miles,days_on_market',
-        });
-        const mcRes = await fetch(`https://mc-api.marketcheck.com/v2/search/car/active?${mcParams}`);
-        if (mcRes.ok) {
-          const mcData = await mcRes.json();
-          const listings: any[] = mcData?.listings || [];
-          if (listings.length > 0) {
-            const prices = listings.map((l: any) => l.price).filter((p: number) => p > 0);
-            if (prices.length > 0) {
-              market_avg = Math.round(prices.reduce((a: number, b: number) => a + b, 0) / prices.length);
-              // Price rank — where would our asking price land?
-              price_rank = { rank: 0, total: prices.length };
-            }
-            const days = listings.map((l: any) => l.days_on_market).filter((d: number) => d >= 0);
-            if (days.length > 0) {
-              market_days_supply = Math.round(days.reduce((a: number, b: number) => a + b, 0) / days.length);
-            }
-          }
-        }
-      } catch (e) { console.error('MarketCheck error:', e); }
+      const mcBase = 'https://mc-api.marketcheck.com/v2';
+      const mcCommon = { api_key: mcKey, year: String(year), make, model, ...(trim ? { trim } : {}) };
+
+      const [statsRes, activeRes, soldRes, histRes] = await Promise.allSettled([
+        // Market stats — avg price, avg days, supply
+        fetch(`${mcBase}/stats/car?${new URLSearchParams({ ...mcCommon, api_key: mcKey })}`),
+        // Active listings — up to 25 nearby comps
+        fetch(`${mcBase}/search/car/active?${new URLSearchParams({ ...mcCommon, radius: '500', rows: '25', sort_by: 'price', sort_order: 'asc' })}`),
+        // Sold listings — up to 25 recent sales
+        fetch(`${mcBase}/search/car/inactive?${new URLSearchParams({ ...mcCommon, rows: '25', sort_by: 'last_seen_at', sort_order: 'desc' })}`),
+        // VIN listing history
+        fetch(`${mcBase}/history/car/${vin}?${new URLSearchParams({ api_key: mcKey })}`),
+      ]);
+
+      // Stats
+      if (statsRes.status === 'fulfilled' && statsRes.value.ok) {
+        try {
+          const d = await statsRes.value.json();
+          stats = d;
+          market_avg = Math.round(d?.price?.mean || d?.retail?.mean || 0);
+          market_days_supply = Math.round(d?.dom?.mean || d?.days_on_market?.mean || 0);
+        } catch {}
+      }
+
+      // Active comps
+      if (activeRes.status === 'fulfilled' && activeRes.value.ok) {
+        try {
+          const d = await activeRes.value.json();
+          active_comps = (d?.listings || []).map((l: any) => ({
+            id: l.id,
+            price: l.price,
+            miles: l.miles,
+            days_on_market: l.dom || l.days_on_market,
+            dealer: l.dealer?.name || '',
+            city: l.dealer?.city || '',
+            state: l.dealer?.state || '',
+            distance: l.distance,
+            color: l.exterior_color || '',
+            trim: l.trim || '',
+            photo: l.media?.photo_links?.[0] || '',
+            url: l.vdp_url || '',
+          }));
+        } catch {}
+      }
+
+      // Sold comps
+      if (soldRes.status === 'fulfilled' && soldRes.value.ok) {
+        try {
+          const d = await soldRes.value.json();
+          sold_comps = (d?.listings || []).map((l: any) => ({
+            price: l.price,
+            miles: l.miles,
+            days_on_market: l.dom || l.days_on_market,
+            sold_date: l.last_seen_at,
+            dealer: l.dealer?.name || '',
+            city: l.dealer?.city || '',
+            state: l.dealer?.state || '',
+            trim: l.trim || '',
+          }));
+        } catch {}
+      }
+
+      // VIN history
+      if (histRes.status === 'fulfilled' && histRes.value.ok) {
+        try {
+          const d = await histRes.value.json();
+          vin_history = (d?.listings || d || []).map((l: any) => ({
+            price: l.price,
+            miles: l.miles,
+            days_on_market: l.dom || l.days_on_market,
+            first_seen: l.first_seen_at,
+            last_seen: l.last_seen_at,
+            dealer: l.dealer?.name || '',
+            city: l.dealer?.city || '',
+            state: l.dealer?.state || '',
+          }));
+        } catch {}
+      }
     }
 
-    // Calculate market average from available values (prefer MarketCheck, fallback to MMR/KBB)
+    // Fallback market_avg from MMR/KBB if MarketCheck didn't return
     if (!market_avg) {
       const values = [mmr, kbb].filter(v => v > 0);
       market_avg = values.length > 0 ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
     }
 
     // Cache the result
-    const row = { vin, mmr, kbb, market_avg, market_days_supply, year, make, model, trim, mileage, fetched_at: new Date().toISOString() };
+    const row = {
+      vin, mmr, kbb, market_avg, market_days_supply,
+      stats, active_comps, sold_comps, vin_history,
+      year, make, model, trim, mileage,
+      fetched_at: new Date().toISOString(),
+    };
     if (cached) {
       await supabase.from('vehicle_market_data').update(row).eq('vin', vin);
     } else {
       await supabase.from('vehicle_market_data').insert(row);
     }
 
-    res.json({ mmr, kbb, market_avg, market_days_supply, price_rank });
+    res.json({ mmr, kbb, market_avg, market_days_supply, stats, active_comps, sold_comps, vin_history });
   } catch (err) {
     console.error('Market data error:', err);
     res.status(500).json({ error: 'Failed to fetch market data' });
