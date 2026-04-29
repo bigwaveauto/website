@@ -3,6 +3,41 @@
   <!-- ── VIN Entry ── -->
   @if(!vehicle()){
   <div class="appr-entry">
+
+    <!-- History sidebar -->
+    <div class="appr-hist-sidebar">
+      <div class="appr-hist-sidebar-header">
+        <span class="appr-hist-sidebar-title">History</span>
+        <div class="appr-hist-search-wrap">
+          <lucide-icon name="search" />
+          <input class="appr-hist-search" [(ngModel)]="historySearch" placeholder="Search…" />
+        </div>
+      </div>
+      @if(loadingHistory2()){
+        <div class="appr-hist-loading"><div class="appr-spin appr-spin--dark"></div></div>
+      }
+      @if(!loadingHistory2() && filteredHistory.length === 0){
+        <div class="appr-hist-empty">No appraisals yet</div>
+      }
+      @for(a of filteredHistory; track a.id){
+        <div class="appr-hist-item" (click)="loadAppraisal(a)">
+          <div class="appr-hist-item-body">
+            <div class="appr-hist-item-title">
+              {{ a.vehicle?.year }} {{ a.vehicle?.make }} {{ a.vehicle?.model }}
+            </div>
+            @if(a.vehicle?.trim){ <div class="appr-hist-item-trim">{{ a.vehicle.trim }}</div> }
+            <div class="appr-hist-item-meta">
+              @if(a.vin){ <span class="appr-hist-item-vin">{{ a.vin }}</span> }
+              @if(a.appraised_value){ · ${{ a.appraised_value | number:'1.0-0' }} }
+            </div>
+          </div>
+          <button class="appr-hist-item-del" (click)="$event.stopPropagation(); deleteAppraisal(a.id)" title="Delete">
+            <lucide-icon name="x" />
+          </button>
+        </div>
+      }
+    </div>
+
     <div class="appr-entry-card">
       <div class="appr-entry-logo">
         <lucide-icon name="search" />
@@ -128,12 +163,6 @@
       </div>
       }
       <div class="appr-book-cell appr-book-cell--highlight">
-        <span class="appr-book-label">Instant Offer</span>
-        @if(loadingMarket()){ <div class="appr-spin appr-spin--dark"></div> }
-        @else if(instantOffer){ <span class="appr-book-val">{{ instantOffer | currency:'USD':'symbol':'1.0-0' }}</span> }
-        @else{ <span class="appr-book-empty">—</span> }
-      </div>
-      <div class="appr-book-cell">
         <span class="appr-book-label">Target Auction</span>
         @if(loadingMarket()){ <div class="appr-spin appr-spin--dark"></div> }
         @else if(targetAuction){ <span class="appr-book-val">{{ targetAuction | currency:'USD':'symbol':'1.0-0' }}</span> }

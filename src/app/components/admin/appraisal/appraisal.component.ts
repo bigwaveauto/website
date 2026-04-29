@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -11,7 +11,7 @@ import { LucideAngularModule } from 'lucide-angular';
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule],
 })
-export class AdminAppraisalComponent {
+export class AdminAppraisalComponent implements OnInit {
   private http = inject(HttpClient);
 
   // Entry
@@ -80,6 +80,20 @@ export class AdminAppraisalComponent {
   askingPrice = signal<number | null>(null);
   profitLocked = signal(false);
   lockedProfit = signal<number | null>(null);
+
+  // History list
+  appraisalHistory = signal<any[]>([]);
+  loadingHistory2 = signal(false);
+  historySearch = '';
+
+  get filteredHistory(): any[] {
+    const q = this.historySearch.toLowerCase();
+    if (!q) return this.appraisalHistory();
+    return this.appraisalHistory().filter(a => {
+      const v = a.vehicle || {};
+      return [v.year, v.make, v.model, v.trim, a.vin].join(' ').toLowerCase().includes(q);
+    });
+  }
 
   // Saving
   saving = signal(false);
@@ -167,6 +181,35 @@ export class AdminAppraisalComponent {
   get adjPctOfMarket(): number | null {
     if (!this.marketAvg || !this.askingPrice()) return null;
     return Math.round((this.askingPrice()! / this.marketAvg) * 100);
+  }
+
+  ngOnInit() { this.loadAppraisalHistory(); }
+
+  loadAppraisalHistory() {
+    this.loadingHistory2.set(true);
+    this.http.get<any[]>('/api/admin/appraisals').subscribe({
+      next: (data) => { this.appraisalHistory.set(data); this.loadingHistory2.set(false); },
+      error: () => this.loadingHistory2.set(false),
+    });
+  }
+
+  deleteAppraisal(id: string) {
+    this.http.delete(`/api/admin/appraisals/${id}`).subscribe({
+      next: () => this.appraisalHistory.update(list => list.filter(a => a.id !== id)),
+    });
+  }
+
+  loadAppraisal(a: any) {
+    const v = a.vehicle || {};
+    this.vehicle.set(v);
+    this.appraisedValue.set(a.appraised_value || null);
+    this.askingPrice.set(a.asking_price || null);
+    this.disposition.set(a.disposition || 'retail');
+    if (v.mileage) this.odometerInput = String(v.mileage);
+    if (a.vin) {
+      this.loadMarketData(a.vin, v.year, v.make, v.model, v.trim, v.mileage);
+      this.loadNeovinData(a.vin);
+    }
   }
 
   decodeVin() {
@@ -363,7 +406,7 @@ export class AdminAppraisalComponent {
       target_auction: this.targetAuction,
       target_retail: this.targetRetail,
     }).subscribe({
-      next: () => { this.saving.set(false); this.saved.set(true); setTimeout(() => this.saved.set(false), 3000); },
+      next: () => { this.saving.set(false); this.saved.set(true); setTimeout(() => this.saved.set(false), 3000); this.loadAppraisalHistory(); },
       error: () => { this.saving.set(false); },
     });
   }

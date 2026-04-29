@@ -1507,6 +1507,32 @@ app.get('/api/admin/vehicle/history/:vin', async (req, res) => {
 });
 
 // Save appraisal
+app.get('/api/admin/appraisals', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('appraisals')
+      .select('id, vin, vehicle, disposition, appraised_value, asking_price, mmr, market_avg, status, created_at')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    if (error) throw error;
+    res.json(data || []);
+  } catch (err) {
+    console.error('Get appraisals error:', err);
+    res.status(500).json({ error: 'Failed to fetch appraisals' });
+  }
+});
+
+app.delete('/api/admin/appraisals/:id', async (req, res) => {
+  try {
+    const { error } = await supabase.from('appraisals').delete().eq('id', req.params['id']);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete appraisal error:', err);
+    res.status(500).json({ error: 'Failed to delete appraisal' });
+  }
+});
+
 app.post('/api/admin/appraisals', async (req, res) => {
   try {
     const body = req.body;
