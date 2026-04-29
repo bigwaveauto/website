@@ -1480,6 +1480,61 @@ Return ONLY the JSON, no other text.`;
 /**
  * Market Data — MMR + KBB lookups
  */
+// Vehicle history via Bumper API (NMVTIS + historical sales)
+app.get('/api/admin/vehicle/history/:vin', async (req, res) => {
+  const { vin } = req.params;
+  const bumperKey = process.env['BUMPER_API_KEY'];
+  if (!bumperKey) { res.json(null); return; }
+  try {
+    const r = await fetch(`https://api.bumper.com/v1/vin/${vin}`, {
+      headers: { 'Authorization': `Bearer ${bumperKey}`, 'Accept': 'application/json' },
+    });
+    if (!r.ok) { res.json(null); return; }
+    const data = await r.json();
+    // Normalize to our shape — update field names once Bumper docs confirmed
+    res.json({
+      owners: data?.ownership?.ownerCount || data?.owners || null,
+      accidents: data?.accidents?.count || data?.accidentCount || null,
+      title_issues: data?.titleProblems?.count || null,
+      last_sale_price: data?.lastSalePrice || data?.saleHistory?.[0]?.price || null,
+      last_sale_date: data?.lastSaleDate || data?.saleHistory?.[0]?.date || null,
+      raw: data,
+    });
+  } catch (e) {
+    console.error('Bumper history error:', e);
+    res.json(null);
+  }
+});
+
+// Save appraisal
+app.post('/api/admin/appraisals', async (req, res) => {
+  try {
+    const body = req.body;
+    const { data, error } = await supabase.from('appraisals').insert({
+      vin: body.vin,
+      vehicle: body.vehicle,
+      disposition: body.disposition || 'retail',
+      appraised_value: body.appraised_value || 0,
+      recon: body.recon || 0,
+      certification: body.certification || 0,
+      transportation: body.transportation || 0,
+      auction_fee: body.auction_fee || 0,
+      pack: body.pack || 0,
+      other_cost: body.other_cost || 0,
+      asking_price: body.asking_price || 0,
+      mmr: body.mmr || null,
+      market_avg: body.market_avg || null,
+      status: 'open',
+      created_at: new Date().toISOString(),
+    }).select().single();
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    console.error('Save appraisal error:', err);
+    res.status(500).json({ error: 'Failed to save appraisal' });
+  }
+});
+
 app.post('/api/admin/vehicle/market-data', async (req, res) => {
   try {
     const { vin, year, make, model, trim, mileage } = req.body;
@@ -1536,19 +1591,60 @@ app.post('/api/admin/vehicle/market-data', async (req, res) => {
       } catch (e) { console.error('KBB fetch error:', e); }
     }
 
-    // Calculate market average from available values
-    const values = [mmr, kbb].filter(v => v > 0);
-    const market_avg = values.length > 0 ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
+    // MarketCheck — active listings market average, days supply, price rank
+    let market_avg = 0;
+    let market_days_supply = 0;
+    let like_mine = 0;
+    let price_rank: { rank: number; total: number } | null = null;
+
+    const mcKey = process.env['MARKETCHECK_API_KEY'];
+    if (mcKey && year && make && model) {
+      try {
+        const mcParams = new URLSearchParams({
+          api_key: mcKey,
+          year: String(year),
+          make,
+          model,
+          ...(trim ? { trim } : {}),
+          radius: '500',
+          rows: '50',
+          fields: 'price,miles,days_on_market',
+        });
+        const mcRes = await fetch(`https://mc-api.marketcheck.com/v2/search/car/active?${mcParams}`);
+        if (mcRes.ok) {
+          const mcData = await mcRes.json();
+          const listings: any[] = mcData?.listings || [];
+          if (listings.length > 0) {
+            const prices = listings.map((l: any) => l.price).filter((p: number) => p > 0);
+            if (prices.length > 0) {
+              market_avg = Math.round(prices.reduce((a: number, b: number) => a + b, 0) / prices.length);
+              // Price rank — where would our asking price land?
+              price_rank = { rank: 0, total: prices.length };
+            }
+            const days = listings.map((l: any) => l.days_on_market).filter((d: number) => d >= 0);
+            if (days.length > 0) {
+              market_days_supply = Math.round(days.reduce((a: number, b: number) => a + b, 0) / days.length);
+            }
+          }
+        }
+      } catch (e) { console.error('MarketCheck error:', e); }
+    }
+
+    // Calculate market average from available values (prefer MarketCheck, fallback to MMR/KBB)
+    if (!market_avg) {
+      const values = [mmr, kbb].filter(v => v > 0);
+      market_avg = values.length > 0 ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
+    }
 
     // Cache the result
-    const row = { vin, mmr, kbb, market_avg, year, make, model, trim, mileage, fetched_at: new Date().toISOString() };
+    const row = { vin, mmr, kbb, market_avg, market_days_supply, year, make, model, trim, mileage, fetched_at: new Date().toISOString() };
     if (cached) {
       await supabase.from('vehicle_market_data').update(row).eq('vin', vin);
     } else {
       await supabase.from('vehicle_market_data').insert(row);
     }
 
-    res.json({ mmr, kbb, market_avg });
+    res.json({ mmr, kbb, market_avg, market_days_supply, price_rank });
   } catch (err) {
     console.error('Market data error:', err);
     res.status(500).json({ error: 'Failed to fetch market data' });

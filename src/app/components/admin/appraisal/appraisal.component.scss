@@ -1,0 +1,220 @@
+$blue: #2563eb;
+$green: #16a34a;
+$red: #dc2626;
+$amber: #d97706;
+$border: rgba(0,0,0,0.09);
+$muted: rgba(0,0,0,0.45);
+$card-bg: #ffffff;
+$page-bg: #f1f5f9;
+
+:host { display: block; padding: 24px; background: $page-bg; min-height: 100vh; }
+
+.appr-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+  h1 { font-size: 24px; font-weight: 900; color: #1e293b; margin: 0; }
+}
+
+.appr-reset {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; background: white; border: 1.5px solid $border; border-radius: 8px;
+  font-size: 13px; font-weight: 600; color: #555; cursor: pointer; font-family: inherit;
+  lucide-icon { width: 16px; height: 16px; }
+  &:hover { border-color: #999; }
+}
+
+/* ── VIN Entry ── */
+.appr-vin-card {
+  background: $card-bg; border-radius: 16px; padding: 28px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06); max-width: 680px;
+}
+
+.appr-section-title { font-size: 16px; font-weight: 800; color: #111; margin: 0 0 20px; }
+
+.appr-vin-row {
+  display: flex; gap: 12px; align-items: flex-end;
+}
+
+.appr-field-group {
+  display: flex; flex-direction: column; gap: 6px; flex: 1;
+  label { font-size: 12px; font-weight: 600; color: $muted; text-transform: uppercase; letter-spacing: 0.4px; }
+}
+
+.appr-input {
+  padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+  font-size: 15px; font-family: inherit; color: #111; background: white;
+  &:focus { outline: none; border-color: $blue; }
+  &::placeholder { color: #bbb; }
+}
+
+.appr-vin-input { font-family: 'SF Mono', monospace; letter-spacing: 1px; }
+
+.appr-go-btn {
+  padding: 10px 28px; background: $blue; color: white; border: none; border-radius: 10px;
+  font-size: 16px; font-weight: 800; font-family: inherit; cursor: pointer; height: 44px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  &:hover { background: #1d4ed8; }
+  &:disabled { opacity: 0.6; cursor: default; }
+}
+
+.appr-error { color: $red; font-size: 13px; margin-top: 10px; font-weight: 600; }
+
+/* ── Spinner ── */
+.appr-spinner {
+  width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.4);
+  border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite;
+  &--sm { width: 16px; height: 16px; border-color: rgba($blue, 0.2); border-top-color: $blue; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Layout ── */
+.appr-layout {
+  display: grid; grid-template-columns: 1fr 400px; gap: 16px; align-items: start;
+  @media (max-width: 1100px) { grid-template-columns: 1fr; }
+}
+
+/* ── Cards ── */
+.appr-card {
+  background: $card-bg; border-radius: 14px; padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 14px;
+}
+
+.appr-card-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  font-size: 14px; font-weight: 800; color: #111;
+  lucide-icon { width: 18px; height: 18px; color: $blue; }
+}
+
+/* ── Vehicle Info ── */
+.appr-vi-title { font-size: 20px; font-weight: 900; color: #111; margin-bottom: 4px; }
+.appr-vi-vin { font-size: 12px; color: $muted; font-family: 'SF Mono', monospace; margin-bottom: 16px; }
+
+.appr-fields-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+
+.appr-field {
+  display: flex; flex-direction: column; gap: 4px;
+  label { font-size: 11px; font-weight: 600; color: $muted; text-transform: uppercase; letter-spacing: 0.3px; }
+  &--wide { grid-column: span 2; }
+}
+
+/* ── History ── */
+.appr-history-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+.appr-hist-item {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 10px 12px; background: #f8f9fb; border-radius: 8px;
+  &--warn { background: #fffbeb; }
+  &--danger { background: #fef2f2; }
+}
+.appr-hist-label { font-size: 10px; font-weight: 600; color: $muted; text-transform: uppercase; }
+.appr-hist-val { font-size: 16px; font-weight: 800; color: #111; }
+
+.appr-pending {
+  display: flex; align-items: center; gap: 8px; color: $muted; font-size: 13px;
+  padding: 8px 0;
+  lucide-icon { width: 16px; height: 16px; }
+}
+
+/* ── Book Values ── */
+.appr-book-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.appr-book-item {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px; background: #f8f9fb; border-radius: 10px;
+  border: 1.5px solid transparent;
+  &.appr-book-live { border-color: rgba($green, 0.3); background: #f0fdf4; }
+}
+
+.appr-book-label { font-size: 11px; font-weight: 600; color: $muted; text-transform: uppercase; letter-spacing: 0.3px; }
+.appr-book-val { font-size: 20px; font-weight: 900; color: #111; }
+.appr-book-pending { font-size: 12px; color: #bbb; font-style: italic; }
+
+/* ── Disposition ── */
+.appr-disp-toggle {
+  display: flex; gap: 20px; margin-bottom: 16px;
+}
+
+.appr-radio {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 14px; font-weight: 600; color: #333; cursor: pointer;
+  input { accent-color: $blue; width: 16px; height: 16px; cursor: pointer; }
+}
+
+/* ── Cost Rows ── */
+.appr-cost-rows { display: flex; flex-direction: column; gap: 8px; }
+
+.appr-cost-row {
+  display: flex; align-items: center; justify-content: space-between;
+  label { font-size: 14px; color: #333; font-weight: 500; }
+}
+
+.appr-asking-row label { font-weight: 800; color: #111; font-size: 15px; }
+
+.appr-dollar-wrap {
+  display: flex; align-items: center; gap: 0;
+  border: 1.5px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white;
+}
+
+.appr-dollar-sign {
+  padding: 0 8px 0 10px; font-size: 14px; color: $muted; font-weight: 600; background: #f8f9fb;
+  border-right: 1px solid #e2e8f0; line-height: 36px;
+}
+
+.appr-cost-input {
+  width: 120px; padding: 8px 10px; border: none; outline: none;
+  font-size: 14px; font-family: 'SF Mono', monospace; color: #111;
+  font-variant-numeric: tabular-nums;
+  &--asking { font-size: 16px; font-weight: 800; width: 130px; }
+  &:focus { background: #f0f4ff; }
+}
+
+.appr-cost-divider { height: 1px; background: $border; margin: 8px 0; }
+
+/* ── Result Row (Total + Lock + Profit) ── */
+.appr-result-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+
+.appr-result-box {
+  flex: 1; display: flex; flex-direction: column; gap: 2px;
+  padding: 10px 12px; background: #f8f9fb; border-radius: 10px; text-align: center;
+}
+.appr-result-label { font-size: 11px; font-weight: 600; color: $muted; text-transform: uppercase; }
+.appr-result-val { font-size: 20px; font-weight: 900; color: #111; }
+.appr-profit-pos { color: $green; }
+.appr-profit-neg { color: $red; }
+
+.appr-lock-btn {
+  width: 44px; height: 44px; border-radius: 50%; border: 2px solid #e2e8f0;
+  background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0;
+  lucide-icon { width: 20px; height: 20px; color: $muted; }
+  &:hover { border-color: $blue; lucide-icon { color: $blue; } }
+  &.locked { background: $blue; border-color: $blue; lucide-icon { color: white; } }
+}
+
+/* ── Market Positioning ── */
+.appr-market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.appr-market-item {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px; background: #f8f9fb; border-radius: 10px;
+  &--wide { grid-column: span 2; }
+}
+.appr-market-label { font-size: 11px; font-weight: 600; color: $muted; text-transform: uppercase; letter-spacing: 0.3px; }
+.appr-market-val { font-size: 22px; font-weight: 900; color: #111; }
+.appr-market-good { color: $green; }
+.appr-market-target { font-size: 11px; color: $muted; }
+
+/* ── Actions ── */
+.appr-actions { display: flex; gap: 10px; }
+
+.appr-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 13px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+  lucide-icon { width: 18px; height: 18px; }
+  &-save { background: #f1f5f9; color: #334155; &:hover { background: #e2e8f0; } }
+  &-convert { background: $blue; color: white; &:hover { background: #1d4ed8; } }
+}
