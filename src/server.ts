@@ -1649,12 +1649,14 @@ app.post('/api/admin/vehicle/market-data', async (req, res) => {
 
     if (cached && cached.fetched_at) {
       const age = Date.now() - new Date(cached.fetched_at).getTime();
-      if (age < 7 * 86400000) {
+      // Use cache only if fresh AND has actual comps (old cache may have empty comps from broken URL)
+      if (age < 7 * 86400000 && (cached.active_comps?.length > 0 || cached.market_avg > 0)) {
         res.json({
           mmr: cached.mmr, kbb: cached.kbb, market_avg: cached.market_avg,
-          market_days_supply: cached.market_days_supply,
+          market_days_supply: cached.market_days_supply, market_miles_mean: 0,
           stats: cached.stats, vin_history: cached.vin_history,
           active_comps: cached.active_comps, sold_comps: cached.sold_comps,
+          available_colors: [],
         });
         return;
       }
@@ -1696,85 +1698,109 @@ app.post('/api/admin/vehicle/market-data', async (req, res) => {
       } catch (e) { console.error('KBB fetch error:', e); }
     }
 
-    // MarketCheck — parallel fetch of stats, active comps, sold comps, VIN history
+    // MarketCheck — use NeoVIN canonical make/model to ensure correct search
     let market_avg = 0;
     let market_days_supply = 0;
+    let market_miles_mean = 0;
     let stats: any = null;
     let active_comps: any[] = [];
     let sold_comps: any[] = [];
     let vin_history: any[] = [];
+    let available_colors: { color: string; count: number }[] = [];
 
     const mcKey = process.env['MARKETCHECK_API_KEY'];
-    if (mcKey && year && make && model) {
-      const mcBase = 'https://mc-api.marketcheck.com/v2';
-      const mcCommon = { api_key: mcKey, year: String(year), make, model, ...(trim ? { trim } : {}) };
+    if (mcKey && year && make) {
+      const mcBase = 'https://api.marketcheck.com/v2';
 
-      const [statsRes, activeRes, soldRes, histRes] = await Promise.allSettled([
-        // Market stats — avg price, avg days, supply
-        fetch(`${mcBase}/stats/car?${new URLSearchParams({ ...mcCommon, api_key: mcKey })}`),
-        // Active listings — up to 25 nearby comps
-        fetch(`${mcBase}/search/car/active?${new URLSearchParams({ ...mcCommon, radius: '500', rows: '25', sort_by: 'price', sort_order: 'asc' })}`),
-        // Sold listings — up to 25 recent sales
-        fetch(`${mcBase}/search/car/inactive?${new URLSearchParams({ ...mcCommon, rows: '25', sort_by: 'last_seen_at', sort_order: 'desc' })}`),
-        // VIN listing history
-        fetch(`${mcBase}/history/car/${vin}?${new URLSearchParams({ api_key: mcKey })}`),
-      ]);
+      // Use NeoVIN canonical make/model if available (NHTSA model names don't match MC)
+      let searchMake = make;
+      let searchModel = model || '';
+      const nvCached = neovinCache.get(vin?.toUpperCase() || '');
+      if (nvCached?.data?.make) searchMake = nvCached.data.make;
+      if (nvCached?.data?.model) searchModel = nvCached.data.model;
 
-      // Stats
-      if (statsRes.status === 'fulfilled' && statsRes.value.ok) {
+      // If not cached yet, try fetching NeoVIN now (fast, cached in-memory)
+      if (!nvCached && vin) {
         try {
-          const d = await statsRes.value.json();
-          stats = d;
-          market_avg = Math.round(d?.price?.mean || d?.retail?.mean || 0);
-          market_days_supply = Math.round(d?.dom?.mean || d?.days_on_market?.mean || 0);
+          const nvRes = await fetch(`${mcBase}/decode/car/neovin/${vin}/specs?api_key=${mcKey}`, { headers: { Accept: 'application/json' } });
+          if (nvRes.ok) {
+            const nv = await nvRes.json();
+            if (nv.make) searchMake = nv.make;
+            if (nv.model) searchModel = nv.model;
+            neovinCache.set(vin.toUpperCase(), { data: nv, ts: Date.now() });
+          }
         } catch {}
       }
 
-      // Active comps
+      const mcCommon: Record<string, string> = { api_key: mcKey, year: String(year), make: searchMake };
+      if (searchModel) mcCommon['model'] = searchModel;
+
+      // Parallel: active comps (with inline stats + color facets) + sold comps + VIN history
+      const [activeRes, soldRes, histRes] = await Promise.allSettled([
+        fetch(`${mcBase}/search/car/active?${new URLSearchParams({
+          ...mcCommon, rows: '25', sort_by: 'price', sort_order: 'asc',
+          stats: 'price,miles,dom', facets: 'exterior_color',
+        })}`),
+        fetch(`${mcBase}/search/car/active?${new URLSearchParams({
+          ...mcCommon, rows: '25', sort_by: 'dom', sort_order: 'desc',
+          inventory_type: 'used',
+        })}`),
+        vin ? fetch(`${mcBase}/history/car/${vin}?${new URLSearchParams({ api_key: mcKey })}`) : Promise.reject('no vin'),
+      ]);
+
+      // Active comps — also extract inline stats and color facets
       if (activeRes.status === 'fulfilled' && activeRes.value.ok) {
         try {
           const d = await activeRes.value.json();
+          // Stats come inline
+          if (d.stats) {
+            stats = d.stats;
+            market_avg = Math.round(d.stats?.price?.mean || 0);
+            market_days_supply = Math.round(d.stats?.dom?.mean || 0);
+            market_miles_mean = Math.round(d.stats?.miles?.mean || 0);
+          }
+          // Color facets
+          available_colors = (d.facets?.exterior_color || []).map((f: any) => ({ color: f.item, count: f.count }));
+          // Listings
           active_comps = (d?.listings || []).map((l: any) => ({
-            id: l.id,
-            price: l.price,
-            miles: l.miles,
+            id: l.id, price: l.price, miles: l.miles,
             days_on_market: l.dom || l.days_on_market,
-            dealer: l.dealer?.name || '',
-            city: l.dealer?.city || '',
-            state: l.dealer?.state || '',
+            dealer: l.dealer?.name || l.seller_name || '',
+            city: l.dealer?.city || l.city || '',
+            state: l.dealer?.state || l.state || '',
             distance: l.distance,
             color: l.exterior_color || '',
             trim: l.trim || '',
-            photo: l.media?.photo_links?.[0] || '',
             url: l.vdp_url || '',
           }));
         } catch {}
       }
 
-      // Sold comps
+      // Sold comps (high dom = likely to sell soon / recently moved)
       if (soldRes.status === 'fulfilled' && soldRes.value.ok) {
         try {
           const d = await soldRes.value.json();
-          sold_comps = (d?.listings || []).map((l: any) => ({
-            price: l.price,
-            miles: l.miles,
-            days_on_market: l.dom || l.days_on_market,
-            sold_date: l.last_seen_at,
-            dealer: l.dealer?.name || '',
-            city: l.dealer?.city || '',
-            state: l.dealer?.state || '',
-            trim: l.trim || '',
-          }));
+          sold_comps = (d?.listings || [])
+            .filter((l: any) => l.id !== active_comps[0]?.id) // dedupe
+            .slice(0, 15)
+            .map((l: any) => ({
+              price: l.price, miles: l.miles,
+              days_on_market: l.dom || l.days_on_market,
+              sold_date: l.last_seen_at,
+              dealer: l.dealer?.name || l.seller_name || '',
+              city: l.dealer?.city || l.city || '',
+              state: l.dealer?.state || l.state || '',
+              trim: l.trim || '',
+            }));
         } catch {}
       }
 
       // VIN history
-      if (histRes.status === 'fulfilled' && histRes.value.ok) {
+      if (histRes.status === 'fulfilled' && (histRes.value as any).ok) {
         try {
-          const d = await histRes.value.json();
+          const d = await (histRes.value as any).json();
           vin_history = (d?.listings || d || []).map((l: any) => ({
-            price: l.price,
-            miles: l.miles,
+            price: l.price, miles: l.miles,
             days_on_market: l.dom || l.days_on_market,
             first_seen: l.first_seen_at,
             last_seen: l.last_seen_at,
@@ -1782,7 +1808,6 @@ app.post('/api/admin/vehicle/market-data', async (req, res) => {
             city: l.dealer?.city || l.city || '',
             state: l.dealer?.state || l.state || '',
             zip: l.dealer?.zip || l.zip || '',
-            phone: l.dealer?.phone || '',
           }));
         } catch {}
       }
@@ -1801,13 +1826,14 @@ app.post('/api/admin/vehicle/market-data', async (req, res) => {
       year, make, model, trim, mileage,
       fetched_at: new Date().toISOString(),
     };
+    // available_colors not cached (cheap to re-fetch, column may not exist)
     if (cached) {
       await supabase.from('vehicle_market_data').update(row).eq('vin', vin);
     } else {
       await supabase.from('vehicle_market_data').insert(row);
     }
 
-    res.json({ mmr, kbb, market_avg, market_days_supply, stats, active_comps, sold_comps, vin_history });
+    res.json({ mmr, kbb, market_avg, market_days_supply, market_miles_mean, stats, active_comps, sold_comps, vin_history, available_colors });
   } catch (err) {
     console.error('Market data error:', err);
     res.status(500).json({ error: 'Failed to fetch market data' });

@@ -54,6 +54,10 @@ export class AdminAppraisalComponent implements OnInit {
   cityMpg = signal(0);
   hwyMpg = signal(0);
 
+  // Color picker
+  availableColors = signal<{ color: string; count: number }[]>([]);
+  showColorPicker = signal(false);
+
   // History
   vehicleHistory = signal<any>(null);
   loadingHistory = signal(false);
@@ -101,10 +105,9 @@ export class AdminAppraisalComponent implements OnInit {
 
   // Odometer base (from NHTSA/market) vs actual
   get odometerDelta(): number {
-    const market = this.marketData()?.stats?.miles?.mean || 0;
+    const market = this.marketData()?.market_miles_mean || this.marketData()?.stats?.miles?.mean || 0;
     const actual = this.vehicle()?.mileage || 0;
     if (!market || !actual) return 0;
-    // Roughly $0.08/mile delta adjustment
     return Math.round((market - actual) * 0.08);
   }
 
@@ -265,7 +268,11 @@ export class AdminAppraisalComponent implements OnInit {
   loadMarketData(vin: string, year: string, make: string, model: string, trim: string, mileage: number) {
     this.loadingMarket.set(true);
     this.http.post<any>('/api/admin/vehicle/market-data', { vin, year, make, model, trim, mileage }).subscribe({
-      next: (data) => { this.marketData.set(data); this.loadingMarket.set(false); },
+      next: (data) => {
+        this.marketData.set(data);
+        this.loadingMarket.set(false);
+        if (data.available_colors?.length) this.availableColors.set(data.available_colors);
+      },
       error: () => this.loadingMarket.set(false),
     });
   }
@@ -372,6 +379,8 @@ export class AdminAppraisalComponent implements OnInit {
     this.msrp.set(0);
     this.cityMpg.set(0);
     this.hwyMpg.set(0);
+    this.availableColors.set([]);
+    this.showColorPicker.set(false);
     this.decodeError.set('');
     this.selectedOptions.set([]);
     this.appraisedValue.set(null);

@@ -238,7 +238,38 @@
           <div class="appr-color-row">
             <div class="appr-color-field">
               <label>Exterior</label>
-              <input class="appr-inline-input" [ngModel]="exteriorColor()" (ngModelChange)="exteriorColor.set($event)" placeholder="e.g. White" />
+              <div class="appr-color-input-wrap">
+                <input class="appr-inline-input" [ngModel]="exteriorColor()" (ngModelChange)="exteriorColor.set($event)" placeholder="e.g. White"
+                  (focus)="showColorPicker.set(true)" />
+                @if(availableColors().length > 0){
+                <button class="appr-color-pick-btn" (click)="showColorPicker.set(!showColorPicker())" type="button">
+                  <lucide-icon name="chevron-down" />
+                </button>
+                }
+              </div>
+              @if(showColorPicker() && availableColors().length > 0){
+              <div class="appr-color-picker">
+                @for(c of availableColors(); track c.color){
+                <button class="appr-color-chip"
+                  [class.active]="exteriorColor() === c.color"
+                  (click)="exteriorColor.set(c.color); showColorPicker.set(false)">
+                  <span class="appr-color-swatch" [style.background]="c.color.toLowerCase().includes('black') ? '#1a1a1a' :
+                    c.color.toLowerCase().includes('white') ? '#f5f5f5' :
+                    c.color.toLowerCase().includes('silver') || c.color.toLowerCase().includes('grey') || c.color.toLowerCase().includes('gray') ? '#a0a0a0' :
+                    c.color.toLowerCase().includes('blue') ? '#3b6cb7' :
+                    c.color.toLowerCase().includes('red') ? '#c0392b' :
+                    c.color.toLowerCase().includes('green') ? '#27ae60' :
+                    c.color.toLowerCase().includes('brown') || c.color.toLowerCase().includes('bronze') ? '#7d5a3c' :
+                    c.color.toLowerCase().includes('orange') ? '#e67e22' :
+                    c.color.toLowerCase().includes('yellow') || c.color.toLowerCase().includes('gold') ? '#f1c40f' :
+                    '#888'">
+                  </span>
+                  <span class="appr-color-chip-name">{{ c.color }}</span>
+                  <span class="appr-color-chip-count">{{ c.count }}</span>
+                </button>
+                }
+              </div>
+              }
             </div>
             <div class="appr-color-field">
               <label>Interior</label>
