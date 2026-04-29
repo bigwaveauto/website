@@ -376,15 +376,21 @@
           <div class="appr-hist-list">
             @for(h of vinHistory; track $index){
             <div class="appr-hist-row">
-              <div class="appr-hist-price">{{ h.price | currency:'USD':'symbol':'1.0-0' }}</div>
-              <div class="appr-hist-detail">
-                @if(h.miles){ {{ h.miles | number }} mi &middot; }
-                @if(h.city){ {{ h.city }}{{ h.state ? ', ' + h.state : '' }} }
-                @if(h.dealer){ &middot; {{ h.dealer }} }
+              <div class="appr-hist-row-top">
+                <div class="appr-hist-price">{{ h.price | currency:'USD':'symbol':'1.0-0' }}</div>
+                <div class="appr-hist-meta">
+                  {{ timeAgo(h.first_seen) }}@if(h.last_seen && h.last_seen !== h.first_seen){ &rarr; {{ timeAgo(h.last_seen) }} }
+                  @if(h.days_on_market){ · {{ h.days_on_market }}d }
+                </div>
               </div>
-              <div class="appr-hist-meta">
-                {{ timeAgo(h.first_seen) }}@if(h.last_seen && h.last_seen !== h.first_seen){ &rarr; {{ timeAgo(h.last_seen) }} }
-                @if(h.days_on_market){ ({{ h.days_on_market }}d) }
+              @if(h.dealer){
+              <div class="appr-hist-dealer">
+                <lucide-icon name="building-2" />{{ h.dealer }}
+              </div>
+              }
+              <div class="appr-hist-detail">
+                @if(h.miles){ <span><lucide-icon name="gauge" />{{ h.miles | number }} mi</span> }
+                @if(h.city){ <span><lucide-icon name="map-pin" />{{ h.city }}{{ h.state ? ', ' + h.state : '' }}</span> }
               </div>
             </div>
             }

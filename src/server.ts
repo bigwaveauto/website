@@ -1778,9 +1778,11 @@ app.post('/api/admin/vehicle/market-data', async (req, res) => {
             days_on_market: l.dom || l.days_on_market,
             first_seen: l.first_seen_at,
             last_seen: l.last_seen_at,
-            dealer: l.dealer?.name || '',
-            city: l.dealer?.city || '',
-            state: l.dealer?.state || '',
+            dealer: l.dealer?.name || l.seller_name || '',
+            city: l.dealer?.city || l.city || '',
+            state: l.dealer?.state || l.state || '',
+            zip: l.dealer?.zip || l.zip || '',
+            phone: l.dealer?.phone || '',
           }));
         } catch {}
       }
