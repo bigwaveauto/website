@@ -121,90 +121,133 @@
   @if(vehicle(); as v){
   <div class="appr-workspace">
 
-    <!-- Vehicle Header Bar -->
-    <div class="appr-veh-header">
-      <div class="appr-veh-header-left">
-        <div class="appr-veh-title-row">
-          <h1 class="appr-veh-title">{{ v.year }} {{ v.make | uppercase }} {{ v.model | uppercase }}</h1>
-          <span class="appr-veh-trim">{{ v.trim }} {{ v.engine }} {{ v.drivetrain }}</span>
-        </div>
-        <div class="appr-veh-meta">
-          <span class="appr-veh-vin">{{ v.vin }}</span>
-          <span class="appr-veh-dot">&middot;</span>
-          <span class="appr-veh-miles">{{ v.mileage | number }} Mi</span>
-          @if(cityMpg()){
-          <span class="appr-veh-dot">&middot;</span>
-          <span class="appr-veh-mpg">{{ cityMpg() }}/{{ hwyMpg() }} mpg</span>
-          }
-          @if(loadingNeovin()){
-          <span class="appr-veh-neovin-loading">decoding options…</span>
-          }
-        </div>
-        <div class="appr-veh-actions">
-          <button class="appr-veh-action" (click)="copyVin()" title="Copy VIN">
-            <lucide-icon name="copy" /> Copy VIN
-          </button>
-          <button class="appr-veh-action appr-veh-action--danger" (click)="reset()">
-            <lucide-icon name="x" /> New
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- vAuto-style Header Card -->
+    <div class="appr-hcard">
 
-    <!-- Book Value Bar -->
-    <div class="appr-book-bar">
-      @if(msrp()){
-      <div class="appr-book-cell appr-book-cell--msrp">
-        <span class="appr-book-label">Original MSRP</span>
-        <span class="appr-book-val appr-book-val--neutral">{{ msrp() | currency:'USD':'symbol':'1.0-0' }}</span>
-        @if(neovinData()?.installed_options_msrp){
-        <span class="appr-book-sub">+{{ neovinData().installed_options_msrp | currency:'USD':'symbol':'1.0-0' }} options</span>
-        }
+      <!-- Top bar -->
+      <div class="appr-hcard-topbar">
+        <span class="appr-hcard-details-label">DETAILS</span>
+        <button class="appr-hcard-new-btn" (click)="reset()">
+          <lucide-icon name="x" /> New Appraisal
+        </button>
       </div>
-      }
-      <div class="appr-book-cell appr-book-cell--highlight">
-        <span class="appr-book-label">Target Auction</span>
-        @if(loadingMarket()){ <div class="appr-spin appr-spin--dark"></div> }
-        @else if(targetAuction){ <span class="appr-book-val">{{ targetAuction | currency:'USD':'symbol':'1.0-0' }}</span> }
-        @else{ <span class="appr-book-empty">Pending MMR</span> }
-        @if(mmr){ <span class="appr-book-sub">MMR {{ mmr | currency:'USD':'symbol':'1.0-0' }}</span> }
-      </div>
-      <div class="appr-book-cell">
-        <span class="appr-book-label">Target Retail</span>
-        @if(loadingMarket()){ <div class="appr-spin appr-spin--dark"></div> }
-        @else if(targetRetail){ <span class="appr-book-val">{{ targetRetail | currency:'USD':'symbol':'1.0-0' }}</span> }
-        @else{ <span class="appr-book-empty">Pending Market Avg</span> }
-        @if(marketAvg){ <span class="appr-book-sub">Market Avg {{ marketAvg | currency:'USD':'symbol':'1.0-0' }}</span> }
-      </div>
-      <div class="appr-book-cell">
-        <span class="appr-book-label">Market Days Supply</span>
-        @if(loadingMarket()){ <div class="appr-spin appr-spin--dark"></div> }
-        @else if(marketDaysSupply){ <span class="appr-book-val appr-book-val--neutral">{{ marketDaysSupply }}</span> }
-        @else{ <span class="appr-book-empty">—</span> }
-        @if(activeComps.length){ <span class="appr-book-sub">{{ activeComps.length }} comps found</span> }
-      </div>
-      <div class="appr-book-cell">
-        <span class="appr-book-label">Adj % of Market</span>
-        @if(adjPctOfMarket !== null){
-        <span class="appr-book-val" [class.appr-book-val--good]="adjPctOfMarket! >= 95 && adjPctOfMarket! <= 105"
-              [class.appr-book-val--warn]="adjPctOfMarket! > 105 || adjPctOfMarket! < 90">
-          {{ adjPctOfMarket }}%
-        </span>
-        <span class="appr-book-sub">Target 95–105%</span>
-        }@else{
-        <span class="appr-book-empty">Set asking price</span>
-        }
-      </div>
-    </div>
 
-    <!-- Tab Bar -->
-    <div class="appr-tabs">
-      <button class="appr-tab" [class.active]="activeTab() === 'detailed'" (click)="activeTab.set('detailed')">Detailed</button>
-      <button class="appr-tab" [class.active]="activeTab() === 'comps'" (click)="activeTab.set('comps')">
-        Market Comps
-        @if(activeComps.length){ <span class="appr-tab-badge">{{ activeComps.length }}</span> }
-      </button>
-    </div>
+      <!-- Vehicle info -->
+      <div class="appr-hcard-body">
+        <div class="appr-hcard-left">
+          <h1 class="appr-hcard-title">{{ v.year }} {{ v.make | uppercase }} {{ v.model | uppercase }}</h1>
+          <div class="appr-hcard-sub">
+            @if(v.trim){<span>{{ v.trim }}</span>}
+            @if(v.engine){<span>{{ v.engine }}</span>}
+            @if(v.drivetrain){<span>{{ v.drivetrain }}</span>}
+          </div>
+          <div class="appr-hcard-id">
+            @if(v.vin){ <span class="appr-hcard-vin">{{ v.vin }}</span> }
+            @if(v.vin && v.mileage){ <span class="appr-hcard-sep">|</span> }
+            <span>{{ v.mileage | number }} Mi</span>
+          </div>
+          <div class="appr-hcard-badges">
+            <button class="appr-hcard-copy-btn" (click)="copyVin()">
+              <lucide-icon name="copy" /> Copy VIN
+            </button>
+            @if(loadingNeovin()){
+              <span class="appr-hcard-pill appr-hcard-pill--muted">decoding…</span>
+            }
+            @if(neovinData() && !loadingNeovin()){
+              <span class="appr-hcard-pill appr-hcard-pill--green">NeoVIN ✓</span>
+            }
+            @if(cityMpg()){
+              <span class="appr-hcard-pill">{{ cityMpg() }}/{{ hwyMpg() }} mpg</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Book value bar -->
+      <div class="appr-hcard-bar">
+
+        <div class="appr-hcard-cell appr-hcard-cell--featured">
+          <div class="appr-hcard-lbl">Target Auction</div>
+          @if(loadingMarket()){ <div class="appr-spin appr-spin--dark"></div> }
+          @else if(targetAuction){ <div class="appr-hcard-val">{{ targetAuction | currency:'USD':'symbol':'1.0-0' }}</div> }
+          @else{ <div class="appr-hcard-empty">Pending MMR</div> }
+          @if(mmr){ <div class="appr-hcard-sub">MMR {{ mmr | currency:'USD':'symbol':'1.0-0' }}</div> }
+        </div>
+
+        <div class="appr-hcard-cell">
+          <div class="appr-hcard-lbl">Target Retail</div>
+          @if(loadingMarket()){ <div class="appr-spin appr-spin--dark"></div> }
+          @else if(targetRetail){ <div class="appr-hcard-val">{{ targetRetail | currency:'USD':'symbol':'1.0-0' }}</div> }
+          @else{ <div class="appr-hcard-empty">Pending Market Avg</div> }
+          @if(marketAvg){ <div class="appr-hcard-link" (click)="activeTab.set('comps')">View Market Data</div> }
+        </div>
+
+        @if(mmr){
+        <div class="appr-hcard-cell">
+          <div class="appr-hcard-lbl">
+            <span class="appr-hcard-src appr-hcard-src--m">M</span> Manheim MMR
+          </div>
+          <div class="appr-hcard-val appr-hcard-val--arr">
+            {{ mmr | currency:'USD':'symbol':'1.0-0' }} <lucide-icon name="chevron-right" />
+          </div>
+          <div class="appr-hcard-sub">Auction Average</div>
+        </div>
+        }
+
+        @if(marketAvg){
+        <div class="appr-hcard-cell">
+          <div class="appr-hcard-lbl">Market Average <lucide-icon name="info" class="appr-hcard-info" /></div>
+          <div class="appr-hcard-val appr-hcard-val--arr">
+            {{ marketAvg | currency:'USD':'symbol':'1.0-0' }} <lucide-icon name="chevron-right" />
+          </div>
+          @if(activeComps.length){ <div class="appr-hcard-sub">{{ activeComps.length }} active comps</div> }
+        </div>
+        }
+
+        @if(msrp()){
+        <div class="appr-hcard-cell">
+          <div class="appr-hcard-lbl">Original MSRP</div>
+          <div class="appr-hcard-val appr-hcard-val--muted">{{ msrp() | currency:'USD':'symbol':'1.0-0' }}</div>
+          @if(neovinData()?.installed_options_msrp){ <div class="appr-hcard-sub">+{{ neovinData().installed_options_msrp | currency:'USD':'symbol':'1.0-0' }} opts</div> }
+        </div>
+        }
+
+        @if(marketDaysSupply){
+        <div class="appr-hcard-cell">
+          <div class="appr-hcard-lbl">Days Supply</div>
+          <div class="appr-hcard-val appr-hcard-val--muted">{{ marketDaysSupply | number:'1.0-0' }}</div>
+          <div class="appr-hcard-sub">Avg on market</div>
+        </div>
+        }
+
+        <div class="appr-hcard-cell">
+          <div class="appr-hcard-lbl">Adj % of Market</div>
+          @if(adjPctOfMarket !== null){
+          <div class="appr-hcard-val"
+            [class.appr-hcard-val--good]="adjPctOfMarket! >= 95 && adjPctOfMarket! <= 105"
+            [class.appr-hcard-val--warn]="adjPctOfMarket! > 105 || adjPctOfMarket! < 90">
+            {{ adjPctOfMarket }}%
+          </div>
+          <div class="appr-hcard-sub">Target 95–105%</div>
+          }@else{
+          <div class="appr-hcard-empty">Set asking price</div>
+          }
+        </div>
+
+      </div><!-- /appr-hcard-bar -->
+
+      <!-- Tabs inside the card -->
+      <div class="appr-hcard-tabbar">
+        <div class="appr-hcard-tabs">
+          <button class="appr-hcard-tab" [class.active]="activeTab() === 'detailed'" (click)="activeTab.set('detailed')">Detailed</button>
+          <button class="appr-hcard-tab" [class.active]="activeTab() === 'comps'" (click)="activeTab.set('comps')">
+            Market Comps
+            @if(activeComps.length){ <span class="appr-hcard-tab-badge">{{ activeComps.length }}</span> }
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /appr-hcard -->
 
     <!-- Main Panel -->
     <div class="appr-main">
