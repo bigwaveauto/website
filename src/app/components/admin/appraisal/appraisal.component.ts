@@ -32,7 +32,7 @@ export class AdminAppraisalComponent {
   readonly makes = [
     'Acura','Audi','BMW','Buick','Cadillac','Chevrolet','Chrysler','Dodge','Ford',
     'GMC','Honda','Hyundai','Infiniti','Jeep','Kia','Land Rover','Lexus','Lincoln',
-    'Lucid','Mazda','Mercedes-Benz','Nissan','Polestar','Porsche','Ram','Rivian',
+    'Lucid','Mazda','Mercedes-Benz','MINI','Nissan','Polestar','Porsche','Ram','Rivian',
     'Subaru','Tesla','Toyota','Volkswagen','Volvo',
   ];
 
