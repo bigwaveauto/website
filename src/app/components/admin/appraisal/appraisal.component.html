@@ -596,8 +596,11 @@
             <div class="appr-actions-label">SELECT ACTION</div>
             <button class="appr-action-row-btn appr-action-row-btn--primary" (click)="saveAppraisal()" [disabled]="saving()">
               <span>@if(saved()){ ✓ Saved }@else if(saving()){ Saving... }@else{ Save Appraisal }</span>
-              <lucide-icon name="save" />
+              <lucide-icon [name]="saved() ? 'check' : 'save'" />
             </button>
+            @if(saveError()){
+            <div class="appr-save-error"><lucide-icon name="alert-circle" />{{ saveError() }}</div>
+            }
             <button class="appr-action-row-btn">
               <span>Convert to Purchase</span>
               <lucide-icon name="arrow-right" />

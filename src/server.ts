@@ -1542,22 +1542,25 @@ app.post('/api/admin/appraisals', async (req, res) => {
       disposition: body.disposition || 'retail',
       appraised_value: body.appraised_value || 0,
       recon: body.recon || 0,
-      certification: body.certification || 0,
       transportation: body.transportation || 0,
       auction_fee: body.auction_fee || 0,
-      pack: body.pack || 0,
       other_cost: body.other_cost || 0,
       asking_price: body.asking_price || 0,
       mmr: body.mmr || null,
       market_avg: body.market_avg || null,
+      target_auction: body.target_auction || null,
+      target_retail: body.target_retail || null,
       status: 'open',
-      created_at: new Date().toISOString(),
     }).select().single();
-    if (error) throw error;
+    if (error) {
+      console.error('Save appraisal error:', error);
+      res.status(500).json({ error: error.message || 'Failed to save appraisal' });
+      return;
+    }
     res.json(data);
-  } catch (err) {
+  } catch (err: any) {
     console.error('Save appraisal error:', err);
-    res.status(500).json({ error: 'Failed to save appraisal' });
+    res.status(500).json({ error: err?.message || 'Failed to save appraisal' });
   }
 });
 

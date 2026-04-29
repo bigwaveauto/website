@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -102,6 +102,15 @@ export class AdminAppraisalComponent implements OnInit {
   // Saving
   saving = signal(false);
   saved = signal(false);
+  saveError = signal('');
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(e: MouseEvent) {
+    const target = e.target as HTMLElement;
+    if (!target.closest('.appr-color-field')) {
+      this.showColorPicker.set(false);
+    }
+  }
 
   // Odometer base (from NHTSA/market) vs actual
   get odometerDelta(): number {
@@ -209,6 +218,19 @@ export class AdminAppraisalComponent implements OnInit {
     this.askingPrice.set(a.asking_price || null);
     this.disposition.set(a.disposition || 'retail');
     if (v.mileage) this.odometerInput = String(v.mileage);
+    // Pre-populate market data immediately from saved values so book bar shows right away
+    if (a.mmr || a.market_avg) {
+      this.marketData.set({
+        mmr: a.mmr || 0,
+        market_avg: a.market_avg || 0,
+        market_days_supply: 0,
+        market_miles_mean: 0,
+        active_comps: [],
+        sold_comps: [],
+        vin_history: [],
+        available_colors: [],
+      });
+    }
     if (a.vin) {
       this.loadMarketData(a.vin, v.year, v.make, v.model, v.trim, v.mileage);
       this.loadNeovinData(a.vin);
@@ -401,6 +423,7 @@ export class AdminAppraisalComponent implements OnInit {
     const v = this.vehicle();
     if (!v) return;
     this.saving.set(true);
+    this.saveError.set('');
     this.http.post('/api/admin/appraisals', {
       vin: v.vin, vehicle: v,
       disposition: this.disposition(),
@@ -415,8 +438,16 @@ export class AdminAppraisalComponent implements OnInit {
       target_auction: this.targetAuction,
       target_retail: this.targetRetail,
     }).subscribe({
-      next: () => { this.saving.set(false); this.saved.set(true); setTimeout(() => this.saved.set(false), 3000); this.loadAppraisalHistory(); },
-      error: () => { this.saving.set(false); },
+      next: () => {
+        this.saving.set(false);
+        this.saved.set(true);
+        setTimeout(() => this.saved.set(false), 3000);
+        this.loadAppraisalHistory();
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.saveError.set(err?.error?.error || 'Save failed. Please try again.');
+      },
     });
   }
 
