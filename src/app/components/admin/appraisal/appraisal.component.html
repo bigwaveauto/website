@@ -245,9 +245,14 @@
             <div class="appr-hist-row">
               <div class="appr-hist-price">{{ h.price | currency:'USD':'symbol':'1.0-0' }}</div>
               <div class="appr-hist-detail">
-                {{ h.miles | number }} mi &middot; {{ h.dealer }} {{ h.city }}, {{ h.state }}
+                @if(h.miles){ {{ h.miles | number }} mi &middot; }
+                @if(h.city){ {{ h.city }}{{ h.state ? ', ' + h.state : '' }} }
+                @if(h.dealer){ &middot; {{ h.dealer }} }
               </div>
-              <div class="appr-hist-meta">{{ timeAgo(h.first_seen) }} &rarr; {{ timeAgo(h.last_seen) }} ({{ h.days_on_market }}d)</div>
+              <div class="appr-hist-meta">
+                {{ timeAgo(h.first_seen) }}@if(h.last_seen && h.last_seen !== h.first_seen){ &rarr; {{ timeAgo(h.last_seen) }} }
+                @if(h.days_on_market){ ({{ h.days_on_market }}d) }
+              </div>
             </div>
             }
           </div>

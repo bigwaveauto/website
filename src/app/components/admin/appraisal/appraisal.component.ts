@@ -275,13 +275,18 @@ export class AdminAppraisalComponent {
     return isNaN(n) || n === 0 ? null : n;
   }
 
-  timeAgo(dateStr: string): string {
-    if (!dateStr) return '';
-    const diff = Date.now() - new Date(dateStr).getTime();
+  timeAgo(val: string | number): string {
+    if (!val) return '';
+    // MarketCheck returns Unix timestamps in seconds
+    const ms = typeof val === 'number' || /^\d+$/.test(String(val))
+      ? Number(val) * 1000
+      : new Date(val).getTime();
+    const diff = Date.now() - ms;
+    if (diff < 0) return '';
     const days = Math.floor(diff / 86400000);
     if (days < 1) return 'Today';
     if (days === 1) return '1 day ago';
-    if (days < 30) return `${days} days ago`;
+    if (days < 30) return `${days}d ago`;
     if (days < 365) return `${Math.floor(days / 30)}mo ago`;
     return `${Math.floor(days / 365)}yr ago`;
   }
