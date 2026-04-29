@@ -214,9 +214,12 @@
 
         @if(marketDaysSupply){
         <div class="appr-hcard-cell">
-          <div class="appr-hcard-lbl">Days Supply</div>
-          <div class="appr-hcard-val appr-hcard-val--muted">{{ marketDaysSupply | number:'1.0-0' }}</div>
-          <div class="appr-hcard-sub">Avg on market</div>
+          <div class="appr-hcard-lbl">Median DOM <lucide-icon name="info" class="appr-hcard-info" /></div>
+          <div class="appr-hcard-val appr-hcard-val--muted"
+            [class.appr-hcard-val--warn]="marketDaysSupply > 75">
+            {{ marketDaysSupply | number:'1.0-0' }}d
+          </div>
+          <div class="appr-hcard-sub">{{ marketDaysSupply > 75 ? 'Slow market' : marketDaysSupply < 30 ? 'Fast market' : 'Normal velocity' }}</div>
         </div>
         }
 
@@ -617,47 +620,152 @@
       <div class="appr-comps">
 
         @if(loadingMarket()){
-        <div class="appr-comps-loading"><div class="appr-spin appr-spin--dark"></div> Loading market data...</div>
+        <div class="appr-comps-loading"><div class="appr-spin appr-spin--dark"></div> Loading market data…</div>
         }
 
-        <!-- Active Comps -->
+        <!-- Active Listings -->
         @if(activeComps.length > 0){
         <div class="appr-comps-section">
-          <h3 class="appr-comps-title">Active Listings ({{ activeComps.length }})</h3>
-          <div class="appr-comps-table">
-            <div class="appr-comps-thead">
-              <span>Price</span><span>Miles</span><span>Days</span><span>Trim</span><span>Location</span>
-            </div>
-            @for(c of activeComps; track $index){
-            <div class="appr-comps-row" [class.appr-comps-row--highlight]="askingPrice() && c.price === askingPrice()">
-              <span class="appr-comp-price">{{ c.price | currency:'USD':'symbol':'1.0-0' }}</span>
-              <span>{{ c.miles | number }} mi</span>
-              <span [class.appr-comp-aged]="c.days_on_market > 60">{{ c.days_on_market }}d</span>
-              <span class="appr-comp-trim">{{ c.trim }}</span>
-              <span class="appr-comp-loc">{{ c.city }}, {{ c.state }}
-                @if(c.distance){ <span class="appr-comp-dist">{{ c.distance | number:'1.0-0' }}mi</span> }
-              </span>
+          <div class="appr-comps-section-hdr">
+            <h3 class="appr-comps-title">Active Listings</h3>
+            <span class="appr-comps-count">{{ activeComps.length }} found</span>
+          </div>
+          <div class="appr-comp-cards">
+            @for(c of activeComps; track c.id ?? $index){
+            <div class="appr-comp-card" [class.appr-comp-card--match]="askingPrice() && c.price === askingPrice()">
+
+              <!-- Photo -->
+              <div class="appr-comp-photo">
+                @if(c.photo){
+                  <img [src]="c.photo" [alt]="c.heading || c.trim" loading="lazy" />
+                }@else{
+                  <div class="appr-comp-photo-empty"><lucide-icon name="image" /></div>
+                }
+                <div class="appr-comp-dom" [class.appr-comp-dom--aged]="c.days_on_market > 60">
+                  {{ c.days_on_market }}d
+                </div>
+              </div>
+
+              <!-- Body -->
+              <div class="appr-comp-body">
+                <div class="appr-comp-price-row">
+                  <span class="appr-comp-price">{{ c.price | currency:'USD':'symbol':'1.0-0' }}</span>
+                  @if(c.inventory_type === 'certified'){ <span class="appr-comp-badge appr-comp-badge--cpo">CPO</span> }
+                  @if(c.carfax_1_owner){ <span class="appr-comp-badge appr-comp-badge--owner">1 Owner</span> }
+                  @if(c.carfax_clean_title){ <span class="appr-comp-badge appr-comp-badge--clean">Clean Title</span> }
+                </div>
+
+                @if(c.heading){
+                  <div class="appr-comp-heading">{{ c.heading }}</div>
+                }
+
+                <div class="appr-comp-specs">
+                  @if(c.miles){ <span><lucide-icon name="gauge" /> {{ c.miles | number }} mi</span> }
+                  @if(c.exterior_color){ <span><lucide-icon name="palette" /> {{ c.exterior_color }}</span> }
+                  @if(c.interior_color){ <span><lucide-icon name="armchair" /> {{ c.interior_color }} int.</span> }
+                  @if(c.trim){ <span><lucide-icon name="tag" /> {{ c.trim }}</span> }
+                  @if(c.engine){ <span><lucide-icon name="zap" /> {{ c.engine }}</span> }
+                  @if(c.transmission){ <span>{{ c.transmission }}</span> }
+                  @if(c.drivetrain){ <span>{{ c.drivetrain }}</span> }
+                </div>
+
+                @if(c.vin){
+                  <div class="appr-comp-vin">VIN: {{ c.vin }}</div>
+                }
+
+                <div class="appr-comp-dealer-row">
+                  <div class="appr-comp-dealer">
+                    <lucide-icon name="building-2" />
+                    <span>{{ c.dealer }}</span>
+                    @if(c.city){ <span class="appr-comp-loc-txt">· {{ c.city }}, {{ c.state }}</span> }
+                    @if(c.distance){ <span class="appr-comp-dist">{{ c.distance | number:'1.0-0' }} mi away</span> }
+                  </div>
+                  @if(c.dealer_phone){
+                    <a class="appr-comp-phone" [href]="'tel:' + c.dealer_phone">
+                      <lucide-icon name="phone" /> {{ c.dealer_phone }}
+                    </a>
+                  }
+                </div>
+
+                <!-- Photo strip -->
+                @if(c.photos?.length > 1){
+                <div class="appr-comp-photo-strip">
+                  @for(p of c.photos.slice(1); track p){
+                  <img [src]="p" loading="lazy" class="appr-comp-thumb" />
+                  }
+                </div>
+                }
+
+                <!-- Actions -->
+                <div class="appr-comp-actions">
+                  @if(c.url){
+                  <a class="appr-comp-link" [href]="c.url" target="_blank" rel="noopener">
+                    <lucide-icon name="external-link" /> View Listing
+                  </a>
+                  }
+                  @if(c.dealer_website){
+                  <a class="appr-comp-link appr-comp-link--muted" [href]="'https://' + c.dealer_website" target="_blank" rel="noopener">
+                    <lucide-icon name="globe" /> Dealer Site
+                  </a>
+                  }
+                </div>
+              </div>
+
             </div>
             }
           </div>
         </div>
         }
 
-        <!-- Sold Comps -->
+        <!-- Sold / Recently Off Market -->
         @if(soldComps.length > 0){
         <div class="appr-comps-section">
-          <h3 class="appr-comps-title">Recently Sold ({{ soldComps.length }})</h3>
-          <div class="appr-comps-table">
-            <div class="appr-comps-thead">
-              <span>Price</span><span>Miles</span><span>Days</span><span>Sold</span><span>Location</span>
-            </div>
-            @for(c of soldComps; track $index){
-            <div class="appr-comps-row appr-comps-row--sold">
-              <span class="appr-comp-price">{{ c.price | currency:'USD':'symbol':'1.0-0' }}</span>
-              <span>{{ c.miles | number }} mi</span>
-              <span>{{ c.days_on_market }}d</span>
-              <span class="appr-comp-trim">{{ timeAgo(c.sold_date) }}</span>
-              <span class="appr-comp-loc">{{ c.city }}, {{ c.state }}</span>
+          <div class="appr-comps-section-hdr">
+            <h3 class="appr-comps-title">Recently Off Market</h3>
+            <span class="appr-comps-count">{{ soldComps.length }} vehicles</span>
+          </div>
+          <div class="appr-comp-cards appr-comp-cards--sold">
+            @for(c of soldComps; track c.id ?? $index){
+            <div class="appr-comp-card appr-comp-card--sold">
+
+              <div class="appr-comp-photo">
+                @if(c.photo){
+                  <img [src]="c.photo" [alt]="c.heading || c.trim" loading="lazy" />
+                }@else{
+                  <div class="appr-comp-photo-empty"><lucide-icon name="image" /></div>
+                }
+                <div class="appr-comp-dom appr-comp-dom--sold">{{ timeAgo(c.sold_date) }}</div>
+              </div>
+
+              <div class="appr-comp-body">
+                <div class="appr-comp-price-row">
+                  <span class="appr-comp-price appr-comp-price--sold">{{ c.price | currency:'USD':'symbol':'1.0-0' }}</span>
+                </div>
+                @if(c.heading){ <div class="appr-comp-heading">{{ c.heading }}</div> }
+                <div class="appr-comp-specs">
+                  @if(c.miles){ <span><lucide-icon name="gauge" /> {{ c.miles | number }} mi</span> }
+                  @if(c.exterior_color){ <span><lucide-icon name="palette" /> {{ c.exterior_color }}</span> }
+                  @if(c.trim){ <span><lucide-icon name="tag" /> {{ c.trim }}</span> }
+                  @if(c.engine){ <span><lucide-icon name="zap" /> {{ c.engine }}</span> }
+                  @if(c.days_on_market){ <span>{{ c.days_on_market }}d on mkt</span> }
+                </div>
+                @if(c.vin){ <div class="appr-comp-vin">VIN: {{ c.vin }}</div> }
+                <div class="appr-comp-dealer-row">
+                  <div class="appr-comp-dealer">
+                    <lucide-icon name="building-2" />
+                    <span>{{ c.dealer }}</span>
+                    @if(c.city){ <span class="appr-comp-loc-txt">· {{ c.city }}, {{ c.state }}</span> }
+                  </div>
+                </div>
+                @if(c.url){
+                <div class="appr-comp-actions">
+                  <a class="appr-comp-link" [href]="c.url" target="_blank" rel="noopener">
+                    <lucide-icon name="external-link" /> View Archive
+                  </a>
+                </div>
+                }
+              </div>
+
             </div>
             }
           </div>

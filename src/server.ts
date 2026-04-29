@@ -1650,7 +1650,9 @@ app.post('/api/admin/vehicle/market-data', async (req, res) => {
     if (cached && cached.fetched_at) {
       const age = Date.now() - new Date(cached.fetched_at).getTime();
       // Use cache only if fresh AND has actual comps (old cache may have empty comps from broken URL)
-      if (age < 7 * 86400000 && (cached.active_comps?.length > 0 || cached.market_avg > 0)) {
+      // Also skip cache if comps lack the 'photo' field (old schema pre-expansion)
+      const hasPhotos = cached.active_comps?.[0]?.photo !== undefined;
+      if (age < 7 * 86400000 && (cached.active_comps?.length > 0 || cached.market_avg > 0) && hasPhotos) {
         res.json({
           mmr: cached.mmr, kbb: cached.kbb, market_avg: cached.market_avg,
           market_days_supply: cached.market_days_supply, market_miles_mean: 0,
@@ -1756,21 +1758,38 @@ app.post('/api/admin/vehicle/market-data', async (req, res) => {
           if (d.stats) {
             stats = d.stats;
             market_avg = Math.round(d.stats?.price?.mean || 0);
-            market_days_supply = Math.round(d.stats?.dom?.mean || 0);
+            // Use median DOM — mean is skewed by stale outlier listings
+            market_days_supply = Math.round(d.stats?.dom?.median || d.stats?.dom?.mean || 0);
             market_miles_mean = Math.round(d.stats?.miles?.mean || 0);
           }
           // Color facets
           available_colors = (d.facets?.exterior_color || []).map((f: any) => ({ color: f.item, count: f.count }));
           // Listings
           active_comps = (d?.listings || []).map((l: any) => ({
-            id: l.id, price: l.price, miles: l.miles,
+            id: l.id,
+            vin: l.vin || '',
+            heading: l.heading || '',
+            price: l.price,
+            miles: l.miles,
             days_on_market: l.dom || l.days_on_market,
             dealer: l.dealer?.name || l.seller_name || '',
+            dealer_phone: l.dealer?.phone || '',
+            dealer_website: l.dealer?.website || '',
             city: l.dealer?.city || l.city || '',
             state: l.dealer?.state || l.state || '',
+            zip: l.dealer?.zip || l.zip || '',
             distance: l.distance,
-            color: l.exterior_color || '',
+            exterior_color: l.exterior_color || '',
+            interior_color: l.interior_color || '',
             trim: l.trim || '',
+            engine: l.build?.engine || '',
+            transmission: l.build?.transmission || '',
+            drivetrain: l.build?.drivetrain || '',
+            inventory_type: l.inventory_type || '',
+            carfax_1_owner: !!(l.carfax_1_owner),
+            carfax_clean_title: !!(l.carfax_clean_title),
+            photo: l.media?.photo_links?.[0] || '',
+            photos: (l.media?.photo_links || []).slice(0, 8),
             url: l.vdp_url || '',
           }));
         } catch {}
@@ -1781,16 +1800,25 @@ app.post('/api/admin/vehicle/market-data', async (req, res) => {
         try {
           const d = await soldRes.value.json();
           sold_comps = (d?.listings || [])
-            .filter((l: any) => l.id !== active_comps[0]?.id) // dedupe
-            .slice(0, 15)
+            .filter((l: any) => l.id !== active_comps[0]?.id)
+            .slice(0, 20)
             .map((l: any) => ({
+              id: l.id,
+              vin: l.vin || '',
+              heading: l.heading || '',
               price: l.price, miles: l.miles,
               days_on_market: l.dom || l.days_on_market,
               sold_date: l.last_seen_at,
               dealer: l.dealer?.name || l.seller_name || '',
               city: l.dealer?.city || l.city || '',
               state: l.dealer?.state || l.state || '',
+              exterior_color: l.exterior_color || '',
+              interior_color: l.interior_color || '',
               trim: l.trim || '',
+              engine: l.build?.engine || '',
+              transmission: l.build?.transmission || '',
+              photo: l.media?.photo_links?.[0] || '',
+              url: l.vdp_url || '',
             }));
         } catch {}
       }
