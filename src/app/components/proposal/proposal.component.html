@@ -39,7 +39,7 @@
           <div class="prop-highlight-card">
             <div class="prop-highlight-icon"><lucide-icon name="gauge" /></div>
             <span class="prop-highlight-label">Mileage</span>
-            <span class="prop-highlight-value">{{ v.mileage }} miles</span>
+            <span class="prop-highlight-value">{{ v.mileage | number }} miles</span>
           </div>}
           @if(v.exterior_color && !isExcluded('exterior_color')){
           <div class="prop-highlight-card">
@@ -213,7 +213,7 @@
         <h1 class="prop-title">{{ v.make }} {{ v.model }} {{ v.trim }}</h1>
         <div class="prop-vin-stock">
           <span>VIN: {{ p.vin }}</span>
-          @if(v.mileage){ <span>&middot; {{ v.mileage }} miles</span> }
+          @if(v.mileage){ <span>&middot; {{ v.mileage | number }} miles</span> }
         </div>
       </div>
 
@@ -344,7 +344,7 @@
           <span class="deal-trade-name">{{ tradeIn.year }} {{ tradeIn.make }} {{ tradeIn.model }}</span>
           }
           @if(tradeIn.vin){<span class="deal-trade-vin">VIN: {{ tradeIn.vin }}</span>}
-          @if(tradeIn.mileage){<span class="deal-trade-detail">{{ tradeIn.mileage }} miles</span>}
+          @if(tradeIn.mileage){<span class="deal-trade-detail">{{ tradeIn.mileage | number }} miles</span>}
         </div>
         <div class="deal-lines">
           <div class="deal-line deal-line-sub">
