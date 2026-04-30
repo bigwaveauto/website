@@ -53,6 +53,8 @@
     .btn-scan:hover:not(:disabled) { background: #334155; }
     .btn-submit { background: #2563eb; color: white; font-size: 15px; padding: 14px; }
     .btn-submit:hover:not(:disabled) { background: #1d4ed8; }
+    .btn-mmr { background: #0ea5e9; color: white; }
+    .btn-mmr:hover:not(:disabled) { background: #0284c7; }
 
     .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -97,6 +99,7 @@
       <div id="photosPreview" class="photos-preview"></div>
     </div>
 
+    <button id="mmrBtn" class="btn btn-mmr" style="display:none">🌊 Send MMR to Appraisal</button>
     <button id="submitBtn" class="btn btn-submit" style="display:none">Submit to Big Wave Auto</button>
   </div>
 

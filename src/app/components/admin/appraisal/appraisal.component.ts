@@ -157,7 +157,10 @@ export class AdminAppraisalComponent implements OnInit {
     return this.odometerDelta + this.optionsTotal + this.colorAdj + this.keyAdj + this.conditionAdj;
   }
 
-  get mmr(): number { return this.marketData()?.mmr || 0; }
+  manualMmr = signal<number | null>(null);
+  mmrSource = signal<'auto' | 'manual'>('auto');
+
+  get mmr(): number { return this.manualMmr() ?? this.marketData()?.mmr ?? 0; }
   get marketAvg(): number { return this.marketData()?.market_avg || 0; }
   get marketDaysSupply(): number { return this.marketData()?.market_days_supply || 0; }
   get activeComps(): any[] { return this.marketData()?.active_comps || []; }
@@ -199,6 +202,7 @@ export class AdminAppraisalComponent implements OnInit {
 
   ngOnInit() {
     this.loadAppraisalHistory();
+    this.listenForMmrPush();
     // Auto-load a specific appraisal if navigated here with ?id=
     const id = this.route.snapshot.queryParamMap.get('id');
     if (id) {
@@ -491,6 +495,34 @@ export class AdminAppraisalComponent implements OnInit {
   parse(val: string): number | null {
     const n = Number(val.replace(/[^0-9.-]/g, ''));
     return isNaN(n) || n === 0 ? null : n;
+  }
+
+  private listenForMmrPush() {
+    // Listen for MMR push from Chrome extension via localStorage
+    window.addEventListener('storage', (e) => {
+      if (e.key !== 'bwa_mmr_push' || !e.newValue) return;
+      try {
+        const { vin, mmr } = JSON.parse(e.newValue);
+        if (!mmr) return;
+        this.manualMmr.set(mmr);
+        this.mmrSource.set('manual');
+        localStorage.removeItem('bwa_mmr_push');
+      } catch {}
+    });
+    // Also check on init in case push happened while tab was inactive
+    try {
+      const stored = localStorage.getItem('bwa_mmr_push');
+      if (stored) {
+        const { mmr } = JSON.parse(stored);
+        if (mmr) { this.manualMmr.set(mmr); this.mmrSource.set('manual'); }
+        localStorage.removeItem('bwa_mmr_push');
+      }
+    } catch {}
+  }
+
+  clearManualMmr() {
+    this.manualMmr.set(null);
+    this.mmrSource.set('auto');
   }
 
   timeAgo(val: string | number): string {

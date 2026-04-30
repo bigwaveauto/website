@@ -286,6 +286,13 @@ $page-bg: #f1f5f9;
   display: flex; align-items: center; gap: 4px; white-space: nowrap;
 }
 
+.appr-mmr-ext-badge {
+  background: #0ea5e9; color: white; border: none; border-radius: 4px;
+  font-size: 9px; font-weight: 700; padding: 1px 5px; cursor: pointer;
+  text-transform: none; letter-spacing: 0; white-space: nowrap;
+  &:hover { background: #0284c7; }
+}
+
 .appr-hcard-info {
   width: 11px !important; height: 11px !important; color: #b0b8c8; flex-shrink: 0;
 }

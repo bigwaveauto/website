@@ -68,6 +68,12 @@ function displayData(data) {
     if (a.lane) html += `<div class="vi-row"><span class="vi-label">Lane</span><span class="vi-value">${a.lane}</span></div>`;
     $('auctionInfo').innerHTML = html;
     $('auctionInfo').style.display = 'block';
+
+    // Show MMR push button if MMR was found
+    if (a.mmr) {
+      $('mmrBtn').style.display = 'flex';
+      $('mmrBtn').textContent = `🌊 Send MMR $${a.mmr.toLocaleString()} to Appraisal`;
+    }
   }
 
   // Condition summary
@@ -172,6 +178,52 @@ chrome.runtime.onMessage.addListener((msg) => {
     if (data?.vin) displayData(data);
   } catch (e) {}
 })();
+
+// ── Send MMR to Appraisal Tab ──
+$('mmrBtn').addEventListener('click', async () => {
+  if (!extractedData?.auction?.mmr) { showStatus('No MMR found on this page.', 'error'); return; }
+  const mmr = extractedData.auction.mmr;
+  const vin = extractedData.vin;
+  const serverUrl = ($('serverUrl').value || 'https://bigwaveauto.com').replace(/\/+$/, '');
+
+  try {
+    // Find the appraisal tab
+    const allTabs = await chrome.tabs.query({});
+    const appraisalTab = allTabs.find(t => t.url && (t.url.includes(serverUrl) || t.url.includes('bigwaveauto.com')) && t.url.includes('/admin/appraisal'));
+
+    if (!appraisalTab) {
+      // Open appraisal tab
+      const tab = await chrome.tabs.create({ url: `${serverUrl}/admin/appraisal`, active: true });
+      // Wait for tab to load then push
+      await new Promise(r => setTimeout(r, 3000));
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: (mmrVal, vinVal) => {
+          localStorage.setItem('bwa_mmr_push', JSON.stringify({ mmr: mmrVal, vin: vinVal, ts: Date.now() }));
+          window.dispatchEvent(new StorageEvent('storage', { key: 'bwa_mmr_push', newValue: JSON.stringify({ mmr: mmrVal, vin: vinVal, ts: Date.now() }) }));
+        },
+        args: [mmr, vin],
+      });
+    } else {
+      // Push to existing tab
+      await chrome.scripting.executeScript({
+        target: { tabId: appraisalTab.id },
+        func: (mmrVal, vinVal) => {
+          localStorage.setItem('bwa_mmr_push', JSON.stringify({ mmr: mmrVal, vin: vinVal, ts: Date.now() }));
+          window.dispatchEvent(new StorageEvent('storage', { key: 'bwa_mmr_push', newValue: JSON.stringify({ mmr: mmrVal, vin: vinVal, ts: Date.now() }) }));
+        },
+        args: [mmr, vin],
+      });
+      await chrome.tabs.update(appraisalTab.id, { active: true });
+    }
+
+    $('mmrBtn').textContent = '✓ MMR Sent!';
+    $('mmrBtn').style.background = '#16a34a';
+    showStatus(`MMR $${mmr.toLocaleString()} sent to appraisal tool.`, 'success');
+  } catch (err) {
+    showStatus('Failed to send MMR: ' + err.message, 'error');
+  }
+});
 
 // ── Submit ──
 $('submitBtn').addEventListener('click', async () => {

@@ -186,11 +186,16 @@
         <div class="appr-hcard-cell">
           <div class="appr-hcard-lbl">
             <span class="appr-hcard-src appr-hcard-src--m">M</span> Manheim MMR
+            @if(mmrSource() === 'manual'){
+              <button class="appr-mmr-ext-badge" (click)="clearManualMmr()" title="From extension — click to clear">
+                🌊 ext ×
+              </button>
+            }
           </div>
           <div class="appr-hcard-val appr-hcard-val--arr">
             {{ mmr | currency:'USD':'symbol':'1.0-0' }} <lucide-icon name="chevron-right" />
           </div>
-          <div class="appr-hcard-sub">Auction Average</div>
+          <div class="appr-hcard-sub">{{ mmrSource() === 'manual' ? 'From Extension' : 'Auction Average' }}</div>
         </div>
         }
 
