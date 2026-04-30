@@ -275,7 +275,7 @@ export class AdminProposalsComponent implements OnInit {
       min_price: s.min_price || 0,
     }).subscribe({
       next: () => { this.saving.set(false); this.saved.set(true); setTimeout(() => this.saved.set(false), 3000); },
-      error: () => { this.saving.set(false); alert('Failed to save.'); },
+      error: (err) => { this.saving.set(false); alert('Failed to save: ' + (err?.error?.error || err?.status || 'unknown')); },
     });
   }
 

@@ -18,6 +18,8 @@ import {
   Activity, Droplets, GaugeCircle, Ruler, Eye, Maximize2, Upload,
   BarChart3, Thermometer, Weight, Box, HandCoins, MessageCircle, Calendar,
   Truck, DollarSign, ShieldCheck,
+  ThumbsUp, ThumbsDown, MinusCircle, Settings2, Info, AlertTriangle,
+  CheckCircle, HelpCircle, ClipboardList, Radar,
 } from 'lucide-angular';
 
 export const appConfig: ApplicationConfig = {
@@ -39,6 +41,8 @@ export const appConfig: ApplicationConfig = {
         Activity, Droplets, GaugeCircle, Ruler, Eye, Maximize2, Upload,
         BarChart3, Thermometer, Weight, Box, HandCoins, MessageCircle, Calendar,
         Truck, DollarSign, ShieldCheck,
+        ThumbsUp, ThumbsDown, MinusCircle, Settings2, Info, AlertTriangle,
+        CheckCircle, HelpCircle, ClipboardList, Radar,
       }),
     },
     provideRouter(routes, withRouterConfig({ onSameUrlNavigation: 'reload' }), withInMemoryScrolling({ scrollPositionRestoration: 'top' })),

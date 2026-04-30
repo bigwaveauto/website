@@ -2226,6 +2226,35 @@ app.get('/api/admin/proposals', async (_req, res) => {
 });
 
 /**
+ * Admin — upload Carfax PDF for a proposal (must be before /:id route)
+ */
+app.post('/api/admin/proposal/carfax', upload.single('file'), async (req: any, res) => {
+  try {
+    if (!req.file) { res.status(400).json({ error: 'No file' }); return; }
+    const proposalId = req.body.proposal_id;
+    const vin = req.body.vin;
+    const fileName = `carfax/${vin}_${Date.now()}.pdf`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('vehicle-photos')
+      .upload(fileName, req.file.buffer, { contentType: 'application/pdf' });
+
+    if (uploadError) { console.error('Carfax upload error:', uploadError); res.status(500).json({ error: 'Upload failed' }); return; }
+
+    const { data: urlData } = supabase.storage
+      .from('vehicle-photos')
+      .getPublicUrl(fileName);
+
+    await supabase.from('vehicle_proposals').update({ carfax_url: urlData.publicUrl }).eq('id', proposalId);
+
+    res.json({ url: urlData.publicUrl });
+  } catch (err) {
+    console.error('Carfax upload error:', err);
+    res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
+/**
  * Admin — update proposal (edit fields, exclude items, change status)
  */
 app.post('/api/admin/proposal/:id', async (req, res) => {
@@ -2254,7 +2283,7 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (req.body.est_days_to_sell !== undefined) updates['est_days_to_sell'] = req.body.est_days_to_sell;
     if (req.body.min_price !== undefined) updates['min_price'] = req.body.min_price;
     if (req.body.mmr !== undefined) updates['mmr'] = req.body.mmr;
-    if (req.body.proposal_mode !== undefined) updates['proposal_mode'] = req.body.proposal_mode;
+    // proposal_mode omitted until column is added to DB
     updates['updated_at'] = new Date().toISOString();
 
     const { error } = await supabase
@@ -2262,40 +2291,11 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
       .update(updates)
       .eq('id', req.params['id']);
 
-    if (error) { res.status(500).json({ error: error.message }); return; }
+    if (error) { console.error('Proposal save error:', JSON.stringify(error)); res.status(500).json({ error: error.message }); return; }
     res.json({ success: true });
   } catch (err) {
+    console.error('Proposal save exception:', err);
     res.status(500).json({ error: 'Failed to update proposal' });
-  }
-});
-
-/**
- * Admin — upload Carfax PDF for a proposal
- */
-app.post('/api/admin/proposal/carfax', upload.single('file'), async (req: any, res) => {
-  try {
-    if (!req.file) { res.status(400).json({ error: 'No file' }); return; }
-    const proposalId = req.body.proposal_id;
-    const vin = req.body.vin;
-    const fileName = `carfax/${vin}_${Date.now()}.pdf`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('vehicle-photos')
-      .upload(fileName, req.file.buffer, { contentType: 'application/pdf' });
-
-    if (uploadError) { console.error('Carfax upload error:', uploadError); res.status(500).json({ error: 'Upload failed' }); return; }
-
-    const { data: urlData } = supabase.storage
-      .from('vehicle-photos')
-      .getPublicUrl(fileName);
-
-    // Save URL to proposal
-    await supabase.from('vehicle_proposals').update({ carfax_url: urlData.publicUrl }).eq('id', proposalId);
-
-    res.json({ url: urlData.publicUrl });
-  } catch (err) {
-    console.error('Carfax upload error:', err);
-    res.status(500).json({ error: 'Upload failed' });
   }
 });
 
