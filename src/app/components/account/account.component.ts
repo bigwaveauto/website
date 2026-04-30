@@ -98,21 +98,14 @@ export class AccountComponent implements OnInit {
     this.vinError.set('');
     this.vinDecoded.set(null);
 
-    const url = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`;
-    this.http.get<any>(url).subscribe({
+    this.http.get<any>(`/api/vin/${vin}`).subscribe({
       next: (res) => {
-        const r = res?.Results?.[0];
-        const year  = r?.ModelYear || '';
-        const make  = r?.Make || '';
-        const model = r?.Model || '';
-        const trim  = r?.Trim || r?.Series || '';
-
-        if (!make || !model) {
+        if (!res?.make || !res?.model) {
           this.vinError.set('Could not decode this VIN. Please check and try again.');
           this.vinLoading.set(false);
           return;
         }
-        this.vinDecoded.set({ year, make, model, trim });
+        this.vinDecoded.set({ year: res.year, make: res.make, model: res.model, trim: res.trim });
         this.vinLoading.set(false);
       },
       error: () => {

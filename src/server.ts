@@ -827,6 +827,34 @@ Rules:
 });
 
 /**
+ * Public VIN decode — year/make/model/trim via MarketCheck NeoVIN
+ */
+app.get('/api/vin/:vin', async (req, res) => {
+  try {
+    const vin = req.params['vin']?.toUpperCase();
+    if (!vin || vin.length !== 17) { res.status(400).json({ error: 'Invalid VIN' }); return; }
+
+    const mcKey = process.env['MARKETCHECK_API_KEY'];
+    if (!mcKey) { res.status(503).json({ error: 'VIN decode unavailable' }); return; }
+
+    const r = await fetch(`https://api.marketcheck.com/v2/decode/car/neovin/${vin}/specs?api_key=${mcKey}&include_generic=true`, { headers: { Accept: 'application/json' } });
+    if (!r.ok) { res.status(422).json({ error: 'VIN not found' }); return; }
+
+    const data = await r.json();
+    const specs = data?.specs || data;
+    const year  = String(specs?.year || specs?.model_year || '');
+    const make  = specs?.make || '';
+    const model = specs?.model || '';
+    const trim  = specs?.trim || specs?.version || '';
+
+    if (!make || !model) { res.status(422).json({ error: 'VIN not found' }); return; }
+    res.json({ year, make, model, trim });
+  } catch (err) {
+    res.status(500).json({ error: 'VIN lookup failed' });
+  }
+});
+
+/**
  * Admin routes — all protected by auth middleware + rate limiting
  */
 app.use('/api/admin', adminLimiter, requireAdmin);
