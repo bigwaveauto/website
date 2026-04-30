@@ -563,8 +563,13 @@ app.post('/api/leads/contact', leadLimiter, async (req, res) => {
     if (!data.email || !validateEmail(data.email)) {
       res.status(400).json({ error: 'Valid email required' }); return;
     }
-    const { error } = await supabase.from('contact_leads').insert(data);
-    if (error) { console.error('Lead save error'); res.status(500).json({ error: 'Failed to save' }); return; }
+    const { error } = await supabase.from('contact_leads').insert({
+      name: data.name,
+      email: data.email,
+      phone: data.phone || null,
+      message: [data.topic ? `Topic: ${data.topic}` : '', data.preferred_method ? `Preferred: ${data.preferred_method}` : '', data.message].filter(Boolean).join('\n'),
+    });
+    if (error) { console.error('Lead save error', error.message); res.status(500).json({ error: 'Failed to save' }); return; }
 
     await resend.emails.send({
       from: FROM_EMAIL,
