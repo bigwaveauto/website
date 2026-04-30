@@ -26,7 +26,8 @@ export class AdminComponent implements OnInit {
   navItems = [
     { label: 'Home',         icon: 'home',        route: '/admin' },
     { label: 'Inventory',    icon: 'car',         route: '/admin/inventory' },
-    { label: 'Appraisal',    icon: 'search',      route: '/admin/appraisal' },
+    { label: 'Appraisals',   icon: 'clipboard-list', route: '/admin/appraisals' },
+    { label: 'New Appraisal', icon: 'search',     route: '/admin/appraisal' },
     { label: 'Acquisitions', icon: 'radar',       route: '/admin/acquisitions' },
     { label: 'Proposals',    icon: 'file-text',   route: '/admin/proposals' },
     { label: 'Leads',        icon: 'users',       route: '/admin/customers' },

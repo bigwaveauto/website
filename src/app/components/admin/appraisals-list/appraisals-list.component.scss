@@ -1,0 +1,215 @@
+$blue: #2563eb;
+$green: #16a34a;
+$red: #dc2626;
+$amber: #d97706;
+$border: #e2e8f0;
+$muted: rgba(0,0,0,0.45);
+
+:host { display: block; }
+
+/* ── Header ── */
+.aprl-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; gap: 16px; flex-wrap: wrap;
+}
+
+.aprl-header-left {
+  display: flex; align-items: baseline; gap: 10px;
+}
+
+.aprl-title {
+  font-size: 24px; font-weight: 900; color: #111827; margin: 0;
+}
+
+.aprl-count {
+  font-size: 13px; color: $muted; font-weight: 600;
+}
+
+.aprl-header-right {
+  display: flex; align-items: center; gap: 10px;
+}
+
+.aprl-search {
+  display: flex; align-items: center; gap: 8px;
+  background: white; border: 1.5px solid $border; border-radius: 10px;
+  padding: 8px 14px; min-width: 280px;
+  lucide-icon { width: 16px; height: 16px; color: $muted; flex-shrink: 0; }
+  input {
+    border: none; outline: none; font-size: 14px; font-family: inherit;
+    color: #111; width: 100%; background: transparent;
+    &::placeholder { color: #c0c7d0; }
+  }
+}
+
+.aprl-new-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 18px; background: $blue; color: white;
+  border-radius: 10px; font-size: 14px; font-weight: 700;
+  text-decoration: none; transition: background 0.15s;
+  lucide-icon { width: 16px; height: 16px; }
+  &:hover { background: #1d4ed8; }
+}
+
+/* ── Controls ── */
+.aprl-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+}
+
+.aprl-status-pills {
+  display: flex; gap: 6px;
+}
+
+.aprl-pill {
+  padding: 6px 14px; border: 1.5px solid $border; border-radius: 20px;
+  font-size: 13px; font-weight: 600; font-family: inherit;
+  background: white; color: #64748b; cursor: pointer; transition: all 0.12s;
+  &:hover { border-color: $blue; color: $blue; }
+  &.active { background: $blue; border-color: $blue; color: white; }
+}
+
+.aprl-sort {
+  display: flex; align-items: center; gap: 7px;
+  lucide-icon { width: 15px; height: 15px; color: $muted; }
+  select {
+    border: 1.5px solid $border; border-radius: 8px; padding: 6px 10px;
+    font-size: 13px; font-family: inherit; color: #374151; background: white;
+    cursor: pointer; outline: none;
+    &:focus { border-color: $blue; }
+  }
+}
+
+/* ── Loading / Empty ── */
+.aprl-loading {
+  display: flex; align-items: center; gap: 12px;
+  padding: 60px; justify-content: center; color: $muted; font-size: 14px;
+}
+
+.aprl-spinner {
+  width: 20px; height: 20px; border: 2.5px solid rgba($blue, 0.2);
+  border-top-color: $blue; border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.aprl-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; padding: 80px; text-align: center;
+  lucide-icon { width: 48px; height: 48px; color: #cbd5e1; }
+  h3 { font-size: 18px; font-weight: 800; color: #1e293b; margin: 0; }
+  p { font-size: 14px; color: $muted; margin: 0; }
+}
+
+.aprl-empty-btn {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;
+  padding: 10px 20px; background: $blue; color: white; border-radius: 10px;
+  font-size: 14px; font-weight: 700; text-decoration: none;
+  lucide-icon { width: 15px; height: 15px; }
+  &:hover { background: #1d4ed8; }
+}
+
+/* ── List ── */
+.aprl-list {
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.aprl-card {
+  display: flex; align-items: center; gap: 20px;
+  background: white; border: 1px solid $border; border-radius: 12px;
+  padding: 16px 20px; cursor: pointer; transition: all 0.13s;
+  &:hover {
+    border-color: #b0c0da;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+    transform: translateY(-1px);
+  }
+}
+
+/* Vehicle info */
+.aprl-card-main {
+  flex: 1; min-width: 0;
+}
+
+.aprl-card-vehicle {
+  display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.aprl-card-year { font-size: 16px; font-weight: 900; color: #374151; }
+.aprl-card-make { font-size: 16px; font-weight: 900; color: #111827; }
+.aprl-card-model { font-size: 16px; font-weight: 900; color: #111827; }
+.aprl-card-trim { font-size: 12px; color: #64748b; font-weight: 500; }
+
+.aprl-card-meta {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: #9ca3af;
+}
+
+.aprl-card-vin {
+  font-family: 'SF Mono', 'Fira Mono', monospace; letter-spacing: 0.5px; font-size: 11px;
+}
+
+.aprl-card-dot { color: #d1d5db; }
+.aprl-card-date { }
+
+/* Values */
+.aprl-card-values {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  @media (max-width: 900px) { display: none; }
+}
+
+.aprl-card-val-block {
+  display: flex; flex-direction: column; gap: 2px; min-width: 90px;
+}
+
+.aprl-card-val-lbl {
+  font-size: 10px; font-weight: 700; color: #9ca3af;
+  text-transform: uppercase; letter-spacing: 0.6px;
+}
+
+.aprl-card-val {
+  font-size: 16px; font-weight: 800; color: #374151;
+  font-variant-numeric: tabular-nums;
+  &--blue { color: $blue; }
+  &--dark { color: #111827; }
+}
+
+.aprl-card-pct {
+  font-size: 15px; font-weight: 800; color: #64748b;
+  &--good { color: $green; }
+  &--warn { color: $amber; }
+}
+
+/* Right */
+.aprl-card-right {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0;
+}
+
+.aprl-card-status {
+  font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.4px;
+  &--open { background: #eff6ff; color: $blue; border: 1px solid #bfdbfe; }
+  &--purchased { background: #f0fdf4; color: $green; border: 1px solid #bbf7d0; }
+  &--passed { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+}
+
+.aprl-card-actions {
+  display: flex; gap: 4px;
+}
+
+.aprl-card-edit,
+.aprl-card-del {
+  width: 30px; height: 30px; border: none; border-radius: 7px; background: transparent;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: all 0.12s;
+  lucide-icon { width: 14px; height: 14px; }
+}
+
+.aprl-card-edit {
+  color: $muted;
+  &:hover { background: #eff6ff; color: $blue; }
+}
+
+.aprl-card-del {
+  color: $muted;
+  &:hover { background: #fef2f2; color: $red; }
+}

@@ -1,0 +1,136 @@
+<div class="aprl">
+
+  <!-- Header -->
+  <div class="aprl-header">
+    <div class="aprl-header-left">
+      <h1 class="aprl-title">Appraisals</h1>
+      <span class="aprl-count">{{ filtered().length }} records</span>
+    </div>
+    <div class="aprl-header-right">
+      <div class="aprl-search">
+        <lucide-icon name="search" />
+        <input [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Year, make, model, VIN…" />
+      </div>
+      <a class="aprl-new-btn" routerLink="/admin/appraisal">
+        <lucide-icon name="plus" /> New Appraisal
+      </a>
+    </div>
+  </div>
+
+  <!-- Controls bar -->
+  <div class="aprl-controls">
+    <div class="aprl-status-pills">
+      @for(s of statuses; track s.key){
+      <button class="aprl-pill" [class.active]="statusFilter() === s.key" (click)="statusFilter.set(s.key)">
+        {{ s.label }}
+      </button>
+      }
+    </div>
+    <div class="aprl-sort">
+      <lucide-icon name="arrow-up-down" />
+      <select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+        <option value="date">Date (newest)</option>
+        <option value="value">Appraised Value</option>
+        <option value="vehicle">Vehicle</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if(loading()){
+  <div class="aprl-loading">
+    <div class="aprl-spinner"></div>
+    <span>Loading appraisals…</span>
+  </div>
+  } @else if(filtered().length === 0){
+  <div class="aprl-empty">
+    <lucide-icon name="clipboard-list" />
+    <h3>No appraisals found</h3>
+    <p>@if(search() || statusFilter() !== 'all'){ Try adjusting your search or filter. }@else{ Start your first appraisal. }</p>
+    <a class="aprl-empty-btn" routerLink="/admin/appraisal">
+      <lucide-icon name="plus" /> New Appraisal
+    </a>
+  </div>
+  } @else {
+
+  <!-- List -->
+  <div class="aprl-list">
+    @for(a of filtered(); track a.id){
+    <div class="aprl-card" (click)="openAppraisal(a)">
+
+      <!-- Left: vehicle info -->
+      <div class="aprl-card-main">
+        <div class="aprl-card-vehicle">
+          <span class="aprl-card-year">{{ a.vehicle?.year }}</span>
+          <span class="aprl-card-make">{{ a.vehicle?.make }}</span>
+          <span class="aprl-card-model">{{ a.vehicle?.model }}</span>
+          @if(a.vehicle?.trim){ <span class="aprl-card-trim">{{ a.vehicle.trim }}</span> }
+        </div>
+        <div class="aprl-card-meta">
+          @if(a.vin){ <span class="aprl-card-vin">{{ a.vin }}</span> }
+          @if(a.vehicle?.mileage){ <span>· {{ a.vehicle.mileage | number }} mi</span> }
+          <span class="aprl-card-dot">·</span>
+          <span class="aprl-card-date">{{ timeAgo(a.created_at) }}</span>
+        </div>
+      </div>
+
+      <!-- Center: book values -->
+      <div class="aprl-card-values">
+        @if(a.appraised_value){
+        <div class="aprl-card-val-block">
+          <span class="aprl-card-val-lbl">Offer</span>
+          <span class="aprl-card-val">{{ a.appraised_value | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+        }
+        @if(a.target_auction){
+        <div class="aprl-card-val-block">
+          <span class="aprl-card-val-lbl">Target Auction</span>
+          <span class="aprl-card-val aprl-card-val--blue">{{ a.target_auction | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+        }
+        @if(a.target_retail){
+        <div class="aprl-card-val-block">
+          <span class="aprl-card-val-lbl">Target Retail</span>
+          <span class="aprl-card-val">{{ a.target_retail | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+        }
+        @if(a.asking_price){
+        <div class="aprl-card-val-block">
+          <span class="aprl-card-val-lbl">Asking</span>
+          <span class="aprl-card-val aprl-card-val--dark">{{ a.asking_price | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+        }
+        @if(pctOfMarket(a) !== null){
+        <div class="aprl-card-val-block">
+          <span class="aprl-card-val-lbl">% of Market</span>
+          <span class="aprl-card-pct"
+            [class.aprl-card-pct--good]="pctOfMarket(a)! >= 95 && pctOfMarket(a)! <= 105"
+            [class.aprl-card-pct--warn]="pctOfMarket(a)! > 105 || pctOfMarket(a)! < 90">
+            {{ pctOfMarket(a) }}%
+          </span>
+        </div>
+        }
+      </div>
+
+      <!-- Right: status + actions -->
+      <div class="aprl-card-right">
+        <span class="aprl-card-status" [class]="'aprl-card-status--' + (a.status || 'open')">
+          {{ a.status || 'open' }}
+        </span>
+        <div class="aprl-card-actions">
+          <button class="aprl-card-edit" (click)="openAppraisal(a)" title="Open">
+            <lucide-icon name="pencil" />
+          </button>
+          <button class="aprl-card-del" (click)="deleteAppraisal(a.id, $event)" title="Delete">
+            <lucide-icon name="trash-2" />
+          </button>
+        </div>
+      </div>
+
+    </div>
+    }
+  </div>
+
+  }
+
+</div>

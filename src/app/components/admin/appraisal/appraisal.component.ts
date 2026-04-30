@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, OnInit, HostListener } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
@@ -13,6 +14,7 @@ import { LucideAngularModule } from 'lucide-angular';
 })
 export class AdminAppraisalComponent implements OnInit {
   private http = inject(HttpClient);
+  private route = inject(ActivatedRoute);
 
   // Entry
   entryMode = signal<'vin' | 'manual'>('vin');
@@ -88,10 +90,10 @@ export class AdminAppraisalComponent implements OnInit {
   // History list
   appraisalHistory = signal<any[]>([]);
   loadingHistory2 = signal(false);
-  historySearch = '';
+  historySearch = signal('');
 
   get filteredHistory(): any[] {
-    const q = this.historySearch.toLowerCase();
+    const q = this.historySearch().toLowerCase();
     if (!q) return this.appraisalHistory();
     return this.appraisalHistory().filter(a => {
       const v = a.vehicle || {};
@@ -195,7 +197,22 @@ export class AdminAppraisalComponent implements OnInit {
     return Math.round((this.askingPrice()! / this.marketAvg) * 100);
   }
 
-  ngOnInit() { this.loadAppraisalHistory(); }
+  ngOnInit() {
+    this.loadAppraisalHistory();
+    // Auto-load a specific appraisal if navigated here with ?id=
+    const id = this.route.snapshot.queryParamMap.get('id');
+    if (id) {
+      this.http.get<any[]>('/api/admin/appraisals').subscribe({
+        next: (data) => {
+          this.appraisalHistory.set(data);
+          this.loadingHistory2.set(false);
+          const match = data.find(a => a.id === id);
+          if (match) this.loadAppraisal(match);
+        },
+        error: () => this.loadingHistory2.set(false),
+      });
+    }
+  }
 
   loadAppraisalHistory() {
     this.loadingHistory2.set(true);
@@ -213,6 +230,8 @@ export class AdminAppraisalComponent implements OnInit {
 
   loadAppraisal(a: any) {
     const v = a.vehicle || {};
+    // Reset all condition state first so nothing carries over from a previous appraisal
+    this.clearConditionState();
     this.vehicle.set(v);
     this.appraisedValue.set(a.appraised_value || null);
     this.askingPrice.set(a.asking_price || null);
@@ -386,6 +405,31 @@ export class AdminAppraisalComponent implements OnInit {
     navigator.clipboard.writeText(this.vehicle()?.vin || '');
   }
 
+  clearConditionState() {
+    this.exteriorColor.set('');
+    this.interiorColor.set('');
+    this.keyCount.set(2);
+    this.hasFrameDamage.set(false);
+    this.hasBadVhr.set(false);
+    this.owners.set('1');
+    this.serviceStatus.set('as-traded');
+    this.selectedOptions.set([]);
+    this.appraisedValue.set(null);
+    this.recon.set(null);
+    this.transportation.set(null);
+    this.auctionFee.set(null);
+    this.otherCost.set(null);
+    this.askingPrice.set(null);
+    this.profitLocked.set(false);
+    this.lockedProfit.set(null);
+    this.neovinData.set(null);
+    this.msrp.set(0);
+    this.cityMpg.set(0);
+    this.hwyMpg.set(0);
+    this.availableColors.set([]);
+    this.showColorPicker.set(false);
+  }
+
   reset() {
     this.vinInput = '';
     this.odometerInput = '';
@@ -396,27 +440,10 @@ export class AdminAppraisalComponent implements OnInit {
     this.entryMode.set('vin');
     this.vehicle.set(null);
     this.marketData.set(null);
-    this.neovinData.set(null);
     this.vehicleHistory.set(null);
-    this.msrp.set(0);
-    this.cityMpg.set(0);
-    this.hwyMpg.set(0);
-    this.availableColors.set([]);
-    this.showColorPicker.set(false);
     this.decodeError.set('');
-    this.selectedOptions.set([]);
-    this.appraisedValue.set(null);
-    this.recon.set(null);
-    this.transportation.set(null);
-    this.auctionFee.set(null);
-    this.otherCost.set(null);
-    this.askingPrice.set(null);
-    this.profitLocked.set(false);
-    this.exteriorColor.set('');
-    this.interiorColor.set('');
-    this.keyCount.set(2);
-    this.hasFrameDamage.set(false);
-    this.hasBadVhr.set(false);
+    this.saveError.set('');
+    this.clearConditionState();
   }
 
   saveAppraisal() {

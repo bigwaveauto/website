@@ -1511,7 +1511,7 @@ app.get('/api/admin/appraisals', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('appraisals')
-      .select('id, vin, vehicle, disposition, appraised_value, asking_price, mmr, market_avg, status, created_at')
+      .select('id, vin, vehicle, disposition, appraised_value, recon, transportation, auction_fee, other_cost, asking_price, mmr, market_avg, target_auction, target_retail, status, created_at')
       .order('created_at', { ascending: false })
       .limit(100);
     if (error) throw error;

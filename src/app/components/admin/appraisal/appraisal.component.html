@@ -10,7 +10,7 @@
         <span class="appr-hist-sidebar-title">History</span>
         <div class="appr-hist-search-wrap">
           <lucide-icon name="search" />
-          <input class="appr-hist-search" [(ngModel)]="historySearch" placeholder="Search…" />
+          <input class="appr-hist-search" [ngModel]="historySearch()" (ngModelChange)="historySearch.set($event)" placeholder="Search…" />
         </div>
       </div>
       @if(loadingHistory2()){
@@ -268,8 +268,8 @@
             </span>
           </div>
           <div class="appr-odo-display">{{ v.mileage | number }} mi</div>
-          @if(marketData()?.stats?.miles?.mean){
-          <div class="appr-adj-note">Market avg: {{ marketData().stats.miles.mean | number:'1.0-0' }} mi</div>
+          @if(marketData()?.market_miles_mean){
+          <div class="appr-adj-note">Market avg: {{ marketData().market_miles_mean | number:'1.0-0' }} mi</div>
           }
         </div>
 
