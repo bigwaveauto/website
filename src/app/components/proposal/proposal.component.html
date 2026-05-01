@@ -279,7 +279,7 @@
         <div class="deal-section-label">Price of the Vehicle</div>
         <div class="deal-lines">
           <div class="deal-line">
-            <span>Vehicle Price</span>
+            <span>Vehicle Price @if(p.vehicle?.mileage){<span class="deal-miles">{{ p.vehicle.mileage | number }} mi</span>}</span>
             <span>{{ askingPrice | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
           @for(li of taxableLineItems; track $index){

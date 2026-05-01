@@ -336,7 +336,7 @@ $muted: rgba(0,0,0,0.45);
   align-items: center;
   font-size: 15px;
 
-  span:first-child { color: #333; }
+  span:first-child { color: #333; display: flex; align-items: center; gap: 6px; }
   span:last-child { color: #111; font-weight: 600; }
 
   &.deal-line-sub {
@@ -494,4 +494,9 @@ $muted: rgba(0,0,0,0.45);
   padding: 16px; background: #f0fdf4; border-radius: 12px; border: 1px solid #bbf7d0;
   font-size: 14px; font-weight: 600; color: #15803d; margin: 12px 0;
   lucide-icon { width: 22px; height: 22px; flex-shrink: 0; }
+}
+
+.deal-miles {
+  font-size: 12px; font-weight: 500; color: #888;
+  background: #f1f5f9; border-radius: 4px; padding: 1px 6px;
 }
