@@ -36,7 +36,7 @@
         <div class="prop-editor-actions">
           @if(saved()){<span class="prop-saved">Saved</span>}
           <button class="prop-save-btn" (click)="saveProposal()" [disabled]="saving()">
-            @if(saving()){ Saving... }@else{ Save }
+            @if(saving()){ Saving... }@else if(saved()){ ✓ Saved }@else{ Save }
           </button>
         </div>
       </div>
@@ -178,7 +178,7 @@
           <div class="desk-meta">
             <div class="prop-field">
               <label>Status</label>
-              <select [(ngModel)]="s.status">
+              <select [(ngModel)]="s.status" (change)="autosave(s)">
                 <option value="draft">Draft</option>
                 <option value="sent">Sent</option>
                 <option value="viewed">Viewed</option>
@@ -195,7 +195,7 @@
           <!-- Asking Price -->
           <div class="desk-asking-row">
             <label>Asking Price</label>
-            <div class="desk-dollar desk-dollar-big"><span>$</span><input type="text" [ngModel]="fmt(s.asking_price)" (ngModelChange)="s.asking_price = parse($event)" placeholder="" /></div>
+            <div class="desk-dollar desk-dollar-big"><span>$</span><input type="text" [ngModel]="fmt(s.asking_price)" (ngModelChange)="s.asking_price = parse($event); autosave(s)" placeholder="" /></div>
           </div>
 
           <!-- Line Items -->
@@ -203,10 +203,10 @@
             <div class="desk-section-title" style="padding:10px 0 6px">Line Items</div>
             @for(li of getLineItems(s); track $index; let i = $index){
             <div class="prop-li-row">
-              <input class="prop-li-label" [(ngModel)]="li.label" placeholder="Label" [ngModelOptions]="{standalone: true}" />
-              <div class="prop-li-amount"><span>$</span><input type="text" [ngModel]="fmt(li.amount)" (ngModelChange)="li.amount = parse($event)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
-              <label class="prop-li-check"><input type="checkbox" [(ngModel)]="li.taxable" [ngModelOptions]="{standalone: true}" /> Tax</label>
-              <label class="prop-li-check prop-li-check--gross"><input type="checkbox" [(ngModel)]="li.add_to_gross" [ngModelOptions]="{standalone: true}" /> +Gross</label>
+              <input class="prop-li-label" [(ngModel)]="li.label" (change)="autosave(s)" placeholder="Label" [ngModelOptions]="{standalone: true}" />
+              <div class="prop-li-amount"><span>$</span><input type="text" [ngModel]="fmt(li.amount)" (ngModelChange)="li.amount = parse($event); autosave(s)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
+              <label class="prop-li-check"><input type="checkbox" [(ngModel)]="li.taxable" (change)="autosave(s)" [ngModelOptions]="{standalone: true}" /> Tax</label>
+              <label class="prop-li-check prop-li-check--gross"><input type="checkbox" [(ngModel)]="li.add_to_gross" (change)="autosave(s)" [ngModelOptions]="{standalone: true}" /> +Gross</label>
               <button class="prop-li-del" (click)="removeLineItem(s, i)"><lucide-icon name="x" /></button>
             </div>
             }
@@ -221,7 +221,7 @@
           <div class="desk-tax-row">
             <span>Tax Rate</span>
             <div class="desk-tax-input">
-              <input type="number" step="0.01" [(ngModel)]="s.tax_rate" placeholder="5.5" />
+              <input type="number" step="0.01" [(ngModel)]="s.tax_rate" (change)="autosave(s)" placeholder="5.5" />
               <span>%</span>
             </div>
           </div>
@@ -241,11 +241,11 @@
             <div class="prop-field-row">
               <div class="prop-field">
                 <label>Allowance</label>
-                <div class="prop-price-input"><span>$</span><input type="text" [ngModel]="fmt(getTradeIn(s).allowance)" (ngModelChange)="getTradeIn(s).allowance = parse($event)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
+                <div class="prop-price-input"><span>$</span><input type="text" [ngModel]="fmt(getTradeIn(s).allowance)" (ngModelChange)="getTradeIn(s).allowance = parse($event); autosave(s)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
               </div>
               <div class="prop-field">
                 <label>Payoff</label>
-                <div class="prop-price-input"><span>$</span><input type="text" [ngModel]="fmt(getTradeIn(s).payoff)" (ngModelChange)="getTradeIn(s).payoff = parse($event)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
+                <div class="prop-price-input"><span>$</span><input type="text" [ngModel]="fmt(getTradeIn(s).payoff)" (ngModelChange)="getTradeIn(s).payoff = parse($event); autosave(s)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
               </div>
             </div>
             <div class="prop-field">
@@ -259,7 +259,7 @@
             <span>Down Payment</span>
             <div class="prop-price-input" style="width:160px">
               <span>$</span>
-              <input type="text" [ngModel]="fmt(s.down_payment)" (ngModelChange)="s.down_payment = parse($event)" placeholder="" />
+              <input type="text" [ngModel]="fmt(s.down_payment)" (ngModelChange)="s.down_payment = parse($event); autosave(s)" placeholder="" />
             </div>
           </div>
 
@@ -323,7 +323,7 @@
             }
             <div class="deal-marine-row">
               <label class="deal-marine-label">
-                <input type="checkbox" [(ngModel)]="s.marine_cu" [ngModelOptions]="{standalone: true}" />
+                <input type="checkbox" [(ngModel)]="s.marine_cu" (change)="autosave(s)" [ngModelOptions]="{standalone: true}" />
                 Marine CU Backend (1.5% of financed)
               </label>
               @if(s.marine_cu){

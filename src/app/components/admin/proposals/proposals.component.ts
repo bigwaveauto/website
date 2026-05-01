@@ -34,11 +34,13 @@ export class AdminProposalsComponent implements OnInit {
   setMode(s: any, mode: 'info' | 'proposal') {
     s.proposal_mode = mode;
     this.selected.set({ ...s });
+    this.autosave(s);
   }
 
   // Edit
   saving = signal(false);
   saved = signal(false);
+  private autosaveTimer: any = null;
 
   // Auction fee tiers
   auctionFeeTiers = signal([
@@ -291,8 +293,13 @@ export class AdminProposalsComponent implements OnInit {
     return (this.selected()?.excluded_fields || []).includes(field);
   }
 
-  saveProposal() {
-    const s = this.selected();
+  autosave(s?: any) {
+    clearTimeout(this.autosaveTimer);
+    this.autosaveTimer = setTimeout(() => this.saveProposal(s), 1200);
+  }
+
+  saveProposal(override?: any) {
+    const s = override || this.selected();
     if (!s) return;
     this.saving.set(true);
     this.http.post(`/api/admin/proposal/${s.id}`, {

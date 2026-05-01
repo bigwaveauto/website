@@ -2312,7 +2312,7 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (req.body.min_price !== undefined) updates['min_price'] = req.body.min_price;
     if (req.body.mmr !== undefined) updates['mmr'] = req.body.mmr;
     if (req.body.marine_cu !== undefined) updates['marine_cu'] = req.body.marine_cu;
-    // proposal_mode omitted until column is added to DB
+    if (req.body.proposal_mode !== undefined) updates['proposal_mode'] = req.body.proposal_mode;
     updates['updated_at'] = new Date().toISOString();
 
     const { error } = await supabase
