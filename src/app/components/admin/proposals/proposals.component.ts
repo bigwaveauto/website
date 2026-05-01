@@ -360,11 +360,13 @@ export class AdminProposalsComponent implements OnInit {
     if (!s.line_items) s.line_items = [];
     s.line_items.push({ label, amount, taxable });
     this.selected.set({ ...s });
+    this.autosave(s);
   }
 
   removeLineItem(s: any, index: number) {
     s.line_items = s.line_items.filter((_: any, i: number) => i !== index);
     this.selected.set({ ...s });
+    this.autosave(s);
   }
 
   applyPreset(s: any) {
@@ -434,6 +436,7 @@ export class AdminProposalsComponent implements OnInit {
   removePhoto(s: any, index: number) {
     s.photos = s.photos.filter((_: any, i: number) => i !== index);
     this.selected.set({ ...s });
+    this.autosave(s);
   }
 
   timeAgo(date: string): string {
