@@ -343,7 +343,19 @@ export class AdminProposalsComponent implements OnInit {
       min_price: s.min_price || 0,
       marine_cu: s.marine_cu || false,
     }).subscribe({
-      next: () => { this.saving.set(false); this.saved.set(true); setTimeout(() => this.saved.set(false), 3000); },
+      next: () => {
+        this.saving.set(false);
+        this.saved.set(true);
+        setTimeout(() => this.saved.set(false), 3000);
+        // Re-fetch from server so admin numbers match what's in DB (customer-facing)
+        this.http.get<any[]>('/api/admin/proposals').subscribe({
+          next: (data) => {
+            this.proposals.set(data || []);
+            const fresh = (data || []).find((p: any) => p.id === s.id);
+            if (fresh) this.selected.set({ ...fresh });
+          },
+        });
+      },
       error: (err) => { this.saving.set(false); alert('Failed to save: ' + (err?.error?.error || err?.status || 'unknown')); },
     });
   }

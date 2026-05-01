@@ -45,24 +45,6 @@ export class ProposalComponent implements OnInit {
       next: (data) => {
         this.proposal.set(data);
         this.loading.set(false);
-        console.log('[proposal] raw data:', {
-          asking_price: data.asking_price,
-          tax_rate: data.tax_rate,
-          line_items: data.line_items,
-          trade_in: data.trade_in,
-          down_payment: data.down_payment,
-        });
-        setTimeout(() => {
-          console.log('[proposal] computed:', {
-            taxableGross: this.taxableGross,
-            taxableAmount: this.taxableAmount,
-            taxAmount: this.taxAmount,
-            nonTaxableTotal: this.nonTaxableTotal,
-            cashPrice: this.cashPrice,
-            tradePayoff: this.tradePayoff,
-            totalDue: this.totalDue,
-          });
-        }, 0);
       },
       error: () => {
         this.notFound.set(true);
