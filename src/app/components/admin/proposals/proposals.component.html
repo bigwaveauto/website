@@ -164,16 +164,10 @@
 
           <!-- Spread -->
           <div class="desk-spread">
-            <div class="desk-spread-item" [class.desk-pos]="grossProfit(s) >= 0" [class.desk-neg]="grossProfit(s) < 0">
-              <span class="desk-spread-label">Gross @ Ask</span>
-              <span class="desk-spread-val">{{ grossProfit(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            <div class="desk-spread-item" [class.desk-pos]="totalGross(s) >= 0" [class.desk-neg]="totalGross(s) < 0">
+              <span class="desk-spread-label">Total Gross</span>
+              <span class="desk-spread-val">{{ totalGross(s) | currency:'USD':'symbol':'1.0-0' }}</span>
             </div>
-            @if(s.min_price > 0){
-            <div class="desk-spread-item" [class.desk-pos]="minGross(s) >= 0" [class.desk-neg]="minGross(s) < 0">
-              <span class="desk-spread-label">Gross @ Min</span>
-              <span class="desk-spread-val">{{ minGross(s) | currency:'USD':'symbol':'1.0-0' }}</span>
-            </div>
-            }
             <div class="desk-spread-item">
               <span class="desk-spread-label">Margin</span>
               <span class="desk-spread-val">{{ grossMargin(s) | number:'1.1-1' }}%</span>
@@ -266,6 +260,81 @@
               <span>$</span>
               <input type="text" [ngModel]="fmt(s.down_payment)" (ngModelChange)="s.down_payment = parse($event)" placeholder="" />
             </div>
+          </div>
+
+          <!-- Deal Summary Waterfall -->
+          <div class="deal-summary">
+            <div class="deal-summary-title">Deal Summary</div>
+            <div class="deal-sum-row">
+              <span>Asking Price</span>
+              <span>{{ s.asking_price | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            @for(li of getLineItems(s); track $index){
+              @if(li.amount){
+              <div class="deal-sum-row deal-sum-li">
+                <span>{{ li.label }}{{ li.taxable ? ' *' : '' }}</span>
+                <span>{{ li.amount | currency:'USD':'symbol':'1.0-0' }}</span>
+              </div>
+              }
+            }
+            @if(s.tax_rate){
+            <div class="deal-sum-row deal-sum-tax">
+              <span>Sales Tax ({{ s.tax_rate }}%)</span>
+              <span>{{ taxAmount(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            }
+            <div class="deal-sum-row deal-sum-subtotal">
+              <span>Out-the-Door Total</span>
+              <span>{{ totalOTD(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            @if(netTrade(s) !== 0){
+            <div class="deal-sum-row" [class.deal-sum-credit]="netTrade(s) > 0">
+              <span>Trade Net {{ netTrade(s) > 0 ? '(Credit)' : '(Owed)' }}</span>
+              <span>{{ netTrade(s) > 0 ? '-' : '+' }}{{ (netTrade(s) | number:'1.0-0') | slice:1 }}</span>
+            </div>
+            }
+            @if(s.down_payment){
+            <div class="deal-sum-row deal-sum-credit">
+              <span>Down Payment</span>
+              <span>-{{ s.down_payment | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            }
+            <div class="deal-sum-row deal-sum-financed">
+              <span>Amount Financed</span>
+              <span>{{ amountFinanced(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+
+          <!-- Gross Profit Summary -->
+          <div class="deal-gross-summary">
+            <div class="deal-summary-title">Gross Profit</div>
+            <div class="deal-sum-row">
+              <span>Front End</span>
+              <span [class.deal-pos]="grossProfit(s) >= 0" [class.deal-neg]="grossProfit(s) < 0">
+                {{ grossProfit(s) | currency:'USD':'symbol':'1.0-0' }}
+              </span>
+            </div>
+            <div class="deal-marine-row">
+              <label class="deal-marine-label">
+                <input type="checkbox" [(ngModel)]="s.marine_cu" [ngModelOptions]="{standalone: true}" />
+                Marine CU Backend (1.5% of financed)
+              </label>
+              @if(s.marine_cu){
+              <span class="deal-marine-val">+{{ marineCuBackend(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+              }
+            </div>
+            <div class="deal-sum-row deal-sum-subtotal" [class.deal-pos]="totalGross(s) >= 0" [class.deal-neg]="totalGross(s) < 0">
+              <span>Total Gross</span>
+              <span>{{ totalGross(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            @if(s.min_price){
+            <div class="deal-sum-row" style="font-size:11px;color:#888">
+              <span>Gross @ Min Price</span>
+              <span [class.deal-pos]="minGross(s) >= 0" [class.deal-neg]="minGross(s) < 0">
+                {{ minGross(s) | currency:'USD':'symbol':'1.0-0' }}
+              </span>
+            </div>
+            }
           </div>
 
           <!-- Custom Notes -->

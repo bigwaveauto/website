@@ -190,6 +190,46 @@ export class AdminProposalsComponent implements OnInit {
     return (this.grossProfit(s) / s.asking_price) * 100;
   }
 
+  // ── Deal Math ──
+  taxableSubtotal(s: any): number {
+    return (s.asking_price || 0) + (s.line_items || []).filter((li: any) => li.taxable && li.amount).reduce((sum: number, li: any) => sum + (li.amount || 0), 0);
+  }
+
+  taxAmount(s: any): number {
+    return Math.round(this.taxableSubtotal(s) * ((s.tax_rate || 0) / 100));
+  }
+
+  nonTaxableTotal(s: any): number {
+    return (s.line_items || []).filter((li: any) => !li.taxable && li.amount).reduce((sum: number, li: any) => sum + (li.amount || 0), 0);
+  }
+
+  totalOTD(s: any): number {
+    return this.taxableSubtotal(s) + this.taxAmount(s) + this.nonTaxableTotal(s);
+  }
+
+  netTrade(s: any): number {
+    const t = s.trade_in;
+    if (!t) return 0;
+    return (t.allowance || 0) - (t.payoff || 0);
+  }
+
+  amountDue(s: any): number {
+    return this.totalOTD(s) - this.netTrade(s);
+  }
+
+  amountFinanced(s: any): number {
+    return Math.max(0, this.amountDue(s) - (s.down_payment || 0));
+  }
+
+  marineCuBackend(s: any): number {
+    if (!s.marine_cu) return 0;
+    return Math.round(this.amountFinanced(s) * 0.015);
+  }
+
+  totalGross(s: any): number {
+    return this.grossProfit(s) + this.marineCuBackend(s);
+  }
+
   // ── Formatting ──
   fmt(val: any): string {
     if (!val && val !== 0) return '';
@@ -273,6 +313,7 @@ export class AdminProposalsComponent implements OnInit {
       recon_other: s.recon_other || 0,
       est_days_to_sell: s.est_days_to_sell || 45,
       min_price: s.min_price || 0,
+      marine_cu: s.marine_cu || false,
     }).subscribe({
       next: () => { this.saving.set(false); this.saved.set(true); setTimeout(() => this.saved.set(false), 3000); },
       error: (err) => { this.saving.set(false); alert('Failed to save: ' + (err?.error?.error || err?.status || 'unknown')); },

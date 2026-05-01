@@ -2311,6 +2311,7 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (req.body.est_days_to_sell !== undefined) updates['est_days_to_sell'] = req.body.est_days_to_sell;
     if (req.body.min_price !== undefined) updates['min_price'] = req.body.min_price;
     if (req.body.mmr !== undefined) updates['mmr'] = req.body.mmr;
+    if (req.body.marine_cu !== undefined) updates['marine_cu'] = req.body.marine_cu;
     // proposal_mode omitted until column is added to DB
     updates['updated_at'] = new Date().toISOString();
 

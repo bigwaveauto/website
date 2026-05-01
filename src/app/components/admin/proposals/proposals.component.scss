@@ -528,3 +528,58 @@ $muted: rgba(0,0,0,0.45);
   padding: 12px 20px; border-top: 1px solid rgba(0,0,0,0.07);
   display: flex; justify-content: flex-end;
 }
+
+/* ── Deal Summary ── */
+.deal-summary, .deal-gross-summary {
+  margin: 0 14px 0; padding: 12px 14px;
+  background: #f8f9fb; border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.07);
+  margin-bottom: 10px;
+}
+
+.deal-summary-title {
+  font-size: 10px; font-weight: 800; color: #8b95a8;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+
+.deal-sum-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; color: #333; padding: 3px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  &:last-child { border-bottom: none; }
+  span:first-child { color: #666; }
+  span:last-child { font-weight: 600; color: #111; }
+}
+
+.deal-sum-li { font-size: 12px; color: #888; }
+.deal-sum-tax { color: #b45309; span:first-child { color: #b45309 !important; } }
+
+.deal-sum-subtotal {
+  font-weight: 700 !important;
+  border-top: 1.5px solid rgba(0,0,0,0.1) !important;
+  margin-top: 2px; padding-top: 6px !important;
+  span { font-size: 14px; color: #111 !important; }
+}
+
+.deal-sum-credit span:last-child { color: #16a34a !important; }
+
+.deal-sum-financed {
+  span { font-size: 14px; font-weight: 800 !important; color: #1d4ed8 !important; }
+}
+
+.deal-marine-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.deal-marine-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12.5px; color: #555; font-weight: 500; cursor: pointer;
+  input[type="checkbox"] { accent-color: #0ea5e9; width: 14px; height: 14px; cursor: pointer; }
+}
+
+.deal-marine-val { font-size: 13px; font-weight: 700; color: #0ea5e9; }
+
+.deal-pos { color: #16a34a !important; }
+.deal-neg { color: #dc2626 !important; }
