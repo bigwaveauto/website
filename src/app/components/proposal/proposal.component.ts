@@ -79,7 +79,7 @@ export class ProposalComponent implements OnInit {
 
   get taxAmount(): number {
     const rate = this.proposal()?.tax_rate || 0;
-    return Math.round(this.taxableAmount * rate) / 100;
+    return Math.round(this.taxableAmount * (rate / 100));
   }
 
   get nonTaxableItems(): any[] {
@@ -90,17 +90,24 @@ export class ProposalComponent implements OnInit {
     return this.nonTaxableItems.reduce((s: number, li: any) => s + (li.amount || 0), 0);
   }
 
+  // OTD = (asking − trade_allowance) + fees + tax  (trade allowance baked into taxableAmount)
   get cashPrice(): number {
-    return this.taxableGross + this.taxAmount + this.nonTaxableTotal;
+    return this.taxableAmount + this.taxAmount + this.nonTaxableTotal;
   }
 
+  get tradePayoff(): number {
+    return this.tradeIn?.payoff || 0;
+  }
+
+  // Display helper: net trade equity shown in the trade section
   get tradeEquity(): number {
     if (!this.tradeIn) return 0;
     return (this.tradeIn.allowance || 0) - (this.tradeIn.payoff || 0);
   }
 
+  // Balance due = OTD + payoff (dealer pays lender) − down payment
   get totalDue(): number {
-    return this.cashPrice - this.tradeEquity - (this.proposal()?.down_payment || 0);
+    return this.cashPrice + this.tradePayoff - (this.proposal()?.down_payment || 0);
   }
 
   prevPhoto() {
