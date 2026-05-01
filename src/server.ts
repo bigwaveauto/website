@@ -2258,6 +2258,7 @@ app.get('/api/admin/proposals', async (_req, res) => {
  */
 app.post('/api/admin/proposal/carfax', upload.single('file'), async (req: any, res) => {
   try {
+    console.log('[carfax upload] file:', req.file ? `${req.file.originalname} ${req.file.size}b` : 'MISSING', 'proposal_id:', req.body?.proposal_id, 'vin:', req.body?.vin);
     if (!req.file) { res.status(400).json({ error: 'No file' }); return; }
     const proposalId = req.body.proposal_id;
     const vin = req.body.vin;
