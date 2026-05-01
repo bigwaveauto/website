@@ -413,7 +413,9 @@ export class AdminProposalsComponent implements OnInit {
 
   // ── Trade-In ──
   getTradeIn(s: any): any {
-    if (!s.trade_in) s.trade_in = { year: '', make: '', model: '', vin: '', mileage: '', allowance: 0, payoff: 0, payoff_to: '' };
+    if (!s.trade_in) {
+      s.trade_in = { year: '', make: '', model: '', vin: '', mileage: '', allowance: null, payoff: null, payoff_to: '' };
+    }
     return s.trade_in;
   }
 
