@@ -305,6 +305,7 @@ export class AdminProposalsComponent implements OnInit {
     this.http.post(`/api/admin/proposal/${s.id}`, {
       vehicle: s.vehicle,
       condition: s.condition,
+      photos: s.photos || [],
       excluded_fields: s.excluded_fields,
       custom_notes: s.custom_notes,
       asking_price: s.asking_price,
