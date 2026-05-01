@@ -67,7 +67,8 @@ export class ProposalComponent implements OnInit {
   }
 
   get taxableAmount(): number {
-    return this.askingPrice + this.taxableLineItems.reduce((s: number, li: any) => s + (li.amount || 0), 0);
+    const tradeAllowance = this.tradeIn?.allowance || 0;
+    return this.askingPrice - tradeAllowance + this.taxableLineItems.reduce((s: number, li: any) => s + (li.amount || 0), 0);
   }
 
   get taxAmount(): number {
@@ -84,7 +85,9 @@ export class ProposalComponent implements OnInit {
   }
 
   get cashPrice(): number {
-    return this.taxableAmount + this.taxAmount + this.nonTaxableTotal;
+    // Full OTD = vehicle + all fees + tax (trade-in reduces tax base but is credited separately)
+    const allFees = this.taxableLineItems.reduce((s: number, li: any) => s + (li.amount || 0), 0) + this.nonTaxableTotal;
+    return this.askingPrice + allFees + this.taxAmount;
   }
 
   get tradeEquity(): number {

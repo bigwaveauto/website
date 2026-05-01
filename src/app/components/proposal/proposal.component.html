@@ -301,6 +301,16 @@
         <div class="deal-section-label">Sales Tax</div>
         <div class="deal-lines">
           <div class="deal-line deal-line-sub">
+            <span>Sale Price</span>
+            <span>{{ askingPrice | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          @if(tradeIn?.allowance){
+          <div class="deal-line deal-line-sub">
+            <span>Less Trade-In Allowance</span>
+            <span class="deal-credit">-{{ tradeIn.allowance | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          }
+          <div class="deal-line deal-line-sub">
             <span>Amount Subject to Tax</span>
             <span>{{ taxableAmount | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
