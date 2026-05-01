@@ -2315,6 +2315,8 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (req.body.proposal_mode !== undefined) updates['proposal_mode'] = req.body.proposal_mode;
     updates['updated_at'] = new Date().toISOString();
 
+    console.log('[proposal save] id:', req.params['id'], 'photos count:', photos?.length ?? 'not sent');
+
     const { error } = await supabase
       .from('vehicle_proposals')
       .update(updates)
