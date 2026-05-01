@@ -197,34 +197,50 @@ export class AdminProposalsComponent implements OnInit {
   }
 
   // ── Deal Math ──
-  taxableSubtotal(s: any): number {
-    return (s.asking_price || 0) + (s.line_items || []).filter((li: any) => li.taxable && li.amount).reduce((sum: number, li: any) => sum + (li.amount || 0), 0);
+  // WI law: trade allowance reduces the taxable base, not the sticker price.
+  // totalOTD = (asking − allowance) + fees + tax.  Then add payoff (lender) after OTD.
+
+  taxableGross(s: any): number {
+    return (s.asking_price || 0) + (s.line_items || [])
+      .filter((li: any) => li.taxable && li.amount)
+      .reduce((sum: number, li: any) => sum + (li.amount || 0), 0);
+  }
+
+  // Tax base after WI trade deduction
+  taxableBase(s: any): number {
+    const tradeAllowance = s.trade_in?.allowance || 0;
+    return Math.max(0, this.taxableGross(s) - tradeAllowance);
   }
 
   taxAmount(s: any): number {
-    return Math.round(this.taxableSubtotal(s) * ((s.tax_rate || 0) / 100));
+    return Math.round(this.taxableBase(s) * ((s.tax_rate || 0) / 100));
   }
 
   nonTaxableTotal(s: any): number {
-    return (s.line_items || []).filter((li: any) => !li.taxable && li.amount).reduce((sum: number, li: any) => sum + (li.amount || 0), 0);
+    return (s.line_items || []).filter((li: any) => !li.taxable && li.amount)
+      .reduce((sum: number, li: any) => sum + (li.amount || 0), 0);
   }
 
+  // OTD = (asking − trade_allowance) + all fees + tax.
+  // Trade allowance is already baked in via taxableBase.
   totalOTD(s: any): number {
-    return this.taxableSubtotal(s) + this.taxAmount(s) + this.nonTaxableTotal(s);
+    return this.taxableBase(s) + this.taxAmount(s) + this.nonTaxableTotal(s);
   }
 
-  netTrade(s: any): number {
-    const t = s.trade_in;
-    if (!t) return 0;
-    return (t.allowance || 0) - (t.payoff || 0);
-  }
-
-  amountDue(s: any): number {
-    return this.totalOTD(s) - this.netTrade(s);
-  }
-
+  // After OTD, add any trade payoff (dealer pays lender → adds to amount financed).
   amountFinanced(s: any): number {
-    return Math.max(0, this.amountDue(s) - (s.down_payment || 0));
+    const payoff = s.trade_in?.payoff || 0;
+    return Math.max(0, this.totalOTD(s) + payoff - (s.down_payment || 0));
+  }
+
+  // Display helper: trade allowance (shown under asking price in waterfall)
+  tradeAllowance(s: any): number {
+    return s.trade_in?.allowance || 0;
+  }
+
+  // Display helper: trade payoff shown after OTD (adds to what's financed)
+  tradePayoff(s: any): number {
+    return s.trade_in?.payoff || 0;
   }
 
   marineCuBackend(s: any): number {

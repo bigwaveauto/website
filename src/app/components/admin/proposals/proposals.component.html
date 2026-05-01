@@ -270,6 +270,12 @@
               <span>Asking Price</span>
               <span>{{ s.asking_price | currency:'USD':'symbol':'1.0-0' }}</span>
             </div>
+            @if(tradeAllowance(s)){
+            <div class="deal-sum-row deal-sum-credit">
+              <span>Less Trade Allowance</span>
+              <span>-{{ tradeAllowance(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            }
             @for(li of getLineItems(s); track $index){
               @if(li.amount){
               <div class="deal-sum-row deal-sum-li">
@@ -288,10 +294,10 @@
               <span>Out-the-Door Total</span>
               <span>{{ totalOTD(s) | currency:'USD':'symbol':'1.0-0' }}</span>
             </div>
-            @if(netTrade(s) !== 0){
-            <div class="deal-sum-row" [class.deal-sum-credit]="netTrade(s) > 0">
-              <span>Trade Net {{ netTrade(s) > 0 ? '(Credit)' : '(Owed)' }}</span>
-              <span>{{ netTrade(s) > 0 ? '-' : '+' }}{{ (netTrade(s) | number:'1.0-0') | slice:1 }}</span>
+            @if(tradePayoff(s)){
+            <div class="deal-sum-row deal-sum-owed">
+              <span>Trade Payoff (to lender)</span>
+              <span>+{{ tradePayoff(s) | currency:'USD':'symbol':'1.0-0' }}</span>
             </div>
             }
             @if(s.down_payment){
