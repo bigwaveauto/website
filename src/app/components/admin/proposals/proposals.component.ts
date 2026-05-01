@@ -344,6 +344,10 @@ export class AdminProposalsComponent implements OnInit {
       est_days_to_sell: s.est_days_to_sell || 45,
       min_price: s.min_price || 0,
       marine_cu: s.marine_cu || false,
+      customer_name: s.customer_name || '',
+      customer_phone: s.customer_phone || '',
+      customer_address: s.customer_address || '',
+      customer_zip: s.customer_zip || '',
     }).subscribe({
       next: () => {
         this.saving.set(false);
@@ -470,6 +474,18 @@ export class AdminProposalsComponent implements OnInit {
     s.photos = s.photos.filter((_: any, i: number) => i !== index);
     this.selected.set({ ...s });
     this.autosave(s);
+  }
+
+  deleteProposal(p: any, event: Event) {
+    event.stopPropagation();
+    if (!confirm(`Delete ${this.vehicleName(p)}?`)) return;
+    this.http.delete(`/api/admin/proposal/${p.id}`).subscribe({
+      next: () => {
+        this.proposals.update(list => list.filter((x: any) => x.id !== p.id));
+        if (this.selected()?.id === p.id) this.selected.set(null);
+      },
+      error: () => alert('Failed to delete proposal'),
+    });
   }
 
   timeAgo(date: string): string {

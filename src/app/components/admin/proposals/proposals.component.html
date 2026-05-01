@@ -15,15 +15,20 @@
     <div class="prop-list">
       @for(p of proposals(); track p.id){
       <div class="prop-card" [class.active]="selected()?.id === p.id" (click)="selectProposal(p)">
-        <div class="prop-card-top">
+        <div class="prop-card-main">
           <span class="prop-card-name">
             @if(p.vehicle?.year){ {{ p.vehicle.year }} {{ p.vehicle.make }} {{ p.vehicle.model }} }
             @else { <span class="prop-card-noname">{{ p.vin }}</span> }
           </span>
-          <span class="prop-card-status" [class.draft]="p.status === 'draft'" [class.sent]="p.status === 'sent'">{{ p.status }}</span>
+          <span class="prop-card-meta-inline">
+            @if(p.customer_name){ <span class="prop-card-customer-inline">{{ p.customer_name }}</span> &middot; }
+            {{ timeAgo(p.created_at) }}
+          </span>
         </div>
-        <div class="prop-card-vin">{{ p.vin }}@if(p.vehicle?.mileage){ &middot; {{ p.vehicle.mileage | number }} mi}@if(p.sent_to){ &middot; <span class="prop-card-customer-inline">{{ p.sent_to }}</span>}</div>
-        <div class="prop-card-meta">{{ timeAgo(p.created_at) }}</div>
+        <div class="prop-card-right">
+          <span class="prop-card-status" [class.draft]="p.status === 'draft'" [class.sent]="p.status === 'sent'">{{ p.status }}</span>
+          <button class="prop-card-del" (click)="deleteProposal(p, $event)"><lucide-icon name="x" /></button>
+        </div>
       </div>
       }
     </div>
@@ -49,6 +54,14 @@
         <button class="prop-mode-btn" [class.active]="s.proposal_mode === 'proposal'" (click)="setMode(s, 'proposal')">
           <lucide-icon name="file-text" /> Price Proposal
         </button>
+      </div>
+
+      <!-- Customer Info -->
+      <div class="prop-customer-row">
+        <input class="prop-customer-input" [(ngModel)]="s.customer_name" (change)="autosave()" placeholder="Customer Name" />
+        <input class="prop-customer-input" [(ngModel)]="s.customer_phone" (change)="autosave()" placeholder="Phone" />
+        <input class="prop-customer-input" [(ngModel)]="s.customer_address" (change)="autosave()" placeholder="Address" />
+        <input class="prop-customer-input prop-customer-zip" [(ngModel)]="s.customer_zip" (change)="autosave()" placeholder="ZIP" />
       </div>
 
       <!-- Actions -->

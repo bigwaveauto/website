@@ -18,23 +18,40 @@ $muted: rgba(0,0,0,0.45);
 .prop-list { display: flex; flex-direction: column; gap: 6px; max-height: 80vh; overflow-y: auto; }
 
 .prop-card {
-  padding: 8px 12px; background: white; border-radius: 8px; border: 1.5px solid $border;
+  padding: 6px 10px; background: white; border-radius: 8px; border: 1.5px solid $border;
   cursor: pointer; transition: border-color 0.15s;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
   &:hover { border-color: #999; }
   &.active { border-color: $blue; background: #f0f4ff; }
 }
 
-.prop-card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.prop-card-name { font-size: 13px; font-weight: 800; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prop-card-main { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.prop-card-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.prop-card-name { font-size: 13px; font-weight: 700; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prop-card-meta-inline { font-size: 10px; color: $muted; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prop-card-status {
   font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
   &.draft { background: #fef9c3; color: #854d0e; }
   &.sent { background: #dcfce7; color: #166534; }
 }
 .prop-card-noname { color: #aaa; font-style: italic; font-weight: 400; font-size: 12px; }
-.prop-card-vin { font-size: 10px; color: $muted; font-family: monospace; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.prop-card-customer-inline { color: #2563eb; font-weight: 600; font-family: inherit; }
-.prop-card-meta { font-size: 10px; color: $muted; margin-top: 2px; }
+.prop-card-customer-inline { color: #2563eb; font-weight: 600; }
+.prop-card-del {
+  background: none; border: none; cursor: pointer; padding: 2px; color: #ccc; line-height: 0;
+  border-radius: 4px; display: flex; align-items: center;
+  &:hover { color: #ef4444; background: #fee2e2; }
+  lucide-icon { width: 14px; height: 14px; }
+}
+
+.prop-customer-row {
+  display: flex; gap: 8px; padding: 8px 14px; border-bottom: 1px solid $border; flex-wrap: wrap;
+}
+.prop-customer-input {
+  flex: 1; min-width: 120px; padding: 6px 10px; border: 1px solid $border; border-radius: 6px;
+  font-size: 13px; outline: none;
+  &:focus { border-color: #2563eb; }
+}
+.prop-customer-zip { max-width: 90px; }
 
 .prop-editor {
   background: white; border-radius: 12px; padding: 20px;

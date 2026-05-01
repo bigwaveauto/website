@@ -2314,6 +2314,10 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (req.body.mmr !== undefined) updates['mmr'] = req.body.mmr;
     if (req.body.marine_cu !== undefined) updates['marine_cu'] = req.body.marine_cu;
     if (req.body.proposal_mode !== undefined) updates['proposal_mode'] = req.body.proposal_mode;
+    if (req.body.customer_name !== undefined) updates['customer_name'] = req.body.customer_name;
+    if (req.body.customer_phone !== undefined) updates['customer_phone'] = req.body.customer_phone;
+    if (req.body.customer_address !== undefined) updates['customer_address'] = req.body.customer_address;
+    if (req.body.customer_zip !== undefined) updates['customer_zip'] = req.body.customer_zip;
     updates['updated_at'] = new Date().toISOString();
 
     console.log('[proposal save] id:', req.params['id'], 'photos count:', photos?.length ?? 'not sent');
@@ -2328,6 +2332,22 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
   } catch (err) {
     console.error('Proposal save exception:', err);
     res.status(500).json({ error: 'Failed to update proposal' });
+  }
+});
+
+/**
+ * Admin — delete a proposal
+ */
+app.delete('/api/admin/proposal/:id', async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from('vehicle_proposals')
+      .delete()
+      .eq('id', req.params['id']);
+    if (error) { res.status(500).json({ error: error.message }); return; }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete proposal' });
   }
 });
 
