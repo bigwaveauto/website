@@ -177,8 +177,12 @@ export class AdminProposalsComponent implements OnInit {
     return Math.round((principal * rate / 100 / 365) * days);
   }
 
+  lineItemGross(s: any): number {
+    return (s.line_items || []).filter((li: any) => li.add_to_gross && li.amount).reduce((sum: number, li: any) => sum + (li.amount || 0), 0);
+  }
+
   grossProfit(s: any): number {
-    return (s.asking_price || 0) - this.totalInvestment(s);
+    return (s.asking_price || 0) - this.totalInvestment(s) + this.lineItemGross(s);
   }
 
   minGross(s: any): number {

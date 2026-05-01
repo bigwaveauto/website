@@ -206,6 +206,7 @@
               <input class="prop-li-label" [(ngModel)]="li.label" placeholder="Label" [ngModelOptions]="{standalone: true}" />
               <div class="prop-li-amount"><span>$</span><input type="text" [ngModel]="fmt(li.amount)" (ngModelChange)="li.amount = parse($event)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
               <label class="prop-li-check"><input type="checkbox" [(ngModel)]="li.taxable" [ngModelOptions]="{standalone: true}" /> Tax</label>
+              <label class="prop-li-check prop-li-check--gross"><input type="checkbox" [(ngModel)]="li.add_to_gross" [ngModelOptions]="{standalone: true}" /> +Gross</label>
               <button class="prop-li-del" (click)="removeLineItem(s, i)"><lucide-icon name="x" /></button>
             </div>
             }
@@ -314,6 +315,12 @@
                 {{ grossProfit(s) | currency:'USD':'symbol':'1.0-0' }}
               </span>
             </div>
+            @if(lineItemGross(s) > 0){
+            <div class="deal-sum-row" style="font-size:12px">
+              <span style="color:#888">incl. line items (+gross)</span>
+              <span style="color:#16a34a">+{{ lineItemGross(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            }
             <div class="deal-marine-row">
               <label class="deal-marine-label">
                 <input type="checkbox" [(ngModel)]="s.marine_cu" [ngModelOptions]="{standalone: true}" />
