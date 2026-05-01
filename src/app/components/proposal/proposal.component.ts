@@ -66,9 +66,15 @@ export class ProposalComponent implements OnInit {
     return this.lineItems.filter((li: any) => li.taxable && li.amount);
   }
 
+  // Gross taxable before trade deduction (shown in price section)
+  get taxableGross(): number {
+    return this.askingPrice + this.taxableLineItems.reduce((s: number, li: any) => s + (li.amount || 0), 0);
+  }
+
+  // Net taxable after trade allowance (WI law: trade reduces tax base)
   get taxableAmount(): number {
     const tradeAllowance = this.tradeIn?.allowance || 0;
-    return this.askingPrice - tradeAllowance + this.taxableLineItems.reduce((s: number, li: any) => s + (li.amount || 0), 0);
+    return Math.max(0, this.taxableGross - tradeAllowance);
   }
 
   get taxAmount(): number {
@@ -85,9 +91,7 @@ export class ProposalComponent implements OnInit {
   }
 
   get cashPrice(): number {
-    // Full OTD = vehicle + all fees + tax (trade-in reduces tax base but is credited separately)
-    const allFees = this.taxableLineItems.reduce((s: number, li: any) => s + (li.amount || 0), 0) + this.nonTaxableTotal;
-    return this.askingPrice + allFees + this.taxAmount;
+    return this.taxableGross + this.taxAmount + this.nonTaxableTotal;
   }
 
   get tradeEquity(): number {
