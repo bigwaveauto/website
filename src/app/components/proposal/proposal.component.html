@@ -274,20 +274,22 @@
       @if(!isInfoMode){
 
       <!-- ═══ PRICE OF THE VEHICLE ═══ -->
-      @if(lineItems.length > 0){
+      @if(askingPrice > 0){
       <div class="deal-section">
         <div class="deal-section-label">Price of the Vehicle</div>
         <div class="deal-lines">
-          @for(li of lineItems; track $index){
-            @if(li.taxable){
-            <div class="deal-line" [class.deal-line-sub]="li.type === 'sub'">
-              <span>{{ li.label }}</span>
-              <span>{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
-            </div>
-            }
+          <div class="deal-line">
+            <span>Vehicle Price</span>
+            <span>{{ askingPrice | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          @for(li of taxableLineItems; track $index){
+          <div class="deal-line">
+            <span>{{ li.label }}</span>
+            <span>{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
           }
           <div class="deal-line deal-line-total">
-            <span>Cash Price</span>
+            <span>Taxable Subtotal</span>
             <span>{{ taxableAmount | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
         </div>
@@ -319,13 +321,11 @@
       <div class="deal-section">
         <div class="deal-section-label">Non-Taxable Items</div>
         <div class="deal-lines">
-          @for(li of lineItems; track $index){
-            @if(!li.taxable && li.type !== 'credit'){
-            <div class="deal-line deal-line-sub">
-              <span>{{ li.label }}</span>
-              <span>{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
-            </div>
-            }
+          @for(li of nonTaxableItems; track $index){
+          <div class="deal-line deal-line-sub">
+            <span>{{ li.label }}</span>
+            <span>{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
           }
           <div class="deal-line deal-line-total">
             <span>Total Non-Taxable</span>

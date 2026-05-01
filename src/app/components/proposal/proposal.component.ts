@@ -60,16 +60,14 @@ export class ProposalComponent implements OnInit {
   get lineItems(): any[] { return this.proposal()?.line_items || []; }
   get tradeIn(): any { return this.proposal()?.trade_in || null; }
 
-  get cashPrice(): number {
-    return this.lineItems
-      .filter((li: any) => li.type !== 'credit')
-      .reduce((s: number, li: any) => s + (li.amount || 0), 0);
+  get askingPrice(): number { return this.proposal()?.asking_price || 0; }
+
+  get taxableLineItems(): any[] {
+    return this.lineItems.filter((li: any) => li.taxable && li.amount);
   }
 
   get taxableAmount(): number {
-    return this.lineItems
-      .filter((li: any) => li.taxable)
-      .reduce((s: number, li: any) => s + (li.amount || 0), 0);
+    return this.askingPrice + this.taxableLineItems.reduce((s: number, li: any) => s + (li.amount || 0), 0);
   }
 
   get taxAmount(): number {
@@ -77,10 +75,16 @@ export class ProposalComponent implements OnInit {
     return Math.round(this.taxableAmount * rate) / 100;
   }
 
+  get nonTaxableItems(): any[] {
+    return this.lineItems.filter((li: any) => !li.taxable && li.amount);
+  }
+
   get nonTaxableTotal(): number {
-    return this.lineItems
-      .filter((li: any) => !li.taxable && li.type !== 'credit')
-      .reduce((s: number, li: any) => s + (li.amount || 0), 0);
+    return this.nonTaxableItems.reduce((s: number, li: any) => s + (li.amount || 0), 0);
+  }
+
+  get cashPrice(): number {
+    return this.taxableAmount + this.taxAmount + this.nonTaxableTotal;
   }
 
   get tradeEquity(): number {
@@ -89,7 +93,7 @@ export class ProposalComponent implements OnInit {
   }
 
   get totalDue(): number {
-    return this.cashPrice + this.taxAmount - this.tradeEquity - (this.proposal()?.down_payment || 0);
+    return this.cashPrice - this.tradeEquity - (this.proposal()?.down_payment || 0);
   }
 
   prevPhoto() {
