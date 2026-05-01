@@ -310,8 +310,10 @@ export class AdminProposalsComponent implements OnInit {
   }
 
   autosave(s?: any) {
+    // Always update selected() first so saveProposal reads the latest state
+    if (s) this.selected.set({ ...s });
     clearTimeout(this.autosaveTimer);
-    this.autosaveTimer = setTimeout(() => this.saveProposal(s), 1200);
+    this.autosaveTimer = setTimeout(() => this.saveProposal(), 1200);
   }
 
   saveProposal(override?: any) {
