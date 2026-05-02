@@ -196,6 +196,7 @@ const ADMIN_EMAILS = ['dave@bigwaveauto.com', 'dlucas589@gmail.com'];
 
 // Server-side admin auth middleware — validates Supabase JWT and checks email whitelist
 async function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  console.log('[requireAdmin]', req.method, req.path, 'auth:', req.headers.authorization ? 'present' : 'MISSING');
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
     res.status(401).json({ error: 'Authentication required' });
