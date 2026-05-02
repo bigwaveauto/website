@@ -290,6 +290,10 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .prop-bwa-name { font-size: 16px; font-weight: 900; color: #1e293b; }
+.prop-customer-greeting {
+  font-size: 13px; color: #64748b; margin: -8px 0 14px;
+  strong { color: #1e293b; }
+}
 .prop-bwa-tag { font-size: 11px; font-weight: 600; color: $muted; text-transform: uppercase; letter-spacing: 0.5px; }
 
 .prop-title-block { margin-bottom: 12px; }

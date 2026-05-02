@@ -207,6 +207,10 @@
         <span class="prop-bwa-tag">{{ isInfoMode ? 'Vehicle Report' : 'Price Proposal' }}</span>
       </div>
 
+      @if(p.customer_name){
+      <div class="prop-customer-greeting">Prepared for <strong>{{ p.customer_name }}</strong></div>
+      }
+
       <!-- Title -->
       <div class="prop-title-block">
         <span class="prop-year">{{ v.year }}</span>
