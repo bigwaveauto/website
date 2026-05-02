@@ -60,7 +60,19 @@
       <div class="prop-customer-row">
         <input class="prop-customer-input" [(ngModel)]="s.customer_name" (change)="autosave()" placeholder="Customer Name" />
         <input class="prop-customer-input" [(ngModel)]="s.customer_phone" (change)="autosave()" placeholder="Phone" />
-        <input class="prop-customer-input" [(ngModel)]="s.customer_address" (change)="autosave()" placeholder="Address" />
+        <div class="prop-addr-wrap">
+          <input class="prop-customer-input" [(ngModel)]="s.customer_address"
+            (ngModelChange)="onAddressInput(s, $event)"
+            (blur)="clearAddrSuggestions()"
+            placeholder="Address" autocomplete="off" />
+          @if(addrSuggestions().length){
+          <div class="prop-addr-dropdown">
+            @for(sug of addrSuggestions(); track sug.place_id){
+            <div class="prop-addr-item" (mousedown)="selectAddress(s, sug)">{{ sug.display_name }}</div>
+            }
+          </div>
+          }
+        </div>
         <input class="prop-customer-input prop-customer-zip" [(ngModel)]="s.customer_zip" (change)="autosave()" placeholder="ZIP" />
       </div>
 

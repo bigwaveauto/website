@@ -476,6 +476,37 @@ export class AdminProposalsComponent implements OnInit {
     this.autosave(s);
   }
 
+  // ── Address Autocomplete (Nominatim / OpenStreetMap) ──
+  addrSuggestions = signal<any[]>([]);
+  private addrTimer: any = null;
+
+  onAddressInput(s: any, val: string) {
+    s.customer_address = val;
+    clearTimeout(this.addrTimer);
+    if (!val || val.length < 4) { this.addrSuggestions.set([]); return; }
+    this.addrTimer = setTimeout(() => {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=us&limit=5&q=${encodeURIComponent(val)}`;
+      fetch(url, { headers: { 'Accept-Language': 'en' } })
+        .then(r => r.json())
+        .then((results: any[]) => this.addrSuggestions.set(results))
+        .catch(() => this.addrSuggestions.set([]));
+    }, 350);
+  }
+
+  selectAddress(s: any, sug: any) {
+    const a = sug.address || {};
+    const street = [a.house_number, a.road].filter(Boolean).join(' ');
+    s.customer_address = street || sug.display_name;
+    s.customer_zip = a.postcode || s.customer_zip || '';
+    this.selected.set({ ...s });
+    this.addrSuggestions.set([]);
+    this.autosave();
+  }
+
+  clearAddrSuggestions() {
+    setTimeout(() => this.addrSuggestions.set([]), 200);
+  }
+
   deleteProposal(p: any, event: Event) {
     event.stopPropagation();
     if (!confirm(`Delete ${this.vehicleName(p)}?`)) return;
