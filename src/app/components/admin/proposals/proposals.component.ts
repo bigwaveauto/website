@@ -509,7 +509,6 @@ export class AdminProposalsComponent implements OnInit {
 
   deleteProposal(p: any, event: Event) {
     event.stopPropagation();
-    if (!confirm(`Delete ${this.vehicleName(p)}?`)) return;
     this.http.delete(`/api/admin/proposal/${p.id}`).subscribe({
       next: () => {
         this.proposals.update(list => list.filter((x: any) => x.id !== p.id));
