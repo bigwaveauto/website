@@ -24,6 +24,8 @@ export class ProposalComponent implements OnInit {
   notFound = signal(false);
   selectedPhoto = signal(0);
   carfaxExpanded = signal(false);
+  lightboxOpen = signal(false);
+  lightboxIndex = signal(0);
 
   // Feedback signals (Info Only mode)
   interest = signal<'yes' | 'meh' | 'no' | null>(null);
@@ -118,6 +120,25 @@ export class ProposalComponent implements OnInit {
   nextPhoto() {
     const total = this.photos.length;
     this.selectedPhoto.update(i => (i + 1) % total);
+  }
+
+  openLightbox(index: number) {
+    this.lightboxIndex.set(index);
+    this.lightboxOpen.set(true);
+  }
+
+  lightboxPrev() {
+    const total = this.photos.length;
+    this.lightboxIndex.update(i => (i - 1 + total) % total);
+  }
+
+  lightboxNext() {
+    const total = this.photos.length;
+    this.lightboxIndex.update(i => (i + 1) % total);
+  }
+
+  closeLightbox() {
+    this.lightboxOpen.set(false);
   }
 
   safeUrl(url: string): SafeResourceUrl {

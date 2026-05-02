@@ -190,7 +190,7 @@
         <h2 class="prop-heading">All Photos ({{ photos.length }})</h2>
         <div class="prop-gallery">
           @for(photo of photos; track $index; let i = $index){
-          <img [src]="photo" alt="Photo" (click)="selectedPhoto.set(i)" />
+          <img [src]="photo" alt="Photo" (click)="openLightbox(i)" />
           }
         </div>
       </div>}
@@ -418,6 +418,19 @@
   </div>
 
 </div><!-- /prop-shell -->
+
+<!-- Lightbox -->
+@if(lightboxOpen()){
+<div class="lb-backdrop" (click)="closeLightbox()">
+  <div class="lb-modal" (click)="$event.stopPropagation()">
+    <button class="lb-close" (click)="closeLightbox()"><lucide-icon name="x" /></button>
+    <button class="lb-arrow lb-prev" (click)="lightboxPrev()"><lucide-icon name="chevron-left" /></button>
+    <img class="lb-img" [src]="photos[lightboxIndex()]" alt="Photo" />
+    <button class="lb-arrow lb-next" (click)="lightboxNext()"><lucide-icon name="chevron-right" /></button>
+    <div class="lb-counter">{{ lightboxIndex() + 1 }} / {{ photos.length }}</div>
+  </div>
+</div>
+}
 
 <!-- Question Modal -->
 @if(showQuestion()){
