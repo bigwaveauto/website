@@ -454,26 +454,46 @@
       }
 
       <!-- Toggle visibility -->
-      <h3 class="prop-toggle-title">Report Fields (click to hide/show)</h3>
-      <div class="prop-toggles">
-        @for(field of ['mileage','exterior_color','interior_color','engine','transmission','drivetrain','fuel','body','grade','announcements','tires']; track field){
-        <button class="prop-toggle" [class.excluded]="isExcluded(field)" (click)="toggleExclude(field)">
-          {{ field.replace('_', ' ') }}
-          @if(isExcluded(field)){ <lucide-icon name="eye-off" /> }@else{ <lucide-icon name="eye" /> }
-        </button>
-        }
+      <div class="vis-section">
+        <div class="vis-section-header">
+          <span class="vis-section-title">Visible Fields</span>
+          <span class="vis-section-hint">Click to show/hide on the customer proposal</span>
+        </div>
+        <div class="vis-grid">
+          @for(field of ['mileage','exterior_color','interior_color','engine','transmission','drivetrain','fuel','body','grade','announcements','tires']; track field){
+          <button class="vis-chip" [class.vis-hidden]="isExcluded(field)" (click)="toggleExclude(field)">
+            @if(isExcluded(field)){
+              <lucide-icon name="eye-off" class="vis-icon vis-icon-off" />
+            }@else{
+              <lucide-icon name="eye" class="vis-icon vis-icon-on" />
+            }
+            <span>{{ field.replace('_', ' ') }}</span>
+          </button>
+          }
+        </div>
       </div>
 
-      <!-- Damage items toggle -->
+      <!-- Condition Notes -->
       @if(s.condition?.damage?.length){
-      <h3 class="prop-toggle-title">Condition Notes</h3>
-      <div class="prop-toggles">
-        @for(d of s.condition.damage; track $index){
-        <button class="prop-toggle prop-toggle-damage" [class.excluded]="isExcluded('damage_' + $index)" (click)="toggleExclude('damage_' + $index)">
-          {{ d }}
-          @if(isExcluded('damage_' + $index)){ <lucide-icon name="eye-off" /> }@else{ <lucide-icon name="eye" /> }
-        </button>
-        }
+      <div class="vis-section">
+        <div class="vis-section-header">
+          <span class="vis-section-title">Condition Notes</span>
+          <span class="vis-section-hint">Hide items that are not actual damage</span>
+        </div>
+        <div class="cond-list">
+          @for(d of s.condition.damage; track $index){
+          <div class="cond-item" [class.cond-hidden]="isExcluded('damage_' + $index)">
+            <div class="cond-item-text">{{ d }}</div>
+            <button class="cond-toggle" (click)="toggleExclude('damage_' + $index)" [title]="isExcluded('damage_' + $index) ? 'Show' : 'Hide'">
+              @if(isExcluded('damage_' + $index)){
+                <lucide-icon name="eye-off" />
+              }@else{
+                <lucide-icon name="eye" />
+              }
+            </button>
+          </div>
+          }
+        </div>
       </div>
       }
 

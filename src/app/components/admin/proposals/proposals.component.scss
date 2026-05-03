@@ -178,6 +178,51 @@ $muted: rgba(0,0,0,0.45);
 
 .prop-toggles { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 
+// New vis section styles
+.vis-section {
+  margin: 0 0 4px; padding: 14px 16px; background: #f8fafc;
+  border-top: 1px solid $border;
+}
+.vis-section-header {
+  display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px;
+}
+.vis-section-title { font-size: 12px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em; }
+.vis-section-hint { font-size: 11px; color: #9ca3af; }
+.vis-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.vis-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 20px; border: 1.5px solid #e2e8f0;
+  background: white; font-size: 12px; font-weight: 500; color: #374151;
+  cursor: pointer; transition: all 0.15s; text-transform: capitalize;
+  &:hover { border-color: #2563eb; color: #2563eb; }
+  &.vis-hidden {
+    background: #f1f5f9; border-color: #cbd5e1; color: #94a3b8;
+    text-decoration: line-through;
+  }
+}
+.vis-icon { width: 13px; height: 13px; }
+.vis-icon-on { color: #22c55e; }
+.vis-icon-off { color: #94a3b8; }
+
+// Condition notes list
+.cond-list { display: flex; flex-direction: column; gap: 4px; }
+.cond-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 10px; background: white; border-radius: 8px;
+  border: 1px solid #e2e8f0; transition: opacity 0.15s;
+  &.cond-hidden { opacity: 0.4; background: #f8fafc; }
+}
+.cond-item-text {
+  flex: 1; font-size: 12.5px; color: #374151; line-height: 1.5;
+}
+.cond-toggle {
+  flex-shrink: 0; background: none; border: none; cursor: pointer;
+  color: #9ca3af; padding: 2px; display: flex; align-items: center;
+  border-radius: 4px;
+  &:hover { color: #2563eb; background: #eff6ff; }
+  lucide-icon { width: 14px; height: 14px; }
+}
+
 .prop-toggle {
   display: flex; align-items: center; gap: 4px;
   padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 6px;
