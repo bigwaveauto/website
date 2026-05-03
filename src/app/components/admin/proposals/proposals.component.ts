@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -19,6 +19,24 @@ export class AdminProposalsComponent implements OnInit {
   proposals = signal<any[]>([]);
   loading = signal(true);
   selected = signal<any>(null);
+  searchQuery = signal('');
+
+  filteredProposals = computed(() => {
+    const q = this.searchQuery().toLowerCase().trim();
+    if (!q) return this.proposals();
+    return this.proposals().filter(p => {
+      return (
+        p.vin?.toLowerCase().includes(q) ||
+        p.vehicle?.year?.toString().includes(q) ||
+        p.vehicle?.make?.toLowerCase().includes(q) ||
+        p.vehicle?.model?.toLowerCase().includes(q) ||
+        p.customer_name?.toLowerCase().includes(q) ||
+        p.customer_phone?.includes(q) ||
+        p.sent_to?.toLowerCase().includes(q) ||
+        p.status?.toLowerCase().includes(q)
+      );
+    });
+  });
 
   // Strategy data
   strategy = signal<any>(null);

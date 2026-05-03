@@ -1,7 +1,15 @@
 <div class="prop-admin">
   <div class="prop-header-bar">
     <h1>Proposals</h1>
-    <span class="prop-count">{{ proposals().length }} total</span>
+    <div class="prop-search-wrap">
+      <lucide-icon name="search" class="prop-search-icon" />
+      <input class="prop-search-input" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+        placeholder="Search by name, VIN, make, model, status..." />
+      @if(searchQuery()){
+      <button class="prop-search-clear" (click)="searchQuery.set('')"><lucide-icon name="x" /></button>
+      }
+    </div>
+    <span class="prop-count">{{ filteredProposals().length }}@if(searchQuery()){ of {{ proposals().length }}} total</span>
   </div>
 
   @if(loading()){
@@ -13,7 +21,10 @@
   <div class="prop-layout">
     <!-- List -->
     <div class="prop-list">
-      @for(p of proposals(); track p.id){
+      @if(filteredProposals().length === 0){
+      <div class="prop-empty" style="padding:20px;font-size:13px">No results for "{{ searchQuery() }}"</div>
+      }
+      @for(p of filteredProposals(); track p.id){
       <div class="prop-card" [class.active]="selected()?.id === p.id" (click)="selectProposal(p)">
         <div class="prop-card-main">
           <span class="prop-card-name">

@@ -4,8 +4,27 @@ $muted: rgba(0,0,0,0.45);
 
 .prop-admin { display: flex; flex-direction: column; gap: 12px; }
 
-.prop-header-bar { display: flex; align-items: center; gap: 12px;
+.prop-header-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   h1 { font-size: 22px; font-weight: 800; margin: 0; }
+}
+
+.prop-search-wrap {
+  position: relative; display: flex; align-items: center; flex: 1; min-width: 200px; max-width: 440px;
+}
+.prop-search-icon {
+  position: absolute; left: 10px; width: 15px; height: 15px; color: #9ca3af; pointer-events: none;
+}
+.prop-search-input {
+  width: 100%; padding: 7px 32px 7px 32px; border: 1.5px solid $border; border-radius: 8px;
+  font-size: 13px; outline: none; background: white;
+  &:focus { border-color: #2563eb; }
+  &::placeholder { color: #9ca3af; }
+}
+.prop-search-clear {
+  position: absolute; right: 6px; background: none; border: none; cursor: pointer;
+  color: #9ca3af; display: flex; align-items: center; padding: 2px;
+  &:hover { color: #374151; }
+  lucide-icon { width: 14px; height: 14px; }
 }
 
 .prop-count { font-size: 13px; color: $muted; font-weight: 600; }
