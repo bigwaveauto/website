@@ -56,6 +56,21 @@
     .btn-mmr { background: #0ea5e9; color: white; }
     .btn-mmr:hover:not(:disabled) { background: #0284c7; }
 
+    .customer-section { margin-bottom: 10px; }
+    .customer-section label { display: block; font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+    .customer-input-wrap { position: relative; }
+    .customer-input-wrap input { width: 100%; padding: 9px 12px; border: 1.5px solid #2563eb; border-radius: 8px; font-size: 13px; font-family: inherit; outline: none; }
+    .customer-input-wrap input:focus { border-color: #1d4ed8; }
+    .customer-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); z-index: 10; margin-top: 2px; max-height: 160px; overflow-y: auto; display: none; }
+    .customer-dropdown.open { display: block; }
+    .customer-option { padding: 9px 12px; font-size: 13px; cursor: pointer; border-bottom: 1px solid #f3f4f6; }
+    .customer-option:last-child { border-bottom: none; }
+    .customer-option:hover { background: #eff6ff; color: #2563eb; }
+    .customer-option.new-customer { color: #2563eb; font-weight: 700; }
+    .customer-badge { display: inline-flex; align-items: center; gap: 6px; background: #eff6ff; border: 1.5px solid #2563eb; border-radius: 20px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: #1d4ed8; }
+    .customer-badge .clear-customer { background: none; border: none; cursor: pointer; color: #93c5fd; font-size: 14px; padding: 0; line-height: 1; }
+    .customer-badge .clear-customer:hover { color: #1d4ed8; }
+
     .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
@@ -100,6 +115,21 @@
     </div>
 
     <button id="mmrBtn" class="btn btn-mmr" style="display:none">🌊 Send MMR to Appraisal</button>
+
+    <div id="customerSection" class="customer-section" style="display:none">
+      <label>Customer</label>
+      <div id="customerBadge" style="display:none">
+        <span class="customer-badge">
+          <span id="customerBadgeName"></span>
+          <button class="clear-customer" id="clearCustomer">✕</button>
+        </span>
+      </div>
+      <div id="customerInputWrap" class="customer-input-wrap">
+        <input id="customerInput" type="text" placeholder="Search or type new customer name..." autocomplete="off" />
+        <div id="customerDropdown" class="customer-dropdown"></div>
+      </div>
+    </div>
+
     <button id="submitBtn" class="btn btn-submit" style="display:none">Submit to Big Wave Auto</button>
   </div>
 

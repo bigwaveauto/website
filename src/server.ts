@@ -2087,7 +2087,7 @@ app.post('/api/ext/proposal', async (req, res) => {
     return;
   }
   try {
-    const { vin, vehicle, condition, auction, photos, page_type, source_url, extracted_at } = req.body;
+    const { vin, vehicle, condition, auction, photos, page_type, source_url, extracted_at, customer_name, customer_id } = req.body;
     if (!vin) { res.status(400).json({ error: 'VIN required' }); return; }
 
     // Decode VIN via NHTSA for reliable year/make/model/trim
@@ -2137,6 +2137,8 @@ app.post('/api/ext/proposal', async (req, res) => {
       source_url: source_url || '',
       extracted_at: extracted_at || new Date().toISOString(),
       status: 'draft',
+      ...(customer_name ? { customer_name } : {}),
+      ...(customer_id ? { customer_id } : {}),
     });
 
     if (error) { console.error('Proposal insert error:', error); res.status(500).json({ error: error.message }); return; }
@@ -2236,6 +2238,32 @@ app.post('/api/admin/proposals/backfill-vin', async (_req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Backfill failed' });
   }
+});
+
+/**
+ * Admin — search customers by name (from existing proposals)
+ */
+app.get('/api/admin/customers/search', async (req, res) => {
+  const q = (req.query['q'] as string || '').toLowerCase().trim();
+  if (!q) { res.json([]); return; }
+  try {
+    const { data } = await supabase
+      .from('vehicle_proposals')
+      .select('customer_name, customer_phone')
+      .not('customer_name', 'is', null)
+      .ilike('customer_name', `%${q}%`)
+      .order('created_at', { ascending: false });
+
+    // Deduplicate by name
+    const seen = new Set<string>();
+    const results = (data || []).filter((r: any) => {
+      if (!r.customer_name || seen.has(r.customer_name)) return false;
+      seen.add(r.customer_name);
+      return true;
+    }).map((r: any) => ({ name: r.customer_name, phone: r.customer_phone }));
+
+    res.json(results);
+  } catch { res.json([]); }
 });
 
 /**

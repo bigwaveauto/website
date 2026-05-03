@@ -4,6 +4,7 @@
 const $ = (s) => document.getElementById(s);
 
 let extractedData = null;
+let selectedCustomer = null; // { name, id } or { name } for new
 
 // Load saved settings
 chrome.storage.local.get(['serverUrl', 'apiKey'], (data) => {
@@ -95,9 +96,78 @@ function displayData(data) {
   }
 
   $('submitBtn').style.display = 'flex';
+  $('customerSection').style.display = 'block';
   const ago = data.extracted_at ? Math.round((Date.now() - new Date(data.extracted_at)) / 1000) : 0;
   showStatus(`Ready — captured ${ago}s ago`, 'success');
 }
+
+// ── Customer Search ──
+let customerSearchTimer = null;
+
+async function searchCustomers(query) {
+  const serverUrl = ($('serverUrl').value || 'https://bigwaveauto.com').replace(/\/+$/, '');
+  const apiKey = $('apiKey').value;
+  if (!apiKey) return [];
+  try {
+    const res = await fetch(`${serverUrl}/api/admin/customers/search?q=${encodeURIComponent(query)}`, {
+      headers: { 'X-API-Key': apiKey },
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch { return []; }
+}
+
+function setCustomer(customer) {
+  selectedCustomer = customer;
+  $('customerBadgeName').textContent = customer.name;
+  $('customerBadge').style.display = 'block';
+  $('customerInputWrap').style.display = 'none';
+  $('customerDropdown').classList.remove('open');
+}
+
+function clearCustomer() {
+  selectedCustomer = null;
+  $('customerBadge').style.display = 'none';
+  $('customerInputWrap').style.display = 'block';
+  $('customerInput').value = '';
+  $('customerDropdown').classList.remove('open');
+}
+
+$('clearCustomer').addEventListener('click', clearCustomer);
+
+$('customerInput').addEventListener('input', () => {
+  const val = $('customerInput').value.trim();
+  clearTimeout(customerSearchTimer);
+  if (!val) { $('customerDropdown').classList.remove('open'); return; }
+
+  customerSearchTimer = setTimeout(async () => {
+    const results = await searchCustomers(val);
+    const dd = $('customerDropdown');
+    dd.innerHTML = '';
+
+    // Existing customers
+    for (const c of results) {
+      const div = document.createElement('div');
+      div.className = 'customer-option';
+      div.textContent = c.name + (c.phone ? ` · ${c.phone}` : '');
+      div.addEventListener('mousedown', () => setCustomer(c));
+      dd.appendChild(div);
+    }
+
+    // Always show "New: [typed name]" option
+    const newOpt = document.createElement('div');
+    newOpt.className = 'customer-option new-customer';
+    newOpt.textContent = `+ New: "${val}"`;
+    newOpt.addEventListener('mousedown', () => setCustomer({ name: val, id: null }));
+    dd.appendChild(newOpt);
+
+    dd.classList.add('open');
+  }, 300);
+});
+
+$('customerInput').addEventListener('blur', () => {
+  setTimeout(() => $('customerDropdown').classList.remove('open'), 150);
+});
 
 // ── Scan: request content script to re-extract, then read from storage ──
 $('scanBtn').addEventListener('click', async () => {
@@ -238,10 +308,16 @@ $('submitBtn').addEventListener('click', async () => {
   showStatus('Submitting...', 'working');
 
   try {
+    const payload = { ...extractedData };
+    if (selectedCustomer) {
+      payload.customer_name = selectedCustomer.name;
+      if (selectedCustomer.id) payload.customer_id = selectedCustomer.id;
+    }
+
     const response = await fetch(`${serverUrl}/api/ext/proposal`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
-      body: JSON.stringify(extractedData),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) throw new Error(`${response.status}: ${await response.text()}`);
