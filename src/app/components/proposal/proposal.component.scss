@@ -602,7 +602,7 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .wi-balance {
-  padding: 16px 0 12px;
+  padding: 16px 0 0;
   text-align: center;
 }
 
@@ -620,10 +620,10 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .fin-est-section {
-  margin: 0 -16px;
-  padding: 18px 16px 20px;
+  margin: 16px -24px -24px;
+  padding: 18px 24px 24px;
   background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
-  border-radius: 0 0 16px 16px;
+  border-radius: 0 0 20px 20px;
 }
 
 .fin-est-title {
