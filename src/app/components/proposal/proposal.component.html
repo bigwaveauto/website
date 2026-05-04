@@ -422,14 +422,14 @@
         <div class="fin-est-title">Financing Estimate</div>
         <div class="fin-est-hint">Adjust to see different scenarios — these numbers don't affect your deal.</div>
 
-        <div class="fin-est-fields">
-          <div class="fin-est-field">
-            <label>Cash Down</label>
-            <div class="fin-est-input-wrap">
-              <span class="fin-est-prefix">$</span>
-              <input class="fin-est-input" type="number" min="0" [ngModel]="finDown()" (ngModelChange)="finDown.set(+$event)" />
-            </div>
+        <div class="fin-est-field fin-est-field-full">
+          <label>Cash Down</label>
+          <div class="fin-est-input-wrap">
+            <span class="fin-est-prefix">$</span>
+            <input class="fin-est-input" type="number" min="0" [ngModel]="finDown()" (ngModelChange)="finDown.set(+$event)" />
           </div>
+        </div>
+        <div class="fin-est-fields">
           <div class="fin-est-field">
             <label>APR</label>
             <div class="fin-est-input-wrap">

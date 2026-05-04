@@ -568,6 +568,7 @@ $muted: rgba(0,0,0,0.45);
 .fin-est-field {
   flex: 1;
   label { display: block; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+  &.fin-est-field-full { flex: none; width: 100%; margin-bottom: 8px; }
 }
 
 .fin-est-input-wrap {
