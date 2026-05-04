@@ -301,10 +301,26 @@
 
           <!-- Down Payment -->
           <div class="desk-tax-row">
-            <span>Down Payment</span>
+            <span>Cash Down</span>
             <div class="prop-price-input" style="width:160px">
               <span>$</span>
               <input type="text" [ngModel]="fmt(s.down_payment)" (ngModelChange)="s.down_payment = parse($event); autosave(s)" placeholder="" />
+            </div>
+          </div>
+
+          <!-- Financing defaults -->
+          <div class="desk-tax-row">
+            <span>Default APR</span>
+            <div class="prop-fin-pair">
+              <input type="number" step="0.1" min="0" [ngModel]="s.apr" (ngModelChange)="s.apr = +$event; autosave(s)" placeholder="e.g. 6.9" />
+              <span class="prop-fin-unit">%</span>
+            </div>
+          </div>
+          <div class="desk-tax-row">
+            <span>Default Term</span>
+            <div class="prop-fin-pair">
+              <input type="number" step="1" min="1" [ngModel]="s.term_months" (ngModelChange)="s.term_months = +$event; autosave(s)" placeholder="e.g. 60" />
+              <span class="prop-fin-unit">mo</span>
             </div>
           </div>
 
@@ -361,6 +377,12 @@
               <span>Amount Financed</span>
               <span>{{ amountFinanced(s) | currency:'USD':'symbol':'1.0-0' }}</span>
             </div>
+            @if(s.apr && s.term_months && monthlyPaymentEst(s) > 0){
+            <div class="deal-sum-row deal-sum-monthly">
+              <span>Est. Monthly ({{ s.term_months }} mo @ {{ s.apr }}%)</span>
+              <span>{{ monthlyPaymentEst(s) | currency:'USD':'symbol':'1.0-0' }}/mo</span>
+            </div>
+            }
           </div>
 
           <!-- Gross Profit Summary -->

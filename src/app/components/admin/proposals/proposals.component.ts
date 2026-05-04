@@ -266,6 +266,16 @@ export class AdminProposalsComponent implements OnInit {
     return s.lien_payoff || 0;
   }
 
+  monthlyPaymentEst(s: any): number {
+    const principal = this.amountFinanced(s);
+    const apr = s.apr || 0;
+    const n = s.term_months || 0;
+    if (principal <= 0 || n <= 0) return 0;
+    if (apr <= 0) return Math.round(principal / n);
+    const r = apr / 100 / 12;
+    return Math.round(principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1));
+  }
+
   marineCuBackend(s: any): number {
     if (!s.marine_cu) return 0;
     return Math.round(this.amountFinanced(s) * 0.015);
@@ -372,6 +382,8 @@ export class AdminProposalsComponent implements OnInit {
       customer_address: s.customer_address || '',
       customer_zip: s.customer_zip || '',
       lien_payoff: s.lien_payoff || 0,
+      apr: s.apr ?? null,
+      term_months: s.term_months ?? null,
     }).subscribe({
       next: () => {
         this.saving.set(false);

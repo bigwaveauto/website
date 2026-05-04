@@ -27,6 +27,23 @@ export class ProposalComponent implements OnInit {
   lightboxOpen = signal(false);
   lightboxIndex = signal(0);
 
+  // Financing estimate (customer-adjustable, local only)
+  finDown = signal(0);
+  finApr = signal(6.9);
+  finTerm = signal(60);
+
+  get finPrincipal(): number { return Math.max(0, this.totalDue - this.finDown()); }
+
+  get finMonthly(): number {
+    const p = this.finPrincipal;
+    const apr = this.finApr();
+    const n = this.finTerm();
+    if (p <= 0 || n <= 0) return 0;
+    if (apr <= 0) return Math.round(p / n);
+    const r = apr / 100 / 12;
+    return Math.round(p * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1));
+  }
+
   // Feedback signals (Info Only mode)
   interest = signal<'yes' | 'meh' | 'no' | null>(null);
   reason = signal('');
@@ -47,6 +64,9 @@ export class ProposalComponent implements OnInit {
       next: (data) => {
         this.proposal.set(data);
         this.loading.set(false);
+        if (data.down_payment) this.finDown.set(data.down_payment);
+        if (data.apr) this.finApr.set(data.apr);
+        if (data.term_months) this.finTerm.set(data.term_months);
       },
       error: () => {
         this.notFound.set(true);

@@ -542,3 +542,69 @@ $muted: rgba(0,0,0,0.45);
   font-size: 12px; font-weight: 500; color: #888;
   background: #f1f5f9; border-radius: 4px; padding: 1px 6px;
 }
+
+.fin-est-section {
+  margin: 0 -16px;
+  padding: 18px 16px 20px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+  border-radius: 0 0 16px 16px;
+}
+
+.fin-est-title {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.8px;
+  text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px;
+}
+
+.fin-est-hint {
+  font-size: 11.5px; color: rgba(255,255,255,0.4); margin-bottom: 14px; line-height: 1.4;
+}
+
+.fin-est-fields {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+
+.fin-est-field {
+  flex: 1;
+  label { display: block; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+}
+
+.fin-est-input-wrap {
+  display: flex; align-items: center; gap: 0;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; overflow: hidden;
+}
+
+.fin-est-prefix, .fin-est-suffix {
+  padding: 0 8px; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.05); white-space: nowrap;
+}
+
+.fin-est-input {
+  flex: 1; min-width: 0; padding: 8px 8px;
+  background: transparent; border: none; outline: none;
+  font-size: 14px; font-weight: 700; color: white; text-align: center;
+  font-family: inherit;
+  &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+}
+
+.fin-est-result {
+  text-align: center;
+}
+
+.fin-est-financed {
+  font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 8px;
+  strong { color: rgba(255,255,255,0.8); }
+}
+
+.fin-est-monthly {
+  font-size: 42px; font-weight: 900; color: #38bdf8; line-height: 1;
+  margin-bottom: 6px;
+}
+
+.fin-est-per {
+  font-size: 18px; font-weight: 700; color: rgba(56,189,248,0.7);
+}
+
+.fin-est-disclaimer {
+  font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.2px;
+}

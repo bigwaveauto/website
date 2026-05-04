@@ -667,6 +667,19 @@ $muted: rgba(0,0,0,0.45);
   span { font-size: 14px; font-weight: 800 !important; color: #1d4ed8 !important; }
 }
 
+.deal-sum-monthly {
+  margin-top: 4px;
+  span:first-child { color: #64748b !important; font-style: italic; font-size: 11.5px !important; }
+  span:last-child { color: #0ea5e9 !important; font-weight: 800 !important; font-size: 14px !important; }
+}
+
+.prop-fin-pair {
+  display: flex; align-items: center; gap: 6px; width: 160px;
+  input { flex: 1; padding: 7px 10px; border: 1.5px solid #e2e8f0; border-radius: 6px; font-size: 13px; font-family: inherit; text-align: right; }
+  input:focus { outline: none; border-color: #2563eb; }
+}
+.prop-fin-unit { font-size: 13px; color: #64748b; font-weight: 600; white-space: nowrap; }
+
 .deal-marine-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.05);

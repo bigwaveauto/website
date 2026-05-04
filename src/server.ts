@@ -2350,6 +2350,8 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (req.body.customer_address !== undefined) updates['customer_address'] = req.body.customer_address;
     if (req.body.customer_zip !== undefined) updates['customer_zip'] = req.body.customer_zip;
     if (req.body.lien_payoff !== undefined) updates['lien_payoff'] = req.body.lien_payoff;
+    if (req.body.apr !== undefined) updates['apr'] = req.body.apr;
+    if (req.body.term_months !== undefined) updates['term_months'] = req.body.term_months;
     updates['updated_at'] = new Date().toISOString();
 
     console.log('[proposal save] id:', req.params['id'], 'photos count:', photos?.length ?? 'not sent');

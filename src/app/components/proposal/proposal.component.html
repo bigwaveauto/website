@@ -410,6 +410,47 @@
         <div class="deal-total-label">Balance Due</div>
         <div class="deal-total-value">{{ totalDue | currency:'USD':'symbol':'1.2-2' }}</div>
       </div>
+
+      <!-- ═══ FINANCING ESTIMATE ═══ -->
+      <div class="fin-est-section">
+        <div class="fin-est-title">Financing Estimate</div>
+        <div class="fin-est-hint">Adjust to see different scenarios — these numbers don't affect your deal.</div>
+
+        <div class="fin-est-fields">
+          <div class="fin-est-field">
+            <label>Cash Down</label>
+            <div class="fin-est-input-wrap">
+              <span class="fin-est-prefix">$</span>
+              <input class="fin-est-input" type="number" min="0" [ngModel]="finDown()" (ngModelChange)="finDown.set(+$event)" />
+            </div>
+          </div>
+          <div class="fin-est-field">
+            <label>APR</label>
+            <div class="fin-est-input-wrap">
+              <input class="fin-est-input" type="number" step="0.1" min="0" [ngModel]="finApr()" (ngModelChange)="finApr.set(+$event)" />
+              <span class="fin-est-suffix">%</span>
+            </div>
+          </div>
+          <div class="fin-est-field">
+            <label>Term</label>
+            <div class="fin-est-input-wrap">
+              <input class="fin-est-input" type="number" step="1" min="1" [ngModel]="finTerm()" (ngModelChange)="finTerm.set(+$event)" />
+              <span class="fin-est-suffix">mo</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="fin-est-result">
+          <div class="fin-est-financed">
+            Amount to Finance: <strong>{{ finPrincipal | currency:'USD':'symbol':'1.0-0' }}</strong>
+          </div>
+          <div class="fin-est-monthly">
+            {{ finMonthly | currency:'USD':'symbol':'1.0-0' }}<span class="fin-est-per">/mo</span>
+          </div>
+          <div class="fin-est-disclaimer">Estimate only. Actual rate and terms set by lender.</div>
+        </div>
+      </div>
+
       }@else{
       @if(p.asking_price){
       <div class="prop-price-section">
