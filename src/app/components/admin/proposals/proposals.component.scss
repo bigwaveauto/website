@@ -682,3 +682,22 @@ $muted: rgba(0,0,0,0.45);
 
 .deal-pos { color: #16a34a !important; }
 .deal-neg { color: #dc2626 !important; }
+
+.prop-feedback-section { margin-top: 4px; }
+
+.prop-fb-item {
+  border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
+  border: 1px solid #e2e8f0; background: #f8fafc;
+  &.prop-fb-question { background: #eff6ff; border-color: #bfdbfe; }
+  &.prop-fb-yes      { background: #f0fdf4; border-color: #bbf7d0; }
+  &.prop-fb-no       { background: #fef2f2; border-color: #fecaca; }
+  &.prop-fb-meh      { background: #fffbeb; border-color: #fde68a; }
+}
+
+.prop-fb-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+
+.prop-fb-badge { font-size: 12px; font-weight: 700; color: #1e293b; }
+
+.prop-fb-time { font-size: 11px; color: #94a3b8; }
+
+.prop-fb-reason { font-size: 13px; color: #334155; line-height: 1.5; }

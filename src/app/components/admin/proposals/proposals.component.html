@@ -517,6 +517,28 @@
         </div>
       </div>
 
+      <!-- Customer Feedback / Questions -->
+      @if(s.feedback?.length){
+      <div class="prop-feedback-section">
+        <h3 class="prop-toggle-title">Customer Feedback ({{ s.feedback.length }})</h3>
+        @for(fb of s.feedback; track $index){
+        <div class="prop-fb-item" [class.prop-fb-question]="fb.interest === 'question'" [class.prop-fb-yes]="fb.interest === 'yes'" [class.prop-fb-no]="fb.interest === 'no'" [class.prop-fb-meh]="fb.interest === 'meh'">
+          <div class="prop-fb-top">
+            <span class="prop-fb-badge">
+              @if(fb.interest === 'question'){ ❓ Question }
+              @else if(fb.interest === 'yes'){ 👍 Interested }
+              @else if(fb.interest === 'meh'){ 😐 Maybe }
+              @else if(fb.interest === 'no'){ 👎 Not Interested }
+              @else{ {{ fb.interest }} }
+            </span>
+            <span class="prop-fb-time">{{ fb.submitted_at | date:'MMM d, h:mm a' }}</span>
+          </div>
+          @if(fb.reason){ <div class="prop-fb-reason">{{ fb.reason }}</div> }
+        </div>
+        }
+      </div>
+      }
+
       <!-- Photos preview -->
       @if(s.photos?.length){
       <h3 class="prop-toggle-title">Photos ({{ s.photos.length }})</h3>

@@ -2180,11 +2180,13 @@ app.post('/api/proposal/:id/feedback', async (req, res) => {
       .maybeSingle();
     if (!proposal) { res.status(404).json({ error: 'Not found' }); return; }
 
-    const feedback = {
-      interest, // 'yes' | 'no'
+    const existing = Array.isArray(proposal.feedback) ? proposal.feedback : (proposal.feedback ? [proposal.feedback] : []);
+    const newEntry = {
+      interest,
       reason: reason || null,
       submitted_at: new Date().toISOString(),
     };
+    const feedback = [...existing, newEntry];
     await supabase.from('vehicle_proposals').update({ feedback }).eq('id', req.params['id']);
     res.json({ success: true });
   } catch (err) {
