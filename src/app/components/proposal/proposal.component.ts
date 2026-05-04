@@ -32,7 +32,7 @@ export class ProposalComponent implements OnInit {
   finApr = signal(6.9);
   finTerm = signal(60);
 
-  get finPrincipal(): number { return Math.max(0, this.totalDue - this.finDown()); }
+  get finPrincipal(): number { return this.totalDue; }
 
   get finMonthly(): number {
     const p = this.finPrincipal;
@@ -131,9 +131,14 @@ export class ProposalComponent implements OnInit {
     return (this.tradeIn.allowance || 0) - (this.tradeIn.payoff || 0);
   }
 
-  // Balance due = OTD + payoffs − down payment
+  // Pre-financing gross balance (OTD + payoffs, no down payment deducted)
+  get grossBalance(): number {
+    return this.cashPrice + this.tradePayoff + this.lienPayoff;
+  }
+
+  // Balance due = gross balance − customer's cash down (finDown is reactive)
   get totalDue(): number {
-    return this.cashPrice + this.tradePayoff + this.lienPayoff - (this.proposal()?.down_payment || 0);
+    return Math.max(0, this.grossBalance - this.finDown());
   }
 
   prevPhoto() {

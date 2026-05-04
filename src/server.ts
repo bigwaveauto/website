@@ -2315,6 +2315,31 @@ app.post('/api/admin/proposal/carfax', upload.single('file'), async (req: any, r
 });
 
 /**
+ * Admin — upload Window Sticker for a proposal
+ */
+app.post('/api/admin/proposal/window-sticker', requireAdmin, upload.single('file'), async (req: any, res) => {
+  try {
+    if (!req.file) { res.status(400).json({ error: 'No file' }); return; }
+    const proposalId = req.body.proposal_id;
+    const vin = req.body.vin;
+    const ext = req.file.mimetype === 'application/pdf' ? 'pdf' : req.file.mimetype.split('/')[1] || 'jpg';
+    const fileName = `window-sticker/${vin}_${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('vehicle-photos')
+      .upload(fileName, req.file.buffer, { contentType: req.file.mimetype });
+
+    if (uploadError) { res.status(500).json({ error: 'Upload failed' }); return; }
+
+    const { data: urlData } = supabase.storage.from('vehicle-photos').getPublicUrl(fileName);
+    await supabase.from('vehicle_proposals').update({ window_sticker_url: urlData.publicUrl }).eq('id', proposalId);
+    res.json({ url: urlData.publicUrl });
+  } catch (err) {
+    res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
+/**
  * Admin — update proposal (edit fields, exclude items, change status)
  */
 app.post('/api/admin/proposal/:id', async (req, res) => {
@@ -2352,6 +2377,7 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (req.body.lien_payoff !== undefined) updates['lien_payoff'] = req.body.lien_payoff;
     if (req.body.apr !== undefined) updates['apr'] = req.body.apr;
     if (req.body.term_months !== undefined) updates['term_months'] = req.body.term_months;
+    if (req.body.window_sticker_url !== undefined) updates['window_sticker_url'] = req.body.window_sticker_url;
     updates['updated_at'] = new Date().toISOString();
 
     console.log('[proposal save] id:', req.params['id'], 'photos count:', photos?.length ?? 'not sent');

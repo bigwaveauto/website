@@ -157,6 +157,18 @@
       </div>
       }
 
+      <!-- Window Sticker -->
+      @if(p.window_sticker_url){
+      <div class="prop-section">
+        <h2 class="prop-heading">Window Sticker</h2>
+        @if(p.window_sticker_url.endsWith('.pdf')){
+        <iframe [src]="safeUrl(p.window_sticker_url)" class="prop-carfax-full"></iframe>
+        }@else{
+        <img [src]="p.window_sticker_url" style="width:100%;border-radius:10px" alt="Window Sticker" />
+        }
+      </div>
+      }
+
       <!-- Options -->
       @if(visibleOptions().length){
       <div class="prop-section">
@@ -377,11 +389,11 @@
           <div class="wi-section-head">Cash &amp; Cash Equivalents</div>
           <div class="wi-row wi-row-sub">
             <span class="wi-lbl"><span class="wi-letter">m.</span> Cash Down Payment on Order</span>
-            <span class="wi-amt">{{ (p.down_payment || 0) | currency:'USD':'symbol':'1.2-2' }}</span>
+            <span class="wi-amt">{{ finDown() | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
           <div class="wi-subtotal wi-credit">
             <span><span class="wi-num">7.</span> Total Cash</span>
-            <span>{{ (p.down_payment || 0) | currency:'USD':'symbol':'1.2-2' }}</span>
+            <span>{{ finDown() | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
         </div>
 

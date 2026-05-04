@@ -490,6 +490,39 @@
       </div>
       }
 
+      <!-- ═══ WINDOW STICKER ═══ -->
+      <h3 class="prop-toggle-title">Window Sticker</h3>
+      @if(s.window_sticker_url){
+      <div class="prop-carfax-preview">
+        <div class="prop-carfax-header">
+          <span style="font-size:13px;font-weight:700;color:#1e293b">Window Sticker</span>
+          <div class="prop-carfax-actions">
+            <a [href]="s.window_sticker_url" target="_blank" class="prop-carfax-view">View</a>
+            <button class="prop-li-del" (click)="removeSticker(s)"><lucide-icon name="x" /></button>
+          </div>
+        </div>
+        @if(s.window_sticker_url.endsWith('.pdf')){
+          <iframe [src]="safeCarfaxUrl(s.window_sticker_url)" class="prop-carfax-iframe"></iframe>
+        }@else{
+          <img [src]="s.window_sticker_url" style="width:100%;border-radius:6px;margin-top:8px" alt="Window Sticker" />
+        }
+      </div>
+      }@else{
+      <div class="prop-carfax-drop" [class.dragover]="stickerDragOver()"
+           (dragover)="onStickerDragOver($event)" (dragleave)="stickerDragOver.set(false)" (drop)="onStickerDrop($event, s)"
+           (click)="stickerInput.click()">
+        <input #stickerInput type="file" accept="application/pdf,image/*" (change)="onStickerSelect($event, s)" hidden />
+        @if(uploadingSticker()){
+          <div class="prop-carfax-spinner"></div>
+          <span>Uploading...</span>
+        }@else{
+          <lucide-icon name="file-text" style="width:28px;height:28px;color:#94a3b8;margin-bottom:6px" />
+          <span>Drop window sticker here or click to upload</span>
+          <span style="font-size:11px;color:#94a3b8">PDF or image</span>
+        }
+      </div>
+      }
+
       <!-- Toggle visibility -->
       <div class="vis-section">
         <div class="vis-section-header">

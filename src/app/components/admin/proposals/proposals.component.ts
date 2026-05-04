@@ -384,6 +384,7 @@ export class AdminProposalsComponent implements OnInit {
       lien_payoff: s.lien_payoff || 0,
       apr: s.apr ?? null,
       term_months: s.term_months ?? null,
+      window_sticker_url: s.window_sticker_url || null,
     }).subscribe({
       next: () => {
         this.saving.set(false);
@@ -464,6 +465,46 @@ export class AdminProposalsComponent implements OnInit {
   // ── Carfax ──
   carfaxDragOver = signal(false);
   uploadingCarfax = signal(false);
+
+  // ── Window Sticker ──
+  stickerDragOver = signal(false);
+  uploadingSticker = signal(false);
+
+  onStickerDragOver(e: DragEvent) { e.preventDefault(); this.stickerDragOver.set(true); }
+
+  onStickerDrop(e: DragEvent, s: any) {
+    e.preventDefault();
+    this.stickerDragOver.set(false);
+    const file = e.dataTransfer?.files[0];
+    if (file) this.uploadSticker(file, s);
+  }
+
+  onStickerSelect(e: Event, s: any) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) this.uploadSticker(file, s);
+  }
+
+  uploadSticker(file: File, s: any) {
+    this.uploadingSticker.set(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('proposal_id', s.id);
+    formData.append('vin', s.vin);
+    this.http.post<any>('/api/admin/proposal/window-sticker', formData).subscribe({
+      next: (res) => {
+        s.window_sticker_url = res.url;
+        this.selected.set({ ...s });
+        this.uploadingSticker.set(false);
+      },
+      error: () => { this.uploadingSticker.set(false); alert('Upload failed.'); },
+    });
+  }
+
+  removeSticker(s: any) {
+    s.window_sticker_url = null;
+    this.selected.set({ ...s });
+  }
 
   onCarfaxDragOver(e: DragEvent) { e.preventDefault(); this.carfaxDragOver.set(true); }
 
