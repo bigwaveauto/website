@@ -101,15 +101,19 @@ export class ProposalComponent implements OnInit {
     return this.tradeIn?.payoff || 0;
   }
 
+  get lienPayoff(): number {
+    return this.proposal()?.lien_payoff || 0;
+  }
+
   // Display helper: net trade equity shown in the trade section
   get tradeEquity(): number {
     if (!this.tradeIn) return 0;
     return (this.tradeIn.allowance || 0) - (this.tradeIn.payoff || 0);
   }
 
-  // Balance due = OTD + payoff (dealer pays lender) − down payment
+  // Balance due = OTD + payoffs − down payment
   get totalDue(): number {
-    return this.cashPrice + this.tradePayoff - (this.proposal()?.down_payment || 0);
+    return this.cashPrice + this.tradePayoff + this.lienPayoff - (this.proposal()?.down_payment || 0);
   }
 
   prevPhoto() {

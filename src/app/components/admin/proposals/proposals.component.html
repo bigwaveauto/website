@@ -290,6 +290,15 @@
             </div>
           </div>
 
+          <!-- Lien Payoff -->
+          <div class="desk-tax-row">
+            <span>Lien Payoff <span style="font-size:11px;color:#94a3b8">(on vehicle sold)</span></span>
+            <div class="prop-price-input" style="width:160px">
+              <span>$</span>
+              <input type="text" [ngModel]="fmt(s.lien_payoff)" (ngModelChange)="s.lien_payoff = parse($event); autosave(s)" placeholder="" />
+            </div>
+          </div>
+
           <!-- Down Payment -->
           <div class="desk-tax-row">
             <span>Down Payment</span>
@@ -334,6 +343,12 @@
             <div class="deal-sum-row deal-sum-owed">
               <span>Trade Payoff (to lender)</span>
               <span>+{{ tradePayoff(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            }
+            @if(lienPayoff(s)){
+            <div class="deal-sum-row deal-sum-owed">
+              <span>Lien Payoff</span>
+              <span>+{{ lienPayoff(s) | currency:'USD':'symbol':'1.0-0' }}</span>
             </div>
             }
             @if(s.down_payment){

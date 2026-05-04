@@ -245,10 +245,11 @@ export class AdminProposalsComponent implements OnInit {
     return this.taxableBase(s) + this.taxAmount(s) + this.nonTaxableTotal(s);
   }
 
-  // After OTD, add any trade payoff (dealer pays lender → adds to amount financed).
+  // After OTD, add trade payoff + lien payoff, subtract down payment.
   amountFinanced(s: any): number {
-    const payoff = s.trade_in?.payoff || 0;
-    return Math.max(0, this.totalOTD(s) + payoff - (s.down_payment || 0));
+    const tradePayoff = s.trade_in?.payoff || 0;
+    const lienPayoff = s.lien_payoff || 0;
+    return Math.max(0, this.totalOTD(s) + tradePayoff + lienPayoff - (s.down_payment || 0));
   }
 
   // Display helper: trade allowance (shown under asking price in waterfall)
@@ -259,6 +260,10 @@ export class AdminProposalsComponent implements OnInit {
   // Display helper: trade payoff shown after OTD (adds to what's financed)
   tradePayoff(s: any): number {
     return s.trade_in?.payoff || 0;
+  }
+
+  lienPayoff(s: any): number {
+    return s.lien_payoff || 0;
   }
 
   marineCuBackend(s: any): number {
@@ -366,6 +371,7 @@ export class AdminProposalsComponent implements OnInit {
       customer_phone: s.customer_phone || '',
       customer_address: s.customer_address || '',
       customer_zip: s.customer_zip || '',
+      lien_payoff: s.lien_payoff || 0,
     }).subscribe({
       next: () => {
         this.saving.set(false);

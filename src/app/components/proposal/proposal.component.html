@@ -379,6 +379,19 @@
       </div>
       }
 
+      <!-- ═══ LIEN PAYOFF ═══ -->
+      @if(lienPayoff > 0){
+      <div class="deal-section">
+        <div class="deal-section-label">Lien Payoff</div>
+        <div class="deal-lines">
+          <div class="deal-line deal-line-owed">
+            <span>Lien Payoff</span>
+            <span>{{ lienPayoff | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+      }
+
       <!-- ═══ CASH / DOWN PAYMENT ═══ -->
       @if(p.down_payment > 0){
       <div class="deal-section">
