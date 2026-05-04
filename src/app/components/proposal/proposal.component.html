@@ -308,6 +308,12 @@
             <span>Sale Price</span>
             <span>{{ askingPrice | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
+          @for(li of taxableLineItems; track $index){
+          <div class="deal-line deal-line-sub">
+            <span>{{ li.label }}</span>
+            <span>{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          }
           @if(tradeIn?.allowance){
           <div class="deal-line deal-line-sub">
             <span>Less Trade-In Allowance</span>
