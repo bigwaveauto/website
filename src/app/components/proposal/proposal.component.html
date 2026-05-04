@@ -274,147 +274,123 @@
         </div>
       }
 
-      <!-- ═══ PRICE PROPOSAL MODE: Full deal sheet ═══ -->
+      <!-- ═══ PRICE PROPOSAL MODE: WI Purchase Agreement Format ═══ -->
       @if(!isInfoMode){
+      <div class="wi-form">
 
-      <!-- ═══ PRICE OF THE VEHICLE ═══ -->
-      @if(askingPrice > 0){
-      <div class="deal-section">
-        <div class="deal-section-label">Price of the Vehicle</div>
-        <div class="deal-lines">
-          <div class="deal-line">
-            <span>Vehicle Price @if(p.vehicle?.mileage){<span class="deal-miles">{{ p.vehicle.mileage | number }} mi</span>}</span>
-            <span>{{ askingPrice | currency:'USD':'symbol':'1.2-2' }}</span>
+        <!-- 1. Price of the Vehicle -->
+        @if(askingPrice > 0){
+        <div class="wi-section">
+          <div class="wi-section-head">Price of the Vehicle</div>
+          <div class="wi-row">
+            <span class="wi-lbl"><span class="wi-letter">a.</span> Dealer Retail Price @if(p.vehicle?.mileage){<span class="deal-miles">{{ p.vehicle.mileage | number }} mi</span>}</span>
+            <span class="wi-amt">{{ askingPrice | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
           @for(li of taxableLineItems; track $index){
-          <div class="deal-line">
-            <span>{{ li.label }}</span>
-            <span>{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+          <div class="wi-row">
+            <span class="wi-lbl"><span class="wi-letter">{{ $index === 0 ? 'b.' : 'c.' }}</span> {{ li.label }}</span>
+            <span class="wi-amt">{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
           }
-          <div class="deal-line deal-line-total">
-            <span>Taxable Subtotal</span>
+          <div class="wi-subtotal">
+            <span><span class="wi-num">1.</span> Cash Price</span>
             <span>{{ taxableGross | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
         </div>
-      </div>
+        }
 
-      <!-- ═══ SALES TAX ═══ -->
-      @if(taxAmount > 0){
-      <div class="deal-section">
-        <div class="deal-section-label">Sales Tax</div>
-        <div class="deal-lines">
-          <div class="deal-line deal-line-sub">
-            <span>Sale Price</span>
-            <span>{{ askingPrice | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-          @for(li of taxableLineItems; track $index){
-          <div class="deal-line deal-line-sub">
-            <span>{{ li.label }}</span>
-            <span>{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
+        <!-- 2. Trade Allowance -->
+        @if(tradeIn?.allowance){
+        <div class="wi-section">
+          <div class="wi-section-head">Trade Allowance</div>
+          @if(tradeIn.year || tradeIn.make || tradeIn.model){
+          <div class="wi-trade-vehicle">{{ tradeIn.year }} {{ tradeIn.make }} {{ tradeIn.model }}@if(tradeIn.vin){ &middot; {{ tradeIn.vin }}}</div>
           }
-          @if(tradeIn?.allowance){
-          <div class="deal-line deal-line-sub">
-            <span>Less Trade-In Allowance</span>
-            <span class="deal-credit">-{{ tradeIn.allowance | currency:'USD':'symbol':'1.2-2' }}</span>
+          <div class="wi-subtotal wi-credit">
+            <span><span class="wi-num">2.</span> Owned Trade-in Allowance</span>
+            <span>{{ tradeIn.allowance | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
-          }
-          <div class="deal-line deal-line-sub">
-            <span>Amount Subject to Tax</span>
-            <span>{{ taxableAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        }
+
+        <!-- 4. Sales Tax -->
+        @if(taxAmount > 0){
+        <div class="wi-section">
+          <div class="wi-section-head">Sales Tax Calculation</div>
+          <div class="wi-row wi-row-sub">
+            <span class="wi-lbl"><span class="wi-letter">g.</span> Amount Subject to Sales Tax</span>
+            <span class="wi-amt">{{ taxableAmount | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
-          <div class="deal-line deal-line-sub">
-            <span>Tax Rate</span>
-            <span>{{ p.tax_rate }}%</span>
+          <div class="wi-row wi-row-sub">
+            <span class="wi-lbl"><span class="wi-letter"></span> Tax Rate</span>
+            <span class="wi-amt">{{ p.tax_rate }}%</span>
           </div>
-          <div class="deal-line deal-line-total">
-            <span>Total Tax</span>
+          <div class="wi-subtotal">
+            <span><span class="wi-num">4.</span> Total Tax</span>
             <span>{{ taxAmount | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
         </div>
-      </div>
-      }
+        }
 
-      <!-- ═══ NON-TAXABLE ITEMS ═══ -->
-      @if(nonTaxableTotal > 0){
-      <div class="deal-section">
-        <div class="deal-section-label">Non-Taxable Items</div>
-        <div class="deal-lines">
+        <!-- 5. Non-Taxable Items -->
+        @if(nonTaxableTotal > 0){
+        <div class="wi-section">
+          <div class="wi-section-head">Non-Taxable Items</div>
           @for(li of nonTaxableItems; track $index){
-          <div class="deal-line deal-line-sub">
-            <span>{{ li.label }}</span>
-            <span>{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+          <div class="wi-row wi-row-sub">
+            <span class="wi-lbl">{{ li.label }}</span>
+            <span class="wi-amt">{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
           }
-          <div class="deal-line deal-line-total">
-            <span>Total Non-Taxable</span>
+          <div class="wi-subtotal">
+            <span><span class="wi-num">5.</span> Total Non-Taxable Items</span>
             <span>{{ nonTaxableTotal | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
         </div>
-      </div>
-      }
+        }
 
-      <!-- ═══ TRADE ALLOWANCE ═══ -->
-      @if(tradeIn){
-      <div class="deal-section">
-        <div class="deal-section-label">Trade Allowance</div>
-        <div class="deal-trade-vehicle">
-          @if(tradeIn.year || tradeIn.make || tradeIn.model){
-          <span class="deal-trade-name">{{ tradeIn.year }} {{ tradeIn.make }} {{ tradeIn.model }}</span>
-          }
-          @if(tradeIn.vin){<span class="deal-trade-vin">VIN: {{ tradeIn.vin }}</span>}
-          @if(tradeIn.mileage){<span class="deal-trade-detail">{{ tradeIn.mileage | number }} miles</span>}
-        </div>
-        <div class="deal-lines">
-          <div class="deal-line deal-line-sub">
-            <span>Trade-In Allowance</span>
-            <span class="deal-credit">{{ tradeIn.allowance | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-          @if(tradeIn.payoff > 0){
-          <div class="deal-line deal-line-sub">
-            <span>Payoff Due to {{ tradeIn.payoff_to || 'Lender' }}</span>
-            <span>({{ tradeIn.payoff | currency:'USD':'symbol':'1.2-2' }})</span>
-          </div>
-          }
-          <div class="deal-line deal-line-total">
-            <span>Net Trade Equity</span>
-            <span class="deal-credit">{{ tradeEquity | currency:'USD':'symbol':'1.2-2' }}</span>
+        <!-- 6. Trade Payoff -->
+        @if(tradePayoff > 0){
+        <div class="wi-section">
+          <div class="wi-section-head">Owned Vehicle Payoff</div>
+          <div class="wi-subtotal wi-owed">
+            <span><span class="wi-num">6.</span> Estimated Payoff to {{ tradeIn?.payoff_to || 'Lender' }}</span>
+            <span>{{ tradePayoff | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
         </div>
-      </div>
-      }
+        }
 
-      <!-- ═══ LIEN PAYOFF ═══ -->
-      @if(lienPayoff > 0){
-      <div class="deal-section">
-        <div class="deal-section-label">Lien Payoff</div>
-        <div class="deal-lines">
-          <div class="deal-line deal-line-owed">
+        <!-- Lien Payoff -->
+        @if(lienPayoff > 0){
+        <div class="wi-section">
+          <div class="wi-section-head">Lien Payoff</div>
+          <div class="wi-subtotal wi-owed">
             <span>Lien Payoff</span>
             <span>{{ lienPayoff | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
         </div>
-      </div>
-      }
+        }
 
-      <!-- ═══ CASH / DOWN PAYMENT ═══ -->
-      @if(p.down_payment > 0){
-      <div class="deal-section">
-        <div class="deal-section-label">Cash &amp; Down Payment</div>
-        <div class="deal-lines">
-          <div class="deal-line">
-            <span>Down Payment</span>
-            <span>{{ p.down_payment | currency:'USD':'symbol':'1.2-2' }}</span>
+        <!-- 7. Cash & Cash Equivalents -->
+        <div class="wi-section">
+          <div class="wi-section-head">Cash &amp; Cash Equivalents</div>
+          <div class="wi-row wi-row-sub">
+            <span class="wi-lbl"><span class="wi-letter">m.</span> Cash Down Payment on Order</span>
+            <span class="wi-amt">{{ (p.down_payment || 0) | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="wi-subtotal wi-credit">
+            <span><span class="wi-num">7.</span> Total Cash</span>
+            <span>{{ (p.down_payment || 0) | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
         </div>
-      </div>
-      }
 
-      <!-- ═══ TOTAL DUE ═══ -->
-      <div class="deal-total-section">
-        <div class="deal-total-label">Balance Due</div>
-        <div class="deal-total-value">{{ totalDue | currency:'USD':'symbol':'1.2-2' }}</div>
+        <!-- 8. Balance to Finance -->
+        <div class="wi-balance">
+          <div class="wi-balance-label">8. Due on Delivery or Balance to Finance</div>
+          <div class="wi-balance-formula">(1 − 2 + 4 + 5 + 6 − 7)</div>
+          <div class="wi-balance-amount">{{ totalDue | currency:'USD':'symbol':'1.2-2' }}</div>
+        </div>
+
       </div>
 
       <!-- ═══ FINANCING ESTIMATE ═══ -->

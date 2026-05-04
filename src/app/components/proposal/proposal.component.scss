@@ -545,6 +545,80 @@ $muted: rgba(0,0,0,0.45);
   background: #f1f5f9; border-radius: 4px; padding: 1px 6px;
 }
 
+/* ── WI Purchase Agreement Form ── */
+.wi-form {
+  font-size: 13px; color: #1e293b;
+}
+
+.wi-section {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.wi-section-head {
+  font-size: 9.5px; font-weight: 800; letter-spacing: 0.8px;
+  text-transform: uppercase; color: #94a3b8;
+  padding: 10px 0 6px; border-top: 1px solid #e2e8f0;
+}
+
+.wi-section:first-child .wi-section-head { border-top: none; }
+
+.wi-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 4px 0; gap: 8px;
+}
+
+.wi-row-sub {
+  .wi-lbl { color: #64748b; }
+  .wi-amt { color: #64748b; }
+}
+
+.wi-lbl { flex: 1; line-height: 1.4; }
+.wi-amt { font-weight: 600; white-space: nowrap; }
+
+.wi-letter {
+  display: inline-block; width: 18px; color: #94a3b8; font-style: italic; font-size: 12px;
+}
+
+.wi-subtotal {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 7px 0 10px; gap: 8px;
+  font-weight: 700; font-size: 13.5px;
+  border-top: 1px solid #e2e8f0; margin-top: 2px;
+}
+
+.wi-num {
+  font-weight: 900; color: #1e293b; margin-right: 2px;
+}
+
+.wi-credit { color: #16a34a !important; span { color: #16a34a !important; } }
+.wi-owed   { color: #dc2626 !important; span { color: #dc2626 !important; } }
+
+.wi-trade-vehicle {
+  font-size: 12px; font-weight: 700; color: #1e293b;
+  background: #f8fafc; border-radius: 6px;
+  padding: 6px 8px; margin-bottom: 6px;
+}
+
+.wi-balance {
+  padding: 16px 0 12px;
+  text-align: center;
+}
+
+.wi-balance-label {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.6px; color: #64748b; margin-bottom: 2px;
+}
+
+.wi-balance-formula {
+  font-size: 10px; color: #94a3b8; margin-bottom: 8px;
+}
+
+.wi-balance-amount {
+  font-size: 34px; font-weight: 900; color: #1e293b; letter-spacing: -0.5px;
+}
+
 .fin-est-section {
   margin: 0 -16px;
   padding: 18px 16px 20px;
