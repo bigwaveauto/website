@@ -70,6 +70,30 @@
         </button>
       </div>
 
+      <!-- Chat -->
+      <h3 class="prop-toggle-title">
+        Customer Chat
+        @if(adminUnreadCount() > 0){ <span class="chat-admin-badge">{{ adminUnreadCount() }} new</span> }
+      </h3>
+      <div class="admin-chat-body" #adminChatBody>
+        @if(adminChatMessages().length === 0){
+        <div class="admin-chat-empty">No messages yet.</div>
+        }
+        @for(msg of adminChatMessages(); track msg.id){
+        <div class="admin-chat-msg" [class.admin-chat-msg--admin]="msg.sender === 'admin'" [class.admin-chat-msg--customer]="msg.sender === 'customer'">
+          <div class="admin-chat-msg-meta">{{ msg.sender === 'admin' ? 'You' : msg.sender_name }} · {{ msg.created_at | date:'MMM d, h:mm a' }}</div>
+          <div class="admin-chat-msg-bubble">{{ msg.message }}</div>
+        </div>
+        }
+      </div>
+      <div class="admin-chat-input-row">
+        <input class="admin-chat-input" [ngModel]="adminChatInput()" (ngModelChange)="adminChatInput.set($event)"
+               placeholder="Reply..." (keydown.enter)="sendAdminChat(s)" />
+        <button class="admin-chat-send" (click)="sendAdminChat(s)" [disabled]="!adminChatInput().trim() || adminChatSending()">
+          <lucide-icon name="send" />
+        </button>
+      </div>
+
       <!-- Customer Info -->
       <div class="prop-customer-row">
         <input class="prop-customer-input" [(ngModel)]="s.customer_name" (change)="autosave()" placeholder="Customer Name" />
@@ -611,30 +635,6 @@
         }
       </div>
       }
-
-      <!-- Chat -->
-      <h3 class="prop-toggle-title">
-        Customer Chat
-        @if(adminUnreadCount() > 0){ <span class="chat-admin-badge">{{ adminUnreadCount() }} new</span> }
-      </h3>
-      <div class="admin-chat-body" #adminChatBody>
-        @if(adminChatMessages().length === 0){
-        <div class="admin-chat-empty">No messages yet.</div>
-        }
-        @for(msg of adminChatMessages(); track msg.id){
-        <div class="admin-chat-msg" [class.admin-chat-msg--admin]="msg.sender === 'admin'" [class.admin-chat-msg--customer]="msg.sender === 'customer'">
-          <div class="admin-chat-msg-meta">{{ msg.sender === 'admin' ? 'You' : msg.sender_name }} · {{ msg.created_at | date:'MMM d, h:mm a' }}</div>
-          <div class="admin-chat-msg-bubble">{{ msg.message }}</div>
-        </div>
-        }
-      </div>
-      <div class="admin-chat-input-row">
-        <input class="admin-chat-input" [ngModel]="adminChatInput()" (ngModelChange)="adminChatInput.set($event)"
-               placeholder="Reply..." (keydown.enter)="sendAdminChat(s)" />
-        <button class="admin-chat-send" (click)="sendAdminChat(s)" [disabled]="!adminChatInput().trim() || adminChatSending()">
-          <lucide-icon name="send" />
-        </button>
-      </div>
 
       <!-- Photos preview -->
       @if(s.photos?.length){
