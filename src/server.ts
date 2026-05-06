@@ -2124,6 +2124,37 @@ app.post('/api/ext/proposal', async (req, res) => {
       console.error('NHTSA decode error:', e);
     }
 
+    // Check if a proposal already exists for this VIN — if so, merge vehicle data only
+    const { data: existing } = await supabase
+      .from('vehicle_proposals')
+      .select('id')
+      .eq('vin', vin)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      // Merge: update vehicle/photo/auction data but leave all price & deal fields untouched
+      const { error: mergeError } = await supabase.from('vehicle_proposals').update({
+        vehicle: vinData,
+        condition: condition || {},
+        auction: auction || null,
+        mmr: auction?.mmr || null,
+        photos: photos || [],
+        page_type: page_type || 'unknown',
+        source_url: source_url || '',
+        extracted_at: extracted_at || new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        // Only set customer if not already set (don't overwrite existing assignment)
+        ...(customer_name ? { customer_name } : {}),
+        ...(customer_id ? { customer_id } : {}),
+      }).eq('id', existing.id);
+
+      if (mergeError) { console.error('Proposal merge error:', mergeError); res.status(500).json({ error: mergeError.message }); return; }
+      res.json({ success: true, id: existing.id, merged: true });
+      return;
+    }
+
     const id = randomBytes(6).toString('hex');
     const { error } = await supabase.from('vehicle_proposals').insert({
       id,
@@ -3921,6 +3952,101 @@ app.use(
     redirect: false,
   }),
 );
+
+// ── Proposal Chat ──────────────────────────────────────────────────────────
+
+/** GET /api/proposal/:id/chat — fetch messages (public, by proposal ID) */
+app.get('/api/proposal/:id/chat', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('proposal_messages')
+      .select('id, sender, sender_name, message, created_at')
+      .eq('proposal_id', req.params['id'])
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    res.json(data || []);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/** POST /api/proposal/:id/chat — customer sends a message */
+app.post('/api/proposal/:id/chat', async (req, res) => {
+  try {
+    const { message, sender_name } = req.body;
+    if (!message?.trim()) { res.status(400).json({ error: 'Message required' }); return; }
+
+    const { data: proposal } = await supabase
+      .from('vehicle_proposals')
+      .select('id')
+      .eq('id', req.params['id'])
+      .maybeSingle();
+    if (!proposal) { res.status(404).json({ error: 'Proposal not found' }); return; }
+
+    const { data, error } = await supabase.from('proposal_messages').insert({
+      proposal_id: req.params['id'],
+      sender: 'customer',
+      sender_name: sender_name?.trim() || 'Customer',
+      message: message.trim(),
+    }).select('id, sender, sender_name, message, created_at').single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/** POST /api/admin/proposal/:id/chat — admin sends a reply */
+app.post('/api/admin/proposal/:id/chat', requireAdmin, async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message?.trim()) { res.status(400).json({ error: 'Message required' }); return; }
+
+    const { data, error } = await supabase.from('proposal_messages').insert({
+      proposal_id: req.params['id'],
+      sender: 'admin',
+      sender_name: 'Big Wave Auto',
+      message: message.trim(),
+    }).select('id, sender, sender_name, message, created_at').single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/** GET /api/admin/chat/unread — count of proposals with unread customer messages */
+app.get('/api/admin/chat/unread', requireAdmin, async (_req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('proposal_messages')
+      .select('proposal_id')
+      .eq('sender', 'customer')
+      .is('read_at', null);
+    if (error) throw error;
+    const unique = [...new Set((data || []).map(r => r.proposal_id))];
+    res.json({ count: unique.length, proposals: unique });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/** POST /api/admin/proposal/:id/chat/read — mark customer messages as read */
+app.post('/api/admin/proposal/:id/chat/read', requireAdmin, async (req, res) => {
+  try {
+    await supabase
+      .from('proposal_messages')
+      .update({ read_at: new Date().toISOString() })
+      .eq('proposal_id', req.params['id'])
+      .eq('sender', 'customer')
+      .is('read_at', null);
+    res.json({ ok: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 /**
  * Handle all other requests by rendering the Angular application.

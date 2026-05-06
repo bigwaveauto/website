@@ -28,6 +28,16 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .prop-count { font-size: 13px; color: $muted; font-weight: 600; }
+
+.prop-refresh-btn {
+  margin-left: auto;
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 8px;
+  border: 1px solid #e2e8f0; background: white; cursor: pointer; color: #64748b;
+  transition: background 0.15s, color 0.15s;
+  lucide-icon { width: 16px; height: 16px; }
+  &:hover { background: #f1f5f9; color: #1e293b; }
+}
 .prop-loading, .prop-empty { text-align: center; padding: 40px; color: $muted; font-size: 14px; }
 
 .prop-layout { display: grid; grid-template-columns: 320px 1fr; gap: 12px; align-items: start;
@@ -565,7 +575,12 @@ $muted: rgba(0,0,0,0.45);
 
 .prop-photo-item {
   position: relative;
-  img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 4px; display: block; }
+  cursor: grab;
+  border-radius: 4px;
+  transition: opacity 0.15s, outline 0.1s;
+  img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 4px; display: block; pointer-events: none; }
+  &.photo-dragging { opacity: 0.35; cursor: grabbing; }
+  &.photo-drop-target { outline: 2px solid #3b82f6; outline-offset: 1px; }
 }
 
 .prop-photo-del {
@@ -578,7 +593,15 @@ $muted: rgba(0,0,0,0.45);
   &:hover { background: #ef4444; }
 }
 
-.prop-photo-item:hover .prop-photo-del { opacity: 1; }
+.photo-drag-handle {
+  position: absolute; bottom: 2px; left: 2px;
+  color: white; opacity: 0; transition: opacity 0.15s;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.6));
+  lucide-icon { width: 14px; height: 14px; display: block; }
+}
+
+.prop-photo-item:hover .prop-photo-del,
+.prop-photo-item:hover .photo-drag-handle { opacity: 1; }
 
 /* ── Auction Fee Label Button ── */
 .desk-fee-label {
@@ -714,3 +737,63 @@ $muted: rgba(0,0,0,0.45);
 .prop-fb-time { font-size: 11px; color: #94a3b8; }
 
 .prop-fb-reason { font-size: 13px; color: #334155; line-height: 1.5; }
+
+/* ── Admin Chat ── */
+.chat-admin-badge {
+  display: inline-block; margin-left: 8px;
+  padding: 1px 8px; border-radius: 10px;
+  background: #ef4444; color: white; font-size: 10px; font-weight: 700;
+}
+
+.admin-chat-body {
+  height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 12px; background: #f8fafc;
+  border: 1px solid $border; border-radius: 10px; margin-bottom: 8px;
+}
+
+.admin-chat-empty {
+  color: #9ca3af; font-size: 13px; text-align: center; margin: auto;
+}
+
+.admin-chat-msg {
+  display: flex; flex-direction: column; gap: 2px; max-width: 80%;
+  &--admin { align-self: flex-end; align-items: flex-end; }
+  &--customer { align-self: flex-start; align-items: flex-start; }
+}
+
+.admin-chat-msg-meta {
+  font-size: 10px; color: #94a3b8; padding: 0 4px;
+}
+
+.admin-chat-msg-bubble {
+  padding: 8px 12px; border-radius: 12px; font-size: 13px; line-height: 1.45;
+  .admin-chat-msg--admin & {
+    background: $blue; color: white;
+    border-bottom-right-radius: 3px;
+  }
+  .admin-chat-msg--customer & {
+    background: white; color: #111;
+    border: 1px solid #e2e8f0;
+    border-bottom-left-radius: 3px;
+  }
+}
+
+.admin-chat-input-row {
+  display: flex; gap: 6px; margin-bottom: 12px;
+}
+
+.admin-chat-input {
+  flex: 1; padding: 8px 12px; border: 1.5px solid $border; border-radius: 8px;
+  font-size: 13px; font-family: inherit; outline: none;
+  &:focus { border-color: $blue; }
+}
+
+.admin-chat-send {
+  width: 36px; height: 36px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: $blue; color: white; border: none; border-radius: 8px;
+  cursor: pointer; transition: background 0.15s;
+  lucide-icon { width: 16px; height: 16px; }
+  &:hover { background: darken($blue, 8%); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -12,7 +12,7 @@ import { LucideAngularModule } from 'lucide-angular';
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule],
 })
-export class AdminProposalsComponent implements OnInit {
+export class AdminProposalsComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private sanitizer = inject(DomSanitizer);
 
@@ -69,9 +69,86 @@ export class AdminProposalsComponent implements OnInit {
   showFeeModal = signal(false);
 
   ngOnInit() {
+    this.loadProposals();
+  }
+
+  loadProposals() {
+    this.loading.set(true);
     this.http.get<any[]>('/api/admin/proposals').subscribe({
       next: (data) => { this.proposals.set(data || []); this.loading.set(false); },
       error: () => this.loading.set(false),
+    });
+  }
+
+  refresh() {
+    this.loadProposals();
+  }
+
+  ngOnDestroy() {
+    this.stopChatPoll();
+  }
+
+  // ── Admin Chat ──
+  @ViewChild('adminChatBody') adminChatBodyEl!: ElementRef<HTMLElement>;
+  adminChatMessages = signal<any[]>([]);
+  adminChatInput = signal('');
+  adminChatSending = signal(false);
+  adminUnreadCount = signal(0);
+  private chatPollTimer: any = null;
+  private chatProposalId = '';
+
+  private startChatPoll(proposalId: string) {
+    this.stopChatPoll();
+    this.chatProposalId = proposalId;
+    this.adminChatMessages.set([]);
+    this.adminUnreadCount.set(0);
+    this.fetchAdminChat();
+    this.chatPollTimer = setInterval(() => this.fetchAdminChat(), 5000);
+    // Mark customer messages as read
+    this.http.post(`/api/admin/proposal/${proposalId}/chat/read`, {}).subscribe();
+  }
+
+  private stopChatPoll() {
+    clearInterval(this.chatPollTimer);
+    this.chatPollTimer = null;
+  }
+
+  private fetchAdminChat() {
+    if (!this.chatProposalId) return;
+    this.http.get<any[]>(`/api/proposal/${this.chatProposalId}/chat`).subscribe({
+      next: (msgs) => {
+        const prev = this.adminChatMessages();
+        this.adminChatMessages.set(msgs);
+        const prevCustomer = prev.filter(m => m.sender === 'customer').length;
+        const newCustomer = msgs.filter(m => m.sender === 'customer').length;
+        if (newCustomer > prevCustomer) {
+          this.adminUnreadCount.update(n => n + (newCustomer - prevCustomer));
+          // Auto-mark read since panel is open
+          this.http.post(`/api/admin/proposal/${this.chatProposalId}/chat/read`, {}).subscribe();
+        }
+        setTimeout(() => {
+          const el = this.adminChatBodyEl?.nativeElement;
+          if (el) el.scrollTop = el.scrollHeight;
+        }, 30);
+      },
+    });
+  }
+
+  sendAdminChat(s: any) {
+    const msg = this.adminChatInput().trim();
+    if (!msg || this.adminChatSending()) return;
+    this.adminChatSending.set(true);
+    this.http.post<any>(`/api/admin/proposal/${s.id}/chat`, { message: msg }).subscribe({
+      next: (saved) => {
+        this.adminChatMessages.update(msgs => [...msgs, saved]);
+        this.adminChatInput.set('');
+        this.adminChatSending.set(false);
+        setTimeout(() => {
+          const el = this.adminChatBodyEl?.nativeElement;
+          if (el) el.scrollTop = el.scrollHeight;
+        }, 30);
+      },
+      error: () => this.adminChatSending.set(false),
     });
   }
 
@@ -100,6 +177,7 @@ export class AdminProposalsComponent implements OnInit {
     this.sent.set(false);
     this.saved.set(false);
     this.loadStrategy(p.vin);
+    this.startChatPoll(p.id);
   }
 
   loadStrategy(vin: string) {
@@ -551,6 +629,43 @@ export class AdminProposalsComponent implements OnInit {
     s.photos = s.photos.filter((_: any, i: number) => i !== index);
     this.selected.set({ ...s });
     this.autosave(s);
+  }
+
+  photoDragIdx = -1;
+  photoDropIdx = -1;
+
+  onPhotoDragStart(index: number) {
+    this.photoDragIdx = index;
+  }
+
+  onPhotoDragOver(event: DragEvent, index: number) {
+    event.preventDefault();
+    this.photoDropIdx = index;
+  }
+
+  onPhotoDragLeave(event: DragEvent) {
+    const el = event.currentTarget as HTMLElement;
+    if (!el.contains(event.relatedTarget as Node)) {
+      this.photoDropIdx = -1;
+    }
+  }
+
+  onPhotoDrop(s: any, index: number) {
+    const from = this.photoDragIdx;
+    if (from === -1 || from === index) { this.photoDragIdx = -1; this.photoDropIdx = -1; return; }
+    const photos = [...s.photos];
+    const [moved] = photos.splice(from, 1);
+    photos.splice(index, 0, moved);
+    s.photos = photos;
+    this.selected.set({ ...s });
+    this.autosave(s);
+    this.photoDragIdx = -1;
+    this.photoDropIdx = -1;
+  }
+
+  onPhotoDragEnd() {
+    this.photoDragIdx = -1;
+    this.photoDropIdx = -1;
   }
 
   // ── Address Autocomplete (Nominatim / OpenStreetMap) ──

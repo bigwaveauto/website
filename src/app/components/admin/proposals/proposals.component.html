@@ -10,6 +10,9 @@
       }
     </div>
     <span class="prop-count">{{ filteredProposals().length }}@if(searchQuery()){ of {{ proposals().length }}} total</span>
+    <button class="prop-refresh-btn" (click)="refresh()" title="Refresh list">
+      <lucide-icon name="refresh-cw" />
+    </button>
   </div>
 
   @if(loading()){
@@ -609,14 +612,47 @@
       </div>
       }
 
+      <!-- Chat -->
+      <h3 class="prop-toggle-title">
+        Customer Chat
+        @if(adminUnreadCount() > 0){ <span class="chat-admin-badge">{{ adminUnreadCount() }} new</span> }
+      </h3>
+      <div class="admin-chat-body" #adminChatBody>
+        @if(adminChatMessages().length === 0){
+        <div class="admin-chat-empty">No messages yet.</div>
+        }
+        @for(msg of adminChatMessages(); track msg.id){
+        <div class="admin-chat-msg" [class.admin-chat-msg--admin]="msg.sender === 'admin'" [class.admin-chat-msg--customer]="msg.sender === 'customer'">
+          <div class="admin-chat-msg-meta">{{ msg.sender === 'admin' ? 'You' : msg.sender_name }} · {{ msg.created_at | date:'MMM d, h:mm a' }}</div>
+          <div class="admin-chat-msg-bubble">{{ msg.message }}</div>
+        </div>
+        }
+      </div>
+      <div class="admin-chat-input-row">
+        <input class="admin-chat-input" [ngModel]="adminChatInput()" (ngModelChange)="adminChatInput.set($event)"
+               placeholder="Reply..." (keydown.enter)="sendAdminChat(s)" />
+        <button class="admin-chat-send" (click)="sendAdminChat(s)" [disabled]="!adminChatInput().trim() || adminChatSending()">
+          <lucide-icon name="send" />
+        </button>
+      </div>
+
       <!-- Photos preview -->
       @if(s.photos?.length){
       <h3 class="prop-toggle-title">Photos ({{ s.photos.length }})</h3>
       <div class="prop-photo-grid">
         @for(photo of s.photos; track $index){
-        <div class="prop-photo-item">
-          <img [src]="photo" alt="photo" />
+        <div class="prop-photo-item"
+             draggable="true"
+             [class.photo-dragging]="photoDragIdx === $index"
+             [class.photo-drop-target]="photoDropIdx === $index && photoDragIdx !== $index"
+             (dragstart)="onPhotoDragStart($index)"
+             (dragover)="onPhotoDragOver($event, $index)"
+             (dragleave)="onPhotoDragLeave($event)"
+             (drop)="onPhotoDrop(s, $index)"
+             (dragend)="onPhotoDragEnd()">
+          <img [src]="photo" alt="photo" draggable="false" />
           <button class="prop-photo-del" (click)="removePhoto(s, $index)"><lucide-icon name="x" /></button>
+          <div class="photo-drag-handle"><lucide-icon name="grip-vertical" /></div>
         </div>
         }
       </div>

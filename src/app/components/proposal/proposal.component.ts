@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule, SlicePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -13,7 +13,7 @@ import { LucideAngularModule } from 'lucide-angular';
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule],
 })
-export class ProposalComponent implements OnInit {
+export class ProposalComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
 
@@ -56,10 +56,23 @@ export class ProposalComponent implements OnInit {
   questionSent = signal(false);
   questionSending = signal(false);
 
+  // Chat widget
+  @ViewChild('chatBody') chatBodyEl!: ElementRef<HTMLElement>;
+  chatOpen = signal(false);
+  chatMessages = signal<any[]>([]);
+  chatInput = signal('');
+  chatName = signal('');
+  chatNameSet = signal(false);
+  chatSending = signal(false);
+  chatUnread = signal(0);
+  private chatPollTimer: any = null;
+  private chatProposalId = '';
+
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) { this.notFound.set(true); this.loading.set(false); return; }
 
+    this.chatProposalId = id;
     this.http.get<any>(`/api/proposal/${id}`).subscribe({
       next: (data) => {
         this.proposal.set(data);
@@ -67,12 +80,79 @@ export class ProposalComponent implements OnInit {
         if (data.down_payment) this.finDown.set(data.down_payment);
         if (data.apr) this.finApr.set(data.apr);
         if (data.term_months) this.finTerm.set(data.term_months);
+        this.startChatPoll();
       },
       error: () => {
         this.notFound.set(true);
         this.loading.set(false);
       },
     });
+  }
+
+  ngOnDestroy() {
+    clearInterval(this.chatPollTimer);
+  }
+
+  private startChatPoll() {
+    this.fetchChatMessages();
+    this.chatPollTimer = setInterval(() => this.fetchChatMessages(), 5000);
+  }
+
+  private fetchChatMessages() {
+    this.http.get<any[]>(`/api/proposal/${this.chatProposalId}/chat`).subscribe({
+      next: (msgs) => {
+        const prev = this.chatMessages();
+        this.chatMessages.set(msgs);
+        // Count new admin messages as unread when chat is closed
+        if (!this.chatOpen()) {
+          const prevCount = prev.filter(m => m.sender === 'admin').length;
+          const newCount = msgs.filter(m => m.sender === 'admin').length;
+          if (newCount > prevCount) this.chatUnread.update(n => n + (newCount - prevCount));
+        }
+        this.scrollChatToBottom();
+      },
+    });
+  }
+
+  toggleChat() {
+    this.chatOpen.update(v => !v);
+    if (this.chatOpen()) {
+      this.chatUnread.set(0);
+      setTimeout(() => this.scrollChatToBottom(), 50);
+    }
+  }
+
+  setChatName() {
+    if (this.chatName().trim()) this.chatNameSet.set(true);
+  }
+
+  sendChatMessage() {
+    const msg = this.chatInput().trim();
+    if (!msg || this.chatSending()) return;
+    this.chatSending.set(true);
+    this.http.post<any>(`/api/proposal/${this.chatProposalId}/chat`, {
+      message: msg,
+      sender_name: this.chatName().trim() || 'Customer',
+    }).subscribe({
+      next: (saved) => {
+        this.chatMessages.update(msgs => [...msgs, saved]);
+        this.chatInput.set('');
+        this.chatSending.set(false);
+        this.scrollChatToBottom();
+      },
+      error: () => this.chatSending.set(false),
+    });
+  }
+
+  onChatKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.sendChatMessage(); }
+  }
+
+  private scrollChatToBottom() {
+    setTimeout(() => {
+      const el = this.chatBodyEl?.nativeElement;
+      if (el) el.scrollTop = el.scrollHeight;
+    }, 30);
   }
 
   get v(): any { return this.proposal()?.vehicle || {}; }
@@ -215,5 +295,17 @@ export class ProposalComponent implements OnInit {
 
   visibleOptions(): string[] {
     return (this.cr.options || []).filter((_: string, i: number) => !this.excluded.includes(`option_${i}`));
+  }
+
+  get visiblePackages(): { name: string; items: string[] }[] {
+    return (this.cr.packages || []).filter((p: any) => p.items?.length);
+  }
+
+  get visibleEquipment(): string[] {
+    return this.cr.equipment || [];
+  }
+
+  get hasPackagesOrEquipment(): boolean {
+    return this.visiblePackages.length > 0 || this.visibleEquipment.length > 0;
   }
 }

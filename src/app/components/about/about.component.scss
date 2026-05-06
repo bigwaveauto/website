@@ -802,11 +802,21 @@ $radius:    14px;
   font-family: monospace;
 }
 
-.abt-modal-no-detail {
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.45);
-  text-align: center;
-  padding: 20px 0;
-  margin: 0;
-  font-style: italic;
+.abt-modal-simple {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; padding: 24px 16px 8px; gap: 10px;
+}
+
+.abt-modal-pin {
+  width: 32px; height: 32px; color: #38bdf8; opacity: 0.85;
+}
+
+.abt-modal-delivered {
+  font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9);
+  margin: 0; line-height: 1.4;
+}
+
+.abt-modal-cta-text {
+  font-size: 13.5px; color: rgba(255,255,255,0.45);
+  margin: 0; line-height: 1.5;
 }

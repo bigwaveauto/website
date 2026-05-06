@@ -191,8 +191,12 @@
 
 
     @if(!detailVehicles().length && !detailZips().length){
-    <div class="abt-modal-section">
-      <p class="abt-modal-no-detail">Detailed breakdown not available for this state yet. Upload a sales report in admin settings.</p>
+    <div class="abt-modal-section abt-modal-simple">
+      <lucide-icon name="map-pin" class="abt-modal-pin" />
+      <p class="abt-modal-delivered">
+        We've delivered {{ detailCount() }} vehicle{{ detailCount() > 1 ? 's' : '' }} to customers in {{ detailStateName() }}.
+      </p>
+      <p class="abt-modal-cta-text">Interested in buying from out of state? We handle transport nationwide.</p>
     </div>
     }
   </div>

@@ -169,8 +169,38 @@
       </div>
       }
 
-      <!-- Options -->
-      @if(visibleOptions().length){
+      <!-- Packages & Equipment (structured) -->
+      @if(hasPackagesOrEquipment){
+      <div class="prop-section">
+        <h2 class="prop-heading">Packages &amp; Equipment</h2>
+
+        @for(pkg of visiblePackages; track $index){
+        <div class="pkg-block">
+          <div class="pkg-name">{{ pkg.name }}</div>
+          <div class="prop-options-grid">
+            @for(item of pkg.items; track $index){
+            <div class="prop-option-pill">
+              <lucide-icon name="check" class="prop-option-check" />
+              {{ item }}
+            </div>}
+          </div>
+        </div>}
+
+        @if(visibleEquipment.length){
+        <div class="pkg-block" [class.pkg-block-first]="visiblePackages.length === 0">
+          @if(visiblePackages.length){ <div class="pkg-name">Equipment</div> }
+          <div class="prop-options-grid">
+            @for(item of visibleEquipment; track $index){
+            <div class="prop-option-pill">
+              <lucide-icon name="check" class="prop-option-check" />
+              {{ item }}
+            </div>}
+          </div>
+        </div>}
+      </div>}
+
+      <!-- Flat options fallback (when no structured packages data) -->
+      @if(!hasPackagesOrEquipment && visibleOptions().length){
       <div class="prop-section">
         <h2 class="prop-heading">Features &amp; Options</h2>
         <div class="prop-options-grid">
@@ -509,5 +539,74 @@
   </div>
 </div>
 }
+
+<!-- ── Chat Widget ── -->
+<div class="chat-widget">
+
+  <!-- Bubble toggle -->
+  <button class="chat-bubble" (click)="toggleChat()" [class.chat-bubble--open]="chatOpen()">
+    @if(chatOpen()){
+      <lucide-icon name="x" />
+    }@else{
+      <lucide-icon name="message-circle" />
+      @if(chatUnread() > 0){
+      <span class="chat-unread-badge">{{ chatUnread() }}</span>
+      }
+    }
+  </button>
+
+  <!-- Panel -->
+  @if(chatOpen()){
+  <div class="chat-panel">
+    <div class="chat-panel-header">
+      <div class="chat-panel-avatar">BWA</div>
+      <div>
+        <div class="chat-panel-title">Big Wave Auto</div>
+        <div class="chat-panel-sub">We typically reply within the hour</div>
+      </div>
+    </div>
+
+    <!-- Name gate (first time only) -->
+    @if(!chatNameSet()){
+    <div class="chat-name-gate">
+      <p>What's your name?</p>
+      <div class="chat-name-row">
+        <input class="chat-name-input" [ngModel]="chatName()" (ngModelChange)="chatName.set($event)"
+               placeholder="Your name" (keydown.enter)="setChatName()" />
+        <button class="chat-name-btn" (click)="setChatName()" [disabled]="!chatName().trim()">Start</button>
+      </div>
+    </div>
+    }@else{
+
+    <!-- Messages -->
+    <div class="chat-body" #chatBody>
+      @if(chatMessages().length === 0){
+      <div class="chat-empty">Send a message and we'll get back to you shortly.</div>
+      }
+      @for(msg of chatMessages(); track msg.id){
+      <div class="chat-msg" [class.chat-msg--admin]="msg.sender === 'admin'" [class.chat-msg--customer]="msg.sender === 'customer'">
+        @if(msg.sender === 'admin'){
+        <div class="chat-msg-name">{{ msg.sender_name }}</div>
+        }
+        <div class="chat-msg-bubble">{{ msg.message }}</div>
+        <div class="chat-msg-time">{{ msg.created_at | date:'h:mm a' }}</div>
+      </div>
+      }
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-row">
+      <textarea class="chat-input" rows="1" [ngModel]="chatInput()" (ngModelChange)="chatInput.set($event)"
+                placeholder="Type a message..." (keydown)="onChatKeydown($event)"></textarea>
+      <button class="chat-send-btn" (click)="sendChatMessage()" [disabled]="!chatInput().trim() || chatSending()">
+        <lucide-icon name="send" />
+      </button>
+    </div>
+
+    }
+  </div>
+  }
+
+</div>
 
 }
