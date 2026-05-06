@@ -80,6 +80,11 @@ export class ProposalComponent implements OnInit, OnDestroy {
         if (data.down_payment) this.finDown.set(data.down_payment);
         if (data.apr) this.finApr.set(data.apr);
         if (data.term_months) this.finTerm.set(data.term_months);
+        if (data.customer_name) {
+          const firstName = data.customer_name.trim().split(' ')[0];
+          this.chatName.set(firstName);
+          this.chatNameSet.set(true);
+        }
         this.startChatPoll();
       },
       error: () => {

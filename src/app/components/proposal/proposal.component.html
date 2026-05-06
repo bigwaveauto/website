@@ -561,12 +561,17 @@
     <div class="chat-panel-header">
       <div class="chat-panel-avatar">BWA</div>
       <div>
+        @if(chatNameSet()){
+        <div class="chat-panel-title">Hello, {{ chatName() }}!</div>
+        <div class="chat-panel-sub">How can we help you today?</div>
+        }@else{
         <div class="chat-panel-title">Big Wave Auto</div>
         <div class="chat-panel-sub">We typically reply within the hour</div>
+        }
       </div>
     </div>
 
-    <!-- Name gate (first time only) -->
+    <!-- Name gate (only when no customer name on proposal) -->
     @if(!chatNameSet()){
     <div class="chat-name-gate">
       <p>What's your name?</p>
@@ -581,7 +586,7 @@
     <!-- Messages -->
     <div class="chat-body" #chatBody>
       @if(chatMessages().length === 0){
-      <div class="chat-empty">Send a message and we'll get back to you shortly.</div>
+      <div class="chat-empty">Send us a message and we'll get back to you shortly.</div>
       }
       @for(msg of chatMessages(); track msg.id){
       <div class="chat-msg" [class.chat-msg--admin]="msg.sender === 'admin'" [class.chat-msg--customer]="msg.sender === 'customer'">
