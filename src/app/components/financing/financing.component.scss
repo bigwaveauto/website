@@ -597,3 +597,20 @@ $radius: 14px;
   height: 32px !important;
   color: $blue;
 }
+
+/* ── Previous section (address / employer) ── */
+.fin-prev-section {
+  margin-top: 16px; padding: 14px 16px;
+  background: #f0f4ff; border-radius: 10px;
+  border: 1.5px dashed #bfdbfe;
+}
+
+.fin-prev-label {
+  font-size: 11px; font-weight: 800; color: #2563eb;
+  text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px;
+}
+
+/* ── Optional label ── */
+.fin-optional {
+  font-weight: 400; color: #9ca3af; font-size: 11px; text-transform: lowercase;
+}

@@ -48,14 +48,10 @@
 
     <!-- Step indicator -->
     <div class="fin-steps">
-      @for(s of steps; track s.number){
+      @for(s of dynamicSteps; track s.number){
       <div class="fin-step" [class.active]="step() === s.number" [class.done]="step() > s.number">
         <div class="fin-step-circle">
-          @if(step() > s.number){
-          <lucide-icon name="check" />
-          }@else{
-          {{ s.number }}
-          }
+          @if(step() > s.number){ <lucide-icon name="check" /> }@else{ {{ s.number }} }
         </div>
         <span class="fin-step-label">{{ s.label }}</span>
       </div>
@@ -68,11 +64,11 @@
     <!-- Step content -->
     <div class="fin-form-card">
       <div class="fin-form-header">
-        <span class="fin-form-title">{{ steps[step()-1].label }}</span>
+        <span class="fin-form-title">{{ dynamicSteps[step()-1].label }}</span>
         <span class="fin-form-counter">{{ step() }} / {{ totalSteps }}</span>
       </div>
 
-      <!-- Step 1: Contact -->
+      <!-- ── Step 1: Contact ── -->
       @if(step() === 1){
       <div class="fin-borrower-choice">
         <p>Are you applying for financing for yourself, or jointly with a co-borrower?</p>
@@ -119,7 +115,7 @@
       </form>
       }
 
-      <!-- Step 2: Address -->
+      <!-- ── Step 2: Address ── -->
       @if(step() === 2){
       <form [formGroup]="addressForm" class="fin-form">
         <div class="fin-form-row">
@@ -137,8 +133,9 @@
             <label>State</label>
             <select formControlName="state">
               <option value="">Select</option>
-              <option value="WI">WI</option><option value="IL">IL</option><option value="MN">MN</option><option value="MI">MI</option><option value="IA">IA</option>
-              <option value="IN">IN</option><option value="OH">OH</option><option value="MO">MO</option><option value="Other">Other</option>
+              <option value="WI">WI</option><option value="IL">IL</option><option value="MN">MN</option>
+              <option value="MI">MI</option><option value="IA">IA</option><option value="IN">IN</option>
+              <option value="OH">OH</option><option value="MO">MO</option><option value="Other">Other</option>
             </select>
           </div>
           <div class="fin-field fin-field--sm">
@@ -151,38 +148,19 @@
             <label>County</label>
             <input formControlName="county" placeholder="Waukesha" type="text">
           </div>
-        </div>
-        <div class="fin-form-row">
           <div class="fin-field">
             <label>Time at Address</label>
             <div class="fin-time-row">
               <select formControlName="addressYears">
                 <option value="">Years</option>
-                <option value="0">0 years</option>
-                <option value="1">1 year</option>
-                <option value="2">2 years</option>
-                <option value="3">3 years</option>
-                <option value="4">4 years</option>
-                <option value="5">5 years</option>
-                <option value="6">6 years</option>
-                <option value="7">7 years</option>
-                <option value="8">8 years</option>
-                <option value="9">9 years</option>
-                <option value="10">10+ years</option>
+                @for(y of [0,1,2,3,4,5,6,7,8,9,10]; track y){
+                <option [value]="y">{{ y === 10 ? '10+' : y }} {{ y === 1 ? 'year' : 'years' }}</option>
+                }
               </select>
               <select formControlName="addressMonths">
-                <option value="0">0 months</option>
-                <option value="1">1 month</option>
-                <option value="2">2 months</option>
-                <option value="3">3 months</option>
-                <option value="4">4 months</option>
-                <option value="5">5 months</option>
-                <option value="6">6 months</option>
-                <option value="7">7 months</option>
-                <option value="8">8 months</option>
-                <option value="9">9 months</option>
-                <option value="10">10 months</option>
-                <option value="11">11 months</option>
+                @for(m of [0,1,2,3,4,5,6,7,8,9,10,11]; track m){
+                <option [value]="m">{{ m }} {{ m === 1 ? 'month' : 'months' }}</option>
+                }
               </select>
             </div>
           </div>
@@ -203,10 +181,48 @@
             <input formControlName="rentMortgageAmount" placeholder="$0" type="text">
           </div>
         </div>
+
+        <!-- Previous address (< 2 years) -->
+        @if(needsPrevAddress){
+        <div class="fin-prev-section">
+          <div class="fin-prev-label">Previous Address</div>
+          <div class="fin-form-row">
+            <div class="fin-field fin-field--full">
+              <label>Street Address</label>
+              <input formControlName="prevStreet" placeholder="123 Previous St" type="text">
+            </div>
+          </div>
+          <div class="fin-form-row">
+            <div class="fin-field">
+              <label>City</label>
+              <input formControlName="prevCity" placeholder="City" type="text">
+            </div>
+            <div class="fin-field fin-field--sm">
+              <label>State</label>
+              <select formControlName="prevState">
+                <option value="">Select</option>
+                <option value="WI">WI</option><option value="IL">IL</option><option value="MN">MN</option>
+                <option value="MI">MI</option><option value="IA">IA</option><option value="IN">IN</option>
+                <option value="OH">OH</option><option value="MO">MO</option><option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="fin-field fin-field--sm">
+              <label>ZIP</label>
+              <input formControlName="prevZip" placeholder="53089" type="text" maxlength="5">
+            </div>
+          </div>
+          <div class="fin-form-row">
+            <div class="fin-field">
+              <label>County</label>
+              <input formControlName="prevCounty" placeholder="County" type="text">
+            </div>
+          </div>
+        </div>
+        }
       </form>
       }
 
-      <!-- Step 3: Employment -->
+      <!-- ── Step 3: Employment ── -->
       @if(step() === 3){
       <form [formGroup]="employmentForm" class="fin-form">
         <div class="fin-form-row">
@@ -243,40 +259,312 @@
             <div class="fin-time-row">
               <select formControlName="employmentYears">
                 <option value="">Years</option>
-                <option value="0">0 years</option>
-                <option value="1">1 year</option>
-                <option value="2">2 years</option>
-                <option value="3">3 years</option>
-                <option value="4">4 years</option>
-                <option value="5">5 years</option>
-                <option value="6">6 years</option>
-                <option value="7">7 years</option>
-                <option value="8">8 years</option>
-                <option value="9">9 years</option>
-                <option value="10">10+ years</option>
+                @for(y of [0,1,2,3,4,5,6,7,8,9,10]; track y){
+                <option [value]="y">{{ y === 10 ? '10+' : y }} {{ y === 1 ? 'year' : 'years' }}</option>
+                }
               </select>
               <select formControlName="employmentMonths">
-                <option value="0">0 months</option>
-                <option value="1">1 month</option>
-                <option value="2">2 months</option>
-                <option value="3">3 months</option>
-                <option value="4">4 months</option>
-                <option value="5">5 months</option>
-                <option value="6">6 months</option>
-                <option value="7">7 months</option>
-                <option value="8">8 months</option>
-                <option value="9">9 months</option>
-                <option value="10">10 months</option>
-                <option value="11">11 months</option>
+                @for(m of [0,1,2,3,4,5,6,7,8,9,10,11]; track m){
+                <option [value]="m">{{ m }} {{ m === 1 ? 'month' : 'months' }}</option>
+                }
               </select>
             </div>
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Other Monthly Income <span class="fin-optional">(optional)</span></label>
+            <input formControlName="otherIncome" placeholder="$0" type="text">
+          </div>
+          <div class="fin-field">
+            <label>Source of Other Income <span class="fin-optional">(optional)</span></label>
+            <input formControlName="otherIncomeSource" placeholder="e.g. Social Security, rental" type="text">
+          </div>
+        </div>
+
+        <!-- Previous employer (< 2 years) -->
+        @if(needsPrevEmployer){
+        <div class="fin-prev-section">
+          <div class="fin-prev-label">Previous Employer</div>
+          <div class="fin-form-row">
+            <div class="fin-field">
+              <label>Previous Employer Name</label>
+              <input formControlName="prevEmployerName" placeholder="Previous employer" type="text">
+            </div>
+            <div class="fin-field">
+              <label>Previous Job Title</label>
+              <input formControlName="prevJobTitle" placeholder="Job title" type="text">
+            </div>
+          </div>
+          <div class="fin-form-row">
+            <div class="fin-field">
+              <label>Time There</label>
+              <div class="fin-time-row">
+                <select formControlName="prevEmploymentYears">
+                  <option value="">Years</option>
+                  @for(y of [0,1,2,3,4,5,6,7,8,9,10]; track y){
+                  <option [value]="y">{{ y === 10 ? '10+' : y }} {{ y === 1 ? 'year' : 'years' }}</option>
+                  }
+                </select>
+                <select formControlName="prevEmploymentMonths">
+                  @for(m of [0,1,2,3,4,5,6,7,8,9,10,11]; track m){
+                  <option [value]="m">{{ m }} {{ m === 1 ? 'month' : 'months' }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+      </form>
+      }
+
+      <!-- ── Step 4 (co-borrower): Co-Borrower Contact ── -->
+      @if(step() === 4 && coborrower()){
+      <form [formGroup]="coContactForm" class="fin-form">
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>First Name</label>
+            <input formControlName="firstname" placeholder="First name" type="text">
+          </div>
+          <div class="fin-field">
+            <label>Last Name</label>
+            <input formControlName="lastname" placeholder="Last name" type="text">
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Relationship to You</label>
+            <select formControlName="relation">
+              <option value="">Select</option>
+              <option value="Spouse">Spouse</option>
+              <option value="Partner">Partner</option>
+              <option value="Parent">Parent</option>
+              <option value="Child">Child</option>
+              <option value="Sibling">Sibling</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="fin-field">
+            <label>Date of Birth</label>
+            <input formControlName="dob" type="date">
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Social Security Number</label>
+            <input formControlName="ssn" type="password" placeholder="XXX-XX-XXXX" maxlength="11" autocomplete="off">
+          </div>
+          <div class="fin-field">
+            <label>Email <span class="fin-optional">(optional)</span></label>
+            <input formControlName="email" placeholder="co@email.com" type="email">
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Phone <span class="fin-optional">(optional)</span></label>
+            <input formControlName="phone" placeholder="(262) 555-0100" type="tel">
           </div>
         </div>
       </form>
       }
 
-      <!-- Step 4: Consent -->
-      @if(step() === 4){
+      <!-- ── Step 5 (co-borrower): Co-Borrower Address ── -->
+      @if(step() === 5 && coborrower()){
+      <form [formGroup]="coAddressForm" class="fin-form">
+        <div class="fin-form-row">
+          <div class="fin-field fin-field--full">
+            <label>Street Address</label>
+            <input formControlName="street" placeholder="123 Main St" type="text">
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>City</label>
+            <input formControlName="city" placeholder="Sussex" type="text">
+          </div>
+          <div class="fin-field fin-field--sm">
+            <label>State</label>
+            <select formControlName="state">
+              <option value="">Select</option>
+              <option value="WI">WI</option><option value="IL">IL</option><option value="MN">MN</option>
+              <option value="MI">MI</option><option value="IA">IA</option><option value="IN">IN</option>
+              <option value="OH">OH</option><option value="MO">MO</option><option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="fin-field fin-field--sm">
+            <label>ZIP</label>
+            <input formControlName="zip" placeholder="53089" type="text" maxlength="5">
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>County</label>
+            <input formControlName="county" placeholder="Waukesha" type="text">
+          </div>
+          <div class="fin-field">
+            <label>Time at Address</label>
+            <div class="fin-time-row">
+              <select formControlName="addressYears">
+                <option value="">Years</option>
+                @for(y of [0,1,2,3,4,5,6,7,8,9,10]; track y){
+                <option [value]="y">{{ y === 10 ? '10+' : y }} {{ y === 1 ? 'year' : 'years' }}</option>
+                }
+              </select>
+              <select formControlName="addressMonths">
+                @for(m of [0,1,2,3,4,5,6,7,8,9,10,11]; track m){
+                <option [value]="m">{{ m }} {{ m === 1 ? 'month' : 'months' }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Housing Status</label>
+            <select formControlName="housingStatus">
+              <option value="">Select</option>
+              <option value="Own">Own</option>
+              <option value="Rent">Rent</option>
+              <option value="Family">Live with family</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="fin-field">
+            <label>Monthly Rent / Mortgage</label>
+            <input formControlName="rentMortgageAmount" placeholder="$0" type="text">
+          </div>
+        </div>
+        @if(coNeedsPrevAddress){
+        <div class="fin-prev-section">
+          <div class="fin-prev-label">Previous Address</div>
+          <div class="fin-form-row">
+            <div class="fin-field fin-field--full">
+              <label>Street Address</label>
+              <input formControlName="prevStreet" placeholder="123 Previous St" type="text">
+            </div>
+          </div>
+          <div class="fin-form-row">
+            <div class="fin-field">
+              <label>City</label>
+              <input formControlName="prevCity" placeholder="City" type="text">
+            </div>
+            <div class="fin-field fin-field--sm">
+              <label>State</label>
+              <select formControlName="prevState">
+                <option value="">Select</option>
+                <option value="WI">WI</option><option value="IL">IL</option><option value="MN">MN</option>
+                <option value="MI">MI</option><option value="IA">IA</option><option value="IN">IN</option>
+                <option value="OH">OH</option><option value="MO">MO</option><option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="fin-field fin-field--sm">
+              <label>ZIP</label>
+              <input formControlName="prevZip" placeholder="53089" type="text" maxlength="5">
+            </div>
+          </div>
+        </div>
+        }
+      </form>
+      }
+
+      <!-- ── Step 6 (co-borrower): Co-Borrower Employment ── -->
+      @if(step() === 6 && coborrower()){
+      <form [formGroup]="coEmploymentForm" class="fin-form">
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Employment Status</label>
+            <select formControlName="employmentStatus">
+              <option value="">Select</option>
+              <option value="Employed">Full-time employed</option>
+              <option value="Part-time">Part-time employed</option>
+              <option value="Self-employed">Self-employed</option>
+              <option value="Retired">Retired</option>
+              <option value="Student">Student</option>
+              <option value="Unemployed">Unemployed</option>
+            </select>
+          </div>
+          <div class="fin-field">
+            <label>Employer Name</label>
+            <input formControlName="employerName" placeholder="Employer" type="text">
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Job Title</label>
+            <input formControlName="jobTitle" placeholder="Job title" type="text">
+          </div>
+          <div class="fin-field">
+            <label>Gross Monthly Income</label>
+            <input formControlName="monthlyIncome" placeholder="$0,000" type="text">
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Time at Employer</label>
+            <div class="fin-time-row">
+              <select formControlName="employmentYears">
+                <option value="">Years</option>
+                @for(y of [0,1,2,3,4,5,6,7,8,9,10]; track y){
+                <option [value]="y">{{ y === 10 ? '10+' : y }} {{ y === 1 ? 'year' : 'years' }}</option>
+                }
+              </select>
+              <select formControlName="employmentMonths">
+                @for(m of [0,1,2,3,4,5,6,7,8,9,10,11]; track m){
+                <option [value]="m">{{ m }} {{ m === 1 ? 'month' : 'months' }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="fin-form-row">
+          <div class="fin-field">
+            <label>Other Monthly Income <span class="fin-optional">(optional)</span></label>
+            <input formControlName="otherIncome" placeholder="$0" type="text">
+          </div>
+          <div class="fin-field">
+            <label>Source <span class="fin-optional">(optional)</span></label>
+            <input formControlName="otherIncomeSource" placeholder="e.g. Social Security" type="text">
+          </div>
+        </div>
+        @if(coNeedsPrevEmployer){
+        <div class="fin-prev-section">
+          <div class="fin-prev-label">Previous Employer</div>
+          <div class="fin-form-row">
+            <div class="fin-field">
+              <label>Previous Employer Name</label>
+              <input formControlName="prevEmployerName" placeholder="Previous employer" type="text">
+            </div>
+            <div class="fin-field">
+              <label>Previous Job Title</label>
+              <input formControlName="prevJobTitle" placeholder="Job title" type="text">
+            </div>
+          </div>
+          <div class="fin-form-row">
+            <div class="fin-field">
+              <label>Time There</label>
+              <div class="fin-time-row">
+                <select formControlName="prevEmploymentYears">
+                  <option value="">Years</option>
+                  @for(y of [0,1,2,3,4,5,6,7,8,9,10]; track y){
+                  <option [value]="y">{{ y === 10 ? '10+' : y }} {{ y === 1 ? 'year' : 'years' }}</option>
+                  }
+                </select>
+                <select formControlName="prevEmploymentMonths">
+                  @for(m of [0,1,2,3,4,5,6,7,8,9,10,11]; track m){
+                  <option [value]="m">{{ m }} {{ m === 1 ? 'month' : 'months' }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+      </form>
+      }
+
+      <!-- ── Consent (last step) ── -->
+      @if(step() === consentStep){
       <form [formGroup]="consentForm" class="fin-form">
         <p class="fin-consent-text">By submitting this application, you authorize Big Wave Auto and its lending partners to obtain your credit report and use your information to process your financing request. Your information is secure and will never be sold to third parties.</p>
         <div class="fin-checkbox-row">
@@ -305,8 +593,8 @@
           Continue <lucide-icon name="arrow-right" />
         </button>
         }@else{
-        <button class="fin-btn-submit" (click)="submitForm()" [disabled]="!currentStepValid()">
-          Submit Application <lucide-icon name="send" />
+        <button class="fin-btn-submit" (click)="submitForm()" [disabled]="!currentStepValid() || submitting()">
+          @if(submitting()){ Submitting... }@else{ Submit Application <lucide-icon name="send" /> }
         </button>
         }
       </div>
@@ -324,7 +612,6 @@
     </div>
   </section>
   }
-
 
 </div>
 

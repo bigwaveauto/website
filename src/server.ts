@@ -268,8 +268,11 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
       'firstname', 'lastname', 'email', 'phone', 'dob', 'ssn',
       'street', 'city', 'state', 'zip', 'county',
       'addressYears', 'addressMonths', 'housingStatus', 'rentMortgageAmount',
+      'prevStreet', 'prevCity', 'prevState', 'prevZip', 'prevCounty',
       'employerName', 'jobTitle', 'employmentStatus', 'monthlyIncome',
-      'employmentYears', 'employmentMonths', 'coborrower',
+      'employmentYears', 'employmentMonths', 'otherIncome', 'otherIncomeSource',
+      'prevEmployerName', 'prevJobTitle', 'prevEmploymentYears', 'prevEmploymentMonths',
+      'coborrower', 'coborrower_data',
     ]);
     if (!raw.firstname || !raw.email || !validateEmail(raw.email)) {
       res.status(400).json({ error: 'Valid name and email required' }); return;
@@ -277,6 +280,7 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
     const lastFour = (raw.ssn || '').slice(-4);
     const addrTime = `${raw.addressYears || 0} yr ${raw.addressMonths || 0} mo`;
     const empTime = `${raw.employmentYears || 0} yr ${raw.employmentMonths || 0} mo`;
+    const co = raw.coborrower_data || null;
     const data: Record<string, any> = {
       firstname: raw.firstname, lastname: raw.lastname, email: raw.email,
       phone: raw.phone, dob: raw.dob, ssn_last4: lastFour,
@@ -286,10 +290,43 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
       rent_mortgage: raw.rentMortgageAmount,
       employer_name: raw.employerName, employment_status: raw.employmentStatus,
       job_title: raw.jobTitle, monthly_income: raw.monthlyIncome,
+      other_income: raw.otherIncome || null, other_income_source: raw.otherIncomeSource || null,
       years_employed: empTime, coborrower: raw.coborrower,
+      coborrower_data: co ? JSON.stringify(co) : null,
     };
     const { error } = await supabase.from('financing_leads').insert(data);
     if (error) { console.error('Financing lead save error:', error.message, error.details, error.hint); res.status(500).json({ error: 'Failed to save' }); return; }
+
+    // Build co-borrower HTML block for email
+    let coHtml = '';
+    if (co) {
+      const coAddrTime = `${co.addressYears || 0} yr ${co.addressMonths || 0} mo`;
+      const coEmpTime = `${co.employmentYears || 0} yr ${co.employmentMonths || 0} mo`;
+      const coLastFour = (co.ssn || '').slice(-4);
+      coHtml = `
+        <hr/>
+        <h3>Co-Borrower</h3>
+        <p><b>Name:</b> ${escHtml(co.firstname)} ${escHtml(co.lastname)} (${escHtml(co.relation || '')})</p>
+        <p><b>DOB:</b> ${escHtml(co.dob)}</p>
+        <p><b>SSN:</b> ***-**-${escHtml(coLastFour) || 'N/A'}</p>
+        ${co.email ? `<p><b>Email:</b> ${escHtml(co.email)}</p>` : ''}
+        ${co.phone ? `<p><b>Phone:</b> ${escHtml(co.phone)}</p>` : ''}
+        <p><b>Address:</b> ${escHtml(co.street)}, ${escHtml(co.city)}, ${escHtml(co.state)} ${escHtml(co.zip)}</p>
+        <p><b>Time at Address:</b> ${escHtml(coAddrTime)}</p>
+        <p><b>Housing:</b> ${escHtml(co.housingStatus)} — ${escHtml(co.rentMortgageAmount || 'N/A')}/mo</p>
+        <p><b>Employment:</b> ${escHtml(co.employmentStatus)} — ${escHtml(co.jobTitle || '')} at ${escHtml(co.employerName)}</p>
+        <p><b>Time at Employer:</b> ${escHtml(coEmpTime)}</p>
+        <p><b>Monthly Income:</b> ${escHtml(co.monthlyIncome)}</p>
+      `;
+    }
+
+    // Previous address/employer for primary
+    const prevAddrHtml = raw.prevStreet
+      ? `<p><b>Previous Address:</b> ${escHtml(raw.prevStreet)}, ${escHtml(raw.prevCity)}, ${escHtml(raw.prevState)} ${escHtml(raw.prevZip)}</p>` : '';
+    const prevEmpHtml = raw.prevEmployerName
+      ? `<p><b>Previous Employer:</b> ${escHtml(raw.prevEmployerName)} (${escHtml(raw.prevEmploymentYears || '0')} yr ${escHtml(raw.prevEmploymentMonths || '0')} mo)</p>` : '';
+    const otherIncomeHtml = raw.otherIncome
+      ? `<p><b>Other Income:</b> $${escHtml(raw.otherIncome)} — ${escHtml(raw.otherIncomeSource || 'N/A')}</p>` : '';
 
     await resend.emails.send({
       from: FROM_EMAIL,
@@ -304,11 +341,15 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
         <p><b>SSN:</b> ***-**-${escHtml(lastFour) || 'N/A'}</p>
         <p><b>Address:</b> ${escHtml(raw.street)}, ${escHtml(raw.city)}, ${escHtml(raw.state)} ${escHtml(raw.zip)} (${escHtml(raw.county || '')} County)</p>
         <p><b>Time at Address:</b> ${escHtml(addrTime)}</p>
+        ${prevAddrHtml}
         <p><b>Housing:</b> ${escHtml(raw.housingStatus)} — ${escHtml(raw.rentMortgageAmount || 'N/A')}/mo</p>
         <p><b>Employment:</b> ${escHtml(raw.employmentStatus)} — ${escHtml(raw.jobTitle || '')} at ${escHtml(raw.employerName)}</p>
         <p><b>Time at Employer:</b> ${escHtml(empTime)}</p>
+        ${prevEmpHtml}
         <p><b>Monthly Income:</b> ${escHtml(raw.monthlyIncome)}</p>
+        ${otherIncomeHtml}
         <p><b>Co-borrower:</b> ${raw.coborrower ? 'Yes' : 'No'}</p>
+        ${coHtml}
       `
     });
 
