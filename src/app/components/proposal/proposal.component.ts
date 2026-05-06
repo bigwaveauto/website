@@ -1,5 +1,5 @@
-import { Component, inject, OnInit, OnDestroy, signal, ElementRef, ViewChild } from '@angular/core';
-import { CommonModule, SlicePipe } from '@angular/common';
+import { Component, inject, OnInit, OnDestroy, signal, ElementRef, ViewChild, PLATFORM_ID } from '@angular/core';
+import { CommonModule, SlicePipe, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -16,8 +16,8 @@ import { LucideAngularModule } from 'lucide-angular';
 export class ProposalComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
-
   private sanitizer = inject(DomSanitizer);
+  private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   proposal = signal<any>(null);
   loading = signal(true);
@@ -94,6 +94,7 @@ export class ProposalComponent implements OnInit, OnDestroy {
   }
 
   private startChatPoll() {
+    if (!this.isBrowser) return;
     this.fetchChatMessages();
     this.chatPollTimer = setInterval(() => this.fetchChatMessages(), 5000);
   }
@@ -103,7 +104,6 @@ export class ProposalComponent implements OnInit, OnDestroy {
       next: (msgs) => {
         const prev = this.chatMessages();
         this.chatMessages.set(msgs);
-        // Count new admin messages as unread when chat is closed
         if (!this.chatOpen()) {
           const prevCount = prev.filter(m => m.sender === 'admin').length;
           const newCount = msgs.filter(m => m.sender === 'admin').length;
@@ -111,6 +111,7 @@ export class ProposalComponent implements OnInit, OnDestroy {
         }
         this.scrollChatToBottom();
       },
+      error: () => {},
     });
   }
 
