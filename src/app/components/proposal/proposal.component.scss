@@ -813,3 +813,39 @@ $muted: rgba(0,0,0,0.45);
   &:disabled { opacity: 0.35; cursor: default; }
   &:not(:disabled):hover { background: #2563eb; }
 }
+
+/* ── Cash / Finance Tabs ── */
+.prop-tabs {
+  display: flex; border-radius: 10px; overflow: hidden;
+  border: 1.5px solid rgba(0,0,0,0.08); margin-bottom: 16px;
+  background: #f8f9fb;
+}
+
+.prop-tab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 13px; border: none; background: none;
+  font-size: 14px; font-weight: 600; font-family: inherit;
+  color: #64748b; cursor: pointer; transition: all 0.15s;
+  lucide-icon { width: 16px; height: 16px; }
+  &:first-child { border-right: 1.5px solid rgba(0,0,0,0.08); }
+  &--active {
+    background: white; color: #1e3a5f;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+}
+
+.prop-tab-cta {
+  display: flex; flex-direction: column; gap: 10px; margin-top: 16px;
+}
+
+.prop-btn-cash-go {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  lucide-icon { width: 16px; height: 16px; }
+}
+
+.prop-cash-confirmed {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; background: #f0fdf4; border-radius: 10px;
+  border: 1px solid #bbf7d0; color: #16a34a; font-weight: 600; font-size: 14px;
+  lucide-icon { width: 20px; height: 20px; flex-shrink: 0; }
+}

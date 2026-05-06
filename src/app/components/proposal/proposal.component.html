@@ -316,130 +316,157 @@
         </div>
       }
 
-      <!-- ═══ PRICE PROPOSAL MODE: WI Purchase Agreement Format ═══ -->
+      <!-- ═══ PRICE PROPOSAL MODE ═══ -->
       @if(!isInfoMode){
-      @if(askingPrice > 0){
-      <div class="wi-form">
 
-        <!-- 1. Price of the Vehicle -->
-        @if(askingPrice > 0){
-        <div class="wi-section">
-          <div class="wi-section-head">Price of the Vehicle</div>
-          <div class="wi-row">
-            <span class="wi-lbl"><span class="wi-letter">a.</span> Dealer Retail Price @if(p.vehicle?.mileage){<span class="deal-miles">{{ p.vehicle.mileage | number }} mi</span>}</span>
-            <span class="wi-amt">{{ askingPrice | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-          @for(li of taxableLineItems; track $index){
-          <div class="wi-row">
-            <span class="wi-lbl"><span class="wi-letter">{{ $index === 0 ? 'b.' : 'c.' }}</span> {{ li.label }}</span>
-            <span class="wi-amt">{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-          }
-          <div class="wi-subtotal">
-            <span><span class="wi-num">1.</span> Cash Price</span>
-            <span>{{ taxableGross | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-        </div>
-        }
-
-        <!-- 2. Trade Allowance -->
-        @if(tradeIn?.allowance){
-        <div class="wi-section">
-          <div class="wi-section-head">Trade Allowance</div>
-          @if(tradeIn.year || tradeIn.make || tradeIn.model){
-          <div class="wi-trade-vehicle">{{ tradeIn.year }} {{ tradeIn.make }} {{ tradeIn.model }}@if(tradeIn.vin){ &middot; {{ tradeIn.vin }}}</div>
-          }
-          <div class="wi-subtotal wi-credit">
-            <span><span class="wi-num">2.</span> Owned Trade-in Allowance</span>
-            <span>{{ tradeIn.allowance | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-        </div>
-        }
-
-        <!-- 4. Sales Tax -->
-        @if(taxAmount > 0){
-        <div class="wi-section">
-          <div class="wi-section-head">Sales Tax Calculation</div>
-          <div class="wi-row wi-row-sub">
-            <span class="wi-lbl"><span class="wi-letter">g.</span> Amount Subject to Sales Tax</span>
-            <span class="wi-amt">{{ taxableAmount | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-          <div class="wi-row wi-row-sub">
-            <span class="wi-lbl"><span class="wi-letter"></span> Tax Rate</span>
-            <span class="wi-amt">{{ p.tax_rate }}%</span>
-          </div>
-          <div class="wi-subtotal">
-            <span><span class="wi-num">4.</span> Total Tax</span>
-            <span>{{ taxAmount | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-        </div>
-        }
-
-        <!-- 5. Non-Taxable Items -->
-        @if(nonTaxableTotal > 0){
-        <div class="wi-section">
-          <div class="wi-section-head">Non-Taxable Items</div>
-          @for(li of nonTaxableItems; track $index){
-          <div class="wi-row wi-row-sub">
-            <span class="wi-lbl">{{ li.label }}</span>
-            <span class="wi-amt">{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-          }
-          <div class="wi-subtotal">
-            <span><span class="wi-num">5.</span> Total Non-Taxable Items</span>
-            <span>{{ nonTaxableTotal | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-        </div>
-        }
-
-        <!-- 6. Trade Payoff -->
-        @if(tradePayoff > 0){
-        <div class="wi-section">
-          <div class="wi-section-head">Owned Vehicle Payoff</div>
-          <div class="wi-subtotal wi-owed">
-            <span><span class="wi-num">6.</span> Estimated Payoff to {{ tradeIn?.payoff_to || 'Lender' }}</span>
-            <span>{{ tradePayoff | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-        </div>
-        }
-
-        <!-- Lien Payoff -->
-        @if(lienPayoff > 0){
-        <div class="wi-section">
-          <div class="wi-section-head">Lien Payoff</div>
-          <div class="wi-subtotal wi-owed">
-            <span>Lien Payoff</span>
-            <span>{{ lienPayoff | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-        </div>
-        }
-
-        <!-- 7. Cash & Cash Equivalents -->
-        <div class="wi-section">
-          <div class="wi-section-head">Cash &amp; Cash Equivalents</div>
-          <div class="wi-row wi-row-sub">
-            <span class="wi-lbl"><span class="wi-letter">m.</span> Cash Down Payment on Order</span>
-            <span class="wi-amt">{{ finDown() | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-          <div class="wi-subtotal wi-credit">
-            <span><span class="wi-num">7.</span> Total Cash</span>
-            <span>{{ finDown() | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-        </div>
-
-        <!-- 8. Balance to Finance -->
-        <div class="wi-balance">
-          <div class="wi-balance-label">8. Due on Delivery or Balance to Finance</div>
-          <div class="wi-balance-formula">(1 − 2 + 4 + 5 + 6 − 7)</div>
-          <div class="wi-balance-amount">{{ totalDue | currency:'USD':'symbol':'1.2-2' }}</div>
-        </div>
-
+      <!-- Tab switcher -->
+      <div class="prop-tabs">
+        <button class="prop-tab" [class.prop-tab--active]="propTab() === 'cash'" (click)="propTab.set('cash')">
+          <lucide-icon name="banknote" /> Cash
+        </button>
+        <button class="prop-tab" [class.prop-tab--active]="propTab() === 'finance'" (click)="propTab.set('finance')">
+          <lucide-icon name="credit-card" /> Financing
+        </button>
       </div>
 
-      <!-- ═══ FINANCING ESTIMATE ═══ -->
+      <!-- ── Cash Tab ── -->
+      @if(propTab() === 'cash'){
+        @if(askingPrice > 0){
+        <div class="wi-form">
+
+          <!-- 1. Price of the Vehicle -->
+          <div class="wi-section">
+            <div class="wi-section-head">Price of the Vehicle</div>
+            <div class="wi-row">
+              <span class="wi-lbl"><span class="wi-letter">a.</span> Dealer Retail Price @if(p.vehicle?.mileage){<span class="deal-miles">{{ p.vehicle.mileage | number }} mi</span>}</span>
+              <span class="wi-amt">{{ askingPrice | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+            @for(li of taxableLineItems; track $index){
+            <div class="wi-row">
+              <span class="wi-lbl"><span class="wi-letter">{{ $index === 0 ? 'b.' : 'c.' }}</span> {{ li.label }}</span>
+              <span class="wi-amt">{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+            }
+            <div class="wi-subtotal">
+              <span><span class="wi-num">1.</span> Cash Price</span>
+              <span>{{ taxableGross | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+
+          <!-- 2. Trade Allowance -->
+          @if(tradeIn?.allowance){
+          <div class="wi-section">
+            <div class="wi-section-head">Trade Allowance</div>
+            @if(tradeIn.year || tradeIn.make || tradeIn.model){
+            <div class="wi-trade-vehicle">{{ tradeIn.year }} {{ tradeIn.make }} {{ tradeIn.model }}@if(tradeIn.vin){ &middot; {{ tradeIn.vin }}}</div>
+            }
+            <div class="wi-subtotal wi-credit">
+              <span><span class="wi-num">2.</span> Owned Trade-in Allowance</span>
+              <span>{{ tradeIn.allowance | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+          }
+
+          <!-- 4. Sales Tax -->
+          @if(taxAmount > 0){
+          <div class="wi-section">
+            <div class="wi-section-head">Sales Tax Calculation</div>
+            <div class="wi-row wi-row-sub">
+              <span class="wi-lbl"><span class="wi-letter">g.</span> Amount Subject to Sales Tax</span>
+              <span class="wi-amt">{{ taxableAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+            <div class="wi-row wi-row-sub">
+              <span class="wi-lbl">Tax Rate</span>
+              <span class="wi-amt">{{ p.tax_rate }}%</span>
+            </div>
+            <div class="wi-subtotal">
+              <span><span class="wi-num">4.</span> Total Tax</span>
+              <span>{{ taxAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+          }
+
+          <!-- 5. Non-Taxable Items -->
+          @if(nonTaxableTotal > 0){
+          <div class="wi-section">
+            <div class="wi-section-head">Non-Taxable Items</div>
+            @for(li of nonTaxableItems; track $index){
+            <div class="wi-row wi-row-sub">
+              <span class="wi-lbl">{{ li.label }}</span>
+              <span class="wi-amt">{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+            }
+            <div class="wi-subtotal">
+              <span><span class="wi-num">5.</span> Total Non-Taxable Items</span>
+              <span>{{ nonTaxableTotal | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+          }
+
+          <!-- 6. Trade Payoff -->
+          @if(tradePayoff > 0){
+          <div class="wi-section">
+            <div class="wi-section-head">Owned Vehicle Payoff</div>
+            <div class="wi-subtotal wi-owed">
+              <span><span class="wi-num">6.</span> Estimated Payoff to {{ tradeIn?.payoff_to || 'Lender' }}</span>
+              <span>{{ tradePayoff | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+          }
+
+          <!-- Lien Payoff -->
+          @if(lienPayoff > 0){
+          <div class="wi-section">
+            <div class="wi-section-head">Lien Payoff</div>
+            <div class="wi-subtotal wi-owed">
+              <span>Lien Payoff</span>
+              <span>{{ lienPayoff | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+          }
+
+          <!-- OTD Total -->
+          <div class="wi-balance">
+            <div class="wi-balance-label">Out-the-Door Cash Price</div>
+            <div class="wi-balance-amount">{{ cashPrice | currency:'USD':'symbol':'1.2-2' }}</div>
+          </div>
+
+        </div>
+        }@else{
+          @if(p.asking_price){
+          <div class="prop-price-section">
+            <span class="prop-price">{{ p.asking_price | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+          }
+        }
+
+        <!-- Cash CTA -->
+        <div class="prop-tab-cta">
+          @if(!cashConfirmed()){
+          <button class="prop-btn-primary prop-btn-cash-go" (click)="confirmCash()" [disabled]="cashConfirming()">
+            @if(cashConfirming()){ Sending... }@else{ I'll Pay Cash <lucide-icon name="arrow-right" /> }
+          </button>
+          <a href="tel:+12622811295" class="prop-btn-outline prop-btn-call">
+            <lucide-icon name="phone" /> Call Us
+          </a>
+          }@else{
+          <div class="prop-cash-confirmed">
+            <lucide-icon name="check-circle" />
+            <span>Got it! We'll reach out to finalize the details.</span>
+          </div>
+          }
+        </div>
+      }
+
+      <!-- ── Finance Tab ── -->
+      @if(propTab() === 'finance'){
       <div class="fin-est-section">
-        <div class="fin-est-title">Financing Estimate</div>
-        <div class="fin-est-hint">Adjust to see different scenarios — these numbers don't affect your deal.</div>
+        <div class="fin-est-monthly">
+          {{ finMonthly | currency:'USD':'symbol':'1.0-0' }}<span class="fin-est-per">/mo</span>
+        </div>
+        <div class="fin-est-financed">
+          Amount to Finance: <strong>{{ finPrincipal | currency:'USD':'symbol':'1.0-0' }}</strong>
+        </div>
 
         <div class="fin-est-field fin-est-field-full">
           <label>Cash Down</label>
@@ -464,31 +491,18 @@
             </div>
           </div>
         </div>
+        <div class="fin-est-disclaimer">Estimate only. Actual rate and terms set by lender.</div>
 
-        <div class="fin-est-result">
-          <div class="fin-est-financed">
-            Amount to Finance: <strong>{{ finPrincipal | currency:'USD':'symbol':'1.0-0' }}</strong>
-          </div>
-          <div class="fin-est-monthly">
-            {{ finMonthly | currency:'USD':'symbol':'1.0-0' }}<span class="fin-est-per">/mo</span>
-          </div>
-          <div class="fin-est-disclaimer">Estimate only. Actual rate and terms set by lender.</div>
+        <div class="prop-tab-cta">
+          <a [href]="financingUrl" class="prop-btn-primary">
+            Apply for Financing <lucide-icon name="arrow-right" />
+          </a>
+          <a href="tel:+12622811295" class="prop-btn-outline prop-btn-call">
+            <lucide-icon name="phone" /> Call Us
+          </a>
         </div>
       </div>
-
-      }@else{
-      @if(p.asking_price){
-      <div class="prop-price-section">
-        <span class="prop-price">{{ p.asking_price | currency:'USD':'symbol':'1.0-0' }}</span>
-      </div>
       }
-      }
-
-      <!-- CTA for proposal mode -->
-      <div class="prop-cta-stack">
-        <a href="tel:+12622811295" class="prop-btn-primary">Call Big Wave Auto</a>
-        <a href="https://bigwaveauto.com/financing" class="prop-btn-outline">Apply for Financing</a>
-      </div>
 
       }<!-- /price proposal mode -->
 

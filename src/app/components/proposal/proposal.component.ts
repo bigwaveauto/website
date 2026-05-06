@@ -50,6 +50,29 @@ export class ProposalComponent implements OnInit, OnDestroy {
   feedbackSent = signal(false);
   feedbackSending = signal(false);
 
+  // Cash / Finance tabs (Proposal mode)
+  propTab = signal<'cash' | 'finance'>('cash');
+  cashConfirmed = signal(false);
+  cashConfirming = signal(false);
+
+  confirmCash() {
+    const id = this.proposal()?.id;
+    if (!id) return;
+    this.cashConfirming.set(true);
+    this.http.post(`/api/proposal/${id}/feedback`, {
+      interest: 'cash',
+      reason: 'Customer confirmed: Pay Cash',
+    }).subscribe({
+      next: () => { this.cashConfirming.set(false); this.cashConfirmed.set(true); },
+      error: () => { this.cashConfirming.set(false); },
+    });
+  }
+
+  get financingUrl(): string {
+    const id = this.proposal()?.id;
+    return id ? `/financing?proposal=${id}` : '/financing';
+  }
+
   // Question modal
   showQuestion = signal(false);
   questionText = signal('');
