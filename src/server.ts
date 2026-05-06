@@ -8,7 +8,7 @@ import {
 import express, { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import { join } from 'node:path';
-import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, randomBytes, randomUUID } from 'node:crypto';
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
@@ -35,6 +35,8 @@ const supabase = createClient(
 const resend = new Resend(process.env['RESEND_API_KEY']);
 const NOTIFY_EMAIL = 'dave@bigwaveauto.com';
 const DEALERCENTER_EMAIL = '18548085@leadsprod.dealercenter.net';
+const DEALERCENTER_API_TOKEN = process.env['DEALERCENTER_API_TOKEN'] || '0780465a-a7a8-896a-ad39-bd7908aba13e';
+const DEALERCENTER_DEALER_ID = process.env['DEALERCENTER_DEALER_ID'] || 'NOWCOM';
 const FROM_EMAIL = process.env['FROM_EMAIL'] || 'onboarding@resend.dev';
 
 // ADF/XML lead format for DealerCenter CRM
@@ -100,6 +102,131 @@ async function sendAdfToDealerCenter(adfXml: string, subject: string) {
     console.error('DealerCenter ADF send error:', err);
   }
 }
+
+function buildCreditAppXml(raw: { [k: string]: any }, id: string): string {
+  const x = (v: any) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const splitStreet = (s: string) => {
+    const m = (s || '').match(/^(\S+)\s+(.+)$/);
+    return m ? { no: m[1], name: m[2] } : { no: '', name: s || '' };
+  };
+
+  const addr = splitStreet(raw['street']);
+  const prevAddr = splitStreet(raw['prevStreet']);
+
+  const empBlock = (r: { [k: string]: any }, cur = true) => {
+    const tag = cur ? 'current_employment_data' : 'previous_employment_data';
+    return `<${tag}>
+      <employment_status>${x(r['employmentStatus'])}</employment_status>
+      <employed_by>${x(r['employerName'] || r['prevEmployerName'])}</employed_by>
+      <years_employed>${x(r['employmentYears'] ?? r['prevEmploymentYears'] ?? 0)}</years_employed>
+      <months_employed>${x(r['employmentMonths'] ?? r['prevEmploymentMonths'] ?? 0)}</months_employed>
+      <job_title>${x(r['jobTitle'] || r['prevJobTitle'])}</job_title>
+      <monthly_gross>${x(r['monthlyIncome'] ?? 0)}</monthly_gross>
+    </${tag}>`;
+  };
+
+  const primaryBlock = `<primary_applicant_data>
+    <first_name>${x(raw['firstname'])}</first_name>
+    <last_name>${x(raw['lastname'])}</last_name>
+    <ssn>${x(raw['ssn'])}</ssn>
+    <dob>${x(raw['dob'])}</dob>
+    <email_address>${x(raw['email'])}</email_address>
+    <home_phone>${x(raw['phone'])}</home_phone>
+    <current_address>
+      <street_no>${x(addr.no)}</street_no>
+      <street_name>${x(addr.name)}</street_name>
+      <city>${x(raw['city'])}</city>
+      <state>${x(raw['state'])}</state>
+      <zip_code>${x(raw['zip'])}</zip_code>
+    </current_address>
+    <years_at_address>${x(raw['addressYears'] ?? 0)}</years_at_address>
+    <months_at_address>${x(raw['addressMonths'] ?? 0)}</months_at_address>
+    <residence_owned_by>${x(raw['housingStatus'])}</residence_owned_by>
+    <current_residence_monthly_cost>${x(raw['rentMortgageAmount'] ?? 0)}</current_residence_monthly_cost>
+    ${raw['prevStreet'] ? `<previous_address>
+      <street_no>${x(prevAddr.no)}</street_no>
+      <street_name>${x(prevAddr.name)}</street_name>
+      <city>${x(raw['prevCity'])}</city>
+      <state>${x(raw['prevState'])}</state>
+      <zip_code>${x(raw['prevZip'])}</zip_code>
+    </previous_address>` : ''}
+    ${empBlock(raw)}
+    ${raw['prevEmployerName'] ? empBlock({ employerName: raw['prevEmployerName'], jobTitle: raw['prevJobTitle'], employmentYears: raw['prevEmploymentYears'], employmentMonths: raw['prevEmploymentMonths'] }, false) : ''}
+    ${raw['otherIncome'] ? `<other_income_amount>${x(raw['otherIncome'])}</other_income_amount>` : ''}
+    ${raw['otherIncomeSource'] ? `<other_income_source>${x(raw['otherIncomeSource'])}</other_income_source>` : ''}
+  </primary_applicant_data>`;
+
+  let coBlock = '';
+  const co: { [k: string]: any } | null = raw['coborrower_data'] || null;
+  if (co) {
+    const coAddr = splitStreet(co['street']);
+    coBlock = `<first_coapplicant_data>
+    <first_name>${x(co['firstname'])}</first_name>
+    <last_name>${x(co['lastname'])}</last_name>
+    <ssn>${x(co['ssn'])}</ssn>
+    <dob>${x(co['dob'])}</dob>
+    <email_address>${x(co['email'])}</email_address>
+    <home_phone>${x(co['phone'])}</home_phone>
+    <current_address>
+      <street_no>${x(coAddr.no)}</street_no>
+      <street_name>${x(coAddr.name)}</street_name>
+      <city>${x(co['city'])}</city>
+      <state>${x(co['state'])}</state>
+      <zip_code>${x(co['zip'])}</zip_code>
+    </current_address>
+    <years_at_address>${x(co['addressYears'] ?? 0)}</years_at_address>
+    <months_at_address>${x(co['addressMonths'] ?? 0)}</months_at_address>
+    <residence_owned_by>${x(co['housingStatus'])}</residence_owned_by>
+    <current_residence_monthly_cost>${x(co['rentMortgageAmount'] ?? 0)}</current_residence_monthly_cost>
+    <current_employment_data>
+      <employment_status>${x(co['employmentStatus'])}</employment_status>
+      <employed_by>${x(co['employerName'])}</employed_by>
+      <years_employed>${x(co['employmentYears'] ?? 0)}</years_employed>
+      <months_employed>${x(co['employmentMonths'] ?? 0)}</months_employed>
+      <job_title>${x(co['jobTitle'])}</job_title>
+      <monthly_gross>${x(co['monthlyIncome'] ?? 0)}</monthly_gross>
+    </current_employment_data>
+  </first_coapplicant_data>`;
+  }
+
+  return `<ac_application>
+  <dealer>
+    <partner_dealer_id>BWA</partner_dealer_id>
+    <dealership_name>Big Wave Auto</dealership_name>
+    <dealercenter_dealer_id>${DEALERCENTER_DEALER_ID}</dealercenter_dealer_id>
+  </dealer>
+  <application_info>
+    <id>${id}</id>
+    <submit_datetime>${new Date().toISOString()}</submit_datetime>
+  </application_info>
+  <application_data>
+    ${primaryBlock}
+    ${coBlock}
+  </application_data>
+</ac_application>`;
+}
+
+async function postCreditAppToDealerCenter(xml: string, applicantName: string): Promise<void> {
+  try {
+    const res = await fetch('https://betaservices.dealercenter.net/LeadXmlService.svc/json/PostXml', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'access_token': DEALERCENTER_API_TOKEN,
+      },
+      body: JSON.stringify(xml),
+    });
+    const body = await res.text();
+    if (!res.ok) {
+      console.error(`DealerCenter credit app API error (${res.status}):`, body);
+    } else {
+      console.log(`DealerCenter credit app posted for ${applicantName}, prospect ID:`, body);
+    }
+  } catch (err) {
+    console.error('DealerCenter credit app API exception:', err);
+  }
+}
+
 const anthropic = new Anthropic({ apiKey: process.env['ANTHROPIC_API_KEY'] });
 
 // AES-256-GCM encryption for sensitive fields (SSN)
@@ -353,55 +480,9 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
       `
     });
 
-    // Build credit-app ADF XML for DealerCenter with full buyer details
-    const creditAdf = `<?xml version="1.0" encoding="UTF-8"?>
-<?adf version="1.0"?>
-<adf>
-  <prospect>
-    <requestdate>${new Date().toISOString()}</requestdate>
-    <customer>
-      <contact>
-        <name part="first">${escHtml(raw.firstname)}</name>
-        <name part="last">${escHtml(raw.lastname)}</name>
-        <email>${escHtml(raw.email)}</email>
-        <phone type="cellphone">${escHtml(raw.phone)}</phone>
-        <birthday>${escHtml(raw.dob)}</birthday>
-        <ssn>${escHtml(raw.ssn)}</ssn>
-        <address type="current">
-          <street line="1">${escHtml(raw.street)}</street>
-          <city>${escHtml(raw.city)}</city>
-          <regioncode>${escHtml(raw.state)}</regioncode>
-          <postalcode>${escHtml(raw.zip)}</postalcode>
-          ${raw.county ? `<county>${escHtml(raw.county)}</county>` : ''}
-          <duration>${escHtml(addrTime)}</duration>
-        </address>
-        <housing>
-          <status>${escHtml(raw.housingStatus)}</status>
-          <monthlyPayment>${escHtml(raw.rentMortgageAmount || '0')}</monthlyPayment>
-        </housing>
-      </contact>
-      <employment>
-        <status>${escHtml(raw.employmentStatus)}</status>
-        <employername>${escHtml(raw.employerName)}</employername>
-        <jobtitle>${escHtml(raw.jobTitle || '')}</jobtitle>
-        <duration>${escHtml(empTime)}</duration>
-        <income type="monthly">${escHtml(raw.monthlyIncome)}</income>
-      </employment>
-      <timeframe>
-        <description>Credit Application</description>
-      </timeframe>
-      <comments>Co-borrower: ${raw.coborrower ? 'Yes' : 'No'}</comments>
-    </customer>
-    <vendor>
-      <vendorname>Big Wave Auto</vendorname>
-    </vendor>
-    <provider>
-      <name part="full">Big Wave Auto Website</name>
-      <service>Credit Application</service>
-    </provider>
-  </prospect>
-</adf>`;
-    await sendAdfToDealerCenter(creditAdf, `Credit Application — ${raw.firstname} ${raw.lastname}`);
+    // POST credit app to DealerCenter API
+    const creditXml = buildCreditAppXml(raw, randomUUID());
+    await postCreditAppToDealerCenter(creditXml, `${raw.firstname} ${raw.lastname}`);
     res.json({ success: true });
   } catch (err) {
     console.error('Financing lead error:', err);
