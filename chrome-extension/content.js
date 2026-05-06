@@ -118,7 +118,7 @@
   }
 
   const LABEL_MAP = {
-    'odometer': 'mileage', 'mileage': 'mileage', 'miles': 'mileage',
+    'odometer': 'mileage', 'mileage': 'mileage', 'miles': 'mileage', 'odometer reading': 'mileage',
     'exterior color': 'exterior_color', 'ext color': 'exterior_color', 'ext. color': 'exterior_color',
     'interior color': 'interior_color', 'int color': 'interior_color', 'int. color': 'interior_color',
     'engine': 'engine', 'displacement': 'engine',
@@ -171,21 +171,22 @@
         const match = text.match(/(?:__NEXT_DATA__|__data|__INITIAL_STATE__)\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/);
         if (!match) return;
         const walk = (obj, depth = 0) => {
-          if (!obj || depth > 6 || typeof obj !== 'object') return;
-          if (obj.vin && obj.year && String(obj.vin).length === 17) {
-            if (!vehicle.year) vehicle.year = String(obj.year);
-            if (!vehicle.make) vehicle.make = obj.make;
-            if (!vehicle.model) vehicle.model = obj.model;
-            if (!vehicle.trim) vehicle.trim = obj.trim;
-            if (!vehicle.mileage && (obj.mileage || obj.odometer)) vehicle.mileage = String(obj.mileage || obj.odometer).replace(/,/g, '');
-            if (!vehicle.exterior_color && (obj.exteriorColor || obj.color)) vehicle.exterior_color = obj.exteriorColor || obj.color;
-            if (!vehicle.interior_color && obj.interiorColor) vehicle.interior_color = obj.interiorColor;
-            if (!vehicle.engine && obj.engine) vehicle.engine = typeof obj.engine === 'string' ? obj.engine : obj.engine?.description;
-            if (!vehicle.transmission && obj.transmission) vehicle.transmission = obj.transmission;
-            if (!vehicle.drivetrain && (obj.driveType || obj.drivetrain)) vehicle.drivetrain = obj.driveType || obj.drivetrain;
+          if (!obj || depth > 12 || typeof obj !== 'object') return;
+          if (obj.vin && String(obj.vin).length === 17 && (obj.year || obj.modelYear || obj.make || obj.model)) {
+            if (!vehicle.year) vehicle.year = String(obj.year || obj.modelYear || '');
+            if (!vehicle.make) vehicle.make = obj.make || obj.makeName || '';
+            if (!vehicle.model) vehicle.model = obj.model || obj.modelName || '';
+            if (!vehicle.trim) vehicle.trim = obj.trim || obj.trimLevel || '';
+            const mi = obj.mileage || obj.odometer || obj.odometerReading || obj.currentOdometer || obj.miles;
+            if (!vehicle.mileage && mi) vehicle.mileage = String(mi).replace(/,/g, '');
+            if (!vehicle.exterior_color && (obj.exteriorColor || obj.extColor || obj.color)) vehicle.exterior_color = obj.exteriorColor || obj.extColor || obj.color;
+            if (!vehicle.interior_color && (obj.interiorColor || obj.intColor)) vehicle.interior_color = obj.interiorColor || obj.intColor;
+            if (!vehicle.engine && obj.engine) vehicle.engine = typeof obj.engine === 'string' ? obj.engine : (obj.engine?.description || obj.engineDescription || '');
+            if (!vehicle.transmission && (obj.transmission || obj.transmissionType)) vehicle.transmission = obj.transmission || obj.transmissionType;
+            if (!vehicle.drivetrain && (obj.driveType || obj.drivetrain || obj.driveTrain)) vehicle.drivetrain = obj.driveType || obj.drivetrain || obj.driveTrain;
             if (!vehicle.fuel && (obj.fuelType || obj.fuel)) vehicle.fuel = obj.fuelType || obj.fuel;
-            if (!vehicle.body && (obj.bodyStyle || obj.body)) vehicle.body = obj.bodyStyle || obj.body;
-            if (!vehicle.grade && (obj.conditionGrade || obj.grade)) vehicle.grade = String(obj.conditionGrade || obj.grade);
+            if (!vehicle.body && (obj.bodyStyle || obj.bodyType || obj.body)) vehicle.body = obj.bodyStyle || obj.bodyType || obj.body;
+            if (!vehicle.grade && (obj.conditionGrade || obj.grade || obj.crGrade)) vehicle.grade = String(obj.conditionGrade || obj.grade || obj.crGrade);
             return;
           }
           for (const key of Object.keys(obj)) walk(obj[key], depth + 1);
@@ -239,7 +240,8 @@
     // Strategy 4: Tight regex fallbacks
     const pageText = document.body.innerText || '';
     if (!vehicle.mileage) {
-      const m = pageText.match(/(?:odometer|mileage)[^\d]*([0-9,]+)\s*(?:mi|miles)?/i);
+      const m = pageText.match(/(?:odometer(?:\s*reading)?|mileage)[^\d]*([0-9,]+)\s*(?:mi|miles)?/i)
+             || pageText.match(/([0-9]{3,3}[0-9,]+)\s*(?:miles|mi)\b/i);
       if (m) vehicle.mileage = m[1].replace(/,/g, '');
     }
     if (!vehicle.exterior_color) {
