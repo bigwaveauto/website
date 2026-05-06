@@ -1,5 +1,5 @@
-// Big Wave Auto — Manheim Content Script
-// Runs on Manheim pages, watches for React to render specs, caches extracted data.
+// Big Wave Auto — Auction Content Script
+// Runs on Manheim and ADESA/OpenLane pages, extracts vehicle data and caches it.
 
 (function () {
   'use strict';
@@ -26,20 +26,94 @@
 
   // ── Extraction ──
 
+  // VIN check-digit validation — filters out random 17-char strings (photo tokens, IDs, etc.)
+  function vinCheckDigitValid(vin) {
+    const v = vin.toUpperCase();
+    const map = {A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:1,K:2,L:3,M:4,N:5,P:7,R:9,S:2,T:3,U:4,V:5,W:6,X:7,Y:8,Z:9};
+    const weights = [8,7,6,5,4,3,2,10,0,9,8,7,6,5,4,3,2];
+    let sum = 0;
+    for (let i = 0; i < 17; i++) {
+      const c = v[i];
+      const val = isNaN(c) ? (map[c] || 0) : parseInt(c);
+      sum += val * weights[i];
+    }
+    const rem = sum % 11;
+    const expected = rem === 10 ? 'X' : String(rem);
+    return v[8] === expected;
+  }
+
   function getVin() {
     const url = window.location.href;
-    // Hash SPA: #/details/VIN/OVE
+    const VIN_RE = /^[A-HJ-NPR-Z0-9]{17}$/i;
+
+    const isVin = (v) => v && String(v).length === 17 && VIN_RE.test(v) && vinCheckDigitValid(v);
+
+    // 1. URL — hash SPA (#/details/VIN) or path segment (/vin/VIN, /vehicle/VIN, etc.)
     const hashMatch = url.match(/[#/]([A-HJ-NPR-Z0-9]{17})(?:[/?#]|$)/i);
-    if (hashMatch) return hashMatch[1].toUpperCase();
-    // Path
-    const pathMatch = url.match(/\/(?:details|vehicle|cr|listing)\/([A-HJ-NPR-Z0-9]{17})/i);
-    if (pathMatch) return pathMatch[1].toUpperCase();
-    // Meta tag
+    if (hashMatch && isVin(hashMatch[1])) return hashMatch[1].toUpperCase();
+    const pathMatch = url.match(/\/(?:details|vehicle|cr|listing|vin)\/([A-HJ-NPR-Z0-9]{17})/i);
+    if (pathMatch && isVin(pathMatch[1])) return pathMatch[1].toUpperCase();
+
+    // 2. Meta tag
     const meta = document.querySelector('meta[name*="vin" i], meta[property*="vin" i]');
-    if (meta?.content?.match(/^[A-HJ-NPR-Z0-9]{17}$/i)) return meta.content.toUpperCase();
-    // Page text last resort
-    const m = document.body.innerText.match(/\b([A-HJ-NPR-Z0-9]{17})\b/);
-    if (m) return m[1].toUpperCase();
+    if (meta?.content && isVin(meta.content)) return meta.content.toUpperCase();
+
+    // 3. DOM — find a "VIN" label element and grab the value from a sibling or same element
+    const allEls = document.querySelectorAll('span, div, dt, td, p, li, strong, b');
+    for (const el of allEls) {
+      const txt = el.textContent?.trim() || '';
+      // Element contains ONLY the VIN value (sibling pattern: <label>VIN</label><value>XXXX</value>)
+      if (el.children.length === 0 && /^vin[:\s]*$/i.test(txt)) {
+        const candidates = [
+          el.nextElementSibling,
+          el.parentElement?.querySelector('[class*="value"],[class*="Value"],[class*="data"],[class*="content"]'),
+          el.parentElement?.children[el.parentElement.children.length - 1],
+        ];
+        for (const c of candidates) {
+          const v = c?.textContent?.trim().replace(/\s+/g, '');
+          if (isVin(v)) return v.toUpperCase();
+        }
+      }
+      // Element contains "VIN: XXXX" all together
+      if (el.children.length === 0 && /VIN[:\s]+([A-HJ-NPR-Z0-9]{17})/i.test(txt)) {
+        const m = txt.match(/VIN[:\s]+([A-HJ-NPR-Z0-9]{17})/i);
+        if (m && isVin(m[1])) return m[1].toUpperCase();
+      }
+    }
+
+    // 4. Embedded JSON — parse __NEXT_DATA__ and find a vehicle object with VIN + vehicle context
+    for (const s of document.querySelectorAll('script')) {
+      const text = s.textContent || '';
+      const nd = text.match(/__NEXT_DATA__\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/)?.[1] ||
+                 text.match(/window\.__(?:PRELOADED_STATE|INITIAL_STATE|STATE)__\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/)?.[1];
+      if (!nd) continue;
+      try {
+        let foundVin = null;
+        const walk = (obj, depth = 0) => {
+          if (!obj || depth > 10 || typeof obj !== 'object' || foundVin) return;
+          const v = obj.vin || obj.VIN || obj.vehicleVin;
+          if (v && isVin(v) && (obj.year || obj.modelYear || obj.make || obj.model)) {
+            foundVin = String(v).toUpperCase();
+            return;
+          }
+          for (const k of Object.keys(obj)) walk(obj[k], depth + 1);
+        };
+        walk(JSON.parse(nd));
+        if (foundVin) return foundVin;
+      } catch (e) {}
+    }
+
+    // 5. Page text — labeled "VIN: XXXXX", check-digit validated
+    const pageText = document.body.innerText || '';
+    for (const m of pageText.matchAll(/VIN[^A-HJ-NPR-Z0-9\n]{0,5}([A-HJ-NPR-Z0-9]{17})/gi)) {
+      if (isVin(m[1])) return m[1].toUpperCase();
+    }
+
+    // 6. Last resort — any check-digit-valid VIN anywhere on the page
+    for (const m of pageText.matchAll(/\b([A-HJ-NPR-Z0-9]{17})\b/g)) {
+      if (isVin(m[1])) return m[1].toUpperCase();
+    }
+
     return '';
   }
 
@@ -457,13 +531,70 @@
 
   function extractPhotos() {
     const photos = new Set();
+    const vin = getVin();
 
+    const photoUrlRe = /https?:\/\/.+\.(jpg|jpeg|png|webp)/i;
+    const manheimCdnRe = /https?:\/\/[^"'\s]*(?:manheim\.com|imagecache|manheimimages)[^"'\s]*/i;
+    const junkRe = /logo|icon|avatar|sprite|banner|placeholder|flag|badge/i;
+    const photoKeys = ['url', 'src', 'href', 'imageUrl', 'fullUrl', 'fullSizeUrl', 'largeUrl',
+                       'originalUrl', 'cdnUrl', 'photoUrl', 'highResUrl', 'fullResUrl', 'uri'];
+    const photoArrayKeys = ['photos', 'images', 'imageUrls', 'photoUrls', 'vehicleImages',
+                            'vehiclePhotos', 'galleryImages', 'mediaItems', 'media'];
+
+    function collectFromObj(obj, out, depth = 0) {
+      if (!obj || depth > 6 || typeof obj !== 'object') return;
+      if (Array.isArray(obj)) {
+        for (const item of obj) {
+          if (typeof item === 'string' && (photoUrlRe.test(item) || manheimCdnRe.test(item)) && !junkRe.test(item))
+            out.add(item.replace(/\?.*$/, ''));
+          else collectFromObj(item, out, depth + 1);
+        }
+        return;
+      }
+      for (const k of photoKeys) {
+        const v = obj[k];
+        if (typeof v === 'string' && (photoUrlRe.test(v) || manheimCdnRe.test(v)) && !junkRe.test(v))
+          out.add(v.replace(/\?.*$/, ''));
+      }
+      for (const k of photoArrayKeys) {
+        if (obj[k]) collectFromObj(obj[k], out, depth + 1);
+      }
+    }
+
+    function findByVin(obj, targetVin, out, depth = 0) {
+      if (!obj || depth > 10 || typeof obj !== 'object') return false;
+      const objVin = String(obj.vin || obj.VIN || obj.vehicleVin || '').toUpperCase();
+      if (objVin === targetVin && (obj.year || obj.modelYear || obj.make || obj.model)) {
+        collectFromObj(obj, out, 0);
+        return true;
+      }
+      for (const k of Object.keys(obj)) {
+        if (findByVin(obj[k], targetVin, out, depth + 1)) return true;
+      }
+      return false;
+    }
+
+    // Strategy 1: VIN-anchored walk through __NEXT_DATA__ / app state
+    if (vin) {
+      for (const s of document.querySelectorAll('script')) {
+        const text = s.textContent || '';
+        const nd = text.match(/__NEXT_DATA__\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/)?.[1] ||
+                   text.match(/window\.__(?:PRELOADED_STATE|INITIAL_STATE|STATE)__\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/)?.[1];
+        if (!nd) continue;
+        try {
+          if (findByVin(JSON.parse(nd), vin.toUpperCase(), photos)) break;
+        } catch (e) {}
+      }
+      if (photos.size > 0) return [...photos];
+    }
+
+    // Strategy 2: img tags (including lazy-loaded)
     document.querySelectorAll('img').forEach(img => {
       let src = img.src || img.dataset?.src || img.getAttribute('data-lazy-src') || '';
-      if (!src || /logo|icon|avatar|sprite|svg|data:image/i.test(src)) return;
+      if (!src || junkRe.test(src) || /svg|data:image/i.test(src)) return;
       if (img.naturalWidth > 0 && img.naturalWidth < 50) return;
       src = src.replace(/\?.*$/, '').replace(/_thumb|_small|_medium|_tn|_sm|_md/gi, '');
-      if (/\.(jpg|jpeg|png|webp)/i.test(src)) photos.add(src);
+      if (/\.(jpg|jpeg|png|webp)/i.test(src) || manheimCdnRe.test(src)) photos.add(src);
     });
 
     document.querySelectorAll('[style*="background-image"]').forEach(el => {
@@ -476,20 +607,301 @@
       if (src && /\.(jpg|jpeg|png|webp)/i.test(src)) photos.add(src.replace(/\?.*$/, ''));
     });
 
-    // Pull from inline scripts
+    // Strategy 3: scan inline scripts for any Manheim CDN or photo-extension URLs
     document.querySelectorAll('script').forEach(s => {
       const text = s.textContent || '';
       for (const m of text.matchAll(/"(https?:\/\/[^"]+\.(jpg|jpeg|png|webp))"/gi)) {
-        if (!/logo|icon/i.test(m[1])) photos.add(m[1].replace(/\?.*$/, ''));
+        if (!junkRe.test(m[1])) photos.add(m[1].replace(/\?.*$/, ''));
+      }
+      // Manheim CDN URLs that may not have a file extension
+      if (vin && text.toUpperCase().includes(vin.toUpperCase())) {
+        for (const m of text.matchAll(/"(https?:\/\/[^"]*manheim[^"]+)"/gi)) {
+          if (!junkRe.test(m[1]) && !/\.js|\.css|\.svg/i.test(m[1])) photos.add(m[1].replace(/\?.*$/, ''));
+        }
       }
     });
 
     return [...photos];
   }
 
-  function runExtraction() {
+  // ── ADESA / OpenLane extraction ──
+
+  function extractAdesaSpecs() {
+    const vehicle = {};
+
+    // OpenLane / ADESA embed data in __NEXT_DATA__ or window.__PRELOADED_STATE__
+    document.querySelectorAll('script').forEach(s => {
+      const text = s.textContent || '';
+      if (!text.includes('"vin"') && !text.includes('"VIN"') && !text.includes('vehicleDetails')) return;
+      try {
+        // __NEXT_DATA__
+        const nd = text.match(/__NEXT_DATA__\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/)?.[1] ||
+                   text.match(/window\.__(?:PRELOADED_STATE|INITIAL_STATE|STATE)__\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/)?.[1];
+        if (!nd) return;
+        const walk = (obj, depth = 0) => {
+          if (!obj || depth > 8 || typeof obj !== 'object') return;
+          const vin = obj.vin || obj.VIN || obj.vehicleVin;
+          if (vin && String(vin).length === 17) {
+            if (!vehicle.year)  vehicle.year  = String(obj.year  || obj.modelYear || '');
+            if (!vehicle.make)  vehicle.make  = obj.make  || obj.manufacturerName || '';
+            if (!vehicle.model) vehicle.model = obj.model || obj.modelName || '';
+            if (!vehicle.trim)  vehicle.trim  = obj.trim  || obj.trimLevel || '';
+            const mi = obj.mileage || obj.odometer || obj.odometerReading;
+            if (!vehicle.mileage && mi) vehicle.mileage = String(mi).replace(/,/g, '');
+            if (!vehicle.exterior_color) vehicle.exterior_color = obj.exteriorColor || obj.extColor || obj.color || '';
+            if (!vehicle.interior_color) vehicle.interior_color = obj.interiorColor || obj.intColor || '';
+            if (!vehicle.engine)        vehicle.engine        = typeof obj.engine === 'string' ? obj.engine : (obj.engineDescription || obj.engineType || '');
+            if (!vehicle.transmission)  vehicle.transmission  = obj.transmission || obj.transmissionType || '';
+            if (!vehicle.drivetrain)    vehicle.drivetrain    = obj.driveType || obj.drivetrain || obj.driveTrain || '';
+            if (!vehicle.fuel)          vehicle.fuel          = obj.fuelType  || obj.fuel || '';
+            if (!vehicle.body)          vehicle.body          = obj.bodyStyle || obj.bodyType || obj.body || '';
+            if (!vehicle.grade)         vehicle.grade         = String(obj.conditionGrade || obj.crGrade || obj.grade || '');
+            return;
+          }
+          for (const k of Object.keys(obj)) walk(obj[k], depth + 1);
+        };
+        walk(JSON.parse(nd));
+      } catch (e) {}
+    });
+
+    // DOM fallback — ADESA spec rows
+    document.querySelectorAll([
+      '[class*="vehicle-info"],[class*="vehicleInfo"]',
+      '[class*="spec-row"],[class*="specRow"]',
+      '[class*="detail-row"],[class*="detailRow"]',
+      '[class*="attribute"],[data-testid*="spec"]',
+    ].join(',')).forEach(row => {
+      const kids = Array.from(row.children).filter(c => c.textContent?.trim());
+      if (kids.length >= 2) {
+        const label = kids[0].textContent.trim().toLowerCase().replace(/[:\s]+$/, '');
+        const val   = cleanVal(kids[kids.length - 1].textContent);
+        const field = LABEL_MAP[label];
+        if (field && val && !vehicle[field]) vehicle[field] = val;
+      }
+    });
+
+    // Page text fallbacks (same as Manheim)
+    const pageText = document.body.innerText || '';
+    if (!vehicle.mileage) {
+      const m = pageText.match(/(?:odometer|mileage)[^\d]*([0-9,]+)\s*(?:mi|miles)?/i);
+      if (m) vehicle.mileage = m[1].replace(/,/g, '');
+    }
+    if (!vehicle.engine) {
+      const m = pageText.match(/engine[:\s]+([^\n]{4,60})/i);
+      if (m) vehicle.engine = cleanVal(m[1]);
+    }
+    if (!vehicle.transmission) {
+      const m = pageText.match(/transmission[:\s]+([^\n]{4,60})/i);
+      if (m) vehicle.transmission = cleanVal(m[1]);
+    }
+
+    for (const key of Object.keys(vehicle)) {
+      if (!cleanVal(String(vehicle[key] ?? ''))) delete vehicle[key];
+    }
+    return vehicle;
+  }
+
+  function extractAdesaAuction() {
+    const auction = { channel: 'ADESA' };
     const url = window.location.href;
-    if (!url.includes('manheim.com') && !url.includes('insightcr')) return;
+    const pageText = document.body.innerText || '';
+
+    if (url.includes('openlane.com')) auction.channel = 'OpenLane';
+    else if (/simulcast/i.test(pageText)) auction.channel = 'ADESA Simulcast';
+    else if (/run\s*list|in[\s-]*lane/i.test(pageText)) auction.channel = 'ADESA In-Lane';
+
+    const pricePatterns = [
+      { key: 'buy_now',      re: /buy\s*(?:it\s*)?now[:\s]*\$?([\d,]+)/i },
+      { key: 'current_bid',  re: /(?:current|high)\s*bid[:\s]*\$?([\d,]+)/i },
+      { key: 'starting_bid', re: /start(?:ing)?\s*(?:bid|price)[:\s]*\$?([\d,]+)/i },
+      { key: 'mmr',          re: /\bMMR\b[:\s]*\$?([\d,]+)/i },
+      { key: 'buy_now',      re: /(?:asking|list)\s*price[:\s]*\$?([\d,]+)/i },
+    ];
+    for (const { key, re } of pricePatterns) {
+      if (auction[key]) continue;
+      const m = pageText.match(re);
+      if (m) auction[key] = parseInt(m[1].replace(/,/g, ''));
+    }
+
+    // DOM price scraping
+    document.querySelectorAll('[class*="price"],[class*="Price"],[class*="bid"],[class*="Bid"],[class*="amount"],[class*="Amount"]').forEach(el => {
+      const parent = el.parentElement;
+      if (!parent) return;
+      const labelEl = parent.querySelector('[class*="label"],[class*="Label"]') || parent.children[0];
+      const valEl   = parent.querySelector('[class*="value"],[class*="Value"]')  || parent.children[parent.children.length - 1];
+      if (!labelEl || !valEl || labelEl === valEl) return;
+      const label = labelEl.textContent?.trim().toLowerCase();
+      const val   = parseInt(valEl.textContent?.replace(/[$,]/g, ''));
+      if (!val || isNaN(val)) return;
+      const map = { 'buy now': 'buy_now', 'buy it now': 'buy_now', 'current bid': 'current_bid', 'starting bid': 'starting_bid', 'mmr': 'mmr' };
+      const field = map[label];
+      if (field && !auction[field]) auction[field] = val;
+    });
+
+    const dateM = pageText.match(/sale\s*date[:\s]*([^\n]+)/i) || pageText.match(/auction\s*date[:\s]*([^\n]+)/i);
+    if (dateM) auction.sale_date = dateM[1].trim();
+
+    return Object.keys(auction).length > 1 ? auction : null;
+  }
+
+  function extractAdesaCondition() {
+    const condition = { damage: [], options: [], announcements: [], packages: [], equipment: [] };
+    const pageText = document.body.innerText || '';
+    const isJunk = t => !t || t.length < 3 || t.length > 300 ||
+      /\{|fill:|stroke|class=|<svg|^(sort|filter|type|condition|location|view|show|hide|close|cancel)$/i.test(t);
+
+    // Damage items
+    document.querySelectorAll('[class*="damage"],[class*="Damage"],[class*="defect"],[class*="Defect"],[data-testid*="damage"]').forEach(el => {
+      if (el.children.length > 4) return;
+      const t = el.textContent?.trim();
+      if (!isJunk(t)) condition.damage.push(t);
+    });
+    if (!condition.damage.length) {
+      const damageRe = /dent|scratch|scuff|chip|crack|tear|stain|worn|faded|rust|missing|broken|bent|gouge|curb\s*rash|hail/i;
+      const locationRe = /wheel|bumper|fender|hood|door|roof|quarter|trunk|panel|mirror|windshield|rim|tire|LF|LR|RF|RR|front|rear/i;
+      for (const line of pageText.split('\n')) {
+        const t = line.trim();
+        if (!isJunk(t) && damageRe.test(t) && (locationRe.test(t) || t.split(/\s+/).length >= 3)) {
+          condition.damage.push(t);
+        }
+      }
+    }
+    condition.damage = [...new Set(condition.damage)].slice(0, 30);
+
+    // Options / equipment
+    document.querySelectorAll('[class*="option"],[class*="Option"],[class*="equipment"],[class*="Equipment"],[class*="feature"],[class*="Feature"]').forEach(el => {
+      if (el.children.length > 8 || el.textContent.length > 5000) return;
+      el.querySelectorAll('li, [class*="item"],[class*="Item"]').forEach(li => {
+        const t = li.textContent?.trim();
+        if (!isJunk(t) && li.children.length === 0) condition.options.push(t);
+      });
+    });
+    condition.options = [...new Set(condition.options)].slice(0, 150);
+
+    // Announcements
+    document.querySelectorAll('[class*="announcement"],[class*="Announcement"],[class*="note"],[class*="Note"]').forEach(el => {
+      if (el.children.length > 3) return;
+      const t = el.textContent?.trim();
+      if (!isJunk(t) && t.length > 5) condition.announcements.push(t);
+    });
+    condition.announcements = [...new Set(condition.announcements)].slice(0, 20);
+
+    const gm = pageText.match(/(?:condition\s*grade|cr\s*grade|overall\s*grade)[:\s]*([0-9.]+)/i);
+    if (gm) condition.overall_grade = gm[1];
+
+    return condition;
+  }
+
+  function extractAdesaPhotos(vin) {
+    const photoUrlRe = /https?:\/\/.+\.(jpg|jpeg|png|webp)/i;
+    const junkRe = /logo|icon|avatar|sprite|banner|placeholder|flag|badge/i;
+    const photoKeys = ['url', 'src', 'href', 'imageUrl', 'fullUrl', 'fullSizeUrl', 'largeUrl',
+                       'originalUrl', 'cdnUrl', 'photoUrl', 'highResUrl', 'fullResUrl'];
+    const photoArrayKeys = ['photos', 'images', 'imageUrls', 'photoUrls', 'vehicleImages',
+                            'vehiclePhotos', 'galleryImages', 'mediaItems', 'media'];
+
+    // Collect all photo URLs from a subtree rooted at a vehicle object
+    function collectPhotos(obj, out, depth = 0) {
+      if (!obj || depth > 6 || typeof obj !== 'object') return;
+      if (Array.isArray(obj)) {
+        for (const item of obj) {
+          if (typeof item === 'string' && photoUrlRe.test(item) && !junkRe.test(item))
+            out.add(item.replace(/\?.*$/, ''));
+          else collectPhotos(item, out, depth + 1);
+        }
+        return;
+      }
+      for (const k of photoKeys) {
+        const v = obj[k];
+        if (typeof v === 'string' && photoUrlRe.test(v) && !junkRe.test(v))
+          out.add(v.replace(/\?.*$/, ''));
+      }
+      for (const k of photoArrayKeys) {
+        if (obj[k]) collectPhotos(obj[k], out, depth + 1);
+      }
+    }
+
+    // Walk JSON tree; when we find the vehicle object matching this VIN (with year/make
+    // alongside it), collect only from that node — not from the whole tree.
+    function findVehiclePhotos(obj, targetVin, out, depth = 0) {
+      if (!obj || depth > 10 || typeof obj !== 'object') return false;
+      const objVin = String(obj.vin || obj.VIN || obj.vehicleVin || '').toUpperCase();
+      if (objVin === targetVin && (obj.year || obj.modelYear || obj.make || obj.model)) {
+        collectPhotos(obj, out, 0);
+        return true;
+      }
+      for (const k of Object.keys(obj)) {
+        if (findVehiclePhotos(obj[k], targetVin, out, depth + 1)) return true;
+      }
+      return false;
+    }
+
+    // Strategy 1: find the vehicle object in __NEXT_DATA__ by VIN and collect its photos
+    const found = new Set();
+    for (const s of document.querySelectorAll('script')) {
+      const text = s.textContent || '';
+      const nd = text.match(/__NEXT_DATA__\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/)?.[1] ||
+                 text.match(/window\.__(?:PRELOADED_STATE|INITIAL_STATE|STATE)__\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/)?.[1];
+      if (!nd) continue;
+      try {
+        if (findVehiclePhotos(JSON.parse(nd), vin.toUpperCase(), found)) break;
+      } catch (e) {}
+    }
+    if (found.size > 0) return [...found];
+
+    // Strategy 2: DOM — look for the tightest gallery container and grab images from it.
+    // Use very specific selectors to avoid picking up sidebar/recommended-vehicle images.
+    const galSels = [
+      '[data-testid*="photo"],[data-testid*="gallery"],[data-testid*="image-viewer"]',
+      '[class*="photo-viewer"],[class*="photoViewer"],[class*="image-viewer"],[class*="imageViewer"]',
+      '[class*="vehicle-photos"],[class*="vehiclePhotos"],[class*="listing-photo"],[class*="listingPhoto"]',
+    ];
+    for (const sel of galSels) {
+      const container = document.querySelector(sel);
+      if (!container) continue;
+      container.querySelectorAll('img').forEach(img => {
+        const src = img.src || img.dataset?.src || img.getAttribute('data-original') || '';
+        if (!src || junkRe.test(src) || /svg|data:image/i.test(src)) return;
+        if (img.naturalWidth > 0 && img.naturalWidth < 80) return;
+        const clean = src.replace(/\?.*$/, '');
+        if (/\.(jpg|jpeg|png|webp)/i.test(clean)) found.add(clean);
+      });
+      if (found.size > 1) return [...found];
+    }
+
+    // Strategy 3: VIN-in-URL filter — any image whose src contains the VIN is definitely
+    // a photo of this specific vehicle.
+    if (found.size === 0) {
+      document.querySelectorAll('img').forEach(img => {
+        const src = img.src || '';
+        if (src.toUpperCase().includes(vin.toUpperCase()) && photoUrlRe.test(src))
+          found.add(src.replace(/\?.*$/, ''));
+      });
+      for (const s of document.querySelectorAll('script')) {
+        const text = s.textContent || '';
+        if (!text.toUpperCase().includes(vin.toUpperCase())) continue;
+        for (const m of text.matchAll(/"(https?:\/\/[^"]+\.(jpg|jpeg|png|webp))"/gi)) {
+          if (m[1].toUpperCase().includes(vin.toUpperCase()) && !junkRe.test(m[1]))
+            found.add(m[1].replace(/\?.*$/, ''));
+        }
+      }
+    }
+
+    return [...found];
+  }
+
+  function runExtraction() {
+    // If the extension was reloaded while this tab was open, chrome.runtime.id
+    // becomes undefined. Disconnect the observer so we stop firing entirely.
+    if (!chrome.runtime?.id) {
+      try { observer.disconnect(); } catch (e) {}
+      return;
+    }
+
+    const url = window.location.href;
+    const isManheim = url.includes('manheim.com') || url.includes('insightcr');
+    const isAdesa   = url.includes('adesa.com') || url.includes('openlane.com');
+    if (!isManheim && !isAdesa) return;
 
     const isInsightCR = url.includes('insightcr.manheim.com') || url.includes('cr-display');
     const isLiveListing = !isInsightCR && (url.includes('search.manheim.com') || url.includes('/results') || url.includes('/listing'));
@@ -497,10 +909,14 @@
     const vin = getVin();
     if (!vin) return; // Nothing to extract without a VIN
 
-    const vehicle = extractSpecs();
-    const condition = extractCondition();
-    const auction = extractAuction();
-    const photos = extractPhotos();
+    const vehicle   = isAdesa ? extractAdesaSpecs()     : extractSpecs();
+    const condition = isAdesa ? extractAdesaCondition() : extractCondition();
+    const auction   = isAdesa ? extractAdesaAuction()   : extractAuction();
+    const photos    = isAdesa ? extractAdesaPhotos(vin) : extractPhotos();
+
+    const page_type = isAdesa
+      ? (url.includes('openlane.com') ? 'openlane_listing' : 'adesa_listing')
+      : (isInsightCR ? 'insight_cr' : isLiveListing ? 'live_listing' : 'condition_report');
 
     const data = {
       vin,
@@ -508,18 +924,23 @@
       condition,
       auction,
       photos,
-      page_type: isInsightCR ? 'insight_cr' : isLiveListing ? 'live_listing' : 'condition_report',
+      page_type,
       source_url: url,
       source_title: document.title,
       extracted_at: new Date().toISOString(),
     };
 
     // Cache by VIN so popup can read it
-    chrome.storage.local.set({ [`bwa_scan_${vin}`]: data, bwa_last_scan: data });
+    try {
+      chrome.storage.local.set({ [`bwa_scan_${vin}`]: data, bwa_last_scan: data });
+    } catch (e) {
+      console.warn('[BWA] Storage unavailable (extension reloaded?):', e.message);
+      return;
+    }
     console.log('[BWA] Extracted data for', vin, data);
 
     // Notify popup if open
-    chrome.runtime.sendMessage({ action: 'scanReady', data }).catch(() => {});
+    try { chrome.runtime.sendMessage({ action: 'scanReady', data }).catch(() => {}); } catch (e) {}
   }
 
   // ── MutationObserver — fire when the page stabilizes ──
