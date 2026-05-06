@@ -54,6 +54,11 @@ $muted: rgba(0,0,0,0.45);
   &.active { border-color: $blue; background: #f0f4ff; }
 }
 
+.prop-card-thumb {
+  width: 52px; height: 39px; object-fit: cover; border-radius: 5px; flex-shrink: 0;
+  &--empty { background: #e2e8f0; }
+}
+
 .prop-card-main { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .prop-card-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .prop-card-name { font-size: 13px; font-weight: 700; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -29,6 +29,11 @@
       }
       @for(p of filteredProposals(); track p.id){
       <div class="prop-card" [class.active]="selected()?.id === p.id" (click)="selectProposal(p)">
+        @if(p.photos?.length){
+        <img class="prop-card-thumb" [src]="p.photos[0]" alt="" />
+        }@else{
+        <div class="prop-card-thumb prop-card-thumb--empty"></div>
+        }
         <div class="prop-card-main">
           <span class="prop-card-name">
             @if(p.vehicle?.year){ {{ p.vehicle.year }} {{ p.vehicle.make }} {{ p.vehicle.model }} }
