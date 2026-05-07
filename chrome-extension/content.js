@@ -795,31 +795,32 @@
   }
 
   function extractAdesaPhotos(vin) {
-    const photoUrlRe = /https?:\/\/.+\.(jpg|jpeg|png|webp)/i;
-    const junkRe = /logo|icon|avatar|sprite|banner|placeholder|flag|badge/i;
-    const photoKeys = ['url', 'src', 'href', 'imageUrl', 'fullUrl', 'fullSizeUrl', 'largeUrl',
-                       'originalUrl', 'cdnUrl', 'photoUrl', 'highResUrl', 'fullResUrl'];
-    const photoArrayKeys = ['photos', 'images', 'imageUrls', 'photoUrls', 'vehicleImages',
-                            'vehiclePhotos', 'galleryImages', 'mediaItems', 'media'];
+    // Extension-required pattern for generic URLs
+    const photoExtRe = /https?:\/\/.+\.(jpg|jpeg|png|webp)/i;
+    // CDN domain pattern — no extension required (ADESA/Cox CDN serves extension-free URLs)
+    const adesaCdnRe = /https?:\/\/[^"'\s]*(?:adesa\.com|openlane\.com|coxautoinc\.com|cloudfront\.net|auctionaccess\.com|kbb\.com)[^"'\s<>]*/i;
+    const junkRe = /logo|icon|avatar|sprite|banner|placeholder|flag|badge|chevron|arrow|check|star|thumb(?!nail)|\.svg/i;
 
-    // Collect all photo URLs from a subtree rooted at a vehicle object
+    function isPhotoUrl(v) {
+      if (typeof v !== 'string' || !v.startsWith('http')) return false;
+      if (junkRe.test(v)) return false;
+      return photoExtRe.test(v) || adesaCdnRe.test(v);
+    }
+
+    // Walk the entire subtree and collect all string values that look like photo URLs
     function collectPhotos(obj, out, depth = 0) {
-      if (!obj || depth > 6 || typeof obj !== 'object') return;
+      if (!obj || depth > 10 || typeof obj !== 'object') return;
       if (Array.isArray(obj)) {
         for (const item of obj) {
-          if (typeof item === 'string' && photoUrlRe.test(item) && !junkRe.test(item))
-            out.add(item.replace(/\?.*$/, ''));
+          if (isPhotoUrl(item)) out.add(item.replace(/\?.*$/, ''));
           else collectPhotos(item, out, depth + 1);
         }
         return;
       }
-      for (const k of photoKeys) {
+      for (const k of Object.keys(obj)) {
         const v = obj[k];
-        if (typeof v === 'string' && photoUrlRe.test(v) && !junkRe.test(v))
-          out.add(v.replace(/\?.*$/, ''));
-      }
-      for (const k of photoArrayKeys) {
-        if (obj[k]) collectPhotos(obj[k], out, depth + 1);
+        if (isPhotoUrl(v)) out.add(v.replace(/\?.*$/, ''));
+        else if (v && typeof v === 'object') collectPhotos(v, out, depth + 1);
       }
     }
 
@@ -852,7 +853,6 @@
     if (found.size > 0) return [...found];
 
     // Strategy 2: DOM — look for the tightest gallery container and grab images from it.
-    // Use very specific selectors to avoid picking up sidebar/recommended-vehicle images.
     const galSels = [
       '[data-testid*="photo"],[data-testid*="gallery"],[data-testid*="image-viewer"]',
       '[class*="photo-viewer"],[class*="photoViewer"],[class*="image-viewer"],[class*="imageViewer"]',
@@ -863,27 +863,27 @@
       if (!container) continue;
       container.querySelectorAll('img').forEach(img => {
         const src = img.src || img.dataset?.src || img.getAttribute('data-original') || '';
-        if (!src || junkRe.test(src) || /svg|data:image/i.test(src)) return;
+        if (!src || /svg|data:image/i.test(src)) return;
         if (img.naturalWidth > 0 && img.naturalWidth < 80) return;
-        const clean = src.replace(/\?.*$/, '');
-        if (/\.(jpg|jpeg|png|webp)/i.test(clean)) found.add(clean);
+        if (isPhotoUrl(src)) found.add(src.replace(/\?.*$/, ''));
       });
       if (found.size > 1) return [...found];
     }
 
-    // Strategy 3: VIN-in-URL filter — any image whose src contains the VIN is definitely
-    // a photo of this specific vehicle.
+    // Strategy 3: VIN-in-URL filter — any image/URL that contains the VIN is this vehicle.
     if (found.size === 0) {
+      const vinUpper = vin.toUpperCase();
       document.querySelectorAll('img').forEach(img => {
         const src = img.src || '';
-        if (src.toUpperCase().includes(vin.toUpperCase()) && photoUrlRe.test(src))
+        if (src.toUpperCase().includes(vinUpper) && isPhotoUrl(src))
           found.add(src.replace(/\?.*$/, ''));
       });
       for (const s of document.querySelectorAll('script')) {
         const text = s.textContent || '';
-        if (!text.toUpperCase().includes(vin.toUpperCase())) continue;
-        for (const m of text.matchAll(/"(https?:\/\/[^"]+\.(jpg|jpeg|png|webp))"/gi)) {
-          if (m[1].toUpperCase().includes(vin.toUpperCase()) && !junkRe.test(m[1]))
+        if (!text.toUpperCase().includes(vinUpper)) continue;
+        // Match quoted URLs from CDN domains or with photo extensions
+        for (const m of text.matchAll(/"(https?:\/\/[^"]{10,})"/g)) {
+          if (m[1].toUpperCase().includes(vinUpper) && isPhotoUrl(m[1]))
             found.add(m[1].replace(/\?.*$/, ''));
         }
       }

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { LucideAngularModule } from 'lucide-angular';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
 
@@ -16,11 +16,14 @@ import { FooterComponent } from '../footer/footer.component';
 })
 export class FinancingComponent implements OnInit {
   private http = inject(HttpClient);
+  private route = inject(ActivatedRoute);
 
   lowestRate = '4.99%';
   lowestRateTerm = '60-month term';
+  private buyerId = '';
 
   ngOnInit() {
+    this.buyerId = this.route.snapshot.queryParamMap.get('buyerId') || '';
     this.http.get<any>('/api/settings/finance').subscribe({
       next: (s) => {
         if (s.lowestRate) this.lowestRate = s.lowestRate;
@@ -223,6 +226,7 @@ export class FinancingComponent implements OnInit {
       ...this.addressForm.value,
       ...this.employmentForm.value,
       coborrower: this.coborrower(),
+      ...(this.buyerId ? { buyer_id: this.buyerId } : {}),
     };
 
     // Strip previous fields if not applicable

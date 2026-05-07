@@ -17,9 +17,17 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
   private sanitizer = inject(DomSanitizer);
 
   proposals = signal<any[]>([]);
+  deals = signal<any[]>([]);
   loading = signal(true);
   selected = signal<any>(null);
+  selectedDeal = signal<any>(null);
   searchQuery = signal('');
+  expandedDeals = signal<Set<string>>(new Set());
+
+  // Deal editor state
+  dealSaving = signal(false);
+  dealSaved = signal(false);
+  private dealAutosaveTimer: any = null;
 
   filteredProposals = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -36,6 +44,16 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
         p.status?.toLowerCase().includes(q)
       );
     });
+  });
+
+  groupedView = computed(() => {
+    const filtered = this.filteredProposals();
+    const grouped = this.deals().map(d => ({
+      deal: d,
+      proposals: filtered.filter(p => p.deal_group_id === d.id),
+    }));
+    const ungrouped = filtered.filter(p => !p.deal_group_id);
+    return { grouped, ungrouped };
   });
 
   // Strategy data
@@ -70,6 +88,7 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadProposals();
+    this.loadDeals();
   }
 
   loadProposals() {
@@ -80,8 +99,126 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadDeals() {
+    this.http.get<any[]>('/api/admin/deal-groups').subscribe({
+      next: (data) => this.deals.set(data || []),
+      error: () => {},
+    });
+  }
+
   refresh() {
     this.loadProposals();
+    this.loadDeals();
+  }
+
+  // ── Deal Group Methods ──
+
+  createDeal() {
+    this.http.post<any>('/api/admin/deal-groups', { label: 'New Deal' }).subscribe({
+      next: (deal) => {
+        this.deals.update(list => [deal, ...list]);
+        this.selectDeal(deal);
+        this.expandedDeals.update(s => { const ns = new Set(s); ns.add(deal.id); return ns; });
+      },
+      error: () => alert('Failed to create deal'),
+    });
+  }
+
+  selectDeal(d: any) {
+    this.selectedDeal.set({ ...d });
+    this.selected.set(null);
+    this.stopChatPoll();
+  }
+
+  autosaveDeal(d?: any) {
+    if (d) this.selectedDeal.set({ ...d });
+    clearTimeout(this.dealAutosaveTimer);
+    this.dealAutosaveTimer = setTimeout(() => this.saveDeal(), 1200);
+  }
+
+  saveDeal() {
+    const deal = this.selectedDeal();
+    if (!deal) return;
+    this.dealSaving.set(true);
+    this.http.post(`/api/admin/deal-groups/${deal.id}`, {
+      label: deal.label,
+      customer_name: deal.customer_name,
+      customer_phone: deal.customer_phone,
+      customer_email: deal.customer_email,
+      customer_address: deal.customer_address,
+      customer_zip: deal.customer_zip,
+      tax_rate: deal.tax_rate,
+      trade_in: deal.trade_in,
+    }).subscribe({
+      next: () => {
+        this.dealSaving.set(false);
+        this.dealSaved.set(true);
+        setTimeout(() => this.dealSaved.set(false), 3000);
+        this.deals.update(list => list.map(x => x.id === deal.id ? { ...deal } : x));
+      },
+      error: () => { this.dealSaving.set(false); alert('Failed to save deal'); },
+    });
+  }
+
+  deleteDeal(d: any, event: Event) {
+    event.stopPropagation();
+    if (!confirm(`Delete deal "${d.label}"? Proposals will become ungrouped.`)) return;
+    this.http.delete(`/api/admin/deal-groups/${d.id}`).subscribe({
+      next: () => {
+        this.deals.update(list => list.filter(x => x.id !== d.id));
+        if (this.selectedDeal()?.id === d.id) this.selectedDeal.set(null);
+        this.proposals.update(list => list.map(p => p.deal_group_id === d.id ? { ...p, deal_group_id: null } : p));
+      },
+      error: () => alert('Failed to delete deal'),
+    });
+  }
+
+  toggleDealExpand(id: string, event: Event) {
+    event.stopPropagation();
+    this.expandedDeals.update(s => {
+      const ns = new Set(s);
+      if (ns.has(id)) ns.delete(id); else ns.add(id);
+      return ns;
+    });
+  }
+
+  isDealExpanded(id: string): boolean {
+    return this.expandedDeals().has(id);
+  }
+
+  assignToGroup(s: any, groupId: string | null) {
+    s.deal_group_id = groupId || null;
+    this.selected.set({ ...s });
+    this.http.post(`/api/admin/proposal/${s.id}`, { deal_group_id: groupId || null }).subscribe({
+      next: () => {
+        this.proposals.update(list => list.map(p => p.id === s.id ? { ...p, deal_group_id: groupId || null } : p));
+      },
+      error: () => alert('Failed to assign to deal'),
+    });
+  }
+
+  applyDealToProposal(s: any) {
+    const deal = this.deals().find(d => d.id === s.deal_group_id);
+    if (!deal) return;
+    if (deal.customer_name) s.customer_name = deal.customer_name;
+    if (deal.customer_phone) s.customer_phone = deal.customer_phone;
+    if (deal.customer_address) s.customer_address = deal.customer_address;
+    if (deal.customer_zip) s.customer_zip = deal.customer_zip;
+    if (deal.tax_rate) s.tax_rate = deal.tax_rate;
+    if (deal.trade_in) s.trade_in = { ...deal.trade_in };
+    this.selected.set({ ...s });
+    this.autosave(s);
+  }
+
+  getDealTradeIn(d: any): any {
+    if (!d.trade_in) {
+      d.trade_in = { year: '', make: '', model: '', vin: '', mileage: '', allowance: null, payoff: null, payoff_to: '' };
+    }
+    return d.trade_in;
+  }
+
+  proposalsForDeal(dealId: string): any[] {
+    return this.groupedView().grouped.find(g => g.deal.id === dealId)?.proposals || [];
   }
 
   ngOnDestroy() {
@@ -153,6 +290,7 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
   }
 
   selectProposal(p: any) {
+    this.selectedDeal.set(null);
     const s = { ...p, excluded_fields: p.excluded_fields || [] };
     // Auto-apply default line items if none exist
     if (!s.line_items?.length) {

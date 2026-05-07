@@ -802,3 +802,128 @@ $muted: rgba(0,0,0,0.45);
   &:hover { background: darken($blue, 8%); }
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
+
+// ── New Deal Button ──
+.prop-new-deal-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 8px; border: 1.5px solid #2563eb;
+  background: white; color: #2563eb; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+  lucide-icon { width: 15px; height: 15px; }
+  &:hover { background: #eff6ff; }
+}
+
+// ── Deal Folder ──
+.deal-folder {
+  border: 1.5px solid $border; border-radius: 8px; overflow: hidden; background: white;
+}
+
+.deal-folder-header {
+  display: flex; align-items: center; gap: 6px; padding: 7px 10px;
+  cursor: pointer; transition: background 0.15s;
+  &:hover { background: #f8fafc; }
+  &.active { background: #f0f4ff; border-color: #2563eb; }
+}
+
+.deal-folder-chevron {
+  background: none; border: none; cursor: pointer; color: #94a3b8;
+  display: flex; align-items: center; padding: 2px; border-radius: 4px;
+  flex-shrink: 0;
+  lucide-icon { width: 14px; height: 14px; }
+  &:hover { color: #475569; }
+}
+
+.deal-folder-icon {
+  width: 16px; height: 16px; color: #f59e0b; flex-shrink: 0;
+  &--open { color: #f59e0b; }
+}
+
+.deal-folder-main {
+  display: flex; flex-direction: column; min-width: 0; flex: 1;
+}
+
+.deal-folder-label {
+  font-size: 13px; font-weight: 700; color: #1e293b;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.deal-folder-customer {
+  font-size: 10px; color: #2563eb; font-weight: 600;
+}
+
+.deal-folder-count {
+  font-size: 11px; font-weight: 700; color: #64748b;
+  background: #f1f5f9; border-radius: 10px; padding: 1px 6px; flex-shrink: 0;
+}
+
+.deal-folder-proposals {
+  border-top: 1px solid $border; display: flex; flex-direction: column;
+}
+
+.deal-nested {
+  border: none; border-bottom: 1px solid $border; border-radius: 0;
+  padding-left: 28px;
+  &:last-child { border-bottom: none; }
+}
+
+.deal-folder-empty {
+  padding: 8px 28px; font-size: 12px; color: #94a3b8; font-style: italic;
+}
+
+.deal-ungrouped-label {
+  font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase;
+  letter-spacing: 0.05em; padding: 6px 4px 2px;
+}
+
+// ── Deal Editor Panel ──
+.deal-editor-panel {
+  // inherits prop-editor styles
+}
+
+.deal-label-input {
+  flex: 1; font-size: 18px; font-weight: 700; border: none; outline: none;
+  background: transparent; color: #1e293b; padding: 0;
+  &:focus { border-bottom: 2px solid #2563eb; }
+}
+
+.deal-editor-hint {
+  margin: 0; padding: 4px 14px 8px; font-size: 12px; color: #94a3b8;
+  border-bottom: 1px solid $border;
+}
+
+.deal-prop-mini {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px; border-bottom: 1px solid $border; cursor: pointer;
+  font-size: 13px; transition: background 0.12s;
+  &:hover { background: #f8fafc; }
+}
+
+.deal-prop-mini-name {
+  font-weight: 600; color: #1e293b;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+// ── Deal Assignment Row in Proposal Editor ──
+.prop-deal-row {
+  display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+  border-bottom: 1px solid $border; background: #fafafa;
+}
+
+.prop-deal-icon {
+  width: 15px; height: 15px; color: #f59e0b; flex-shrink: 0;
+}
+
+.prop-deal-select {
+  flex: 1; padding: 5px 8px; border: 1.5px solid $border; border-radius: 6px;
+  font-size: 13px; outline: none; background: white;
+  &:focus { border-color: $blue; }
+}
+
+.prop-apply-deal-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 6px; border: 1.5px solid #2563eb;
+  background: white; color: #2563eb; font-size: 12px; font-weight: 600;
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  lucide-icon { width: 13px; height: 13px; }
+  &:hover { background: #eff6ff; }
+}

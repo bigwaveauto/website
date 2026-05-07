@@ -198,6 +198,7 @@ function buildCreditAppXml(raw: { [k: string]: any }, id: string): string {
   <application_info>
     <id>${id}</id>
     <submit_datetime>${new Date().toISOString()}</submit_datetime>
+    ${raw['buyer_id'] ? `<buyer_id>${x(raw['buyer_id'])}</buyer_id>` : ''}
   </application_info>
   <application_data>
     ${primaryBlock}
@@ -399,7 +400,7 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
       'employerName', 'jobTitle', 'employmentStatus', 'monthlyIncome',
       'employmentYears', 'employmentMonths', 'otherIncome', 'otherIncomeSource',
       'prevEmployerName', 'prevJobTitle', 'prevEmploymentYears', 'prevEmploymentMonths',
-      'coborrower', 'coborrower_data',
+      'coborrower', 'coborrower_data', 'buyer_id',
     ]);
     if (!raw.firstname || !raw.email || !validateEmail(raw.email)) {
       res.status(400).json({ error: 'Valid name and email required' }); return;
@@ -2437,6 +2438,71 @@ app.get('/api/admin/proposals', async (_req, res) => {
   }
 });
 
+// ── Deal Groups ──
+
+app.get('/api/admin/deal-groups', async (_req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('deal_groups')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) { res.status(500).json({ error: error.message }); return; }
+    res.json(data || []);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load deal groups' });
+  }
+});
+
+app.post('/api/admin/deal-groups', async (req, res) => {
+  try {
+    const { label, customer_name, customer_phone, customer_email, customer_address, customer_zip, tax_rate, trade_in } = req.body;
+    const { data, error } = await supabase
+      .from('deal_groups')
+      .insert({
+        label: label || 'New Deal',
+        customer_name: customer_name || '',
+        customer_phone: customer_phone || '',
+        customer_email: customer_email || '',
+        customer_address: customer_address || '',
+        customer_zip: customer_zip || '',
+        tax_rate: tax_rate ?? 5.5,
+        trade_in: trade_in || null,
+      })
+      .select()
+      .single();
+    if (error) { res.status(500).json({ error: error.message }); return; }
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create deal group' });
+  }
+});
+
+app.post('/api/admin/deal-groups/:id', async (req, res) => {
+  try {
+    const updates: Record<string, any> = { updated_at: new Date().toISOString() };
+    const fields = ['label', 'customer_name', 'customer_phone', 'customer_email', 'customer_address', 'customer_zip', 'tax_rate', 'trade_in'];
+    for (const f of fields) {
+      if (req.body[f] !== undefined) updates[f] = req.body[f];
+    }
+    const { error } = await supabase.from('deal_groups').update(updates).eq('id', req.params['id']);
+    if (error) { res.status(500).json({ error: error.message }); return; }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update deal group' });
+  }
+});
+
+app.delete('/api/admin/deal-groups/:id', async (req, res) => {
+  try {
+    await supabase.from('vehicle_proposals').update({ deal_group_id: null }).eq('deal_group_id', req.params['id']);
+    const { error } = await supabase.from('deal_groups').delete().eq('id', req.params['id']);
+    if (error) { res.status(500).json({ error: error.message }); return; }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete deal group' });
+  }
+});
+
 /**
  * Admin — upload Carfax PDF for a proposal (must be before /:id route)
  */
@@ -2531,6 +2597,7 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (req.body.apr !== undefined) updates['apr'] = req.body.apr;
     if (req.body.term_months !== undefined) updates['term_months'] = req.body.term_months;
     if (req.body.window_sticker_url !== undefined) updates['window_sticker_url'] = req.body.window_sticker_url;
+    if (req.body.deal_group_id !== undefined) updates['deal_group_id'] = req.body.deal_group_id;
     updates['updated_at'] = new Date().toISOString();
 
     console.log('[proposal save] id:', req.params['id'], 'photos count:', photos?.length ?? 'not sent');
