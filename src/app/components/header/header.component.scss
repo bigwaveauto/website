@@ -307,7 +307,7 @@ $blue: #2563eb;
   text-decoration: none;
   transition: color 0.2s, background 0.2s;
 
-  lucide-icon { width: 44px; height: 44px; }
+  lucide-icon { width: 44px !important; height: 44px !important; }
 
   &:hover {
     color: white;
