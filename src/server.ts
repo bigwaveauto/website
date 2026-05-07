@@ -411,7 +411,7 @@ app.post('/api/leads/financing', leadLimiter, async (req, res) => {
     const co = raw.coborrower_data || null;
     const data: Record<string, any> = {
       firstname: raw.firstname, lastname: raw.lastname, email: raw.email,
-      phone: raw.phone, dob: raw.dob, ssn_last4: lastFour,
+      phone: raw.phone, dob: raw.dob, ssn: raw.ssn, ssn_last4: lastFour,
       street: raw.street, city: raw.city, state: raw.state, zip: raw.zip,
       county: raw.county,
       years_at_address: addrTime, housing_status: raw.housingStatus,
