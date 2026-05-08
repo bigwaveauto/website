@@ -2598,6 +2598,8 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (req.body.term_months !== undefined) updates['term_months'] = req.body.term_months;
     if (req.body.window_sticker_url !== undefined) updates['window_sticker_url'] = req.body.window_sticker_url;
     if (req.body.deal_group_id !== undefined) updates['deal_group_id'] = req.body.deal_group_id;
+    if (req.body.profit_target !== undefined) updates['profit_target'] = req.body.profit_target;
+    if (req.body.security_deposit !== undefined) updates['security_deposit'] = req.body.security_deposit;
     updates['updated_at'] = new Date().toISOString();
 
     console.log('[proposal save] id:', req.params['id'], 'photos count:', photos?.length ?? 'not sent');

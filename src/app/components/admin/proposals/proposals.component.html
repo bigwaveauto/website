@@ -187,117 +187,238 @@
 
     <!-- Detail / Editor -->
     @if(selected(); as s){
-    <div class="prop-editor">
-      <div class="prop-editor-header">
-        <h2>{{ vehicleName(s) }}</h2>
-        <div class="prop-editor-actions">
-          @if(saved()){<span class="prop-saved">Saved</span>}
-          <button class="prop-save-btn" (click)="saveProposal()" [disabled]="saving()">
-            @if(saving()){ Saving... }@else if(saved()){ ✓ Saved }@else{ Save }
-          </button>
+    <div class="prop-editor prop-editor-v2">
+
+      <!-- ═══ THREE-BOX HEADER ═══ -->
+      <div class="prop-top-header">
+
+        <!-- Box 1: Vehicle -->
+        <div class="prop-top-box prop-box-vehicle">
+          <div class="prop-veh-title">{{ vehicleName(s) }}</div>
+          <div class="prop-veh-vin">{{ s.vin }}</div>
+          @if(vehicleSpecs(s)){<div class="prop-veh-specs">{{ vehicleSpecs(s) }}</div>}
+          <div class="prop-veh-mi-row">
+            <input class="prop-veh-mi-input" type="number"
+              [ngModel]="s.vehicle?.mileage"
+              (ngModelChange)="setMileage(s, $event)"
+              placeholder="Mileage" />
+            <span class="prop-veh-mi-unit">mi</span>
+          </div>
+        </div>
+
+        <!-- Box 2: Client -->
+        <div class="prop-top-box prop-box-client">
+          <div class="prop-top-box-title">Client</div>
+          <input class="prop-top-input" [(ngModel)]="s.customer_name" (change)="autosave()" placeholder="Full Name" />
+          <input class="prop-top-input" [(ngModel)]="s.customer_phone" (change)="autosave()" placeholder="Phone" />
+          <div class="prop-zip-row">
+            <input class="prop-top-input prop-zip-input" [(ngModel)]="s.customer_zip"
+              (ngModelChange)="s.customer_zip = $event; lookupCityState($event); autosave()"
+              placeholder="ZIP" />
+            @if(cityState()){<span class="prop-city-state">{{ cityState() }}</span>}
+          </div>
+          <div class="prop-deal-row-inline">
+            <lucide-icon name="folder" class="prop-deal-icon" />
+            <select class="prop-deal-select" [ngModel]="s.deal_group_id || ''" (ngModelChange)="assignToGroup(s, $event || null)">
+              <option value="">No Deal</option>
+              @for(d of deals(); track d.id){
+              <option [value]="d.id">{{ d.label }}{{ d.customer_name ? ' · ' + d.customer_name : '' }}</option>
+              }
+            </select>
+            @if(s.deal_group_id){
+            <button class="prop-apply-deal-btn" (click)="applyDealToProposal(s)" title="Sync from Deal">
+              <lucide-icon name="download" />
+            </button>
+            }
+          </div>
+        </div>
+
+        <!-- Box 3: Status -->
+        <div class="prop-top-box prop-box-status">
+          <div class="prop-mode-toggle">
+            <button class="prop-mode-btn" [class.active]="!s.proposal_mode || s.proposal_mode === 'info'" (click)="setMode(s, 'info')">
+              <lucide-icon name="info" /> Info
+            </button>
+            <button class="prop-mode-btn" [class.active]="s.proposal_mode === 'proposal'" (click)="setMode(s, 'proposal')">
+              <lucide-icon name="file-text" /> Price
+            </button>
+          </div>
+          @if(s.created_at){<div class="prop-date-line">Created {{ s.created_at | date:'MMM d, y' }}</div>}
+          <select class="prop-status-select" [(ngModel)]="s.status" (change)="autosave(s)">
+            <option value="draft">Quote</option>
+            <option value="sent">Sent</option>
+            <option value="accepted">Accepted</option>
+            <option value="viewed">Viewed</option>
+            <option value="closed">Closed</option>
+          </select>
+          <div class="prop-save-row">
+            @if(saved()){<span class="prop-saved">✓ Saved</span>}
+            <button class="prop-save-btn" (click)="saveProposal()" [disabled]="saving()" style="flex:1">
+              @if(saving()){ Saving... }@else{ Save }
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Mode Toggle -->
-      <div class="prop-mode-toggle">
-        <button class="prop-mode-btn" [class.active]="!s.proposal_mode || s.proposal_mode === 'info'" (click)="setMode(s, 'info')">
-          <lucide-icon name="info" /> Info Only
-        </button>
-        <button class="prop-mode-btn" [class.active]="s.proposal_mode === 'proposal'" (click)="setMode(s, 'proposal')">
-          <lucide-icon name="file-text" /> Price Proposal
-        </button>
-      </div>
+      <!-- ═══ TWO COLUMNS ═══ -->
+      <div class="prop-main-cols">
 
-      <!-- Deal Assignment -->
-      <div class="prop-deal-row">
-        <lucide-icon name="folder" class="prop-deal-icon" />
-        <select class="prop-deal-select" [ngModel]="s.deal_group_id || ''" (ngModelChange)="assignToGroup(s, $event || null)">
-          <option value="">No Deal</option>
-          @for(d of deals(); track d.id){
-          <option [value]="d.id">{{ d.label }}{{ d.customer_name ? ' · ' + d.customer_name : '' }}</option>
+        <!-- LEFT: Photos + Docs -->
+        <div class="prop-left-col">
+          @if(s.photos?.length){
+            <!-- Hero photo -->
+            <div class="prop-photo-item prop-hero-item"
+                 draggable="true"
+                 [class.photo-dragging]="photoDragIdx === 0"
+                 [class.photo-drop-target]="photoDropIdx === 0 && photoDragIdx !== 0"
+                 (dragstart)="onPhotoDragStart(0)"
+                 (dragover)="onPhotoDragOver($event, 0)"
+                 (dragleave)="onPhotoDragLeave($event)"
+                 (drop)="onPhotoDrop(s, 0)"
+                 (dragend)="onPhotoDragEnd()">
+              <img class="prop-hero-photo" [src]="s.photos[0]" alt="hero" draggable="false" />
+              <button class="prop-photo-del" (click)="removePhoto(s, 0)"><lucide-icon name="x" /></button>
+              <div class="photo-drag-handle"><lucide-icon name="grip-vertical" /></div>
+            </div>
+            <!-- 5-wide sub-grid -->
+            @if(s.photos.length > 1){
+            <div class="prop-photo-grid-5">
+              @for(photo of s.photos.slice(1); track $index; let i = $index){
+              <div class="prop-photo-item"
+                   draggable="true"
+                   [class.photo-dragging]="photoDragIdx === i + 1"
+                   [class.photo-drop-target]="photoDropIdx === i + 1 && photoDragIdx !== i + 1"
+                   (dragstart)="onPhotoDragStart(i + 1)"
+                   (dragover)="onPhotoDragOver($event, i + 1)"
+                   (dragleave)="onPhotoDragLeave($event)"
+                   (drop)="onPhotoDrop(s, i + 1)"
+                   (dragend)="onPhotoDragEnd()">
+                <img [src]="photo" alt="photo" draggable="false" />
+                <button class="prop-photo-del" (click)="removePhoto(s, i + 1)"><lucide-icon name="x" /></button>
+                <div class="photo-drag-handle"><lucide-icon name="grip-vertical" /></div>
+              </div>
+              }
+            </div>
+            }
+          }@else{
+            <div class="prop-no-photos">
+              <lucide-icon name="image" style="width:32px;height:32px;color:#cbd5e1" />
+              <span>No photos — scan from auction to add</span>
+            </div>
           }
-        </select>
-        @if(s.deal_group_id){
-        <button class="prop-apply-deal-btn" (click)="applyDealToProposal(s)" title="Copy deal's shared fields into this proposal">
-          <lucide-icon name="download" /> Sync from Deal
-        </button>
-        }
-      </div>
 
-      <!-- Chat -->
-      <h3 class="prop-toggle-title">
-        Customer Chat
-        @if(adminUnreadCount() > 0){ <span class="chat-admin-badge">{{ adminUnreadCount() }} new</span> }
-      </h3>
-      <div class="admin-chat-body" #adminChatBody>
-        @if(adminChatMessages().length === 0){
-        <div class="admin-chat-empty">No messages yet.</div>
-        }
-        @for(msg of adminChatMessages(); track msg.id){
-        <div class="admin-chat-msg" [class.admin-chat-msg--admin]="msg.sender === 'admin'" [class.admin-chat-msg--customer]="msg.sender === 'customer'">
-          <div class="admin-chat-msg-meta">{{ msg.sender === 'admin' ? 'You' : msg.sender_name }} · {{ msg.created_at | date:'MMM d, h:mm a' }}</div>
-          <div class="admin-chat-msg-bubble">{{ msg.message }}</div>
-        </div>
-        }
-      </div>
-      <div class="admin-chat-input-row">
-        <input class="admin-chat-input" [ngModel]="adminChatInput()" (ngModelChange)="adminChatInput.set($event)"
-               placeholder="Reply..." (keydown.enter)="sendAdminChat(s)" />
-        <button class="admin-chat-send" (click)="sendAdminChat(s)" [disabled]="!adminChatInput().trim() || adminChatSending()">
-          <lucide-icon name="send" />
-        </button>
-      </div>
+          <!-- Carfax -->
+          <div class="prop-doc-section">
+            <div class="prop-doc-label">Carfax Report</div>
+            @if(s.carfax_url){
+            <div class="prop-carfax-preview">
+              <div class="prop-carfax-header">
+                <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="prop-carfax-logo" />
+                <div class="prop-carfax-actions">
+                  <a [href]="s.carfax_url" target="_blank" class="prop-carfax-view">View PDF</a>
+                  <button class="prop-li-del" (click)="removeCarfax(s)"><lucide-icon name="x" /></button>
+                </div>
+              </div>
+              <iframe [src]="safeCarfaxUrl(s.carfax_url)" class="prop-carfax-iframe"></iframe>
+            </div>
+            }@else{
+            <div class="prop-carfax-drop" [class.dragover]="carfaxDragOver()"
+                 (dragover)="onCarfaxDragOver($event)" (dragleave)="carfaxDragOver.set(false)" (drop)="onCarfaxDrop($event, s)"
+                 (click)="carfaxInput.click()">
+              <input #carfaxInput type="file" accept="application/pdf" (change)="onCarfaxSelect($event, s)" hidden />
+              @if(uploadingCarfax()){
+                <div class="prop-carfax-spinner"></div><span>Uploading...</span>
+              }@else{
+                <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="prop-carfax-logo-drop" />
+                <span>Drop Carfax PDF or click to upload</span>
+              }
+            </div>
+            }
+          </div>
 
-      <!-- Customer Info -->
-      <div class="prop-customer-row">
-        <input class="prop-customer-input" [(ngModel)]="s.customer_name" (change)="autosave()" placeholder="Customer Name" />
-        <input class="prop-customer-input" [(ngModel)]="s.customer_phone" (change)="autosave()" placeholder="Phone" />
-        <div class="prop-addr-wrap">
-          <input class="prop-customer-input" [(ngModel)]="s.customer_address"
-            (ngModelChange)="onAddressInput(s, $event)"
-            (blur)="clearAddrSuggestions()"
-            placeholder="Address" autocomplete="off" />
-          @if(addrSuggestions().length){
-          <div class="prop-addr-dropdown">
-            @for(sug of addrSuggestions(); track sug.place_id){
-            <div class="prop-addr-item" (mousedown)="selectAddress(s, sug)">{{ sug.display_name }}</div>
+          <!-- Window Sticker -->
+          <div class="prop-doc-section">
+            <div class="prop-doc-label">Window Sticker</div>
+            @if(s.window_sticker_url){
+            <div class="prop-carfax-preview">
+              <div class="prop-carfax-header">
+                <span style="font-size:13px;font-weight:700;color:#1e293b">Window Sticker</span>
+                <div class="prop-carfax-actions">
+                  <a [href]="s.window_sticker_url" target="_blank" class="prop-carfax-view">View</a>
+                  <button class="prop-li-del" (click)="removeSticker(s)"><lucide-icon name="x" /></button>
+                </div>
+              </div>
+              @if(s.window_sticker_url.endsWith('.pdf')){
+                <iframe [src]="safeCarfaxUrl(s.window_sticker_url)" class="prop-carfax-iframe"></iframe>
+              }@else{
+                <img [src]="s.window_sticker_url" style="width:100%;border-radius:6px;margin-top:8px" alt="Window Sticker" />
+              }
+            </div>
+            }@else{
+            <div class="prop-carfax-drop" [class.dragover]="stickerDragOver()"
+                 (dragover)="onStickerDragOver($event)" (dragleave)="stickerDragOver.set(false)" (drop)="onStickerDrop($event, s)"
+                 (click)="stickerInput.click()">
+              <input #stickerInput type="file" accept="application/pdf,image/*" (change)="onStickerSelect($event, s)" hidden />
+              @if(uploadingSticker()){
+                <div class="prop-carfax-spinner"></div><span>Uploading...</span>
+              }@else{
+                <lucide-icon name="file-text" style="width:28px;height:28px;color:#94a3b8;margin-bottom:6px" />
+                <span>Drop window sticker or click to upload</span>
+                <span style="font-size:11px;color:#94a3b8">PDF or image</span>
+              }
+            </div>
+            }
+          </div>
+
+          <!-- CUSTOMER VIEW: field visibility -->
+          <div class="cust-view-card">
+            <div class="cust-view-header">
+              <span class="cust-view-title">Customer View</span>
+              <span class="cust-view-hint">Toggle what the buyer sees</span>
+            </div>
+            <div class="cust-view-grid">
+              @for(f of fieldDefs; track f.key){
+              <button class="cust-view-row" [class.cust-row-off]="isExcluded(f.key)" (click)="toggleExclude(f.key)">
+                <lucide-icon [name]="f.icon" class="cust-row-icon" />
+                <span class="cust-row-label">{{ f.label }}</span>
+                <div class="cust-toggle" [class.on]="!isExcluded(f.key)">
+                  <div class="cust-toggle-thumb"></div>
+                </div>
+              </button>
+              }
+            </div>
+          </div>
+
+          <!-- CONDITION NOTES -->
+          @if(s.condition?.damage?.length){
+          <div class="cond-card">
+            <div class="cond-card-header">
+              <span class="cond-card-title">Condition Notes</span>
+              <span class="cond-card-count">{{ s.condition.damage.length }}</span>
+            </div>
+            @for(d of s.condition.damage; track $index){
+            <div class="cond-item-v2" [class.cond-item-hidden]="isExcluded('damage_' + $index)">
+              <span class="cond-num">{{ $index + 1 }}</span>
+              <span class="cond-text">{{ d }}</span>
+              <button class="cond-toggle-v2" (click)="toggleExclude('damage_' + $index)">
+                @if(isExcluded('damage_' + $index)){
+                  <lucide-icon name="eye-off" />
+                }@else{
+                  <lucide-icon name="eye" />
+                }
+              </button>
+            </div>
             }
           </div>
           }
         </div>
-        <input class="prop-customer-input prop-customer-zip" [(ngModel)]="s.customer_zip" (change)="autosave()" placeholder="ZIP" />
-      </div>
 
-      <!-- Vehicle Mileage override -->
-      <div class="prop-mileage-row">
-        <label class="prop-mileage-label">Mileage</label>
-        <input class="prop-mileage-input" type="number" [ngModel]="s.vehicle?.mileage" (ngModelChange)="s.vehicle = { ...s.vehicle, mileage: $event || null }; autosave(s)" placeholder="e.g. 47000" />
-        <span class="prop-mileage-unit">miles</span>
-      </div>
-
-      <!-- Actions -->
-      <div class="prop-action-row">
-        <button class="prop-action-btn prop-action-copy" (click)="copyLink(s)">
-          <lucide-icon name="link" /> Copy Link
-        </button>
-        <button class="prop-action-btn prop-action-open" (click)="printProposal(s)">
-          <lucide-icon name="printer" /> Print PDF
-        </button>
-        <a [href]="proposalUrl(s)" target="_blank" class="prop-action-btn prop-action-download">
-          <lucide-icon name="external-link" /> Open Proposal
-        </a>
-      </div>
-
-      <!-- ═══ TWO-COLUMN DEAL VIEW ═══ -->
-      <div class="desk-cols">
-
-        <!-- LEFT: Cost Details -->
-        <div class="desk-cost-col">
-          <div class="desk-col-title">Cost Details</div>
+        <!-- RIGHT: Deal Desk -->
+        <div class="prop-right-col">
 
           <!-- MMR Banner -->
           @if(s.auction?.mmr || s.mmr){
-          <div class="desk-mmr-banner" style="border-radius:0">
+          <div class="desk-mmr-banner">
             <div class="desk-mmr-left">
               <span class="desk-mmr-label">MMR</span>
               <span class="desk-mmr-value">{{ (s.auction?.mmr || s.mmr) | currency:'USD':'symbol':'1.0-0' }}</span>
@@ -312,7 +433,7 @@
           </div>
           }
 
-          <!-- Auction reference -->
+          <!-- Auction ref pills -->
           @if(s.auction){
           <div class="desk-ref">
             <span class="desk-ref-tag">{{ s.auction.channel || 'Auction' }}</span>
@@ -322,50 +443,50 @@
           </div>
           }
 
-          <!-- Acquisition -->
+          <!-- ACQUISITION -->
           <div class="desk-section">
             <div class="desk-section-title">Acquisition</div>
             <div class="desk-row">
-              <label>Purchase Price</label>
+              <label>Purchase / Bid Price</label>
               <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.purchase_price)" (ngModelChange)="onPurchasePriceChange(s, $event)" placeholder="" /></div>
             </div>
             <div class="desk-row">
-              <label>Transport</label>
-              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.transport_cost)" (ngModelChange)="s.transport_cost = parse($event)" placeholder="" /></div>
+              <button class="desk-fee-label" (click)="showFeeModal.set(true)">Auction Fee <lucide-icon name="settings-2" /></button>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.auction_fees)" (ngModelChange)="s.auction_fees = parse($event); autosave(s)" placeholder="" /></div>
             </div>
             <div class="desk-row">
-              <button class="desk-fee-label" (click)="showFeeModal.set(true)">Auction Fee <lucide-icon name="settings-2" /></button>
-              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.auction_fees)" (ngModelChange)="s.auction_fees = parse($event)" placeholder="" /></div>
+              <label>Transport</label>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.transport_cost)" (ngModelChange)="s.transport_cost = parse($event); autosave(s)" placeholder="" /></div>
             </div>
           </div>
 
-          <!-- Recon -->
+          <!-- RECONDITIONING -->
           <div class="desk-section">
             <div class="desk-section-title">Reconditioning</div>
             <div class="desk-row">
               <label>Mechanical</label>
-              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.recon_mechanical)" (ngModelChange)="s.recon_mechanical = parse($event)" placeholder="" /></div>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.recon_mechanical)" (ngModelChange)="s.recon_mechanical = parse($event); autosave(s)" placeholder="" /></div>
             </div>
             <div class="desk-row">
               <label>Body / Paint</label>
-              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.recon_body)" (ngModelChange)="s.recon_body = parse($event)" placeholder="" /></div>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.recon_body)" (ngModelChange)="s.recon_body = parse($event); autosave(s)" placeholder="" /></div>
             </div>
             <div class="desk-row">
               <label>Tires</label>
-              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.recon_tires)" (ngModelChange)="s.recon_tires = parse($event)" placeholder="" /></div>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.recon_tires)" (ngModelChange)="s.recon_tires = parse($event); autosave(s)" placeholder="" /></div>
             </div>
             <div class="desk-row">
               <label>Detail / Other</label>
-              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.recon_other)" (ngModelChange)="s.recon_other = parse($event)" placeholder="" /></div>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.recon_other)" (ngModelChange)="s.recon_other = parse($event); autosave(s)" placeholder="" /></div>
             </div>
           </div>
 
-          <!-- Flooring -->
+          <!-- FLOORING -->
           <div class="desk-section">
             <div class="desk-section-title">Flooring (est.)</div>
             <div class="desk-row">
               <label>Est. Days to Sell</label>
-              <input type="number" class="desk-input-sm" [(ngModel)]="s.est_days_to_sell" />
+              <input type="number" class="desk-input-sm" [(ngModel)]="s.est_days_to_sell" (change)="autosave(s)" />
             </div>
             <div class="desk-row desk-row-calc">
               <label>Est. Flooring Cost</label>
@@ -373,20 +494,30 @@
             </div>
           </div>
 
-          <!-- Total Investment -->
+          <!-- TOTAL INVESTMENT -->
           <div class="desk-totals">
             <div class="desk-total-row"><span>Total Investment</span><span>{{ totalInvestment(s) | currency:'USD':'symbol':'1.0-0' }}</span></div>
           </div>
 
-          <!-- Min Price -->
+          <!-- PROFIT TARGET -->
           <div class="desk-section">
             <div class="desk-row">
+              <label>Profit Target</label>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.profit_target)" (ngModelChange)="onProfitTargetChange(s, $event)" placeholder="" /></div>
+            </div>
+            <div class="desk-row">
               <label>Min Price (floor)</label>
-              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.min_price)" (ngModelChange)="s.min_price = parse($event)" placeholder="" /></div>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.min_price)" (ngModelChange)="s.min_price = parse($event); autosave(s)" placeholder="" /></div>
             </div>
           </div>
 
-          <!-- Spread -->
+          <!-- CLIENT PRICE (asking) -->
+          <div class="desk-asking-row">
+            <label>Client Price</label>
+            <div class="desk-dollar desk-dollar-big"><span>$</span><input type="text" [ngModel]="fmt(s.asking_price)" (ngModelChange)="onAskingPriceChange(s, $event)" placeholder="" /></div>
+          </div>
+
+          <!-- SPREAD -->
           <div class="desk-spread">
             <div class="desk-spread-item" [class.desk-pos]="totalGross(s) >= 0" [class.desk-neg]="totalGross(s) < 0">
               <span class="desk-spread-label">Total Gross</span>
@@ -396,33 +527,18 @@
               <span class="desk-spread-label">Margin</span>
               <span class="desk-spread-val">{{ grossMargin(s) | number:'1.1-1' }}%</span>
             </div>
-          </div>
-
-          <!-- Status -->
-          <div class="desk-meta">
-            <div class="prop-field">
-              <label>Status</label>
-              <select [(ngModel)]="s.status" (change)="autosave(s)">
-                <option value="draft">Draft</option>
-                <option value="sent">Sent</option>
-                <option value="viewed">Viewed</option>
-                <option value="closed">Closed</option>
-              </select>
+            @if(s.min_price){
+            <div class="desk-spread-item" [class.desk-pos]="minGross(s) >= 0" [class.desk-neg]="minGross(s) < 0">
+              <span class="desk-spread-label">@ Floor</span>
+              <span class="desk-spread-val" style="font-size:15px">{{ minGross(s) | currency:'USD':'symbol':'1.0-0' }}</span>
             </div>
-          </div>
-        </div>
-
-        <!-- RIGHT: Retail -->
-        <div class="desk-retail-col">
-          <div class="desk-col-title">Retail</div>
-
-          <!-- Asking Price -->
-          <div class="desk-asking-row">
-            <label>Asking Price</label>
-            <div class="desk-dollar desk-dollar-big"><span>$</span><input type="text" [ngModel]="fmt(s.asking_price)" (ngModelChange)="s.asking_price = parse($event); autosave(s)" placeholder="" /></div>
+            }
           </div>
 
-          <!-- Line Items -->
+          <!-- RETAIL DIVIDER -->
+          <div class="desk-retail-divider">Retail</div>
+
+          <!-- LINE ITEMS -->
           <div class="desk-li-section">
             <div class="desk-section-title" style="padding:10px 0 6px">Line Items</div>
             @for(li of getLineItems(s); track $index; let i = $index){
@@ -441,16 +557,7 @@
             </div>
           </div>
 
-          <!-- Tax Rate -->
-          <div class="desk-tax-row">
-            <span>Tax Rate</span>
-            <div class="desk-tax-input">
-              <input type="number" step="0.01" [(ngModel)]="s.tax_rate" (change)="autosave(s)" placeholder="5.5" />
-              <span>%</span>
-            </div>
-          </div>
-
-          <!-- Trade-In -->
+          <!-- TRADE-IN -->
           <div class="desk-trade-section">
             <div class="desk-section-title" style="margin-bottom:8px">Trade-In</div>
             <div class="prop-field-row">
@@ -472,108 +579,101 @@
                 <div class="prop-price-input"><span>$</span><input type="text" [ngModel]="fmt(getTradeIn(s).payoff)" (ngModelChange)="getTradeIn(s).payoff = parse($event); autosave(s)" placeholder="" [ngModelOptions]="{standalone: true}" /></div>
               </div>
             </div>
-            <div class="prop-field">
+            @if(getTradeIn(s).allowance || getTradeIn(s).payoff){
+            <div class="desk-row desk-row-calc" style="border-top:1px solid rgba(0,0,0,0.05);margin-top:6px;padding-top:8px">
+              <label>Trade Equity</label>
+              <span class="desk-calc-value" [class.deal-pos]="tradeEquity(s) >= 0" [class.deal-neg]="tradeEquity(s) < 0">
+                {{ tradeEquity(s) | currency:'USD':'symbol':'1.0-0' }}
+              </span>
+            </div>
+            }
+            <div class="prop-field" style="margin-top:8px">
               <label>Payoff Owed To</label>
               <input [(ngModel)]="getTradeIn(s).payoff_to" [ngModelOptions]="{standalone: true}" placeholder="Lender name" />
             </div>
           </div>
 
-          <!-- Lien Payoff -->
+          <!-- LIEN PAYOFF -->
           <div class="desk-tax-row">
             <span>Lien Payoff <span style="font-size:11px;color:#94a3b8">(on vehicle sold)</span></span>
-            <div class="prop-price-input" style="width:160px">
-              <span>$</span>
+            <div class="prop-price-input" style="width:160px"><span>$</span>
               <input type="text" [ngModel]="fmt(s.lien_payoff)" (ngModelChange)="s.lien_payoff = parse($event); autosave(s)" placeholder="" />
             </div>
           </div>
 
-          <!-- Down Payment -->
+          <!-- SALES TAX -->
           <div class="desk-tax-row">
-            <span>Cash Down</span>
-            <div class="prop-price-input" style="width:160px">
-              <span>$</span>
-              <input type="text" [ngModel]="fmt(s.down_payment)" (ngModelChange)="s.down_payment = parse($event); autosave(s)" placeholder="" />
+            <span>Sales Tax <span class="desk-tax-calc">= {{ taxAmount(s) | currency:'USD':'symbol':'1.0-0' }}</span></span>
+            <div class="desk-tax-input">
+              <input type="number" step="0.01" [(ngModel)]="s.tax_rate" (change)="autosave(s)" placeholder="5.5" />
+              <span>%</span>
             </div>
           </div>
 
-          <!-- Financing defaults -->
-          <div class="desk-tax-row">
-            <span>Default APR</span>
-            <div class="prop-fin-pair">
-              <input type="number" step="0.1" min="0" [ngModel]="s.apr" (ngModelChange)="s.apr = +$event; autosave(s)" placeholder="e.g. 6.9" />
-              <span class="prop-fin-unit">%</span>
-            </div>
-          </div>
-          <div class="desk-tax-row">
-            <span>Default Term</span>
-            <div class="prop-fin-pair">
-              <input type="number" step="1" min="1" [ngModel]="s.term_months" (ngModelChange)="s.term_months = +$event; autosave(s)" placeholder="e.g. 60" />
-              <span class="prop-fin-unit">mo</span>
-            </div>
+          <!-- OTD TOTAL -->
+          <div class="desk-totals desk-otd-totals">
+            <div class="desk-total-row"><span>Out-the-Door Total</span><span>{{ totalOTD(s) | currency:'USD':'symbol':'1.0-0' }}</span></div>
           </div>
 
-          <!-- Deal Summary Waterfall -->
-          <div class="deal-summary">
-            <div class="deal-summary-title">Deal Summary</div>
-            <div class="deal-sum-row">
-              <span>Asking Price</span>
-              <span>{{ s.asking_price | currency:'USD':'symbol':'1.0-0' }}</span>
+          <!-- CASH / FINANCE TABS -->
+          <div class="desk-pay-tabs">
+            <button class="desk-pay-tab" [class.active]="paymentTab() === 'cash'" (click)="paymentTab.set('cash')">Cash</button>
+            <button class="desk-pay-tab" [class.active]="paymentTab() === 'finance'" (click)="paymentTab.set('finance')">Finance</button>
+          </div>
+
+          @if(paymentTab() === 'cash'){
+          <div class="desk-section">
+            <div class="desk-row">
+              <label>Security Deposit</label>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.security_deposit)" (ngModelChange)="s.security_deposit = parse($event); autosave(s)" placeholder="" /></div>
             </div>
-            @if(tradeAllowance(s)){
-            <div class="deal-sum-row deal-sum-credit">
-              <span>Less Trade Allowance</span>
-              <span>-{{ tradeAllowance(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            <div class="desk-row desk-row-calc">
+              <label>Cash @ Delivery</label>
+              <span class="desk-calc-value">{{ cashAtDelivery(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+          }@else{
+          <div class="desk-section">
+            <div class="desk-row">
+              <label>Cash Down</label>
+              <div class="desk-dollar"><span>$</span><input type="text" [ngModel]="fmt(s.down_payment)" (ngModelChange)="s.down_payment = parse($event); autosave(s)" placeholder="" /></div>
+            </div>
+            @if(tradeEquity(s) !== 0){
+            <div class="desk-row desk-row-calc">
+              <label>Trade Equity</label>
+              <span class="desk-calc-value" [class.deal-pos]="tradeEquity(s) > 0" [class.deal-neg]="tradeEquity(s) < 0">
+                {{ tradeEquity(s) > 0 ? '+' : '' }}{{ tradeEquity(s) | currency:'USD':'symbol':'1.0-0' }}
+              </span>
             </div>
             }
-            @for(li of getLineItems(s); track $index){
-              @if(li.amount){
-              <div class="deal-sum-row deal-sum-li">
-                <span>{{ li.label }}{{ li.taxable ? ' *' : '' }}</span>
-                <span>{{ li.amount | currency:'USD':'symbol':'1.0-0' }}</span>
+            <div class="desk-row desk-row-calc">
+              <label>Amount Financed</label>
+              <span class="desk-calc-value">{{ amountFinanced(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="desk-row">
+              <label>Term</label>
+              <div class="prop-fin-pair">
+                <input type="number" step="1" min="1" [ngModel]="s.term_months" (ngModelChange)="s.term_months = +$event; autosave(s)" placeholder="60" />
+                <span class="prop-fin-unit">mo</span>
               </div>
-              }
-            }
-            @if(s.tax_rate){
-            <div class="deal-sum-row deal-sum-tax">
-              <span>Sales Tax ({{ s.tax_rate }}%)</span>
-              <span>{{ taxAmount(s) | currency:'USD':'symbol':'1.0-0' }}</span>
             </div>
-            }
-            <div class="deal-sum-row deal-sum-subtotal">
-              <span>Out-the-Door Total</span>
-              <span>{{ totalOTD(s) | currency:'USD':'symbol':'1.0-0' }}</span>
+            <div class="desk-row">
+              <label>APR</label>
+              <div class="prop-fin-pair">
+                <input type="number" step="0.1" min="0" [ngModel]="s.apr" (ngModelChange)="s.apr = +$event; autosave(s)" placeholder="6.9" />
+                <span class="prop-fin-unit">%</span>
+              </div>
             </div>
-            @if(tradePayoff(s)){
-            <div class="deal-sum-row deal-sum-owed">
-              <span>Trade Payoff (to lender)</span>
-              <span>+{{ tradePayoff(s) | currency:'USD':'symbol':'1.0-0' }}</span>
-            </div>
-            }
-            @if(lienPayoff(s)){
-            <div class="deal-sum-row deal-sum-owed">
-              <span>Lien Payoff</span>
-              <span>+{{ lienPayoff(s) | currency:'USD':'symbol':'1.0-0' }}</span>
-            </div>
-            }
-            @if(s.down_payment){
-            <div class="deal-sum-row deal-sum-credit">
-              <span>Down Payment</span>
-              <span>-{{ s.down_payment | currency:'USD':'symbol':'1.0-0' }}</span>
-            </div>
-            }
-            <div class="deal-sum-row deal-sum-financed">
-              <span>Amount Financed</span>
-              <span>{{ amountFinanced(s) | currency:'USD':'symbol':'1.0-0' }}</span>
-            </div>
-            @if(s.apr && s.term_months && monthlyPaymentEst(s) > 0){
-            <div class="deal-sum-row deal-sum-monthly">
-              <span>Est. Monthly ({{ s.term_months }} mo @ {{ s.apr }}%)</span>
-              <span>{{ monthlyPaymentEst(s) | currency:'USD':'symbol':'1.0-0' }}/mo</span>
+            @if(monthlyPaymentEst(s) > 0){
+            <div class="desk-row desk-row-calc">
+              <label>Monthly Payment</label>
+              <span class="desk-calc-value desk-monthly-val">{{ monthlyPaymentEst(s) | currency:'USD':'symbol':'1.0-0' }}/mo</span>
             </div>
             }
           </div>
+          }
 
-          <!-- Gross Profit Summary -->
+          <!-- GROSS PROFIT SUMMARY -->
           <div class="deal-gross-summary">
             <div class="deal-summary-title">Gross Profit</div>
             <div class="deal-sum-row">
@@ -593,34 +693,102 @@
                 <input type="checkbox" [(ngModel)]="s.marine_cu" (change)="autosave(s)" [ngModelOptions]="{standalone: true}" />
                 Marine CU Backend (1.5% of financed)
               </label>
-              @if(s.marine_cu){
-              <span class="deal-marine-val">+{{ marineCuBackend(s) | currency:'USD':'symbol':'1.0-0' }}</span>
-              }
+              @if(s.marine_cu){<span class="deal-marine-val">+{{ marineCuBackend(s) | currency:'USD':'symbol':'1.0-0' }}</span>}
             </div>
             <div class="deal-sum-row deal-sum-subtotal" [class.deal-pos]="totalGross(s) >= 0" [class.deal-neg]="totalGross(s) < 0">
               <span>Total Gross</span>
               <span>{{ totalGross(s) | currency:'USD':'symbol':'1.0-0' }}</span>
             </div>
-            @if(s.min_price){
-            <div class="deal-sum-row" style="font-size:11px;color:#888">
-              <span>Gross @ Min Price</span>
-              <span [class.deal-pos]="minGross(s) >= 0" [class.deal-neg]="minGross(s) < 0">
-                {{ minGross(s) | currency:'USD':'symbol':'1.0-0' }}
-              </span>
-            </div>
-            }
           </div>
 
-          <!-- Custom Notes -->
-          <div class="prop-field" style="padding:10px 14px">
+          <!-- CUSTOM NOTES -->
+          <div class="prop-field" style="padding:10px 14px 14px">
             <label>Notes to Customer</label>
             <textarea [(ngModel)]="s.custom_notes" rows="2" placeholder="Personal message to the buyer..."></textarea>
           </div>
         </div>
+      </div><!-- end prop-main-cols -->
 
+      <!-- ACTIONS -->
+      <div class="prop-action-row">
+        <button class="prop-action-btn prop-action-copy" (click)="copyLink(s)">
+          <lucide-icon name="link" /> Copy Link
+        </button>
+        <button class="prop-action-btn prop-action-open" (click)="printProposal(s)">
+          <lucide-icon name="printer" /> Print PDF
+        </button>
+        <a [href]="proposalUrl(s)" target="_blank" class="prop-action-btn prop-action-download">
+          <lucide-icon name="external-link" /> Open Proposal
+        </a>
       </div>
 
-      <!-- ═══ AUCTION FEE MODAL ═══ -->
+      <!-- CUSTOMER CHAT -->
+      <h3 class="prop-toggle-title">
+        Customer Chat
+        @if(adminUnreadCount() > 0){<span class="chat-admin-badge">{{ adminUnreadCount() }} new</span>}
+      </h3>
+      <div class="admin-chat-body" #adminChatBody>
+        @if(adminChatMessages().length === 0){
+        <div class="admin-chat-empty">No messages yet.</div>
+        }
+        @for(msg of adminChatMessages(); track msg.id){
+        <div class="admin-chat-msg" [class.admin-chat-msg--admin]="msg.sender === 'admin'" [class.admin-chat-msg--customer]="msg.sender === 'customer'">
+          <div class="admin-chat-msg-meta">{{ msg.sender === 'admin' ? 'You' : msg.sender_name }} · {{ msg.created_at | date:'MMM d, h:mm a' }}</div>
+          <div class="admin-chat-msg-bubble">{{ msg.message }}</div>
+        </div>
+        }
+      </div>
+      <div class="admin-chat-input-row">
+        <input class="admin-chat-input" [ngModel]="adminChatInput()" (ngModelChange)="adminChatInput.set($event)"
+               placeholder="Reply..." (keydown.enter)="sendAdminChat(s)" />
+        <button class="admin-chat-send" (click)="sendAdminChat(s)" [disabled]="!adminChatInput().trim() || adminChatSending()">
+          <lucide-icon name="send" />
+        </button>
+      </div>
+
+      <!-- SEND TO CUSTOMER -->
+      <div class="prop-send-section">
+        <h3>Send to Customer</h3>
+        <div class="prop-field-row">
+          <div class="prop-field" style="flex:2">
+            <label>Email</label>
+            <input type="email" [ngModel]="sendEmail()" (ngModelChange)="sendEmail.set($event)" placeholder="customer@email.com" />
+          </div>
+          <div class="prop-field" style="flex:1">
+            <button class="prop-send-btn" (click)="sendProposal()" [disabled]="sending() || !sendEmail()">
+              @if(sending()){ Sending... }@else if(sent()){ Sent! }@else{ Send }
+            </button>
+          </div>
+        </div>
+        <div class="prop-field">
+          <label>Message (optional)</label>
+          <textarea [ngModel]="sendMessage()" (ngModelChange)="sendMessage.set($event)" rows="2" placeholder="Hey, here's the vehicle report..."></textarea>
+        </div>
+      </div>
+
+      <!-- CUSTOMER FEEDBACK -->
+      @if(s.feedback?.length){
+      <div class="prop-feedback-section">
+        <h3 class="prop-toggle-title">Customer Feedback ({{ s.feedback.length }})</h3>
+        @for(fb of s.feedback; track $index){
+        <div class="prop-fb-item" [class.prop-fb-question]="fb.interest === 'question'" [class.prop-fb-yes]="fb.interest === 'yes'" [class.prop-fb-no]="fb.interest === 'no'" [class.prop-fb-meh]="fb.interest === 'meh'">
+          <div class="prop-fb-top">
+            <span class="prop-fb-badge">
+              @if(fb.interest === 'question'){ ❓ Question }
+              @else if(fb.interest === 'yes'){ 👍 Interested }
+              @else if(fb.interest === 'meh'){ 😐 Maybe }
+              @else if(fb.interest === 'no'){ 👎 Not Interested }
+              @else{ {{ fb.interest }} }
+            </span>
+            <span class="prop-fb-time">{{ fb.submitted_at | date:'MMM d, h:mm a' }}</span>
+          </div>
+          @if(fb.reason){<div class="prop-fb-reason">{{ fb.reason }}</div>}
+        </div>
+        }
+      </div>
+      }
+
+      <!-- FEE MODAL -->
       @if(showFeeModal()){
       <div class="fee-modal-backdrop" (click)="showFeeModal.set(false)">
         <div class="fee-modal" (click)="$event.stopPropagation()">
@@ -647,175 +815,6 @@
             <button class="prop-save-btn" (click)="showFeeModal.set(false)">Done</button>
           </div>
         </div>
-      </div>
-      }
-
-      <!-- ═══ CARFAX REPORT ═══ -->
-      <h3 class="prop-toggle-title">Carfax Report</h3>
-      @if(s.carfax_url){
-      <div class="prop-carfax-preview">
-        <div class="prop-carfax-header">
-          <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="prop-carfax-logo" />
-          <div class="prop-carfax-actions">
-            <a [href]="s.carfax_url" target="_blank" class="prop-carfax-view">View PDF</a>
-            <button class="prop-li-del" (click)="removeCarfax(s)"><lucide-icon name="x" /></button>
-          </div>
-        </div>
-        <iframe [src]="safeCarfaxUrl(s.carfax_url)" class="prop-carfax-iframe"></iframe>
-      </div>
-      }@else{
-      <div class="prop-carfax-drop" [class.dragover]="carfaxDragOver()"
-           (dragover)="onCarfaxDragOver($event)" (dragleave)="carfaxDragOver.set(false)" (drop)="onCarfaxDrop($event, s)"
-           (click)="carfaxInput.click()">
-        <input #carfaxInput type="file" accept="application/pdf" (change)="onCarfaxSelect($event, s)" hidden />
-        @if(uploadingCarfax()){
-          <div class="prop-carfax-spinner"></div>
-          <span>Uploading...</span>
-        }@else{
-          <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="prop-carfax-logo-drop" />
-          <span>Drop Carfax PDF here or click to upload</span>
-        }
-      </div>
-      }
-
-      <!-- ═══ WINDOW STICKER ═══ -->
-      <h3 class="prop-toggle-title">Window Sticker</h3>
-      @if(s.window_sticker_url){
-      <div class="prop-carfax-preview">
-        <div class="prop-carfax-header">
-          <span style="font-size:13px;font-weight:700;color:#1e293b">Window Sticker</span>
-          <div class="prop-carfax-actions">
-            <a [href]="s.window_sticker_url" target="_blank" class="prop-carfax-view">View</a>
-            <button class="prop-li-del" (click)="removeSticker(s)"><lucide-icon name="x" /></button>
-          </div>
-        </div>
-        @if(s.window_sticker_url.endsWith('.pdf')){
-          <iframe [src]="safeCarfaxUrl(s.window_sticker_url)" class="prop-carfax-iframe"></iframe>
-        }@else{
-          <img [src]="s.window_sticker_url" style="width:100%;border-radius:6px;margin-top:8px" alt="Window Sticker" />
-        }
-      </div>
-      }@else{
-      <div class="prop-carfax-drop" [class.dragover]="stickerDragOver()"
-           (dragover)="onStickerDragOver($event)" (dragleave)="stickerDragOver.set(false)" (drop)="onStickerDrop($event, s)"
-           (click)="stickerInput.click()">
-        <input #stickerInput type="file" accept="application/pdf,image/*" (change)="onStickerSelect($event, s)" hidden />
-        @if(uploadingSticker()){
-          <div class="prop-carfax-spinner"></div>
-          <span>Uploading...</span>
-        }@else{
-          <lucide-icon name="file-text" style="width:28px;height:28px;color:#94a3b8;margin-bottom:6px" />
-          <span>Drop window sticker here or click to upload</span>
-          <span style="font-size:11px;color:#94a3b8">PDF or image</span>
-        }
-      </div>
-      }
-
-      <!-- Toggle visibility -->
-      <div class="vis-section">
-        <div class="vis-section-header">
-          <span class="vis-section-title">Visible Fields</span>
-          <span class="vis-section-hint">Click to show/hide on the customer proposal</span>
-        </div>
-        <div class="vis-grid">
-          @for(field of ['mileage','exterior_color','interior_color','engine','transmission','drivetrain','fuel','body','grade','announcements','tires']; track field){
-          <button class="vis-chip" [class.vis-hidden]="isExcluded(field)" (click)="toggleExclude(field)">
-            @if(isExcluded(field)){
-              <lucide-icon name="eye-off" class="vis-icon vis-icon-off" />
-            }@else{
-              <lucide-icon name="eye" class="vis-icon vis-icon-on" />
-            }
-            <span>{{ field.replace('_', ' ') }}</span>
-          </button>
-          }
-        </div>
-      </div>
-
-      <!-- Condition Notes -->
-      @if(s.condition?.damage?.length){
-      <div class="vis-section">
-        <div class="vis-section-header">
-          <span class="vis-section-title">Condition Notes</span>
-          <span class="vis-section-hint">Hide items that are not actual damage</span>
-        </div>
-        <div class="cond-list">
-          @for(d of s.condition.damage; track $index){
-          <div class="cond-item" [class.cond-hidden]="isExcluded('damage_' + $index)">
-            <div class="cond-item-text">{{ d }}</div>
-            <button class="cond-toggle" (click)="toggleExclude('damage_' + $index)" [title]="isExcluded('damage_' + $index) ? 'Show' : 'Hide'">
-              @if(isExcluded('damage_' + $index)){
-                <lucide-icon name="eye-off" />
-              }@else{
-                <lucide-icon name="eye" />
-              }
-            </button>
-          </div>
-          }
-        </div>
-      </div>
-      }
-
-      <!-- Send -->
-      <div class="prop-send-section">
-        <h3>Send to Customer</h3>
-        <div class="prop-field-row">
-          <div class="prop-field" style="flex:2">
-            <label>Email</label>
-            <input type="email" [ngModel]="sendEmail()" (ngModelChange)="sendEmail.set($event)" placeholder="customer@email.com" />
-          </div>
-          <div class="prop-field" style="flex:1">
-            <button class="prop-send-btn" (click)="sendProposal()" [disabled]="sending() || !sendEmail()">
-              @if(sending()){ Sending... }@else if(sent()){ Sent! }@else{ Send }
-            </button>
-          </div>
-        </div>
-        <div class="prop-field">
-          <label>Message (optional)</label>
-          <textarea [ngModel]="sendMessage()" (ngModelChange)="sendMessage.set($event)" rows="2" placeholder="Hey, here's the vehicle report..."></textarea>
-        </div>
-      </div>
-
-      <!-- Customer Feedback / Questions -->
-      @if(s.feedback?.length){
-      <div class="prop-feedback-section">
-        <h3 class="prop-toggle-title">Customer Feedback ({{ s.feedback.length }})</h3>
-        @for(fb of s.feedback; track $index){
-        <div class="prop-fb-item" [class.prop-fb-question]="fb.interest === 'question'" [class.prop-fb-yes]="fb.interest === 'yes'" [class.prop-fb-no]="fb.interest === 'no'" [class.prop-fb-meh]="fb.interest === 'meh'">
-          <div class="prop-fb-top">
-            <span class="prop-fb-badge">
-              @if(fb.interest === 'question'){ ❓ Question }
-              @else if(fb.interest === 'yes'){ 👍 Interested }
-              @else if(fb.interest === 'meh'){ 😐 Maybe }
-              @else if(fb.interest === 'no'){ 👎 Not Interested }
-              @else{ {{ fb.interest }} }
-            </span>
-            <span class="prop-fb-time">{{ fb.submitted_at | date:'MMM d, h:mm a' }}</span>
-          </div>
-          @if(fb.reason){ <div class="prop-fb-reason">{{ fb.reason }}</div> }
-        </div>
-        }
-      </div>
-      }
-
-      <!-- Photos preview -->
-      @if(s.photos?.length){
-      <h3 class="prop-toggle-title">Photos ({{ s.photos.length }})</h3>
-      <div class="prop-photo-grid">
-        @for(photo of s.photos; track $index){
-        <div class="prop-photo-item"
-             draggable="true"
-             [class.photo-dragging]="photoDragIdx === $index"
-             [class.photo-drop-target]="photoDropIdx === $index && photoDragIdx !== $index"
-             (dragstart)="onPhotoDragStart($index)"
-             (dragover)="onPhotoDragOver($event, $index)"
-             (dragleave)="onPhotoDragLeave($event)"
-             (drop)="onPhotoDrop(s, $index)"
-             (dragend)="onPhotoDragEnd()">
-          <img [src]="photo" alt="photo" draggable="false" />
-          <button class="prop-photo-del" (click)="removePhoto(s, $index)"><lucide-icon name="x" /></button>
-          <div class="photo-drag-handle"><lucide-icon name="grip-vertical" /></div>
-        </div>
-        }
       </div>
       }
     </div>

@@ -56,6 +56,25 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
     return { grouped, ungrouped };
   });
 
+  // City/state from ZIP
+  cityState = signal('');
+  paymentTab = signal<'cash' | 'finance'>('finance');
+  private zipTimer: any = null;
+
+  fieldDefs = [
+    { key: 'mileage',        label: 'Mileage',        icon: 'gauge' },
+    { key: 'exterior_color', label: 'Ext. Color',     icon: 'palette' },
+    { key: 'interior_color', label: 'Int. Color',     icon: 'paintbrush' },
+    { key: 'engine',         label: 'Engine',         icon: 'zap' },
+    { key: 'transmission',   label: 'Transmission',   icon: 'cog' },
+    { key: 'drivetrain',     label: 'Drivetrain',     icon: 'car' },
+    { key: 'fuel',           label: 'Fuel Type',      icon: 'droplets' },
+    { key: 'body',           label: 'Body Style',     icon: 'box' },
+    { key: 'grade',          label: 'Grade',          icon: 'star' },
+    { key: 'announcements',  label: 'Announcements',  icon: 'megaphone' },
+    { key: 'tires',          label: 'Tires',          icon: 'circle-dot' },
+  ];
+
   // Strategy data
   strategy = signal<any>(null);
   loadingStrategy = signal(false);
@@ -291,6 +310,8 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
 
   selectProposal(p: any) {
     this.selectedDeal.set(null);
+    this.paymentTab.set('finance');
+    if (p.customer_zip) this.lookupCityState(p.customer_zip); else this.cityState.set('');
     const s = { ...p, excluded_fields: p.excluded_fields || [] };
     // Auto-apply default line items if none exist
     if (!s.line_items?.length) {
@@ -394,10 +415,70 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
     return tiers[tiers.length - 1].fee;
   }
 
+  lookupCityState(zip: string) {
+    if (!zip || zip.length < 5) { this.cityState.set(''); return; }
+    clearTimeout(this.zipTimer);
+    this.zipTimer = setTimeout(() => {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=us&limit=1&postalcode=${encodeURIComponent(zip)}`;
+      fetch(url, { headers: { 'Accept-Language': 'en' } })
+        .then(r => r.json())
+        .then((results: any[]) => {
+          if (results[0]) {
+            const parts = (results[0].display_name || '').split(',');
+            this.cityState.set(parts.slice(0, 2).map((p: string) => p.trim()).join(', '));
+          } else { this.cityState.set(''); }
+        })
+        .catch(() => this.cityState.set(''));
+    }, 500);
+  }
+
+  vehicleSpecs(p: any): string {
+    const v = p?.vehicle || {};
+    return [v.drivetrain, v.engine, v.fuel, v.transmission].filter(Boolean).join(' · ');
+  }
+
+  tradeEquity(s: any): number {
+    return (s.trade_in?.allowance || 0) - (s.trade_in?.payoff || 0);
+  }
+
+  setMileage(s: any, val: any) {
+    s.vehicle = { ...(s.vehicle || {}), mileage: val || null };
+    this.autosave(s);
+  }
+
+  cashAtDelivery(s: any): number {
+    return Math.max(0, this.totalOTD(s) - (s.security_deposit || 0));
+  }
+
+  onProfitTargetChange(s: any, val: string) {
+    s.profit_target = this.parse(val) ?? 0;
+    const ti = this.totalInvestment(s);
+    if (ti > 0 || s.profit_target) {
+      s.asking_price = Math.round((ti + (s.profit_target || 0)) * 100) / 100 || null;
+    }
+    this.selected.set({ ...s });
+    this.autosave(s);
+  }
+
+  onAskingPriceChange(s: any, val: string) {
+    s.asking_price = this.parse(val);
+    const ti = this.totalInvestment(s);
+    if (ti > 0 && s.asking_price) {
+      s.profit_target = Math.round((s.asking_price - ti) * 100) / 100;
+    }
+    this.selected.set({ ...s });
+    this.autosave(s);
+  }
+
   onPurchasePriceChange(s: any, val: string) {
     s.purchase_price = this.parse(val);
     if (s.purchase_price) s.auction_fees = this.calcAuctionFee(s.purchase_price);
+    // If profit target is set, keep asking price in sync
+    if (s.profit_target != null && this.totalInvestment(s) > 0) {
+      s.asking_price = Math.round((this.totalInvestment(s) + s.profit_target) * 100) / 100;
+    }
     this.selected.set({ ...s });
+    this.autosave(s);
   }
 
   totalInvestment(s: any): number {
@@ -601,6 +682,8 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
       apr: s.apr ?? null,
       term_months: s.term_months ?? null,
       window_sticker_url: s.window_sticker_url || null,
+      profit_target: s.profit_target ?? null,
+      security_deposit: s.security_deposit || 0,
     }).subscribe({
       next: () => {
         this.saving.set(false);
