@@ -199,7 +199,7 @@
           @if(vehicleSpecs(s)){<div class="prop-veh-specs">{{ vehicleSpecs(s) }}</div>}
           <div class="prop-veh-mi-row">
             <input class="prop-veh-mi-input" type="number"
-              [ngModel]="s.vehicle?.mileage"
+              [ngModel]="mileageNum(s)"
               (ngModelChange)="setMileage(s, $event)"
               placeholder="Mileage" />
             <span class="prop-veh-mi-unit">mi</span>

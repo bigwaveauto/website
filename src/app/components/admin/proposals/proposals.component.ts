@@ -432,9 +432,21 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
     }, 500);
   }
 
+  mileageNum(p: any): number | null {
+    const raw = p?.vehicle?.mileage;
+    if (raw == null || raw === '') return null;
+    if (typeof raw === 'number') return raw;
+    const n = parseFloat(String(raw).replace(/[^0-9.]/g, ''));
+    return isNaN(n) ? null : n;
+  }
+
   vehicleSpecs(p: any): string {
     const v = p?.vehicle || {};
-    return [v.drivetrain, v.engine, v.fuel, v.transmission].filter(Boolean).join(' · ');
+    const mi = this.mileageNum(p);
+    return [
+      mi ? `${mi.toLocaleString('en-US')} mi` : null,
+      v.drivetrain, v.engine, v.fuel, v.transmission,
+    ].filter(Boolean).join(' · ');
   }
 
   tradeEquity(s: any): number {
