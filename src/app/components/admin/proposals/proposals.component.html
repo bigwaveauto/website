@@ -268,6 +268,13 @@
         <input class="prop-customer-input prop-customer-zip" [(ngModel)]="s.customer_zip" (change)="autosave()" placeholder="ZIP" />
       </div>
 
+      <!-- Vehicle Mileage override -->
+      <div class="prop-mileage-row">
+        <label class="prop-mileage-label">Mileage</label>
+        <input class="prop-mileage-input" type="number" [ngModel]="s.vehicle?.mileage" (ngModelChange)="s.vehicle = { ...s.vehicle, mileage: $event || null }; autosave(s)" placeholder="e.g. 47000" />
+        <span class="prop-mileage-unit">miles</span>
+      </div>
+
       <!-- Actions -->
       <div class="prop-action-row">
         <button class="prop-action-btn prop-action-copy" (click)="copyLink(s)">
