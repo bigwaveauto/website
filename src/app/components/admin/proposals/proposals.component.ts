@@ -854,8 +854,12 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
     this.selected.set({ ...s });
   }
 
+  private _safeUrlCache = new Map<string, SafeResourceUrl>();
   safeCarfaxUrl(url: string): SafeResourceUrl {
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    if (!this._safeUrlCache.has(url)) {
+      this._safeUrlCache.set(url, this.sanitizer.bypassSecurityTrustResourceUrl(url));
+    }
+    return this._safeUrlCache.get(url)!;
   }
 
   removePhoto(s: any, index: number) {
