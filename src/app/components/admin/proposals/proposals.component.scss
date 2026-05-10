@@ -1,6 +1,7 @@
 $blue: #2563eb;
 $border: rgba(0,0,0,0.07);
 $muted: rgba(0,0,0,0.45);
+$hv: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
 .prop-admin { display: flex; flex-direction: column; gap: 12px; }
 
@@ -352,7 +353,7 @@ $muted: rgba(0,0,0,0.45);
 
 .desk-mmr-left { display: flex; align-items: center; gap: 10px; }
 .desk-mmr-label { font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.5); }
-.desk-mmr-value { font-size: 24px; font-weight: 900; }
+.desk-mmr-value { font-size: 24px; font-weight: 900; font-family: $hv; }
 
 .desk-mmr-right { text-align: right; }
 .desk-mmr-pct {
@@ -421,7 +422,7 @@ $muted: rgba(0,0,0,0.45);
   span { padding: 9px 0 9px 10px; font-weight: 700; color: #999; font-size: 14px; }
   input {
     flex: 1; border: none; padding: 9px 10px 9px 2px; font-size: 15px;
-    font-family: 'SF Mono', 'Fira Code', 'Roboto Mono', monospace;
+    font-family: $hv;
     font-weight: 600; color: #111; outline: none; width: 90px;
     text-align: right; letter-spacing: -0.5px;
     font-variant-numeric: tabular-nums;
@@ -449,7 +450,7 @@ $muted: rgba(0,0,0,0.45);
 
 .desk-total-row {
   display: flex; justify-content: space-between; font-size: 18px; font-weight: 900; color: #111;
-  font-family: inherit;
+  font-family: $hv;
 }
 
 .desk-retail {
@@ -468,7 +469,7 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .desk-spread-label { font-size: 10px; font-weight: 700; color: $muted; text-transform: uppercase; letter-spacing: 0.5px; }
-.desk-spread-val { font-size: 20px; font-weight: 900; color: #111; font-family: inherit; }
+.desk-spread-val { font-size: 20px; font-weight: 900; color: #111; font-family: $hv; }
 
 .desk-pos { background: #dcfce7; .desk-spread-val { color: #16a34a; } }
 .desk-neg { background: #fee2e2; .desk-spread-val { color: #dc2626; } }
@@ -1086,7 +1087,7 @@ $muted: rgba(0,0,0,0.45);
   &:hover:not(.active) { background: white; }
 }
 
-.desk-monthly-val { font-size: 18px !important; color: $blue !important; }
+.desk-monthly-val { font-size: 18px !important; color: $blue !important; font-family: $hv !important; }
 
 /* ═══ CUSTOMER VIEW CARD ═══ */
 .cust-view-card {

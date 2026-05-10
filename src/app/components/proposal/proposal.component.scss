@@ -335,8 +335,10 @@ $muted: rgba(0,0,0,0.45);
   }
 }
 
+$hv: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
 .prop-price-section { margin-bottom: 20px; }
-.prop-price { font-size: 36px; font-weight: 900; color: #111; }
+.prop-price { font-size: 36px; font-weight: 900; color: #111; font-family: $hv; }
 
 .prop-cta-stack {
   display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;
@@ -599,7 +601,7 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .wi-lbl { flex: 1; line-height: 1.4; }
-.wi-amt { font-weight: 600; white-space: nowrap; }
+.wi-amt { font-weight: 600; white-space: nowrap; font-family: $hv; }
 
 .wi-letter {
   display: inline-block; width: 18px; color: #94a3b8; font-style: italic; font-size: 12px;
@@ -640,7 +642,7 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .wi-balance-amount {
-  font-size: 34px; font-weight: 900; color: #1e293b; letter-spacing: -0.5px;
+  font-size: 34px; font-weight: 900; color: #1e293b; letter-spacing: -0.5px; font-family: $hv;
 }
 
 .fin-est-section {
@@ -699,7 +701,7 @@ $muted: rgba(0,0,0,0.45);
 
 .fin-est-monthly {
   font-size: 42px; font-weight: 900; color: #38bdf8; line-height: 1;
-  margin-bottom: 6px;
+  margin-bottom: 6px; font-family: $hv;
 }
 
 .fin-est-per {
