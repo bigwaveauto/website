@@ -255,8 +255,16 @@
 
       <!-- Title -->
       <div class="prop-title-block">
-        <span class="prop-year">{{ v.year }}</span>
-        <h1 class="prop-title">{{ v.make }} {{ v.model }} {{ v.trim }}</h1>
+        <div class="prop-title-row">
+          @if(brandLogoUrl(v.make)){
+          <img [src]="brandLogoUrl(v.make)" [alt]="v.make" class="prop-brand-logo"
+               (error)="$any($event.target).style.display='none'" />
+          }
+          <div class="prop-title-text">
+            <span class="prop-year">{{ v.year }}</span>
+            <h1 class="prop-title">{{ v.make }} {{ v.model }} {{ v.trim }}</h1>
+          </div>
+        </div>
         <div class="prop-vin-stock">
           <span>VIN: {{ p.vin }}</span>
           @if(v.mileage){ <span>&middot; {{ v.mileage | number }} miles</span> }

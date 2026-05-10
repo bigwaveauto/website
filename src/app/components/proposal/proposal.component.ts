@@ -337,4 +337,16 @@ export class ProposalComponent implements OnInit, OnDestroy {
   get hasPackagesOrEquipment(): boolean {
     return this.visiblePackages.length > 0 || this.visibleEquipment.length > 0;
   }
+
+  private static readonly BRAND_SLUG: Record<string, string> = {
+    'alfa romeo': 'alfa-romeo', 'aston martin': 'aston-martin', 'land rover': 'land-rover',
+    'mercedes benz': 'mercedes-benz', 'mercedes-benz': 'mercedes-benz',
+    'rolls royce': 'rolls-royce', 'rolls-royce': 'rolls-royce',
+  };
+  brandLogoUrl(make: string): string | null {
+    if (!make) return null;
+    const lower = make.toLowerCase().trim();
+    const slug = ProposalComponent.BRAND_SLUG[lower] ?? lower.replace(/\s+/g, '-');
+    return `/brands/${slug}.png`;
+  }
 }

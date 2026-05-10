@@ -312,6 +312,13 @@ $muted: rgba(0,0,0,0.45);
 .prop-bwa-tag { font-size: 11px; font-weight: 600; color: $muted; text-transform: uppercase; letter-spacing: 0.5px; }
 
 .prop-title-block { margin-bottom: 12px; }
+.prop-title-row { display: flex; align-items: center; gap: 14px; margin-bottom: 2px; }
+.prop-brand-logo {
+  width: 56px; height: 56px;
+  object-fit: contain; flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+}
+.prop-title-text { display: flex; flex-direction: column; }
 .prop-year { font-size: 14px; font-weight: 700; color: $blue; }
 .prop-title { font-size: 24px; font-weight: 900; color: #111; margin: 0; line-height: 1.2; }
 .prop-vin-stock { font-size: 12px; color: $muted; margin-top: 6px; font-family: 'SF Mono', monospace; }
