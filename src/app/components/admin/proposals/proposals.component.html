@@ -217,20 +217,6 @@
               placeholder="ZIP" />
             @if(cityState()){<span class="prop-city-state">{{ cityState() }}</span>}
           </div>
-          <div class="prop-deal-row-inline">
-            <lucide-icon name="folder" class="prop-deal-icon" />
-            <select class="prop-deal-select" [ngModel]="s.deal_group_id || ''" (ngModelChange)="assignToGroup(s, $event || null)">
-              <option value="">No Deal</option>
-              @for(d of deals(); track d.id){
-              <option [value]="d.id">{{ d.label }}{{ d.customer_name ? ' · ' + d.customer_name : '' }}</option>
-              }
-            </select>
-            @if(s.deal_group_id){
-            <button class="prop-apply-deal-btn" (click)="applyDealToProposal(s)" title="Sync from Deal">
-              <lucide-icon name="download" />
-            </button>
-            }
-          </div>
         </div>
 
         <!-- Box 3: Status -->

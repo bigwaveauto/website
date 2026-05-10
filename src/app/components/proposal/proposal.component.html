@@ -131,29 +131,13 @@
       <!-- Carfax Report -->
       @if(p.carfax_url){
       <div class="prop-section">
-        <div class="prop-carfax-bar" (click)="carfaxExpanded.set(!carfaxExpanded())">
+        <div class="prop-carfax-bar">
           <div class="prop-carfax-bar-left">
             <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="prop-carfax-logo" />
             <span class="prop-carfax-label">Vehicle History Report</span>
           </div>
-          <button class="prop-carfax-toggle">
-            @if(carfaxExpanded()){
-            <lucide-icon name="chevron-up" />
-            }@else{
-            <lucide-icon name="chevron-down" />
-            }
-          </button>
+          <a [href]="p.carfax_url" target="_blank" class="prop-carfax-view-btn">View Report →</a>
         </div>
-        @if(carfaxExpanded()){
-        <iframe [src]="safeUrl(p.carfax_url)" class="prop-carfax-full"></iframe>
-        }@else{
-        <div class="prop-carfax-mini" (click)="carfaxExpanded.set(true)">
-          <iframe [src]="safeUrl(p.carfax_url)" class="prop-carfax-half" tabindex="-1"></iframe>
-          <div class="prop-carfax-fade">
-            <span>Click to view full report</span>
-          </div>
-        </div>
-        }
       </div>
       }
 
@@ -162,7 +146,7 @@
       <div class="prop-section">
         <h2 class="prop-heading">Window Sticker</h2>
         @if(p.window_sticker_url.endsWith('.pdf')){
-        <iframe [src]="safeUrl(p.window_sticker_url)" class="prop-carfax-full"></iframe>
+        <a [href]="p.window_sticker_url" target="_blank" class="prop-carfax-view-btn">View Window Sticker →</a>
         }@else{
         <img [src]="p.window_sticker_url" style="width:100%;border-radius:10px" alt="Window Sticker" />
         }

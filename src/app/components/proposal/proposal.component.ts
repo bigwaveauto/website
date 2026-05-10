@@ -3,7 +3,6 @@ import { CommonModule, SlicePipe, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
@@ -16,14 +15,12 @@ import { LucideAngularModule } from 'lucide-angular';
 export class ProposalComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
-  private sanitizer = inject(DomSanitizer);
   private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   proposal = signal<any>(null);
   loading = signal(true);
   notFound = signal(false);
   selectedPhoto = signal(0);
-  carfaxExpanded = signal(false);
   lightboxOpen = signal(false);
   lightboxIndex = signal(0);
 
@@ -277,10 +274,6 @@ export class ProposalComponent implements OnInit, OnDestroy {
 
   closeLightbox() {
     this.lightboxOpen.set(false);
-  }
-
-  safeUrl(url: string): SafeResourceUrl {
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   get isInfoMode(): boolean {
