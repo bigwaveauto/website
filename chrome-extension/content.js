@@ -170,6 +170,7 @@
       try {
         const match = text.match(/(?:__NEXT_DATA__|__data|__INITIAL_STATE__)\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/);
         if (!match) return;
+        const parsed = JSON.parse(match[1]);
         const walk = (obj, depth = 0) => {
           if (!obj || depth > 12 || typeof obj !== 'object') return;
           if (obj.vin && String(obj.vin).length === 17 && (obj.year || obj.modelYear || obj.make || obj.model)) {
@@ -191,7 +192,21 @@
           }
           for (const key of Object.keys(obj)) walk(obj[key], depth + 1);
         };
-        walk(JSON.parse(match[1]));
+        walk(parsed);
+        // Broader mileage scan — Manheim stores odometer at lot level, not always on the VIN object
+        if (!vehicle.mileage) {
+          const mileWalk = (obj, depth = 0) => {
+            if (!obj || depth > 14 || typeof obj !== 'object' || vehicle.mileage) return;
+            for (const key of ['odometer', 'odometerReading', 'currentOdometer', 'miles', 'mileage']) {
+              if (obj[key] != null) {
+                const n = parseFloat(String(obj[key]).replace(/,/g, ''));
+                if (!isNaN(n) && n > 100 && n < 999999) { vehicle.mileage = String(Math.round(n)); return; }
+              }
+            }
+            for (const key of Object.keys(obj)) mileWalk(obj[key], depth + 1);
+          };
+          mileWalk(parsed);
+        }
       } catch (e) {}
     });
 
@@ -237,11 +252,23 @@
       if (val) tryLabel(lbl.textContent, val.textContent);
     });
 
-    // Strategy 4: Tight regex fallbacks
+    // Strategy 4: Tight regex fallbacks + data-qa DOM selectors
     const pageText = document.body.innerText || '';
     if (!vehicle.mileage) {
+      // Check Manheim/ADESA data-qa attributes first (most precise)
+      const odomEl = document.querySelector(
+        '[data-qa*="odometer"],[data-testid*="odometer"],[data-qa*="mileage"],[data-testid*="mileage"]'
+      );
+      if (odomEl) {
+        const n = parseInt((odomEl.textContent || '').replace(/[^0-9]/g, ''));
+        if (!isNaN(n) && n > 100 && n < 999999) vehicle.mileage = String(n);
+      }
+    }
+    if (!vehicle.mileage) {
+      // Fixed regex: [0-9]{1,3}(?:,[0-9]{3})* matches any comma-formatted number (e.g. 42,368)
       const m = pageText.match(/(?:odometer(?:\s*reading)?|mileage)[^\d]*([0-9,]+)\s*(?:mi|miles)?/i)
-             || pageText.match(/([0-9]{3,3}[0-9,]+)\s*(?:miles|mi)\b/i);
+             || pageText.match(/\b([0-9]{1,3}(?:,[0-9]{3})+)\s*(?:miles|mi)\b/i)
+             || pageText.match(/\b([0-9]{4,6})\s*(?:miles|mi)\b/i);
       if (m) vehicle.mileage = m[1].replace(/,/g, '');
     }
     if (!vehicle.exterior_color) {
