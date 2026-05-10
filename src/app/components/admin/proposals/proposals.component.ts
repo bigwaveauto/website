@@ -4,13 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { LucideAngularModule } from 'lucide-angular';
+import { PdfFrameComponent } from './pdf-frame.component';
 
 @Component({
   selector: 'admin-proposals',
   templateUrl: './proposals.component.html',
   styleUrl: './proposals.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, PdfFrameComponent],
 })
 export class AdminProposalsComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);

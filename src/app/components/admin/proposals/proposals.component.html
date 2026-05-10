@@ -319,7 +319,7 @@
                   <button class="prop-li-del" (click)="removeCarfax(s)"><lucide-icon name="x" /></button>
                 </div>
               </div>
-              <iframe [src]="safeCarfaxUrl(s.carfax_url)" class="prop-carfax-iframe"></iframe>
+              <pdf-frame [url]="s.carfax_url"></pdf-frame>
             </div>
             }@else{
             <div class="prop-carfax-drop" [class.dragover]="carfaxDragOver()"
@@ -349,7 +349,7 @@
                 </div>
               </div>
               @if(s.window_sticker_url.endsWith('.pdf')){
-                <iframe [src]="safeCarfaxUrl(s.window_sticker_url)" class="prop-carfax-iframe"></iframe>
+                <pdf-frame [url]="s.window_sticker_url"></pdf-frame>
               }@else{
                 <img [src]="s.window_sticker_url" style="width:100%;border-radius:6px;margin-top:8px" alt="Window Sticker" />
               }

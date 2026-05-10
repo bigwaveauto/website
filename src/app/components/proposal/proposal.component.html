@@ -346,7 +346,7 @@
           <div class="wi-section">
             <div class="wi-section-head">Price of the Vehicle</div>
             <div class="wi-row">
-              <span class="wi-lbl"><span class="wi-letter">a.</span> Dealer Retail Price @if(p.vehicle?.mileage){<span class="deal-miles">{{ p.vehicle.mileage | number }} mi</span>}</span>
+              <span class="wi-lbl"><span class="wi-letter">a.</span> Dealer Retail Price</span>
               <span class="wi-amt">{{ askingPrice | currency:'USD':'symbol':'1.2-2' }}</span>
             </div>
             @for(li of taxableLineItems; track $index){
