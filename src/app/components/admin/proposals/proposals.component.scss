@@ -146,9 +146,19 @@ $muted: rgba(0,0,0,0.45);
 .prop-action-row {
   display: flex; gap: 10px; margin-bottom: 20px;
 }
+.prop-action-row--top {
+  margin-bottom: 10px;
+  .prop-action-btn {
+    flex: 0 0 auto;
+    padding: 7px 14px;
+    font-size: 12px;
+    border-radius: 8px;
+    lucide-icon { width: 14px; height: 14px; }
+  }
+}
 
 .prop-action-btn {
-  flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
   padding: 14px 12px; border-radius: 10px; font-size: 14px; font-weight: 700;
   font-family: inherit; cursor: pointer; text-decoration: none; border: none;
   transition: opacity 0.15s;

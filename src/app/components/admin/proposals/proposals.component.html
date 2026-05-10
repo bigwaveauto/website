@@ -260,6 +260,19 @@
         </div>
       </div>
 
+      <!-- ── Quick actions ── -->
+      <div class="prop-action-row prop-action-row--top">
+        <a [href]="proposalUrl(s)" target="_blank" class="prop-action-btn prop-action-download">
+          <lucide-icon name="external-link" /> Open Proposal
+        </a>
+        <button class="prop-action-btn prop-action-copy" (click)="copyLink(s)">
+          <lucide-icon name="link" /> Copy Link
+        </button>
+        <button class="prop-action-btn prop-action-open" (click)="printProposal(s)">
+          <lucide-icon name="printer" /> Print PDF
+        </button>
+      </div>
+
       <!-- ═══ TWO COLUMNS ═══ -->
       <div class="prop-main-cols">
 
@@ -708,19 +721,6 @@
           </div>
         </div>
       </div><!-- end prop-main-cols -->
-
-      <!-- ACTIONS -->
-      <div class="prop-action-row">
-        <button class="prop-action-btn prop-action-copy" (click)="copyLink(s)">
-          <lucide-icon name="link" /> Copy Link
-        </button>
-        <button class="prop-action-btn prop-action-open" (click)="printProposal(s)">
-          <lucide-icon name="printer" /> Print PDF
-        </button>
-        <a [href]="proposalUrl(s)" target="_blank" class="prop-action-btn prop-action-download">
-          <lucide-icon name="external-link" /> Open Proposal
-        </a>
-      </div>
 
       <!-- CUSTOMER CHAT -->
       <h3 class="prop-toggle-title">
