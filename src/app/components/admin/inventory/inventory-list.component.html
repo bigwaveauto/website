@@ -12,7 +12,8 @@
       </select>
       <div class="inv-search-wrap">
         <lucide-icon name="search" class="inv-search-icon" />
-        <input class="inv-search" placeholder="Search stock #, VIN, make, model…" [ngModel]="search()" (ngModelChange)="onSearch($event)" />
+        <input class="inv-search" placeholder="Search stock #, VIN, make, model…"
+               [ngModel]="search()" (ngModelChange)="onSearch($event)" />
       </div>
     </div>
   </div>
@@ -22,48 +23,59 @@
   @if(loading()){
   <div class="inv-loading">Loading inventory…</div>
   }@else{
-  <div class="inv-table-wrap">
-    <table class="inv-table">
-      <thead>
-        <tr>
-          @for(col of columns; track col.key){
-          <th [style.min-width]="col.width" (click)="toggleSort(col.key)" class="sortable">
-            {{ col.label }}
-            @if(sortCol() === col.key){
-            <lucide-icon [name]="sortDir() === 'asc' ? 'chevron-up' : 'chevron-down'" class="sort-icon" />
-            }
-          </th>
-          }
-        </tr>
-      </thead>
-      <tbody>
-        @for(v of filtered(); track v.vin){
-        <tr [routerLink]="'/admin/inventory/' + v.vin" class="inv-row"
-            [class.inv-row-red]="getStageAlert(v.vin) === 'red'"
-            [class.inv-row-yellow]="getStageAlert(v.vin) === 'yellow'">
-          <td>
-            @if(getStage(v.vin)){
-            <span class="inv-stage-badge" [class.inv-stage-red]="getStageAlert(v.vin) === 'red'" [class.inv-stage-yellow]="getStageAlert(v.vin) === 'yellow'">{{ shortStage(getStage(v.vin)) }}</span>
-            }@else{
-            <span class="inv-stage-badge inv-stage-red">Set Stage</span>
-            }
-          </td>
-          <td class="r" [class.inv-days-red]="getStageAlert(v.vin) === 'red'" [class.inv-days-yellow]="getStageAlert(v.vin) === 'yellow'">
-            @if(getStage(v.vin)){ {{ getStageDays(v.vin) }} }
-          </td>
-          <td class="mono">{{ v.stocknumber }}</td>
-          <td>{{ v.year }}</td>
-          <td>{{ v.make }}</td>
-          <td>{{ v.model }}</td>
-          <td class="trim">{{ v.trim }}</td>
-          <td class="r" [class.aging-warn]="v.daysinstock > 45" [class.aging-danger]="v.daysinstock > 60">{{ v.daysinstock }}</td>
-          <td class="r">{{ formatNumber(v.mileage) }}</td>
-          <td>{{ v.exteriorcolorstandard }}</td>
-          <td class="r price">{{ formatCurrency(v.price) }}</td>
-        </tr>
+  <div class="inv-cards">
+    @for(v of filtered(); track v.vin){
+    <div class="inv-card"
+         [class.inv-card--red]="getStageAlert(v.vin) === 'red'"
+         [class.inv-card--yellow]="getStageAlert(v.vin) === 'yellow'"
+         [routerLink]="'/admin/inventory/' + v.vin">
+
+      <!-- Photo -->
+      <div class="inv-card-photo">
+        @if(v.featuredphoto){
+        <img [src]="v.featuredphoto" alt="" (error)="$any($event.target).style.display='none'" />
+        }@else{
+        <lucide-icon name="image" class="inv-card-photo-placeholder" />
         }
-      </tbody>
-    </table>
+      </div>
+
+      <!-- Body -->
+      <div class="inv-card-body">
+        <div class="inv-card-title">{{ v.year }} {{ v.make }} {{ v.model }}</div>
+        @if(v.trim){ <div class="inv-card-trim">{{ v.trim }}</div> }
+        <div class="inv-card-meta">
+          @if(v.stocknumber){ <span>{{ v.stocknumber }}</span> }
+          @if(v.mileage){ <span>{{ formatNumber(v.mileage) }} mi</span> }
+          @if(v.exteriorcolorstandard){ <span>{{ v.exteriorcolorstandard }}</span> }
+        </div>
+      </div>
+
+      <!-- Right -->
+      <div class="inv-card-right">
+        <div class="inv-card-price">{{ formatCurrency(v.price) }}</div>
+        <div class="inv-card-badges">
+          <span class="inv-stage-badge"
+                [class.inv-stage-red]="getStageAlert(v.vin) === 'red'"
+                [class.inv-stage-yellow]="getStageAlert(v.vin) === 'yellow'">
+            {{ getStage(v.vin) ? shortStage(getStage(v.vin)) : 'Set Stage' }}
+          </span>
+          @if(getStage(v.vin)){
+          <span class="inv-card-days"
+                [class.inv-days-red]="getStageAlert(v.vin) === 'red'"
+                [class.inv-days-yellow]="getStageAlert(v.vin) === 'yellow'">
+            {{ getStageDays(v.vin) }}d in stage
+          </span>
+          }
+          <span class="inv-card-lot"
+                [class.aging-warn]="v.daysinstock > 45"
+                [class.aging-danger]="v.daysinstock > 60">
+            {{ v.daysinstock }}d on lot
+          </span>
+        </div>
+      </div>
+
+    </div>
+    }
   </div>
   }
 
