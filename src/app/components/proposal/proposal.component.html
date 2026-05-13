@@ -31,58 +31,67 @@
     <!-- Below photo -->
     <div class="prop-below">
 
-      <!-- Highlights -->
+      <!-- Build Sheet -->
       <div class="prop-section">
-        <h2 class="prop-heading">Highlights</h2>
-        <div class="prop-highlights-grid">
+        <h2 class="prop-heading">Build Sheet</h2>
+        <div class="prop-build-grid">
+
           @if(v.mileage && !isExcluded('mileage')){
-          <div class="prop-highlight-card">
-            <div class="prop-highlight-icon"><lucide-icon name="gauge" /></div>
-            <span class="prop-highlight-label">Mileage</span>
-            <span class="prop-highlight-value">{{ v.mileage | number }} miles</span>
+          <div class="prop-build-row">
+            <span class="prop-build-label">Mileage</span>
+            <span class="prop-build-value">{{ v.mileage | number }} mi</span>
           </div>}
+
+          @if(p.rivian_specs?.warranty_btb){
+          <div class="prop-build-row">
+            <span class="prop-build-label">B2B Warranty</span>
+            <span class="prop-build-value prop-build-green">{{ p.rivian_specs.warranty_btb }} remaining</span>
+          </div>}
+
+          @if(p.rivian_specs?.warranty_battery){
+          <div class="prop-build-row">
+            <span class="prop-build-label">Battery Warranty</span>
+            <span class="prop-build-value prop-build-green">{{ p.rivian_specs.warranty_battery }} remaining</span>
+          </div>}
+
           @if(v.exterior_color && !isExcluded('exterior_color')){
-          <div class="prop-highlight-card">
-            <div class="prop-highlight-icon"><lucide-icon name="palette" /></div>
-            <span class="prop-highlight-label">Exterior</span>
-            <span class="prop-highlight-value">{{ v.exterior_color }}</span>
+          <div class="prop-build-row">
+            <span class="prop-build-label">Exterior</span>
+            <span class="prop-build-value">{{ v.exterior_color }}</span>
           </div>}
+
           @if(v.interior_color && !isExcluded('interior_color')){
-          <div class="prop-highlight-card">
-            <div class="prop-highlight-icon"><lucide-icon name="armchair" /></div>
-            <span class="prop-highlight-label">Interior</span>
-            <span class="prop-highlight-value">{{ v.interior_color }}</span>
+          <div class="prop-build-row">
+            <span class="prop-build-label">Interior</span>
+            <span class="prop-build-value">{{ v.interior_color }}</span>
           </div>}
-          @if(v.engine && !isExcluded('engine')){
-          <div class="prop-highlight-card">
-            <div class="prop-highlight-icon"><lucide-icon name="cog" /></div>
-            <span class="prop-highlight-label">Engine</span>
-            <span class="prop-highlight-value">{{ v.engine }}</span>
+
+          @if(p.rivian_specs?.motor){
+          <div class="prop-build-row">
+            <span class="prop-build-label">Motor</span>
+            <span class="prop-build-value">{{ p.rivian_specs.motor }}</span>
           </div>}
-          @if(v.transmission && !isExcluded('transmission')){
-          <div class="prop-highlight-card">
-            <div class="prop-highlight-icon"><lucide-icon name="settings-2" /></div>
-            <span class="prop-highlight-label">Transmission</span>
-            <span class="prop-highlight-value">{{ v.transmission }}</span>
+
+          @if(p.rivian_specs?.battery_pack){
+          <div class="prop-build-row">
+            <span class="prop-build-label">Battery Pack</span>
+            <span class="prop-build-value">{{ p.rivian_specs.battery_pack }}</span>
           </div>}
-          @if(v.drivetrain && !isExcluded('drivetrain')){
-          <div class="prop-highlight-card">
-            <div class="prop-highlight-icon"><lucide-icon name="circle-dot" /></div>
-            <span class="prop-highlight-label">Drivetrain</span>
-            <span class="prop-highlight-value">{{ v.drivetrain }}</span>
+
+          @if(p.rivian_specs?.performance_upgrade){
+          <div class="prop-build-row">
+            <span class="prop-build-label">Performance Upgrade</span>
+            <span class="prop-build-value" [class.prop-build-green]="p.rivian_specs.performance_upgrade === 'Yes'">
+              {{ p.rivian_specs.performance_upgrade }}
+            </span>
           </div>}
-          @if(v.fuel && !isExcluded('fuel')){
-          <div class="prop-highlight-card">
-            <div class="prop-highlight-icon"><lucide-icon name="fuel" /></div>
-            <span class="prop-highlight-label">Fuel</span>
-            <span class="prop-highlight-value">{{ v.fuel }}</span>
+
+          @if(p.rivian_specs?.wheel_size){
+          <div class="prop-build-row">
+            <span class="prop-build-label">Wheels</span>
+            <span class="prop-build-value">{{ p.rivian_specs.wheel_size }}</span>
           </div>}
-          @if(v.body && !isExcluded('body')){
-          <div class="prop-highlight-card">
-            <div class="prop-highlight-icon"><lucide-icon name="car" /></div>
-            <span class="prop-highlight-label">Body</span>
-            <span class="prop-highlight-value">{{ v.body }}</span>
-          </div>}
+
         </div>
       </div>
 
@@ -133,7 +142,7 @@
       <div class="prop-section">
         <div class="prop-carfax-bar">
           <div class="prop-carfax-bar-left">
-            <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="prop-carfax-logo" />
+            <span class="prop-carfax-badge">CARFAX</span>
             <span class="prop-carfax-label">Vehicle History Report</span>
           </div>
           <a [href]="p.carfax_url" target="_blank" class="prop-carfax-view-btn">View Report →</a>
@@ -152,49 +161,6 @@
         }
       </div>
       }
-
-      <!-- Packages & Equipment (structured) -->
-      @if(hasPackagesOrEquipment){
-      <div class="prop-section">
-        <h2 class="prop-heading">Packages &amp; Equipment</h2>
-
-        @for(pkg of visiblePackages; track $index){
-        <div class="pkg-block">
-          <div class="pkg-name">{{ pkg.name }}</div>
-          <div class="prop-options-grid">
-            @for(item of pkg.items; track $index){
-            <div class="prop-option-pill">
-              <lucide-icon name="check" class="prop-option-check" />
-              {{ item }}
-            </div>}
-          </div>
-        </div>}
-
-        @if(visibleEquipment.length){
-        <div class="pkg-block" [class.pkg-block-first]="visiblePackages.length === 0">
-          @if(visiblePackages.length){ <div class="pkg-name">Equipment</div> }
-          <div class="prop-options-grid">
-            @for(item of visibleEquipment; track $index){
-            <div class="prop-option-pill">
-              <lucide-icon name="check" class="prop-option-check" />
-              {{ item }}
-            </div>}
-          </div>
-        </div>}
-      </div>}
-
-      <!-- Flat options fallback (when no structured packages data) -->
-      @if(!hasPackagesOrEquipment && visibleOptions().length){
-      <div class="prop-section">
-        <h2 class="prop-heading">Features &amp; Options</h2>
-        <div class="prop-options-grid">
-          @for(o of visibleOptions(); track $index){
-          <div class="prop-option-pill">
-            <lucide-icon name="check" class="prop-option-check" />
-            {{ o }}
-          </div>}
-        </div>
-      </div>}
 
       <!-- Tires -->
       @if(cr.tires && !isExcluded('tires')){

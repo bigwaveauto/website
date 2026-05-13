@@ -83,26 +83,24 @@ $muted: rgba(0,0,0,0.45);
 }
 
 /* ── Highlights grid ── */
-.prop-highlights-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-  @media (max-width: 900px) { grid-template-columns: repeat(3, 1fr); }
-  @media (max-width: 600px) { grid-template-columns: repeat(2, 1fr); }
+/* ── Build Sheet ── */
+.prop-build-grid {
+  display: flex; flex-direction: column;
+  border: 1.5px solid rgba(0,0,0,0.07); border-radius: 12px; overflow: hidden;
 }
-
-.prop-highlight-card {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 16px 8px; background: #f8f9fb; border-radius: 12px;
-  text-align: center;
+.prop-build-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 16px; border-bottom: 1px solid rgba(0,0,0,0.06);
+  &:last-child { border-bottom: none; }
+  &:nth-child(even) { background: #fafafa; }
 }
-
-.prop-highlight-icon {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: rgba($blue, 0.08); display: flex; align-items: center; justify-content: center;
-  lucide-icon { width: 20px; height: 20px; color: $blue; }
+.prop-build-label {
+  font-size: 13px; font-weight: 600; color: $muted;
 }
-
-.prop-highlight-label { font-size: 11px; font-weight: 600; color: $muted; text-transform: uppercase; letter-spacing: 0.3px; }
-.prop-highlight-value { font-size: 14px; font-weight: 700; color: #111; }
+.prop-build-value {
+  font-size: 13px; font-weight: 700; color: #111; text-align: right;
+}
+.prop-build-green { color: #16a34a; }
 
 /* ── History grid ── */
 .prop-history-grid {
@@ -199,7 +197,11 @@ $muted: rgba(0,0,0,0.45);
 }
 
 .prop-carfax-bar-left { display: flex; align-items: center; gap: 10px; }
-.prop-carfax-logo { height: 24px; }
+.prop-carfax-badge {
+  background: #c00; color: white; font-size: 11px; font-weight: 900;
+  padding: 3px 8px; border-radius: 5px; letter-spacing: 0.5px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
 .prop-carfax-label { font-size: 15px; font-weight: 700; color: #111; }
 
 .prop-carfax-toggle {

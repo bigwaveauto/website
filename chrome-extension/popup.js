@@ -3,6 +3,40 @@
 
 const $ = (s) => document.getElementById(s);
 
+function isSupportedUrl(url) {
+  if (!url) return false;
+  return url.includes('manheim.com') || url.includes('insightcr') ||
+         url.includes('adesa.com') || url.includes('openlane.com');
+}
+
+function vinCheckDigitValid(vin) {
+  const v = String(vin).toUpperCase();
+  if (v.length !== 17) return false;
+  const map = {A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:1,K:2,L:3,M:4,N:5,P:7,R:9,S:2,T:3,U:4,V:5,W:6,X:7,Y:8,Z:9};
+  const weights = [8,7,6,5,4,3,2,10,0,9,8,7,6,5,4,3,2];
+  let sum = 0;
+  for (let i = 0; i < 17; i++) {
+    const c = v[i];
+    const val = isNaN(c) ? (map[c] || 0) : parseInt(c);
+    sum += val * weights[i];
+  }
+  const rem = sum % 11;
+  return v[8] === (rem === 10 ? 'X' : String(rem));
+}
+
+function vinFromUrl(url) {
+  if (!url) return null;
+  const patterns = [
+    /[#/]([A-HJ-NPR-Z0-9]{17})(?:[/?#]|$)/i,
+    /\/(?:details|vehicle|cr|listing|vin)\/([A-HJ-NPR-Z0-9]{17})/i,
+  ];
+  for (const re of patterns) {
+    const m = url.match(re);
+    if (m && vinCheckDigitValid(m[1])) return m[1].toUpperCase();
+  }
+  return null;
+}
+
 let extractedData = null;
 let selectedCustomer = null; // { name, id } or { name } for new
 
@@ -183,8 +217,8 @@ $('scanBtn').addEventListener('click', async () => {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-    if (!tab?.url?.includes('manheim.com') && !tab?.url?.includes('insightcr')) {
-      showStatus('Navigate to a Manheim listing first.', 'error');
+    if (!isSupportedUrl(tab?.url)) {
+      showStatus('Navigate to a Manheim or ADESA/OpenLane listing first.', 'error');
       $('scanBtn').disabled = false;
       return;
     }
@@ -203,10 +237,7 @@ $('scanBtn').addEventListener('click', async () => {
     await new Promise(r => setTimeout(r, 1200));
 
     // Read from storage — keyed by VIN extracted from URL, or fall back to last scan
-    const vinMatch = tab.url.match(/[#/]([A-HJ-NPR-Z0-9]{17})(?:[/?#]|$)/i) ||
-                     tab.url.match(/\/(?:details|vehicle|cr|listing)\/([A-HJ-NPR-Z0-9]{17})/i);
-    const vin = vinMatch?.[1]?.toUpperCase();
-
+    const vin = vinFromUrl(tab.url);
     const storageKey = vin ? `bwa_scan_${vin}` : 'bwa_last_scan';
     const stored = await chrome.storage.local.get([storageKey, 'bwa_last_scan']);
     const data = stored[storageKey] || stored['bwa_last_scan'];
@@ -237,17 +268,88 @@ chrome.runtime.onMessage.addListener((msg) => {
 (async () => {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.url?.includes('manheim.com') && !tab?.url?.includes('insightcr')) return;
+    if (!isSupportedUrl(tab?.url)) return;
 
     const vinMatch = tab.url.match(/[#/]([A-HJ-NPR-Z0-9]{17})(?:[/?#]|$)/i) ||
                      tab.url.match(/\/(?:details|vehicle|cr|listing)\/([A-HJ-NPR-Z0-9]{17})/i);
     const vin = vinMatch?.[1]?.toUpperCase();
     const storageKey = vin ? `bwa_scan_${vin}` : 'bwa_last_scan';
-    const stored = await chrome.storage.local.get([storageKey, 'bwa_last_scan']);
+    const stored = await chrome.storage.local.get([storageKey, 'bwa_last_scan', 'bwa_list_scan']);
     const data = stored[storageKey] || stored['bwa_last_scan'];
     if (data?.vin) displayData(data);
+
+    // Show Rivian bulk scan button on Manheim pages without a VIN in URL
+    const isManheimList = tab.url?.includes('manheim.com') && !vin;
+    if (isManheimList) {
+      $('rivianScanBtn').style.display = 'flex';
+      if (stored.bwa_list_scan?.listings?.length) {
+        $('rivianScanBtn').textContent = `🌿 ${stored.bwa_list_scan.listings.length} listings cached — Ingest Now`;
+      }
+    }
   } catch (e) {}
 })();
+
+// ── Rivian Bulk Scan ──
+$('rivianScanBtn').addEventListener('click', async () => {
+  const serverUrl = ($('serverUrl').value || 'https://bigwaveauto.com').replace(/\/+$/, '');
+  const apiKey = $('apiKey').value;
+
+  if (!apiKey) { showStatus('Enter API key first.', 'error'); return; }
+
+  $('rivianScanBtn').disabled = true;
+  showStatus('Scanning page for listings...', 'working');
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    // Ask content script to do bulk scan
+    let listings = [];
+    try {
+      const resp = await chrome.tabs.sendMessage(tab.id, { action: 'bulkScan' });
+      listings = resp?.listings || [];
+    } catch (e) {
+      // Inject content script if not loaded
+      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
+      await new Promise(r => setTimeout(r, 600));
+      const resp = await chrome.tabs.sendMessage(tab.id, { action: 'bulkScan' }).catch(() => ({}));
+      listings = resp?.listings || [];
+    }
+
+    if (!listings.length) {
+      showStatus('No listings found — make sure you\'re on a Manheim search results page.', 'error');
+      $('rivianScanBtn').disabled = false;
+      return;
+    }
+
+    showStatus(`Found ${listings.length} listings — ingesting to admin...`, 'working');
+
+    const response = await fetch(`${serverUrl}/api/admin/rivian/ingest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+      body: JSON.stringify({ listings }),
+    });
+
+    if (!response.ok) throw new Error(`${response.status}: ${await response.text()}`);
+    const result = await response.json();
+
+    $('rivianScanBtn').textContent = `✓ ${result.ingested || listings.length} ingested`;
+    $('rivianScanBtn').style.background = '#16a34a';
+    showStatus(`Ingested ${result.ingested || listings.length} Rivian listings into admin.`, 'success');
+
+    // Open admin Rivians tab
+    const allTabs = await chrome.tabs.query({});
+    const adminTab = allTabs.find(t => t.url && t.url.includes('/admin/rivians'));
+    if (adminTab) {
+      await chrome.tabs.update(adminTab.id, { active: true });
+      await chrome.tabs.reload(adminTab.id);
+    } else {
+      await chrome.tabs.create({ url: `${serverUrl}/admin/rivians`, active: true });
+    }
+  } catch (err) {
+    showStatus('Ingest failed: ' + err.message, 'error');
+    $('rivianScanBtn').disabled = false;
+  }
+});
 
 // ── Send MMR to Appraisal Tab ──
 $('mmrBtn').addEventListener('click', async () => {
@@ -322,9 +424,27 @@ $('submitBtn').addEventListener('click', async () => {
 
     if (!response.ok) throw new Error(`${response.status}: ${await response.text()}`);
 
-    await response.json();
-    showStatus('Submitted! Open admin to edit.', 'success');
-    $('submitBtn').textContent = 'Submitted ✓';
+    const result = await response.json();
+    const adminBase = `${serverUrl}/admin/proposals`;
+    // Include ?open=ID so the proposals page auto-selects this proposal
+    const adminUrl = result.id ? `${adminBase}?open=${result.id}` : adminBase;
+
+    if (result.merged) {
+      showStatus('Proposal updated — price & deal info preserved.', 'success');
+      $('submitBtn').textContent = 'Updated ✓';
+    } else {
+      showStatus('Submitted! Opening admin...', 'success');
+      $('submitBtn').textContent = 'Submitted ✓';
+    }
+
+    // Open (or focus) the admin proposals tab — always navigate to the specific proposal
+    const allTabs = await chrome.tabs.query({});
+    const adminTab = allTabs.find(t => t.url && t.url.includes(adminBase));
+    if (adminTab) {
+      await chrome.tabs.update(adminTab.id, { active: true, url: adminUrl });
+    } else {
+      await chrome.tabs.create({ url: adminUrl, active: true });
+    }
 
   } catch (err) {
     showStatus('Failed: ' + err.message, 'error');

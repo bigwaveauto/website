@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { ActivatedRoute } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { PdfFrameComponent } from './pdf-frame.component';
 
@@ -16,6 +17,7 @@ import { PdfFrameComponent } from './pdf-frame.component';
 export class AdminProposalsComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private sanitizer = inject(DomSanitizer);
+  private route = inject(ActivatedRoute);
 
   proposals = signal<any[]>([]);
   deals = signal<any[]>([]);
@@ -114,7 +116,16 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
   loadProposals() {
     this.loading.set(true);
     this.http.get<any[]>('/api/admin/proposals').subscribe({
-      next: (data) => { this.proposals.set(data || []); this.loading.set(false); },
+      next: (data) => {
+        this.proposals.set(data || []);
+        this.loading.set(false);
+        // Auto-select proposal from ?open= query param (e.g. after Chrome extension submit)
+        const openId = this.route.snapshot.queryParamMap.get('open');
+        if (openId) {
+          const target = (data || []).find((p: any) => p.id === openId);
+          if (target) this.selectProposal(target);
+        }
+      },
       error: () => this.loading.set(false),
     });
   }
@@ -313,7 +324,7 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
     this.selectedDeal.set(null);
     this.paymentTab.set('finance');
     if (p.customer_zip) this.lookupCityState(p.customer_zip); else this.cityState.set('');
-    const s = { ...p, excluded_fields: p.excluded_fields || [] };
+    const s = { ...p, excluded_fields: p.excluded_fields || [], rivian_specs: p.rivian_specs || {} };
     // Auto-apply default line items if none exist
     if (!s.line_items?.length) {
       s.line_items = [
@@ -697,6 +708,7 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
       window_sticker_url: s.window_sticker_url || null,
       profit_target: s.profit_target ?? null,
       security_deposit: s.security_deposit || 0,
+      rivian_specs: s.rivian_specs || {},
     }).subscribe({
       next: () => {
         this.saving.set(false);

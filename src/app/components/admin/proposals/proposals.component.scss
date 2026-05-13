@@ -1185,3 +1185,23 @@ $hv: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   &:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
   .cond-item-hidden & { border-color: #fecaca; color: #ef4444; background: #fef2f2; }
 }
+
+
+/* ── Rivian Build Sheet (admin editor) ── */
+.prop-rivian-specs { border-top: 1px solid rgba(0,0,0,0.06); }
+.prop-rivian-label {
+  display: block; font-size: 11px; font-weight: 800; color: #16a34a;
+  text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px;
+}
+.prop-rivian-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;
+}
+.prop-rivian-field {
+  display: flex; flex-direction: column; gap: 4px;
+  label { font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.5); text-transform: uppercase; letter-spacing: 0.4px; }
+  select, input[type="text"] {
+    padding: 7px 10px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px;
+    font-size: 13px; font-family: inherit; color: #111; background: white; outline: none;
+    &:focus { border-color: #16a34a; }
+  }
+}

@@ -1,0 +1,149 @@
+$green: #16a34a;
+$blue: #2563eb;
+$border: rgba(0,0,0,0.07);
+$text-muted: rgba(0,0,0,0.45);
+$hv: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+.riv-list { display: flex; flex-direction: column; gap: 14px; }
+
+/* ── Header ── */
+.riv-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+.riv-title { font-size: 26px; font-weight: 800; color: #111; margin: 0; }
+.riv-header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.riv-search-wrap { position: relative; width: 280px; }
+.riv-search-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; color: $text-muted; pointer-events: none;
+}
+.riv-search {
+  width: 100%; padding: 9px 14px 9px 36px; box-sizing: border-box;
+  border: 1.5px solid rgba(0,0,0,0.12); border-radius: 10px;
+  font-size: 13px; font-family: inherit; color: #111; background: white; outline: none;
+  &:focus { border-color: $blue; }
+  &::placeholder { color: rgba(0,0,0,0.3); }
+}
+.riv-filter {
+  padding: 9px 12px; border: 1.5px solid rgba(0,0,0,0.12); border-radius: 10px;
+  font-size: 13px; font-family: inherit; color: #111; background: white; outline: none;
+  &:focus { border-color: $blue; }
+}
+.riv-preview-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 9px 12px; background: #f1f5f9; border: 1.5px solid $border;
+  border-radius: 10px; font-size: 12px; font-weight: 600; color: #555;
+  text-decoration: none;
+  &:hover { background: #e2e8f0; color: #111; }
+}
+
+.riv-count { font-size: 12px; color: $text-muted; }
+.riv-loading { padding: 60px; text-align: center; color: $text-muted; font-size: 15px; }
+
+/* ── Cards ── */
+.riv-cards { display: flex; flex-direction: column; gap: 6px; }
+
+.riv-card {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: white; border-radius: 12px;
+  border: 1.5px solid $border; border-left: 4px solid $green;
+  padding: 12px 16px 12px 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+
+  &.riv-card--hidden { border-left-color: #94a3b8; opacity: 0.65; }
+}
+
+.riv-card-photo {
+  width: 90px; height: 66px; flex-shrink: 0;
+  background: #f1f5f9; border-radius: 8px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+}
+.riv-photo-ph { width: 24px; height: 24px; color: #cbd5e1; }
+
+.riv-card-body { flex: 1; min-width: 0; }
+.riv-card-title { font-size: 14px; font-weight: 800; color: #111; margin-bottom: 4px; }
+.riv-card-meta {
+  display: flex; gap: 8px; flex-wrap: wrap; font-size: 11px; color: #64748b;
+  span + span::before { content: '·'; margin-right: 8px; }
+}
+.riv-vin { font-family: monospace; font-size: 10px; }
+.riv-source-link { font-size: 11px; color: $blue; text-decoration: none; margin-top: 4px; display: block; &:hover { text-decoration: underline; } }
+
+.riv-card-right {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0;
+}
+.riv-prices { text-align: right; }
+.riv-price { font-size: 18px; font-weight: 900; color: #111; font-family: $hv; letter-spacing: -0.5px; }
+.riv-price-sub { font-size: 11px; color: $text-muted; }
+
+.riv-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.riv-status-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px;
+  background: #f0f1f3; color: #555;
+  &.riv-status-active { background: #dcfce7; color: #166534; }
+  &.riv-status-hidden { background: #f1f5f9; color: #64748b; }
+}
+.riv-lead-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px;
+  background: #eff6ff; color: #1d4ed8;
+}
+
+.riv-actions { display: flex; gap: 4px; align-items: center; }
+.riv-btn {
+  padding: 5px 10px; border: 1.5px solid $border; border-radius: 7px;
+  font-size: 11px; font-weight: 700; font-family: inherit; cursor: pointer; background: white;
+  &:hover { background: #f8fafc; }
+}
+.riv-btn-toggle { color: #555; }
+.riv-btn-edit { color: $blue; border-color: rgba(37,99,235,0.2); }
+.riv-btn-delete {
+  color: #dc2626; border-color: rgba(220,38,38,0.15); padding: 5px 8px;
+  display: flex; align-items: center;
+  &:hover { background: #fef2f2; }
+}
+
+/* ── Expanded editor ── */
+.riv-editor {
+  background: #f8fafc; border: 1.5px solid $border; border-radius: 12px;
+  padding: 18px; display: flex; flex-direction: column; gap: 14px;
+  margin-top: -2px;
+}
+.riv-editor-row {
+  display: flex; flex-direction: column; gap: 5px;
+  label { font-size: 11px; font-weight: 700; color: $text-muted; text-transform: uppercase; letter-spacing: 0.5px; }
+  input, textarea {
+    padding: 9px 12px; border: 1.5px solid rgba(0,0,0,0.12); border-radius: 8px;
+    font-size: 13px; font-family: inherit; color: #111; background: white; outline: none; resize: vertical;
+    &:focus { border-color: $blue; }
+  }
+}
+
+.riv-leads-section { }
+.riv-leads-title { font-size: 11px; font-weight: 700; color: $text-muted; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.riv-lead-row {
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  padding: 8px 0; border-bottom: 1px solid $border; font-size: 12px;
+  &:last-child { border-bottom: none; }
+}
+.riv-lead-name { font-weight: 700; color: #111; }
+.riv-lead-contact { color: $text-muted; }
+.riv-lead-mindset { color: $blue; font-style: italic; }
+.riv-lead-date { color: $text-muted; margin-left: auto; }
+
+.riv-editor-actions { display: flex; gap: 8px; }
+.riv-save-btn {
+  padding: 9px 20px; background: $blue; color: white; border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+  &:hover:not(:disabled) { background: #1d4ed8; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+.riv-cancel-btn {
+  padding: 9px 14px; background: white; color: #555; border: 1.5px solid $border;
+  border-radius: 8px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+  &:hover { background: #f1f5f9; }
+}
+
+lucide-icon { display: inline-flex; align-items: center; }

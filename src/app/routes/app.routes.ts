@@ -52,6 +52,10 @@ export const routes: Routes = [
     loadComponent: () => import('../components/reserve/reserve.component').then(m => m.ReserveComponent),
   },
   {
+    path: 'rivian-report',
+    loadComponent: () => import('../components/rivian-report/rivian-report.component').then(m => m.RivianReportComponent),
+  },
+  {
     path: 'admin',
     loadComponent: () => import('../components/admin/admin.component').then(m => m.AdminComponent),
     children: [
@@ -71,6 +75,7 @@ export const routes: Routes = [
       { path: 'deals', loadComponent: () => import('../components/admin/stub/stub.component').then(m => m.AdminStubComponent), data: { title: 'Deal' } },
       { path: 'marketing', loadComponent: () => import('../components/admin/stub/stub.component').then(m => m.AdminStubComponent), data: { title: 'Marketing' } },
       { path: 'accounting', loadComponent: () => import('../components/admin/stub/stub.component').then(m => m.AdminStubComponent), data: { title: 'Accounting' } },
+      { path: 'rivians', loadComponent: () => import('../components/admin/rivians/rivians.component').then(m => m.AdminRiviansComponent) },
       { path: 'settings', loadComponent: () => import('../components/admin/settings/settings.component').then(m => m.AdminSettingsComponent) },
     ],
   },

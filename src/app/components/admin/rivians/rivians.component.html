@@ -1,0 +1,128 @@
+<div class="riv-list">
+
+  <div class="riv-header">
+    <h1 class="riv-title">Rivian Report</h1>
+    <div class="riv-header-controls">
+      <select class="riv-filter" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+        <option value="all">All Statuses</option>
+        <option value="active">Active</option>
+        <option value="hidden">Hidden</option>
+      </select>
+      <div class="riv-search-wrap">
+        <lucide-icon name="search" class="riv-search-icon" />
+        <input class="riv-search" placeholder="Search model, trim, VIN…"
+               [ngModel]="search()" (ngModelChange)="search.set($event)" />
+      </div>
+      <a href="/rivian-report" target="_blank" class="riv-preview-btn">
+        <lucide-icon name="external-link" style="width:13px;height:13px" />
+        Preview Public Page
+      </a>
+    </div>
+  </div>
+
+  <div class="riv-count">{{ filtered().length }} listing{{ filtered().length !== 1 ? 's' : '' }}</div>
+
+  @if(loading()){
+  <div class="riv-loading">Loading listings…</div>
+  }@else if(!filtered().length){
+  <div class="riv-loading">No listings found.</div>
+  }@else{
+  <div class="riv-cards">
+    @for(l of filtered(); track l.id){
+    <div class="riv-card" [class.riv-card--hidden]="l.status === 'hidden'">
+
+      <!-- Photo -->
+      <div class="riv-card-photo">
+        @if(l.photos?.length){
+        <img [src]="l.photos[0]" alt="" (error)="$any($event.target).style.display='none'" />
+        }@else{
+        <lucide-icon name="image" class="riv-photo-ph" />
+        }
+      </div>
+
+      <!-- Body -->
+      <div class="riv-card-body">
+        <div class="riv-card-title">{{ l.year }} Rivian {{ l.model }} {{ l.trim }}</div>
+        <div class="riv-card-meta">
+          @if(l.mileage){ <span>{{ fmtMi(l.mileage) }}</span> }
+          @if(l.exterior_color){ <span>{{ l.exterior_color }}</span> }
+          @if(l.vin){ <span class="riv-vin">{{ l.vin }}</span> }
+        </div>
+        @if(l.source_url){
+        <a [href]="l.source_url" target="_blank" class="riv-source-link">View on Manheim ↗</a>
+        }
+      </div>
+
+      <!-- Right -->
+      <div class="riv-card-right">
+        <div class="riv-prices">
+          @if(l.asking_price){ <div class="riv-price">{{ fmt(l.asking_price) }}</div> }
+          @if(l.buy_now){ <div class="riv-price-sub">Auction: {{ fmt(l.buy_now) }}</div> }
+          @if(l.mmr){ <div class="riv-price-sub">MMR: {{ fmt(l.mmr) }}</div> }
+        </div>
+
+        <div class="riv-badges">
+          <span class="riv-status-badge" [class.riv-status-active]="l.status === 'active'"
+                [class.riv-status-hidden]="l.status === 'hidden'">
+            {{ l.status || 'active' }}
+          </span>
+          @if(leadCount(l) > 0){
+          <span class="riv-lead-badge">{{ leadCount(l) }} lead{{ leadCount(l) !== 1 ? 's' : '' }}</span>
+          }
+        </div>
+
+        <div class="riv-actions">
+          <button class="riv-btn riv-btn-toggle" (click)="toggleStatus(l)">
+            {{ l.status === 'active' ? 'Hide' : 'Show' }}
+          </button>
+          <button class="riv-btn riv-btn-edit" (click)="toggleExpand(l.id)">
+            Edit
+          </button>
+          <button class="riv-btn riv-btn-delete" (click)="deleteListing(l)">
+            <lucide-icon name="trash-2" style="width:12px;height:12px" />
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Expanded editor -->
+    @if(expandedId() === l.id){
+    <div class="riv-editor">
+      <div class="riv-editor-row">
+        <label>Public Price</label>
+        <input type="number" [(ngModel)]="l.asking_price" placeholder="Leave blank to hide price" />
+      </div>
+      <div class="riv-editor-row">
+        <label>Notes (shown on public listing)</label>
+        <textarea [(ngModel)]="l.notes" rows="3" placeholder="Add context, highlights, or a deal summary…"></textarea>
+      </div>
+
+      @if(leadCount(l) > 0){
+      <div class="riv-leads-section">
+        <div class="riv-leads-title">Unlock Leads</div>
+        @for(lead of l.rivian_unlocks; track lead.id){
+        <div class="riv-lead-row">
+          <span class="riv-lead-name">{{ lead.name }}</span>
+          <span class="riv-lead-contact">{{ lead.email }}</span>
+          @if(lead.phone){ <span class="riv-lead-contact">{{ lead.phone }}</span> }
+          <span class="riv-lead-mindset">{{ lead.mindset || '—' }}</span>
+          <span class="riv-lead-date">{{ lead.created_at | date:'M/d h:mma' }}</span>
+        </div>
+        }
+      </div>
+      }
+
+      <div class="riv-editor-actions">
+        <button class="riv-save-btn" (click)="saveNotes(l)" [disabled]="saving() === l.id">
+          {{ saving() === l.id ? 'Saving…' : 'Save' }}
+        </button>
+        <button class="riv-cancel-btn" (click)="toggleExpand(l.id)">Cancel</button>
+      </div>
+    </div>
+    }
+    }
+  </div>
+  }
+
+</div>

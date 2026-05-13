@@ -2600,6 +2600,7 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (req.body.deal_group_id !== undefined) updates['deal_group_id'] = req.body.deal_group_id;
     if (req.body.profit_target !== undefined) updates['profit_target'] = req.body.profit_target;
     if (req.body.security_deposit !== undefined) updates['security_deposit'] = req.body.security_deposit;
+    if (req.body.rivian_specs !== undefined && Object.keys(req.body.rivian_specs || {}).length > 0) updates['rivian_specs'] = req.body.rivian_specs;
     updates['updated_at'] = new Date().toISOString();
 
     console.log('[proposal save] id:', req.params['id'], 'photos count:', photos?.length ?? 'not sent');
@@ -4237,6 +4238,144 @@ app.post('/api/admin/proposal/:id/chat/read', requireAdmin, async (req, res) => 
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ─────────────────────────────────────────────
+// RIVIAN REPORT
+// ─────────────────────────────────────────────
+
+// Public: list active listings
+app.get('/api/rivian-report', async (_req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('rivian_listings')
+      .select('id,year,model,trim,mileage,exterior_color,interior_color,mmr,asking_price,buy_now,photos,location,auction_channel,sale_date,condition_grade,source,created_at')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json(data || []);
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+// Public: unlock a listing
+app.post('/api/rivian-report/unlock', async (req, res) => {
+  try {
+    const { listing_id, name, email, phone, mindset } = req.body;
+    if (!name || (!email && !phone)) {
+      res.status(400).json({ error: 'Name and email or phone required' }); return;
+    }
+
+    // Fetch listing for email context
+    const { data: listing } = await supabase
+      .from('rivian_listings')
+      .select('year,model,trim,mileage,asking_price,mmr,photos')
+      .eq('id', listing_id)
+      .single();
+
+    // Store unlock
+    await supabase.from('rivian_unlocks').insert({ listing_id, name, email, phone, mindset });
+
+    const vehicle = listing ? `${listing.year || ''} Rivian ${listing.model || ''} ${listing.trim || ''}`.trim() : 'Rivian';
+    const price = listing?.asking_price ? `$${Number(listing.asking_price).toLocaleString()}` : '';
+    const miles = listing?.mileage ? `${Number(listing.mileage).toLocaleString()} mi` : '';
+
+    // Email to admin
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: ['dave@bigwaveauto.com'],
+      subject: `🌊 Rivian Report Unlock — ${vehicle}`,
+      html: `
+        <h2 style="margin:0 0 12px">New Rivian Report Unlock</h2>
+        <table style="border-collapse:collapse;font-size:15px">
+          <tr><td style="padding:4px 12px 4px 0;color:#64748b">Name</td><td><b>${escHtml(name)}</b></td></tr>
+          <tr><td style="padding:4px 12px 4px 0;color:#64748b">Email</td><td>${escHtml(email || '—')}</td></tr>
+          <tr><td style="padding:4px 12px 4px 0;color:#64748b">Phone</td><td>${escHtml(phone || '—')}</td></tr>
+          <tr><td style="padding:4px 12px 4px 0;color:#64748b">Mindset</td><td>${escHtml(mindset || '—')}</td></tr>
+          <tr><td style="padding:4px 12px 4px 0;color:#64748b">Vehicle</td><td><b>${escHtml(vehicle)}</b>${miles ? ' · ' + escHtml(miles) : ''}${price ? ' · ' + escHtml(price) : ''}</td></tr>
+        </table>
+        <p style="margin:20px 0 0;color:#64748b;font-size:13px">They're waiting for your strategy + all-in price plan.</p>
+      `,
+    });
+
+    res.json({ ok: true });
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+// Admin: bulk ingest from Chrome extension
+app.post('/api/admin/rivian/ingest', requireAdmin, async (req, res) => {
+  try {
+    const listings: any[] = req.body.listings || [];
+    if (!listings.length) { res.status(400).json({ error: 'No listings provided' }); return; }
+
+    const rows = listings.map((l: any) => ({
+      vin: l.vin || null,
+      source: l.source || 'manheim',
+      year: l.year ? parseInt(l.year) : null,
+      model: l.model || null,
+      trim: l.trim || null,
+      mileage: l.mileage ? parseInt(String(l.mileage).replace(/\D/g, '')) : null,
+      exterior_color: l.exterior_color || l.exteriorColor || null,
+      interior_color: l.interior_color || l.interiorColor || null,
+      mmr: l.mmr ? parseFloat(String(l.mmr).replace(/[^0-9.]/g, '')) : null,
+      asking_price: l.asking_price || l.buy_now || null,
+      buy_now: l.buy_now || null,
+      photos: Array.isArray(l.photos) ? l.photos.slice(0, 20) : [],
+      location: l.location || null,
+      auction_channel: l.auction_channel || l.channel || null,
+      sale_date: l.sale_date || null,
+      condition_grade: l.condition_grade || l.grade || null,
+      status: 'active',
+    }));
+
+    // Upsert by VIN when available, else insert
+    const withVin = rows.filter(r => r.vin);
+    const withoutVin = rows.filter(r => !r.vin);
+
+    if (withVin.length) {
+      await supabase.from('rivian_listings').upsert(withVin, { onConflict: 'vin', ignoreDuplicates: false });
+    }
+    if (withoutVin.length) {
+      await supabase.from('rivian_listings').insert(withoutVin);
+    }
+
+    res.json({ ok: true, ingested: rows.length });
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+// Admin: list all rivian listings
+app.get('/api/admin/rivian', requireAdmin, async (_req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('rivian_listings')
+      .select('*, rivian_unlocks(id,name,email,phone,mindset,created_at)')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json(data || []);
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+// Admin: update listing (status, price, notes)
+app.patch('/api/admin/rivian/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, asking_price, notes } = req.body;
+    const updates: any = {};
+    if (status !== undefined) updates.status = status;
+    if (asking_price !== undefined) updates.asking_price = asking_price;
+    if (notes !== undefined) updates.notes = notes;
+    const { error } = await supabase.from('rivian_listings').update(updates).eq('id', id);
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+// Admin: delete listing
+app.delete('/api/admin/rivian/:id', requireAdmin, async (req, res) => {
+  try {
+    const { error } = await supabase.from('rivian_listings').delete().eq('id', req.params['id']);
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
 });
 
 /**

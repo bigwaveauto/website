@@ -919,6 +919,161 @@
     return [...found];
   }
 
+  // ── Bulk list-page scan (Manheim search results) ──
+  function bulkScanManheimList() {
+    const results = [];
+    const seen = new Set();
+
+    // Strategy 1: __NEXT_DATA__ — walk for arrays of vehicle objects
+    function walkForListings(obj, depth) {
+      if (!obj || depth > 12 || typeof obj !== 'object') return;
+      if (Array.isArray(obj)) {
+        const vehicleItems = obj.filter(item =>
+          item && typeof item === 'object' &&
+          String(item.vin || item.VIN || '').length === 17
+        );
+        if (vehicleItems.length >= 2) {
+          for (const item of vehicleItems) {
+            const vin = String(item.vin || item.VIN || '').toUpperCase();
+            if (!vin || seen.has(vin)) continue;
+            seen.add(vin);
+            const mi = item.mileage || item.odometer || item.odometerReading || item.currentOdometer;
+            const buyNow = item.buyNowPrice || item.buyItNowPrice || item.startingBid || item.price || item.currentBid;
+            const photoArr = item.photos || item.images || item.imageUrls || [];
+            results.push({
+              vin,
+              year: String(item.year || item.modelYear || ''),
+              make: item.make || item.makeName || '',
+              model: item.model || item.modelName || '',
+              trim: item.trim || item.trimLevel || '',
+              mileage: mi ? parseInt(String(mi).replace(/,/g, '')) : null,
+              buy_now: buyNow ? parseInt(String(buyNow).replace(/[$,]/g, '')) : null,
+              mmr: item.mmr || item.manheimMarketReport || null,
+              exterior_color: item.exteriorColor || item.extColor || item.color || '',
+              photos: Array.isArray(photoArr) ? photoArr.slice(0, 3) : [],
+              source_url: item.href || item.url || window.location.href,
+            });
+          }
+          return;
+        }
+        for (const item of obj) walkForListings(item, depth + 1);
+        return;
+      }
+      for (const key of Object.keys(obj)) walkForListings(obj[key], depth + 1);
+    }
+
+    for (const s of document.querySelectorAll('script')) {
+      const text = s.textContent || '';
+      const nd = text.match(/__NEXT_DATA__\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/)?.[1] ||
+                 text.match(/window\.__(?:PRELOADED_STATE|INITIAL_STATE|STATE)__\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/)?.[1];
+      if (!nd) continue;
+      try { walkForListings(JSON.parse(nd), 0); } catch (e) {}
+      if (results.length > 0) break;
+    }
+
+    if (results.length > 0) return results;
+
+    // Strategy 2: DOM VIN walk — Manheim loads listings via API after render,
+    // so we find every valid VIN visible on the page and scrape its card context.
+    const pageText = document.body.innerText || '';
+    const VIN_RE = /\b([A-HJ-NPR-Z0-9]{17})\b/g;
+
+    // Collect all valid VINs from page text
+    const allVins = new Set();
+    for (const m of pageText.matchAll(VIN_RE)) {
+      if (vinCheckDigitValid(m[1])) allVins.add(m[1].toUpperCase());
+    }
+
+    // Also check data attributes (Manheim often puts vin in data-* or aria-* attrs)
+    document.querySelectorAll('[data-vin],[data-vehicle-vin],[data-listing-vin]').forEach(el => {
+      const vin = (el.dataset.vin || el.dataset.vehicleVin || el.dataset.listingVin || '').toUpperCase();
+      if (vin.length === 17 && vinCheckDigitValid(vin)) allVins.add(vin);
+    });
+
+    for (const vin of allVins) {
+      if (seen.has(vin)) continue;
+      seen.add(vin);
+
+      // Find the element containing this VIN and walk up to the card container
+      let cardEl = null;
+      for (const el of document.querySelectorAll('*')) {
+        if (el.children.length > 0) continue;
+        const t = el.textContent?.trim() || '';
+        if (t === vin || t.includes(vin)) {
+          let parent = el.parentElement;
+          for (let i = 0; i < 8; i++) {
+            if (!parent) break;
+            // Card container heuristic: contains enough text, not too wide
+            if (parent.textContent.length > 80 && parent.textContent.length < 8000 &&
+                (parent.querySelectorAll('img').length > 0 ||
+                 /card|listing|result|vehicle|item/i.test(parent.className + parent.id))) {
+              cardEl = parent;
+              break;
+            }
+            parent = parent.parentElement;
+          }
+          if (cardEl) break;
+          // Fallback: just use the closest block parent with decent content
+          let p = el.parentElement;
+          for (let i = 0; i < 5; i++) {
+            if (!p) break;
+            if (p.textContent.length > 60) { cardEl = p; break; }
+            p = p.parentElement;
+          }
+          break;
+        }
+      }
+
+      const ctx = cardEl?.textContent || '';
+
+      // Year
+      const yearM = ctx.match(/\b(20[12][0-9])\b/);
+      const year = yearM ? yearM[1] : '';
+
+      // Model (R1T / R1S are the only Rivian models)
+      const model = /\bR1T\b/.test(ctx) ? 'R1T' : /\bR1S\b/.test(ctx) ? 'R1S' : '';
+
+      // Trim — words after model name before newline/price
+      let trim = '';
+      const trimM = ctx.match(/R1[TS]\s+([A-Za-z][A-Za-z0-9 \-]{2,30}?)(?:\n|\$|[0-9]{2,3},)/);
+      if (trimM) trim = trimM[1].trim();
+
+      // Mileage — comma-formatted number followed by "mi" or standalone large number near "mi"
+      const miM = ctx.match(/([0-9]{1,3}(?:,[0-9]{3})+)\s*(?:mi|miles|km)/i) ||
+                  ctx.match(/([0-9]{4,6})\s*(?:mi|miles|km)/i);
+      const mileage = miM ? parseInt(miM[1].replace(/,/g, '')) : null;
+
+      // Buy now / bid price — look for dollar amounts
+      const prices = [...ctx.matchAll(/\$\s*([0-9]{1,3}(?:,[0-9]{3})+)/g)]
+        .map(m => parseInt(m[1].replace(/,/g, '')))
+        .filter(n => n > 5000 && n < 300000)
+        .sort((a, b) => b - a);
+      const buy_now = prices[0] || null;
+
+      // MMR — look for "MMR" label near a price
+      const mmrM = ctx.match(/MMR[:\s]*\$?\s*([0-9]{1,3}(?:,[0-9]{3})+)/i);
+      const mmr = mmrM ? parseInt(mmrM[1].replace(/,/g, '')) : null;
+
+      // Exterior color — common color words
+      const colorM = ctx.match(/\b(Black|White|Silver|Gray|Grey|Blue|Red|Green|Yellow|Orange|Brown|Beige|Gold|Purple|Tan|Limestone|El Cap|Forest|Rivian Blue|Rivian Green|Glacier|Compass|Launch)\b/i);
+      const exterior_color = colorM ? colorM[1] : '';
+
+      // Photos from card images
+      const photos = [];
+      if (cardEl) {
+        cardEl.querySelectorAll('img').forEach(img => {
+          const src = img.src || img.dataset?.src || '';
+          if (src && /\.(jpg|jpeg|png|webp)/i.test(src) && !/logo|icon|placeholder/i.test(src))
+            photos.push(src.replace(/\?.*$/, ''));
+        });
+      }
+
+      results.push({ vin, year, make: 'Rivian', model, trim, mileage, buy_now, mmr, exterior_color, photos: photos.slice(0, 3), source_url: window.location.href });
+    }
+
+    return results;
+  }
+
   function runExtraction() {
     // If the extension was reloaded while this tab was open, chrome.runtime.id
     // becomes undefined. Disconnect the observer so we stop firing entirely.
@@ -936,6 +1091,20 @@
     const isLiveListing = !isInsightCR && (url.includes('search.manheim.com') || url.includes('/results') || url.includes('/listing'));
 
     const vin = getVin();
+
+    // On Manheim search/results pages with no single VIN, try bulk list scan
+    if (!vin && isManheim) {
+      const listings = bulkScanManheimList();
+      if (listings.length > 0) {
+        try {
+          chrome.storage.local.set({ bwa_list_scan: { listings, url, extracted_at: new Date().toISOString() } });
+        } catch (e) {}
+        console.log('[BWA] Found', listings.length, 'listings on list page');
+        try { chrome.runtime.sendMessage({ action: 'listScanReady', count: listings.length }).catch(() => {}); } catch (e) {}
+      }
+      return;
+    }
+
     if (!vin) return; // Nothing to extract without a VIN
 
     const vehicle   = isAdesa ? extractAdesaSpecs()     : extractSpecs();
@@ -1035,6 +1204,11 @@
     if (msg.action === 'getData') {
       sendResponse({ data: null }); // popup reads from storage directly
     }
+    if (msg.action === 'bulkScan') {
+      const listings = bulkScanManheimList();
+      sendResponse({ listings, count: listings.length });
+    }
+    return true; // keep channel open for async sendResponse
   });
 
   // Inject the floating button once DOM is ready

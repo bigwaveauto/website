@@ -24,14 +24,15 @@ export class AdminComponent implements OnInit {
   checking = signal(true);
 
   navItems = [
-    { label: 'Home',         icon: 'home',        route: '/admin' },
-    { label: 'Proposals',    icon: 'file-text',   route: '/admin/proposals' },
-    { label: 'Inventory',    icon: 'car',         route: '/admin/inventory' },
-    { label: 'Acquisitions', icon: 'radar',       route: '/admin/acquisitions' },
-    { label: 'Leads',        icon: 'users',       route: '/admin/customers' },
-    { label: 'Members',      icon: 'user-plus',   route: '/admin/members' },
-    { label: 'Sales Tax',    icon: 'calculator',  route: '/admin/tax' },
-    { label: 'Settings',     icon: 'settings',    route: '/admin/settings' },
+    { label: 'Home',          icon: 'home',        route: '/admin' },
+    { label: 'Proposals',     icon: 'file-text',   route: '/admin/proposals' },
+    { label: 'Inventory',     icon: 'car',         route: '/admin/inventory' },
+    { label: 'Rivian Report', icon: 'zap',         route: '/admin/rivians' },
+    { label: 'Acquisitions',  icon: 'radar',       route: '/admin/acquisitions' },
+    { label: 'Leads',         icon: 'users',       route: '/admin/customers' },
+    { label: 'Members',       icon: 'user-plus',   route: '/admin/members' },
+    { label: 'Sales Tax',     icon: 'calculator',  route: '/admin/tax' },
+    { label: 'Settings',      icon: 'settings',    route: '/admin/settings' },
   ];
 
   loginError = signal('');

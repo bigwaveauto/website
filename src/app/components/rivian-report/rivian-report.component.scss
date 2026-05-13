@@ -1,0 +1,188 @@
+$green: #16a34a;
+$dark: #0f172a;
+$text: #1e293b;
+$muted: #64748b;
+$border: rgba(0,0,0,0.09);
+$hv: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+.rr-page { min-height: 100vh; background: #f8fafc; }
+
+/* ── Hero ── */
+.rr-hero {
+  background: $dark;
+  padding: 64px 24px 48px;
+  text-align: center;
+}
+.rr-hero-inner { max-width: 640px; margin: 0 auto; }
+.rr-hero-badge {
+  display: inline-block; background: $green; color: white;
+  font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  padding: 4px 12px; border-radius: 20px; margin-bottom: 20px;
+}
+.rr-hero-title {
+  font-size: clamp(36px, 6vw, 60px); font-weight: 900; color: white;
+  letter-spacing: -2px; margin: 0 0 16px; font-family: $hv;
+}
+.rr-hero-sub {
+  font-size: 17px; color: rgba(255,255,255,0.65); line-height: 1.6; margin: 0;
+}
+
+/* ── Filters ── */
+.rr-filters {
+  background: white; border-bottom: 1px solid $border;
+  padding: 16px 24px; position: sticky; top: 0; z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.rr-filters-inner {
+  max-width: 960px; margin: 0 auto;
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+}
+.rr-select {
+  padding: 9px 12px; border: 1.5px solid $border; border-radius: 10px;
+  font-size: 13px; font-family: inherit; color: $text; background: white; outline: none;
+  &:focus { border-color: $green; }
+}
+.rr-count { font-size: 12px; color: $muted; margin-left: auto; }
+
+/* ── Content ── */
+.rr-content { max-width: 960px; margin: 0 auto; padding: 32px 24px 64px; }
+
+.rr-empty { text-align: center; padding: 80px 24px; color: $muted; font-size: 16px; }
+
+/* ── Grid ── */
+.rr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+/* ── Card ── */
+.rr-card {
+  background: white; border-radius: 16px; border: 1.5px solid $border;
+  overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: box-shadow 0.15s, transform 0.15s;
+  &:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.1); transform: translateY(-2px); }
+}
+
+.rr-card-photo {
+  position: relative; height: 180px; background: #e2e8f0; overflow: hidden;
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+}
+.rr-card-photo-placeholder {
+  display: flex; align-items: center; justify-content: center; height: 100%;
+  svg { width: 48px; height: 48px; color: #94a3b8; }
+}
+.rr-card-model-badge {
+  position: absolute; top: 12px; left: 12px;
+  background: $dark; color: white; font-size: 11px; font-weight: 800;
+  padding: 3px 10px; border-radius: 6px; letter-spacing: 0.5px;
+}
+
+.rr-card-body { padding: 18px; }
+
+.rr-card-title {
+  font-size: 16px; font-weight: 800; color: $text; margin-bottom: 8px;
+}
+.rr-card-specs {
+  display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px; color: $muted;
+  margin-bottom: 10px;
+  span + span::before { content: '·'; margin-right: 8px; }
+}
+.rr-card-notes {
+  font-size: 12px; color: $muted; line-height: 1.5; margin-bottom: 12px;
+  background: #f8fafc; padding: 8px 10px; border-radius: 8px;
+}
+
+.rr-card-price-row { margin-top: 14px; }
+
+/* Blurred price */
+.rr-card-price-blurred { margin-bottom: 10px; }
+.rr-blur-price {
+  display: block; font-size: 24px; font-weight: 900; font-family: $hv;
+  color: transparent; text-shadow: 0 0 12px rgba(0,0,0,0.35);
+  filter: blur(6px); user-select: none; margin-bottom: 2px;
+}
+.rr-blur-label { font-size: 11px; color: $muted; }
+
+.rr-unlock-btn {
+  width: 100%; padding: 12px; background: $dark; color: white;
+  border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+  font-family: inherit; cursor: pointer; transition: background 0.15s;
+  &:hover { background: #1e293b; }
+}
+
+/* Revealed price */
+.rr-card-price-revealed { margin-bottom: 10px; }
+.rr-price {
+  display: block; font-size: 26px; font-weight: 900; font-family: $hv;
+  color: $green; letter-spacing: -1px;
+}
+.rr-price-sub { display: block; font-size: 12px; color: $muted; margin-top: 2px; }
+.rr-unlocked-msg {
+  font-size: 12px; color: $green; font-weight: 600; margin-top: 8px;
+  padding: 8px 10px; background: #dcfce7; border-radius: 8px; line-height: 1.4;
+}
+
+/* ── Unlock Modal ── */
+.rr-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+}
+.rr-modal {
+  background: white; border-radius: 20px; padding: 32px;
+  width: 100%; max-width: 440px; position: relative;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+}
+.rr-modal-close {
+  position: absolute; top: 16px; right: 16px;
+  background: none; border: none; font-size: 18px; color: $muted; cursor: pointer;
+  &:hover { color: $text; }
+}
+.rr-modal-vehicle {
+  font-size: 12px; font-weight: 700; color: $green; text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 6px;
+}
+.rr-modal-title { font-size: 24px; font-weight: 900; color: $text; margin: 0 0 8px; }
+.rr-modal-sub { font-size: 14px; color: $muted; margin: 0 0 24px; line-height: 1.5; }
+
+/* Form */
+.rr-form { display: flex; flex-direction: column; gap: 16px; }
+.rr-field {
+  display: flex; flex-direction: column; gap: 6px;
+  label { font-size: 12px; font-weight: 700; color: $muted; text-transform: uppercase; letter-spacing: 0.5px; }
+  input[type="text"], input[type="email"], input[type="tel"] {
+    padding: 11px 14px; border: 1.5px solid $border; border-radius: 10px;
+    font-size: 14px; font-family: inherit; color: $text; outline: none;
+    &:focus { border-color: $green; }
+  }
+}
+.rr-optional { font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+/* Mindset pills */
+.rr-mindset { display: flex; flex-wrap: wrap; gap: 8px; }
+.rr-mindset-opt {
+  padding: 8px 14px; border: 1.5px solid $border; border-radius: 20px;
+  font-size: 13px; cursor: pointer; transition: all 0.12s;
+  input[type="radio"] { display: none; }
+  &:hover { border-color: $green; color: $green; }
+  &.selected { background: $green; color: white; border-color: $green; font-weight: 700; }
+}
+
+.rr-form-error { font-size: 13px; color: #dc2626; padding: 8px 12px; background: #fef2f2; border-radius: 8px; }
+
+.rr-submit-btn {
+  padding: 14px; background: $green; color: white; border: none; border-radius: 12px;
+  font-size: 16px; font-weight: 800; font-family: inherit; cursor: pointer;
+  transition: background 0.15s;
+  &:hover:not(:disabled) { background: #15803d; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+/* Done state */
+.rr-modal-done { text-align: center; padding: 16px 0; }
+.rr-modal-done-icon {
+  width: 64px; height: 64px; background: $green; color: white;
+  border-radius: 50%; font-size: 28px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+}
+.rr-modal-done h2 { font-size: 28px; font-weight: 900; margin: 0 0 12px; }
+.rr-modal-done p { font-size: 15px; color: $muted; line-height: 1.6; margin: 0; }
