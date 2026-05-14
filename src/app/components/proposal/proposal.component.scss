@@ -648,63 +648,56 @@ $hv: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .fin-est-section {
-  margin: 16px -24px -24px;
-  padding: 18px 24px 24px;
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
-  border-radius: 0 0 20px 20px;
-  @media (max-width: 1024px) { margin: 16px -20px -20px; padding: 18px 20px 20px; border-radius: 0; }
+  margin-top: 16px;
 }
 
-.fin-est-title {
-  font-size: 11px; font-weight: 800; letter-spacing: 0.8px;
-  text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px;
-}
-
-.fin-est-hint {
-  font-size: 11.5px; color: rgba(255,255,255,0.4); margin-bottom: 14px; line-height: 1.4;
+.fin-est-inputs {
+  background: #f8fafc; border: 1px solid $border; border-radius: 12px;
+  padding: 14px; margin-bottom: 12px;
 }
 
 .fin-est-fields {
-  display: flex; gap: 8px; margin-bottom: 16px;
+  display: flex; gap: 8px;
 }
 
 .fin-est-field {
   flex: 1;
-  label { display: block; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+  label { display: block; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
   &.fin-est-field-full { flex: none; width: 100%; margin-bottom: 8px; }
 }
 
 .fin-est-input-wrap {
-  display: flex; align-items: center; gap: 0;
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 8px; overflow: hidden;
+  display: flex; align-items: center;
+  background: white; border: 1.5px solid #e2e8f0; border-radius: 8px; overflow: hidden;
+  &:focus-within { border-color: $blue; }
 }
 
 .fin-est-prefix, .fin-est-suffix {
-  padding: 0 8px; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4);
-  background: rgba(255,255,255,0.05); white-space: nowrap;
+  padding: 0 8px; font-size: 12px; font-weight: 700; color: #94a3b8;
+  background: #f1f5f9; white-space: nowrap;
 }
 
 .fin-est-input {
   flex: 1; min-width: 0; padding: 8px 8px;
   background: transparent; border: none; outline: none;
-  font-size: 14px; font-weight: 700; color: white; text-align: center;
+  font-size: 14px; font-weight: 700; color: #1e293b; text-align: center;
   font-family: inherit;
   &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 }
 
-.fin-est-result {
-  text-align: center;
+.fin-est-result-card {
+  background: #1e293b; border-radius: 12px;
+  padding: 16px; text-align: center; margin-bottom: 12px;
 }
 
 .fin-est-financed {
-  font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 8px;
-  strong { color: rgba(255,255,255,0.8); }
+  font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px;
+  strong { color: rgba(255,255,255,0.85); }
 }
 
 .fin-est-monthly {
   font-size: 42px; font-weight: 900; color: #38bdf8; line-height: 1;
-  margin-bottom: 6px; font-family: $hv;
+  margin-bottom: 4px; font-family: $hv;
 }
 
 .fin-est-per {
@@ -712,7 +705,7 @@ $hv: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .fin-est-disclaimer {
-  font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.2px;
+  font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.2px; margin-top: 6px;
 }
 
 /* ── Chat Widget ── */
