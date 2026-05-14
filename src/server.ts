@@ -35,7 +35,7 @@ const supabase = createClient(
 const resend = new Resend(process.env['RESEND_API_KEY']);
 const NOTIFY_EMAIL = 'dave@bigwaveauto.com';
 const DEALERCENTER_EMAIL = '18548085@leadsprod.dealercenter.net';
-const DEALERCENTER_API_TOKEN = process.env['DEALERCENTER_API_TOKEN'] || '0780465a-a7a8-896a-ad39-bd7908aba13e';
+const DEALERCENTER_API_TOKEN = process.env['DEALERCENTER_API_TOKEN'] || '3b6e8c4f-03fa-478b-9c0b-224e85431aad';
 const DEALERCENTER_DEALER_ID = process.env['DEALERCENTER_DEALER_ID'] || 'NOWCOM';
 const FROM_EMAIL = process.env['FROM_EMAIL'] || 'onboarding@resend.dev';
 
