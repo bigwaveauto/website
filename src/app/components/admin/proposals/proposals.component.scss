@@ -982,8 +982,21 @@ $hv: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .prop-veh-title { font-size: 16px; font-weight: 800; color: #1e293b; line-height: 1.3; }
-.prop-veh-vin { font-size: 10px; color: #94a3b8; font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 0.5px; }
 .prop-veh-specs { font-size: 12px; color: #64748b; line-height: 1.5; }
+
+.prop-veh-vin-row { display: flex; align-items: center; gap: 4px; margin: 3px 0; }
+.prop-veh-vin-input {
+  flex: 1; min-width: 0; padding: 3px 7px;
+  font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 0.5px;
+  color: #475569; border: 1.5px solid $border; border-radius: 5px; outline: none;
+  &:focus { border-color: $blue; color: #1e293b; }
+}
+.prop-veh-vin-copy {
+  flex-shrink: 0; padding: 3px 5px; border: none; background: transparent; cursor: pointer;
+  color: #94a3b8; border-radius: 4px;
+  lucide-icon { width: 13px; height: 13px; }
+  &:hover { background: #f1f5f9; color: $blue; }
+}
 
 .prop-veh-mi-row { display: flex; align-items: center; gap: 6px; }
 .prop-veh-mi-input {

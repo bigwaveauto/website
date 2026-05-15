@@ -195,7 +195,13 @@
         <!-- Box 1: Vehicle -->
         <div class="prop-top-box prop-box-vehicle">
           <div class="prop-veh-title">{{ vehicleName(s) }}</div>
-          <div class="prop-veh-vin">{{ s.vin }}</div>
+          <div class="prop-veh-vin-row">
+            <input class="prop-veh-vin-input" [(ngModel)]="s.vin"
+              (change)="onVinChange(s)" placeholder="VIN" maxlength="17" spellcheck="false" />
+            <button class="prop-veh-vin-copy" (click)="copyVin(s)" title="Copy VIN">
+              <lucide-icon name="copy" />
+            </button>
+          </div>
           @if(vehicleSpecs(s)){<div class="prop-veh-specs">{{ vehicleSpecs(s) }}</div>}
           <div class="prop-veh-mi-row">
             <input class="prop-veh-mi-input" type="number"

@@ -470,6 +470,15 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
     this.autosave(s);
   }
 
+  onVinChange(s: any) {
+    this.loadStrategy(s.vin);
+    this.autosave(s);
+  }
+
+  copyVin(s: any) {
+    navigator.clipboard.writeText(s.vin || '').catch(() => {});
+  }
+
   cashAtDelivery(s: any): number {
     return Math.max(0, this.totalOTD(s) - (s.security_deposit || 0));
   }
@@ -709,6 +718,7 @@ export class AdminProposalsComponent implements OnInit, OnDestroy {
       profit_target: s.profit_target ?? null,
       security_deposit: s.security_deposit || 0,
       rivian_specs: s.rivian_specs || {},
+      vin: s.vin || null,
     }).subscribe({
       next: () => {
         this.saving.set(false);
