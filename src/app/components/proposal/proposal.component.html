@@ -31,48 +31,6 @@
     <!-- Below photo -->
     <div class="prop-below">
 
-      <!-- History & Condition -->
-      @if((cr.overall_grade && !isExcluded('grade')) || cr.announcements?.length || visibleDamage().length){
-      <div class="prop-section">
-        <h2 class="prop-heading">History and Condition</h2>
-        <div class="prop-history-grid">
-          @if(cr.overall_grade && !isExcluded('grade')){
-          <div class="prop-history-card">
-            <div class="prop-history-card-header">
-              <span class="prop-history-card-title">Condition Grade</span>
-              <span class="prop-history-badge"><lucide-icon name="shield-check" /> Inspected</span>
-            </div>
-            <div class="prop-history-card-body">
-              <div class="prop-grade">{{ cr.overall_grade }}</div>
-            </div>
-          </div>}
-
-          @if(cr.announcements?.length && !isExcluded('announcements')){
-          <div class="prop-history-card">
-            <div class="prop-history-card-header">
-              <span class="prop-history-card-title">Announcements</span>
-            </div>
-            <div class="prop-history-card-body">
-              @for(a of cr.announcements; track $index){
-              <div class="prop-check-item">
-                <lucide-icon name="info" class="prop-check-icon prop-check-info" />
-                <span>{{ a }}</span>
-              </div>}
-            </div>
-          </div>}
-        </div>
-
-        @if(visibleDamage().length){
-        <div class="prop-damage-section">
-          <h3 class="prop-sub-heading">Condition Notes</h3>
-          @for(d of visibleDamage(); track $index){
-          <div class="prop-damage-item">
-            <lucide-icon name="alert-triangle" class="prop-damage-icon" />
-            <span>{{ d }}</span>
-          </div>}
-        </div>}
-      </div>}
-
       <!-- Carfax Report -->
       @if(p.carfax_url){
       <div class="prop-section">
@@ -97,13 +55,6 @@
         }
       </div>
       }
-
-      <!-- Tires -->
-      @if(cr.tires && !isExcluded('tires')){
-      <div class="prop-section">
-        <h2 class="prop-heading">Tires</h2>
-        <p class="prop-text">{{ cr.tires }}</p>
-      </div>}
 
       <!-- Notes from dealer -->
       @if(p.custom_notes){
