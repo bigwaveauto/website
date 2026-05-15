@@ -2329,7 +2329,7 @@ app.post('/api/proposal/:id/feedback', async (req, res) => {
     const { interest, reason } = req.body;
     const { data: proposal } = await supabase
       .from('vehicle_proposals')
-      .select('id, feedback')
+      .select('id, feedback, vin, customer_name, vehicle')
       .eq('id', req.params['id'])
       .maybeSingle();
     if (!proposal) { res.status(404).json({ error: 'Not found' }); return; }
@@ -2342,6 +2342,30 @@ app.post('/api/proposal/:id/feedback', async (req, res) => {
     };
     const feedback = [...existing, newEntry];
     await supabase.from('vehicle_proposals').update({ feedback }).eq('id', req.params['id']);
+
+    // Email notification
+    const emoji = interest === 'yes' ? '👍' : interest === 'no' ? '👎' : '😐';
+    const label = interest === 'yes' ? 'Loves it' : interest === 'no' ? 'Not interested' : 'On the fence';
+    const v = proposal.vehicle || {};
+    const vehicleStr = [v.year, v.make, v.model, v.trim].filter(Boolean).join(' ') || proposal.vin || 'Unknown vehicle';
+    const customerStr = proposal.customer_name || 'Someone';
+    const proposalUrl = `https://bigwaveauto.com/admin/proposals?open=${proposal.id}`;
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: [NOTIFY_EMAIL],
+      subject: `${emoji} ${customerStr} reacted to their proposal — ${label}`,
+      html: `
+        <h2 style="margin:0 0 12px">${emoji} Proposal Feedback</h2>
+        <table style="border-collapse:collapse;font-size:15px">
+          <tr><td style="padding:4px 12px 4px 0;color:#64748b">Customer</td><td><b>${escHtml(customerStr)}</b></td></tr>
+          <tr><td style="padding:4px 12px 4px 0;color:#64748b">Vehicle</td><td>${escHtml(vehicleStr)}</td></tr>
+          <tr><td style="padding:4px 12px 4px 0;color:#64748b">Reaction</td><td><b>${emoji} ${escHtml(label)}</b></td></tr>
+          ${reason ? `<tr><td style="padding:4px 12px 4px 0;color:#64748b">Note</td><td>${escHtml(reason)}</td></tr>` : ''}
+        </table>
+        <p style="margin:20px 0 0"><a href="${proposalUrl}" style="background:#2563eb;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700">Open Proposal →</a></p>
+      `,
+    }).catch((err: any) => console.error('Feedback email error:', err));
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to save feedback' });

@@ -706,69 +706,6 @@
             </div>
           </div>
 
-          <!-- RIVIAN BUILD SHEET -->
-          @if(s.vehicle?.make?.toLowerCase() === 'rivian' || s.rivian_specs){
-          <div class="prop-field prop-rivian-specs" style="padding:10px 14px 14px">
-            <label class="prop-rivian-label">Rivian Build Sheet</label>
-            <div class="prop-rivian-grid">
-
-              <div class="prop-rivian-field">
-                <label>Motor</label>
-                <select [(ngModel)]="s.rivian_specs.motor" (ngModelChange)="autosave(s)">
-                  <option value="">— Select —</option>
-                  <option>Dual Motor</option>
-                  <option>Tri Motor</option>
-                  <option>Quad Motor</option>
-                </select>
-              </div>
-
-              <div class="prop-rivian-field">
-                <label>Battery Pack</label>
-                <select [(ngModel)]="s.rivian_specs.battery_pack" (ngModelChange)="autosave(s)">
-                  <option value="">— Select —</option>
-                  <option>Standard</option>
-                  <option>Large</option>
-                  <option>Large Plus</option>
-                  <option>Max</option>
-                </select>
-              </div>
-
-              <div class="prop-rivian-field">
-                <label>Wheel Size</label>
-                <select [(ngModel)]="s.rivian_specs.wheel_size" (ngModelChange)="autosave(s)">
-                  <option value="">— Select —</option>
-                  <option>Road 21"</option>
-                  <option>Sport Bright 22"</option>
-                  <option>Sport Dark 22"</option>
-                  <option>All-Terrain 20" Bright</option>
-                  <option>All-Terrain 20" Dark</option>
-                  <option>All-Terrain 20" Standard</option>
-                </select>
-              </div>
-
-              <div class="prop-rivian-field">
-                <label>Performance Upgrade</label>
-                <select [(ngModel)]="s.rivian_specs.performance_upgrade" (ngModelChange)="autosave(s)">
-                  <option value="">— Select —</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </div>
-
-              <div class="prop-rivian-field">
-                <label>B2B Warranty Remaining</label>
-                <input type="text" [(ngModel)]="s.rivian_specs.warranty_btb" (ngModelChange)="autosave(s)" placeholder="e.g. 2 yrs 4 mo" />
-              </div>
-
-              <div class="prop-rivian-field">
-                <label>Battery Warranty Remaining</label>
-                <input type="text" [(ngModel)]="s.rivian_specs.warranty_battery" (ngModelChange)="autosave(s)" placeholder="e.g. 6 yrs 8 mo" />
-              </div>
-
-            </div>
-          </div>
-          }
-
           <!-- CUSTOM NOTES -->
           <div class="prop-field" style="padding:10px 14px 14px">
             <label>Notes to Customer</label>
