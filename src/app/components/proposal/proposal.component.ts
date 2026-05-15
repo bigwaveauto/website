@@ -3,6 +3,7 @@ import { CommonModule, SlicePipe, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
@@ -15,6 +16,7 @@ import { LucideAngularModule } from 'lucide-angular';
 export class ProposalComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
+  private sanitizer = inject(DomSanitizer);
   private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   proposal = signal<any>(null);
@@ -68,6 +70,10 @@ export class ProposalComponent implements OnInit, OnDestroy {
   get financingUrl(): string {
     const id = this.proposal()?.id;
     return id ? `/financing?proposal=${id}` : '/financing';
+  }
+
+  safeCarfaxUrl(): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(this.proposal()?.carfax_url || '');
   }
 
   // Question modal

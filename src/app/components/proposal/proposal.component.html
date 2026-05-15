@@ -41,6 +41,7 @@
           </div>
           <a [href]="p.carfax_url" target="_blank" class="prop-carfax-view-btn">View Report →</a>
         </div>
+        <iframe class="prop-carfax-embed" [src]="safeCarfaxUrl()" frameborder="0"></iframe>
       </div>
       }
 
