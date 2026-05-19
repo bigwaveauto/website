@@ -1299,6 +1299,57 @@
     return true; // keep channel open for async sendResponse
   });
 
+  // Upload ADESA photos from browser context (has auth cookies) to server → Supabase permanent URLs.
+  // Runs in background; updates scan data with permanent URLs when done.
+  async function uploadAdesaPhotosInBackground(photoUrls, vin) {
+    try {
+      const stored = await new Promise(resolve => chrome.storage.local.get(['serverUrl', 'apiKey'], resolve));
+      const serverUrl = (stored.serverUrl || 'https://bigwaveauto.com').replace(/\/+$/, '');
+      const apiKey = stored.apiKey;
+      if (!apiKey) return;
+
+      const permanent = [];
+      for (let i = 0; i < Math.min(photoUrls.length, 20); i++) {
+        try {
+          const imgRes = await fetch(photoUrls[i]); // browser context → has ADESA session cookies
+          if (!imgRes.ok) continue;
+          const ct = imgRes.headers.get('content-type') || '';
+          if (!ct.startsWith('image/')) continue;
+          const blob = await imgRes.blob();
+          if (blob.size < 2000) continue;
+
+          const form = new FormData();
+          form.append('photo', blob, `photo_${i}.jpg`);
+          form.append('storageKey', vin);
+
+          const uploadRes = await fetch(`${serverUrl}/api/ext/photo-upload`, {
+            method: 'POST',
+            headers: { 'X-API-Key': apiKey },
+            body: form,
+          });
+          if (uploadRes.ok) {
+            const { url } = await uploadRes.json();
+            permanent.push(url);
+          }
+        } catch (e) {}
+      }
+
+      if (permanent.length === 0) return;
+      console.log('[BWA] Uploaded', permanent.length, 'ADESA photos to Supabase');
+
+      // Update scan data with permanent URLs
+      const key = `bwa_scan_${vin}`;
+      const result = await new Promise(resolve => chrome.storage.local.get([key], resolve));
+      const data = result[key];
+      if (!data) return;
+      data.photos = permanent;
+      try { chrome.storage.local.set({ [key]: data, bwa_last_scan: data }); } catch (e) {}
+      try { chrome.runtime.sendMessage({ action: 'scanReady', data }).catch(() => {}); } catch (e) {}
+    } catch (e) {
+      console.warn('[BWA] Background photo upload failed:', e.message);
+    }
+  }
+
   // Listen for photo URLs relayed from adesa-interceptor.js (manifest MAIN-world script).
   // Accumulate across multiple API calls (gallery may load in batches).
   window.addEventListener('__bwa_photos__', (e) => {
@@ -1316,7 +1367,9 @@
       data.photos = merged;
       try { chrome.storage.local.set({ [key]: data, bwa_last_scan: data }); } catch (e) {}
       try { chrome.runtime.sendMessage({ action: 'scanReady', data }).catch(() => {}); } catch (e) {}
-      console.log('[BWA] Scan now has', merged.length, 'photos for', vin);
+      console.log('[BWA] Scan now has', merged.length, 'photos for', vin, '— uploading to Supabase...');
+      // Upload in background using browser's auth cookies
+      uploadAdesaPhotosInBackground(merged, vin);
     });
   });
 

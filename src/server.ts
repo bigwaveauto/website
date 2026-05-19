@@ -2203,6 +2203,29 @@ app.post('/api/ext/manheim-photos', async (req, res) => {
 /**
  * Proposals — create from extension CR data
  */
+
+// Extension uploads an image blob (fetched in browser context with auth cookies) → stores in Supabase → returns permanent URL
+app.post('/api/ext/photo-upload', upload.single('photo'), async (req: any, res) => {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== process.env['BWA_EXT_API_KEY']) {
+    res.status(401).json({ error: 'Unauthorized' }); return;
+  }
+  try {
+    if (!req.file) { res.status(400).json({ error: 'No file' }); return; }
+    const storageKey = (req.body.storageKey || 'ext_upload').replace(/[^a-zA-Z0-9_\-]/g, '_');
+    const contentType = req.file.mimetype || 'image/jpeg';
+    if (!contentType.startsWith('image/')) { res.status(400).json({ error: 'Not an image' }); return; }
+    const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg';
+    const fileName = `${storageKey}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('vehicle-photos').upload(fileName, req.file.buffer, { contentType });
+    if (error) { res.status(500).json({ error: error.message }); return; }
+    const { data } = supabase.storage.from('vehicle-photos').getPublicUrl(fileName);
+    res.json({ url: data.publicUrl });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/api/ext/proposal', async (req, res) => {
   const apiKey = req.headers['x-api-key'];
   if (!apiKey || apiKey !== process.env['BWA_EXT_API_KEY']) {
@@ -2256,10 +2279,13 @@ app.post('/api/ext/proposal', async (req, res) => {
       .limit(1)
       .maybeSingle();
 
-    // Rehost ADESA/OpenLane photos — their CDN URLs require auth and expire
+    // Rehost ADESA/OpenLane photos — their CDN URLs require auth and expire.
+    // If the content script already uploaded them (photos are Supabase URLs), skip rehosting.
     const isAdesa = (page_type || '').includes('adesa') || (page_type || '').includes('openlane');
+    const supabaseHost = process.env['SUPABASE_URL'] ? new URL(process.env['SUPABASE_URL']).host : 'supabase.co';
+    const alreadyRehosted = photos?.length > 0 && photos.every((p: string) => p.includes(supabaseHost));
     const adesaReferer = source_url || 'https://www.openlane.com/';
-    const finalPhotos = (isAdesa && photos?.length)
+    const finalPhotos = (isAdesa && photos?.length && !alreadyRehosted)
       ? await rehostPhotos(photos, vin, adesaReferer)
       : (photos || []);
 
