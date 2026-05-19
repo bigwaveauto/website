@@ -272,7 +272,18 @@ chrome.runtime.onMessage.addListener((msg) => {
 // On popup open — auto-load last cached scan for current tab
 (async () => {
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [[tab], allTabs] = await Promise.all([
+      chrome.tabs.query({ active: true, currentWindow: true }),
+      chrome.tabs.query({}),
+    ]);
+
+    // Show batch import button whenever FB marketplace tabs are open (any page)
+    const fbTabs = allTabs.filter(t => isFbMarketplaceItem(t.url));
+    if (fbTabs.length > 0) {
+      $('fbBatchBtn').style.display = 'flex';
+      $('fbBatchBtn').textContent = `📘 Import All ${fbTabs.length} FB Tab${fbTabs.length !== 1 ? 's' : ''} → Proposals`;
+    }
+
     if (!isSupportedUrl(tab?.url)) return;
 
     const vinMatch = tab.url.match(/[#/]([A-HJ-NPR-Z0-9]{17})(?:[/?#]|$)/i) ||
@@ -408,7 +419,96 @@ $('mmrBtn').addEventListener('click', async () => {
   }
 });
 
-// ── Facebook Marketplace Import ──
+// ── Shared FB Marketplace scraper (injected into page context via executeScript) ──
+function fbPageScraper() {
+  function vinOk(vin) {
+    const v = String(vin).toUpperCase();
+    if (v.length !== 17) return false;
+    const map = {A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:1,K:2,L:3,M:4,N:5,P:7,R:9,S:2,T:3,U:4,V:5,W:6,X:7,Y:8,Z:9};
+    const weights = [8,7,6,5,4,3,2,10,0,9,8,7,6,5,4,3,2];
+    let sum = 0;
+    for (let i = 0; i < 17; i++) {
+      const c = v[i];
+      sum += (isNaN(c) ? (map[c] || 0) : parseInt(c)) * weights[i];
+    }
+    const rem = sum % 11;
+    return v[8] === (rem === 10 ? 'X' : String(rem));
+  }
+
+  const url = window.location.href;
+  const listingIdMatch = url.match(/marketplace\/item\/(\d+)/);
+  const listingId = listingIdMatch?.[1] || String(Date.now());
+
+  let title = document.querySelector('meta[property="og:title"]')?.content || '';
+  let description = '';
+  let price = null;
+  const photos = [];
+  const seen = new Set();
+
+  const ogImg = document.querySelector('meta[property="og:image"]')?.content || '';
+  if (ogImg && !seen.has(ogImg)) { photos.push(ogImg); seen.add(ogImg); }
+
+  for (const s of document.querySelectorAll('script')) {
+    const text = s.textContent || '';
+    if (!text.includes('scontent') || text.length < 200) continue;
+
+    const matches = [...text.matchAll(/"uri"\s*:\s*"(https:\\?\/\\?\/scontent[^"\\]*(?:\\.[^"\\]*)*)"/g)];
+    for (const m of matches) {
+      const imgUrl = m[1].replace(/\\u002F/g, '/').replace(/\\n/g, '').replace(/\\/g, '');
+      if (!seen.has(imgUrl) && photos.length < 30) { photos.push(imgUrl); seen.add(imgUrl); }
+    }
+
+    if (!description) {
+      const dm = text.match(/"description"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+      if (dm && dm[1].length > 20) description = dm[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\/g, '');
+    }
+
+    if (!price) {
+      const pm = text.match(/"formatted_amount"\s*:\s*"\$?([\d,]+)"/);
+      if (pm) price = parseInt(pm[1].replace(/,/g, ''));
+    }
+    if (!price) {
+      const pm2 = text.match(/"amount"\s*:\s*"(\d+)"/);
+      if (pm2) {
+        const raw = parseInt(pm2[1]);
+        price = raw > 100000 ? Math.round(raw / 100) : raw;
+      }
+    }
+
+    if (!title) {
+      const tm = text.match(/"marketplace_listing_item"[^{]*\{[^}]*"name"\s*:\s*"([^"]+)"/);
+      if (tm) title = tm[1];
+    }
+  }
+
+  if (photos.length <= 1) {
+    for (const img of document.querySelectorAll('img')) {
+      const src = img.src || '';
+      if (!src.includes('scontent') || seen.has(src)) continue;
+      if ((img.naturalWidth || img.width) >= 200) {
+        photos.push(src); seen.add(src);
+        if (photos.length >= 20) break;
+      }
+    }
+  }
+
+  let vin = null;
+  const textToSearch = title + ' ' + description;
+  const vinMatches = [...textToSearch.matchAll(/\b([A-HJ-NPR-Z0-9]{17})\b/gi)];
+  for (const m of vinMatches) {
+    if (vinOk(m[1])) { vin = m[1].toUpperCase(); break; }
+  }
+
+  const yearMatch = title.match(/\b(19[89]\d|20[012]\d)\b/);
+  const year = yearMatch?.[0] || null;
+
+  const mileMatch = (description + ' ' + title).match(/(\d[\d,]*)\s*(?:miles?|mi(?:\b|$))/i);
+  const mileage = mileMatch ? parseInt(mileMatch[1].replace(/,/g, '')) : null;
+
+  return { listing_id: listingId, source: 'facebook', source_url: url, title, price, description, photos, vin, year, mileage, extracted_at: new Date().toISOString() };
+}
+
+// ── Facebook Marketplace Import (single tab) ──
 $('fbImportBtn').addEventListener('click', async () => {
   const serverUrl = ($('serverUrl').value || 'https://bigwaveauto.com').replace(/\/+$/, '');
   const apiKey = $('apiKey').value;
@@ -420,107 +520,7 @@ $('fbImportBtn').addEventListener('click', async () => {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-    // Inject scraping function into the FB page and collect data
-    const results = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: () => {
-        function vinOk(vin) {
-          const v = String(vin).toUpperCase();
-          if (v.length !== 17) return false;
-          const map = {A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:1,K:2,L:3,M:4,N:5,P:7,R:9,S:2,T:3,U:4,V:5,W:6,X:7,Y:8,Z:9};
-          const weights = [8,7,6,5,4,3,2,10,0,9,8,7,6,5,4,3,2];
-          let sum = 0;
-          for (let i = 0; i < 17; i++) {
-            const c = v[i];
-            sum += (isNaN(c) ? (map[c] || 0) : parseInt(c)) * weights[i];
-          }
-          const rem = sum % 11;
-          return v[8] === (rem === 10 ? 'X' : String(rem));
-        }
-
-        const url = window.location.href;
-        const listingIdMatch = url.match(/marketplace\/item\/(\d+)/);
-        const listingId = listingIdMatch?.[1] || String(Date.now());
-
-        let title = document.querySelector('meta[property="og:title"]')?.content || '';
-        let description = '';
-        let price = null;
-        const photos = [];
-        const seen = new Set();
-
-        // Primary image from OG tag
-        const ogImg = document.querySelector('meta[property="og:image"]')?.content || '';
-        if (ogImg && !seen.has(ogImg)) { photos.push(ogImg); seen.add(ogImg); }
-
-        // Extract all FB CDN image URIs from embedded script tags
-        for (const s of document.querySelectorAll('script')) {
-          const text = s.textContent || '';
-          if (!text.includes('scontent') || text.length < 200) continue;
-
-          // Match "uri":"https://scontent..." (standard and unicode-escaped forms)
-          const matches = [...text.matchAll(/"uri"\s*:\s*"(https:\\?\/\\?\/scontent[^"\\]*(?:\\.[^"\\]*)*)"/g)];
-          for (const m of matches) {
-            const imgUrl = m[1].replace(/\\u002F/g, '/').replace(/\\n/g, '').replace(/\\/g, '');
-            if (!seen.has(imgUrl) && photos.length < 30) { photos.push(imgUrl); seen.add(imgUrl); }
-          }
-
-          // Extract description
-          if (!description) {
-            const dm = text.match(/"description"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-            if (dm && dm[1].length > 20) description = dm[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\/g, '');
-          }
-
-          // Extract price
-          if (!price) {
-            const pm = text.match(/"formatted_amount"\s*:\s*"\$?([\d,]+)"/);
-            if (pm) price = parseInt(pm[1].replace(/,/g, ''));
-          }
-          if (!price) {
-            const pm2 = text.match(/"amount"\s*:\s*"(\d+)"/);
-            if (pm2) {
-              const raw = parseInt(pm2[1]);
-              price = raw > 100000 ? Math.round(raw / 100) : raw; // cents → dollars if needed
-            }
-          }
-
-          // Extract title from JSON if OG not available
-          if (!title) {
-            const tm = text.match(/"marketplace_listing_item"[^{]*\{[^}]*"name"\s*:\s*"([^"]+)"/);
-            if (tm) title = tm[1];
-          }
-        }
-
-        // DOM image fallback if script tags yielded nothing
-        if (photos.length <= 1) {
-          for (const img of document.querySelectorAll('img')) {
-            const src = img.src || '';
-            if (!src.includes('scontent') || seen.has(src)) continue;
-            if ((img.naturalWidth || img.width) >= 200) {
-              photos.push(src); seen.add(src);
-              if (photos.length >= 20) break;
-            }
-          }
-        }
-
-        // Extract VIN from title + description text
-        let vin = null;
-        const textToSearch = title + ' ' + description;
-        const vinMatches = [...textToSearch.matchAll(/\b([A-HJ-NPR-Z0-9]{17})\b/gi)];
-        for (const m of vinMatches) {
-          if (vinOk(m[1])) { vin = m[1].toUpperCase(); break; }
-        }
-
-        // Parse year from title
-        const yearMatch = title.match(/\b(19[89]\d|20[012]\d)\b/);
-        const year = yearMatch?.[0] || null;
-
-        // Parse mileage from description
-        const mileMatch = (description + ' ' + title).match(/(\d[\d,]*)\s*(?:miles?|mi(?:\b|$))/i);
-        const mileage = mileMatch ? parseInt(mileMatch[1].replace(/,/g, '')) : null;
-
-        return { listing_id: listingId, source: 'facebook', source_url: url, title, price, description, photos, vin, year, mileage, extracted_at: new Date().toISOString() };
-      },
-    });
+    const results = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: fbPageScraper });
 
     const fbData = results[0]?.result;
     if (!fbData) throw new Error('Scrape returned no data — try reloading the FB page first');
@@ -541,7 +541,6 @@ $('fbImportBtn').addEventListener('click', async () => {
     $('fbImportBtn').style.background = '#16a34a';
     showStatus(`Proposal created — ${result.photos ?? fbData.photos.length} photos imported.`, 'success');
 
-    // Open (or focus) admin proposals tab
     const adminUrl = result.id ? `${serverUrl}/admin/proposals?open=${result.id}` : `${serverUrl}/admin/proposals`;
     const allTabs = await chrome.tabs.query({});
     const adminTab = allTabs.find(t => t.url?.includes('/admin/proposals'));
@@ -553,6 +552,76 @@ $('fbImportBtn').addEventListener('click', async () => {
   } catch (err) {
     showStatus('Import failed: ' + err.message, 'error');
     $('fbImportBtn').disabled = false;
+  }
+});
+
+// ── Facebook Marketplace Batch Import (all open FB tabs) ──
+$('fbBatchBtn').addEventListener('click', async () => {
+  const serverUrl = ($('serverUrl').value || 'https://bigwaveauto.com').replace(/\/+$/, '');
+  const apiKey = $('apiKey').value;
+  if (!apiKey) { showStatus('Enter API key first.', 'error'); return; }
+
+  $('fbBatchBtn').disabled = true;
+
+  const allTabs = await chrome.tabs.query({});
+  const fbTabs = allTabs.filter(t => isFbMarketplaceItem(t.url));
+
+  if (!fbTabs.length) {
+    showStatus('No Facebook Marketplace listing tabs are open.', 'error');
+    $('fbBatchBtn').disabled = false;
+    return;
+  }
+
+  // Scrape each tab
+  const scraped = [];
+  for (let i = 0; i < fbTabs.length; i++) {
+    const tab = fbTabs[i];
+    showStatus(`Scraping tab ${i + 1} of ${fbTabs.length}...`, 'working');
+    try {
+      const results = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: fbPageScraper });
+      const data = results[0]?.result;
+      if (data?.photos?.length) scraped.push(data);
+    } catch (e) {
+      // Skip tabs that can't be scraped (not loaded, wrong page, etc.)
+    }
+  }
+
+  if (!scraped.length) {
+    showStatus('No data scraped — make sure all tabs are fully loaded FB Marketplace item pages.', 'error');
+    $('fbBatchBtn').disabled = false;
+    return;
+  }
+
+  // Submit each to server sequentially
+  let submitted = 0;
+  let lastId = null;
+  for (let i = 0; i < scraped.length; i++) {
+    showStatus(`Uploading ${i + 1} of ${scraped.length}...`, 'working');
+    try {
+      const resp = await fetch(`${serverUrl}/api/ext/fb-proposal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+        body: JSON.stringify(scraped[i]),
+      });
+      if (resp.ok) {
+        const result = await resp.json();
+        submitted++;
+        if (result.id) lastId = result.id;
+      }
+    } catch (e) {}
+  }
+
+  $('fbBatchBtn').textContent = `✓ ${submitted} of ${fbTabs.length} imported`;
+  $('fbBatchBtn').style.background = '#16a34a';
+  showStatus(`Done! ${submitted} proposal${submitted !== 1 ? 's' : ''} created from ${fbTabs.length} tabs.`, 'success');
+
+  const adminUrl = `${serverUrl}/admin/proposals`;
+  const adminTab = allTabs.find(t => t.url?.includes('/admin/proposals'));
+  if (adminTab) {
+    await chrome.tabs.update(adminTab.id, { active: true, url: adminUrl });
+    await chrome.tabs.reload(adminTab.id);
+  } else {
+    await chrome.tabs.create({ url: adminUrl, active: true });
   }
 });
 

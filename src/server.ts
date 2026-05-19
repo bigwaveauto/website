@@ -2258,8 +2258,9 @@ app.post('/api/ext/proposal', async (req, res) => {
 
     // Rehost ADESA/OpenLane photos — their CDN URLs require auth and expire
     const isAdesa = (page_type || '').includes('adesa') || (page_type || '').includes('openlane');
+    const adesaReferer = source_url || 'https://www.openlane.com/';
     const finalPhotos = (isAdesa && photos?.length)
-      ? await rehostPhotos(photos, vin, 'https://marketplace.adesa.com/')
+      ? await rehostPhotos(photos, vin, adesaReferer)
       : (photos || []);
 
     if (existing) {
@@ -2319,11 +2320,27 @@ async function rehostPhotos(photoUrls: string[], storageKey: string, referer = '
     const photoUrl = photoUrls[i];
     try {
       const imgRes = await fetch(photoUrl, {
-        headers: { 'Referer': referer, 'User-Agent': 'Mozilla/5.0' },
+        headers: {
+          'Referer': referer,
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+        },
+        redirect: 'follow',
       });
-      if (!imgRes.ok) continue;
+      if (!imgRes.ok) {
+        console.warn(`Photo ${i} fetch failed: ${imgRes.status} ${photoUrl.slice(0, 80)}`);
+        continue;
+      }
+      const contentType = imgRes.headers.get('content-type') || '';
+      if (!contentType.startsWith('image/')) {
+        console.warn(`Photo ${i} non-image response (${contentType}): ${photoUrl.slice(0, 80)}`);
+        continue;
+      }
       const buffer = Buffer.from(await imgRes.arrayBuffer());
-      const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+      if (buffer.length < 2000) {
+        console.warn(`Photo ${i} too small (${buffer.length}B), skipping: ${photoUrl.slice(0, 80)}`);
+        continue;
+      }
       const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg';
       const fileName = `${storageKey}/${Date.now()}_${i}.${ext}`;
 
@@ -2331,7 +2348,7 @@ async function rehostPhotos(photoUrls: string[], storageKey: string, referer = '
         .from('vehicle-photos')
         .upload(fileName, buffer, { contentType });
 
-      if (uploadError) { console.error('FB photo upload error:', uploadError); continue; }
+      if (uploadError) { console.error('Photo upload error:', uploadError); continue; }
 
       const { data: urlData } = supabase.storage
         .from('vehicle-photos')
@@ -2339,7 +2356,7 @@ async function rehostPhotos(photoUrls: string[], storageKey: string, referer = '
 
       uploaded.push(urlData.publicUrl);
     } catch (e) {
-      console.error(`Failed to rehost FB photo ${i}:`, e);
+      console.error(`Failed to rehost photo ${i}:`, e);
     }
   }
   return uploaded;
