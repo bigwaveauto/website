@@ -15,7 +15,9 @@
     "https://*.adesa.com/*",
     "https://*.openlane.com/*",
     "https://bigwaveauto.com/*",
-    "https://www.bigwaveauto.com/*"
+    "https://www.bigwaveauto.com/*",
+    "https://www.facebook.com/*",
+    "https://*.fbcdn.net/*"
   ],
   "action": {
     "default_popup": "popup.html",

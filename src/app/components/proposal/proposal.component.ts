@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, ElementRef, ViewChild, PLATFORM_ID } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, ElementRef, ViewChild, PLATFORM_ID } from '@angular/core';
 import { CommonModule, SlicePipe, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -72,9 +72,10 @@ export class ProposalComponent implements OnInit, OnDestroy {
     return id ? `/financing?proposal=${id}` : '/financing';
   }
 
-  safeCarfaxUrl(): SafeResourceUrl {
-    return this.sanitizer.bypassSecurityTrustResourceUrl(this.proposal()?.carfax_url || '');
-  }
+  safeCarfaxUrl = computed(() => {
+    const url = this.proposal()?.carfax_url;
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  });
 
   // Question modal
   showQuestion = signal(false);

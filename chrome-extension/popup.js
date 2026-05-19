@@ -6,7 +6,12 @@ const $ = (s) => document.getElementById(s);
 function isSupportedUrl(url) {
   if (!url) return false;
   return url.includes('manheim.com') || url.includes('insightcr') ||
-         url.includes('adesa.com') || url.includes('openlane.com');
+         url.includes('adesa.com') || url.includes('openlane.com') ||
+         isFbMarketplaceItem(url);
+}
+
+function isFbMarketplaceItem(url) {
+  return !!(url && url.includes('facebook.com/marketplace/item/'));
 }
 
 function vinCheckDigitValid(vin) {
@@ -286,6 +291,12 @@ chrome.runtime.onMessage.addListener((msg) => {
         $('rivianScanBtn').textContent = `🌿 ${stored.bwa_list_scan.listings.length} listings cached — Ingest Now`;
       }
     }
+
+    // Show FB import button on Facebook Marketplace item pages
+    if (isFbMarketplaceItem(tab.url)) {
+      $('scanBtn').style.display = 'none';
+      $('fbImportBtn').style.display = 'flex';
+    }
   } catch (e) {}
 })();
 
@@ -394,6 +405,154 @@ $('mmrBtn').addEventListener('click', async () => {
     showStatus(`MMR $${mmr.toLocaleString()} sent to appraisal tool.`, 'success');
   } catch (err) {
     showStatus('Failed to send MMR: ' + err.message, 'error');
+  }
+});
+
+// ── Facebook Marketplace Import ──
+$('fbImportBtn').addEventListener('click', async () => {
+  const serverUrl = ($('serverUrl').value || 'https://bigwaveauto.com').replace(/\/+$/, '');
+  const apiKey = $('apiKey').value;
+  if (!apiKey) { showStatus('Enter API key first.', 'error'); return; }
+
+  $('fbImportBtn').disabled = true;
+  showStatus('Scraping Facebook listing...', 'working');
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    // Inject scraping function into the FB page and collect data
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => {
+        function vinOk(vin) {
+          const v = String(vin).toUpperCase();
+          if (v.length !== 17) return false;
+          const map = {A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:1,K:2,L:3,M:4,N:5,P:7,R:9,S:2,T:3,U:4,V:5,W:6,X:7,Y:8,Z:9};
+          const weights = [8,7,6,5,4,3,2,10,0,9,8,7,6,5,4,3,2];
+          let sum = 0;
+          for (let i = 0; i < 17; i++) {
+            const c = v[i];
+            sum += (isNaN(c) ? (map[c] || 0) : parseInt(c)) * weights[i];
+          }
+          const rem = sum % 11;
+          return v[8] === (rem === 10 ? 'X' : String(rem));
+        }
+
+        const url = window.location.href;
+        const listingIdMatch = url.match(/marketplace\/item\/(\d+)/);
+        const listingId = listingIdMatch?.[1] || String(Date.now());
+
+        let title = document.querySelector('meta[property="og:title"]')?.content || '';
+        let description = '';
+        let price = null;
+        const photos = [];
+        const seen = new Set();
+
+        // Primary image from OG tag
+        const ogImg = document.querySelector('meta[property="og:image"]')?.content || '';
+        if (ogImg && !seen.has(ogImg)) { photos.push(ogImg); seen.add(ogImg); }
+
+        // Extract all FB CDN image URIs from embedded script tags
+        for (const s of document.querySelectorAll('script')) {
+          const text = s.textContent || '';
+          if (!text.includes('scontent') || text.length < 200) continue;
+
+          // Match "uri":"https://scontent..." (standard and unicode-escaped forms)
+          const matches = [...text.matchAll(/"uri"\s*:\s*"(https:\\?\/\\?\/scontent[^"\\]*(?:\\.[^"\\]*)*)"/g)];
+          for (const m of matches) {
+            const imgUrl = m[1].replace(/\\u002F/g, '/').replace(/\\n/g, '').replace(/\\/g, '');
+            if (!seen.has(imgUrl) && photos.length < 30) { photos.push(imgUrl); seen.add(imgUrl); }
+          }
+
+          // Extract description
+          if (!description) {
+            const dm = text.match(/"description"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+            if (dm && dm[1].length > 20) description = dm[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\/g, '');
+          }
+
+          // Extract price
+          if (!price) {
+            const pm = text.match(/"formatted_amount"\s*:\s*"\$?([\d,]+)"/);
+            if (pm) price = parseInt(pm[1].replace(/,/g, ''));
+          }
+          if (!price) {
+            const pm2 = text.match(/"amount"\s*:\s*"(\d+)"/);
+            if (pm2) {
+              const raw = parseInt(pm2[1]);
+              price = raw > 100000 ? Math.round(raw / 100) : raw; // cents → dollars if needed
+            }
+          }
+
+          // Extract title from JSON if OG not available
+          if (!title) {
+            const tm = text.match(/"marketplace_listing_item"[^{]*\{[^}]*"name"\s*:\s*"([^"]+)"/);
+            if (tm) title = tm[1];
+          }
+        }
+
+        // DOM image fallback if script tags yielded nothing
+        if (photos.length <= 1) {
+          for (const img of document.querySelectorAll('img')) {
+            const src = img.src || '';
+            if (!src.includes('scontent') || seen.has(src)) continue;
+            if ((img.naturalWidth || img.width) >= 200) {
+              photos.push(src); seen.add(src);
+              if (photos.length >= 20) break;
+            }
+          }
+        }
+
+        // Extract VIN from title + description text
+        let vin = null;
+        const textToSearch = title + ' ' + description;
+        const vinMatches = [...textToSearch.matchAll(/\b([A-HJ-NPR-Z0-9]{17})\b/gi)];
+        for (const m of vinMatches) {
+          if (vinOk(m[1])) { vin = m[1].toUpperCase(); break; }
+        }
+
+        // Parse year from title
+        const yearMatch = title.match(/\b(19[89]\d|20[012]\d)\b/);
+        const year = yearMatch?.[0] || null;
+
+        // Parse mileage from description
+        const mileMatch = (description + ' ' + title).match(/(\d[\d,]*)\s*(?:miles?|mi(?:\b|$))/i);
+        const mileage = mileMatch ? parseInt(mileMatch[1].replace(/,/g, '')) : null;
+
+        return { listing_id: listingId, source: 'facebook', source_url: url, title, price, description, photos, vin, year, mileage, extracted_at: new Date().toISOString() };
+      },
+    });
+
+    const fbData = results[0]?.result;
+    if (!fbData) throw new Error('Scrape returned no data — try reloading the FB page first');
+    if (!fbData.photos.length) throw new Error('No photos found — make sure you\'re on a Marketplace item page (not a search result)');
+
+    showStatus(`Found ${fbData.photos.length} photo(s) — uploading to server...`, 'working');
+
+    const resp = await fetch(`${serverUrl}/api/ext/fb-proposal`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+      body: JSON.stringify(fbData),
+    });
+
+    if (!resp.ok) throw new Error(`Server error ${resp.status}: ${await resp.text()}`);
+    const result = await resp.json();
+
+    $('fbImportBtn').textContent = '✓ Imported!';
+    $('fbImportBtn').style.background = '#16a34a';
+    showStatus(`Proposal created — ${result.photos ?? fbData.photos.length} photos imported.`, 'success');
+
+    // Open (or focus) admin proposals tab
+    const adminUrl = result.id ? `${serverUrl}/admin/proposals?open=${result.id}` : `${serverUrl}/admin/proposals`;
+    const allTabs = await chrome.tabs.query({});
+    const adminTab = allTabs.find(t => t.url?.includes('/admin/proposals'));
+    if (adminTab) {
+      await chrome.tabs.update(adminTab.id, { active: true, url: adminUrl });
+    } else {
+      await chrome.tabs.create({ url: adminUrl, active: true });
+    }
+  } catch (err) {
+    showStatus('Import failed: ' + err.message, 'error');
+    $('fbImportBtn').disabled = false;
   }
 });
 

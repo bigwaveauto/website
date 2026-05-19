@@ -822,99 +822,168 @@
   }
 
   function extractAdesaPhotos(vin) {
-    // Extension-required pattern for generic URLs
-    const photoExtRe = /https?:\/\/.+\.(jpg|jpeg|png|webp)/i;
-    // CDN domain pattern — no extension required (ADESA/Cox CDN serves extension-free URLs)
-    const adesaCdnRe = /https?:\/\/[^"'\s]*(?:adesa\.com|openlane\.com|coxautoinc\.com|cloudfront\.net|auctionaccess\.com|kbb\.com)[^"'\s<>]*/i;
-    const junkRe = /logo|icon|avatar|sprite|banner|placeholder|flag|badge|chevron|arrow|check|star|thumb(?!nail)|\.svg/i;
+    const junkRe = /logo|icon|avatar|sprite|banner|placeholder|flag|badge|chevron|arrow|check|star|\.svg|favicon|tracking|pixel|blank|carvana|vexgateway|carmax|autotrader|cars\.com/i;
+    const photoExtRe = /\.(jpg|jpeg|png|webp)(\?|$)/i;
+    const cdnRe = /adesa\.com|openlane\.com|coxautoinc\.com|cloudfront\.net|auctionaccess\.com|ipacket\.us|vehicleimages|s3\.amazonaws\.com|imgix\.net|kbb\.com/i;
 
     function isPhotoUrl(v) {
-      if (typeof v !== 'string' || !v.startsWith('http')) return false;
+      if (typeof v !== 'string' || v.length < 15 || !v.startsWith('http')) return false;
       if (junkRe.test(v)) return false;
-      return photoExtRe.test(v) || adesaCdnRe.test(v);
+      return photoExtRe.test(v) || cdnRe.test(v);
     }
 
-    // Walk the entire subtree and collect all string values that look like photo URLs
+    // Collect photo URLs from a JSON subtree (depth-limited)
     function collectPhotos(obj, out, depth = 0) {
-      if (!obj || depth > 10 || typeof obj !== 'object') return;
+      if (!obj || depth > 15 || typeof obj !== 'object') return;
       if (Array.isArray(obj)) {
         for (const item of obj) {
-          if (isPhotoUrl(item)) out.add(item.replace(/\?.*$/, ''));
+          if (isPhotoUrl(item)) out.add(item);
           else collectPhotos(item, out, depth + 1);
         }
         return;
       }
       for (const k of Object.keys(obj)) {
         const v = obj[k];
-        if (isPhotoUrl(v)) out.add(v.replace(/\?.*$/, ''));
+        if (isPhotoUrl(v)) out.add(v);
         else if (v && typeof v === 'object') collectPhotos(v, out, depth + 1);
       }
     }
 
-    // Walk JSON tree; when we find the vehicle object matching this VIN (with year/make
-    // alongside it), collect only from that node — not from the whole tree.
-    function findVehiclePhotos(obj, targetVin, out, depth = 0) {
-      if (!obj || depth > 10 || typeof obj !== 'object') return false;
-      const objVin = String(obj.vin || obj.VIN || obj.vehicleVin || '').toUpperCase();
-      if (objVin === targetVin && (obj.year || obj.modelYear || obj.make || obj.model)) {
-        collectPhotos(obj, out, 0);
-        return true;
+    // Walk JSON tree to find the node whose VIN matches, then collect only from it
+    function findVehicleNode(obj, targetVin, depth = 0) {
+      if (!obj || depth > 15 || typeof obj !== 'object') return null;
+      if (Array.isArray(obj)) {
+        for (const item of obj) {
+          const r = findVehicleNode(item, targetVin, depth + 1);
+          if (r) return r;
+        }
+        return null;
       }
+      const objVin = String(obj.vin || obj.VIN || obj.vehicleVin || obj.vehicleIdentificationNumber || '').toUpperCase();
+      if (objVin === targetVin) return obj;
       for (const k of Object.keys(obj)) {
-        if (findVehiclePhotos(obj[k], targetVin, out, depth + 1)) return true;
+        const r = findVehicleNode(obj[k], targetVin, depth + 1);
+        if (r) return r;
       }
-      return false;
+      return null;
     }
 
-    // Strategy 1: find the vehicle object in __NEXT_DATA__ by VIN and collect its photos
     const found = new Set();
-    for (const s of document.querySelectorAll('script')) {
-      const text = s.textContent || '';
-      const nd = text.match(/__NEXT_DATA__\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/)?.[1] ||
-                 text.match(/window\.__(?:PRELOADED_STATE|INITIAL_STATE|STATE)__\s*=\s*({[\s\S]+?});\s*(?:<\/script>|$)/)?.[1];
-      if (!nd) continue;
-      try {
-        if (findVehiclePhotos(JSON.parse(nd), vin.toUpperCase(), found)) break;
-      } catch (e) {}
-    }
-    if (found.size > 0) return [...found];
+    const vinUpper = vin.toUpperCase();
 
-    // Strategy 2: DOM — look for the tightest gallery container and grab images from it.
+    // ── Strategy 1: Parse <script id="__NEXT_DATA__">, find the exact VIN node ──
+    const nextDataEl = document.getElementById('__NEXT_DATA__');
+    console.log('[BWA] __NEXT_DATA__ element:', nextDataEl ? 'found' : 'MISSING');
+    if (nextDataEl) {
+      try {
+        const json = JSON.parse(nextDataEl.textContent);
+        console.log('[BWA] __NEXT_DATA__ parsed OK, top-level keys:', Object.keys(json));
+        const node = findVehicleNode(json, vinUpper);
+        console.log('[BWA] VIN node found in JSON:', !!node);
+        if (node) {
+          collectPhotos(node, found);
+          console.log('[BWA] S1-JSON photos:', found.size, [...found].slice(0, 2));
+          if (found.size > 0) return [...found];
+        }
+      } catch (e) {
+        console.log('[BWA] __NEXT_DATA__ parse error:', e.message);
+      }
+
+      // JSON parse failed or VIN node not found — VIN-filtered regex scan
+      const text = nextDataEl.textContent || '';
+      const hasVin = text.toUpperCase().includes(vinUpper);
+      console.log('[BWA] VIN in __NEXT_DATA__ text:', hasVin);
+      for (const m of text.matchAll(/"(https?:\/\/[^"\\]{15,})"/g)) {
+        const url = m[1].replace(/\\u002F/g, '/').replace(/\\n/g, '').replace(/\\/g, '');
+        if (url.toUpperCase().includes(vinUpper) && isPhotoUrl(url)) found.add(url);
+      }
+      console.log('[BWA] S1-regex VIN-filtered photos:', found.size);
+      if (found.size > 0) return [...found];
+    }
+
+    // ── Strategy 2: DOM gallery — log all candidates to understand page structure ──
     const galSels = [
-      '[data-testid*="photo"],[data-testid*="gallery"],[data-testid*="image-viewer"]',
+      '[data-testid*="photo"],[data-testid*="gallery"],[data-testid*="image-viewer"],[data-testid*="carousel"]',
       '[class*="photo-viewer"],[class*="photoViewer"],[class*="image-viewer"],[class*="imageViewer"]',
       '[class*="vehicle-photos"],[class*="vehiclePhotos"],[class*="listing-photo"],[class*="listingPhoto"]',
+      '[class*="carousel"],[class*="gallery"],[class*="swiper"],[class*="slider"]',
     ];
+    const candidates = [];
     for (const sel of galSels) {
-      const container = document.querySelector(sel);
-      if (!container) continue;
-      container.querySelectorAll('img').forEach(img => {
-        const src = img.src || img.dataset?.src || img.getAttribute('data-original') || '';
-        if (!src || /svg|data:image/i.test(src)) return;
-        if (img.naturalWidth > 0 && img.naturalWidth < 80) return;
-        if (isPhotoUrl(src)) found.add(src.replace(/\?.*$/, ''));
+      document.querySelectorAll(sel).forEach(container => {
+        const imgs = [];
+        container.querySelectorAll('img').forEach(img => {
+          const src = img.src || img.dataset?.src || img.getAttribute('data-original') || img.srcset?.split(' ')?.[0] || '';
+          if (!src || /svg|data:image/i.test(src)) return;
+          if (img.naturalWidth > 0 && img.naturalWidth < 80) return;
+          if (isPhotoUrl(src)) imgs.push(src);
+        });
+        if (imgs.length > 0) {
+          candidates.push({ el: container, count: imgs.length, tag: container.tagName, testid: container.dataset?.testid || '', cls: container.className?.toString().slice(0, 60), imgs });
+        }
       });
-      if (found.size > 1) return [...found];
+    }
+    console.log('[BWA] S2 gallery candidates:', candidates.length);
+    candidates.forEach((c, i) => console.log(`[BWA]   [${i}] count=${c.count} testid="${c.testid}" cls="${c.cls}" first="${c.imgs[0]?.slice(0,80)}"`));
+
+    // Pick the one highest on the page (smallest offsetTop), breaking ties by count
+    if (candidates.length > 0) {
+      candidates.sort((a, b) => {
+        const aTop = a.el.getBoundingClientRect().top + window.scrollY;
+        const bTop = b.el.getBoundingClientRect().top + window.scrollY;
+        return aTop !== bTop ? aTop - bTop : b.count - a.count;
+      });
+      console.log('[BWA] S2 winner: count=', candidates[0].count, 'top=', Math.round(candidates[0].el.getBoundingClientRect().top + window.scrollY));
+      candidates[0].imgs.forEach(u => found.add(u));
+      if (found.size > 0) return [...found];
     }
 
-    // Strategy 3: VIN-in-URL filter — any image/URL that contains the VIN is this vehicle.
-    if (found.size === 0) {
-      const vinUpper = vin.toUpperCase();
-      document.querySelectorAll('img').forEach(img => {
-        const src = img.src || '';
-        if (src.toUpperCase().includes(vinUpper) && isPhotoUrl(src))
-          found.add(src.replace(/\?.*$/, ''));
-      });
-      for (const s of document.querySelectorAll('script')) {
-        const text = s.textContent || '';
-        if (!text.toUpperCase().includes(vinUpper)) continue;
-        // Match quoted URLs from CDN domains or with photo extensions
-        for (const m of text.matchAll(/"(https?:\/\/[^"]{10,})"/g)) {
-          if (m[1].toUpperCase().includes(vinUpper) && isPhotoUrl(m[1]))
-            found.add(m[1].replace(/\?.*$/, ''));
-        }
+    // ── Strategy 3: background-image CSS (ADESA gallery uses this instead of <img>) ──
+    // Walk all elements looking for inline or computed background-image with photo URLs
+    const bgCandidates = [];
+    document.querySelectorAll('*').forEach(el => {
+      // Check inline style first (faster)
+      const inline = el.style?.backgroundImage || '';
+      const bg = inline || getComputedStyle(el).backgroundImage || '';
+      if (!bg || bg === 'none') return;
+      const m = bg.match(/url\(["']?(https?:\/\/[^"')]+)["']?\)/i);
+      if (!m) return;
+      const url = m[1];
+      if (isPhotoUrl(url)) bgCandidates.push({ el, url });
+    });
+    console.log('[BWA] S3-bg-image candidates:', bgCandidates.length, bgCandidates.slice(0, 3).map(c => c.url.slice(0, 80)));
+    bgCandidates.forEach(c => found.add(c.url));
+    if (found.size > 0) return [...found];
+
+    // ── Strategy 4: VIN in any img src or script tag ──
+    document.querySelectorAll('img').forEach(img => {
+      const src = img.src || img.dataset?.src || '';
+      if (src.toUpperCase().includes(vinUpper) && isPhotoUrl(src)) found.add(src);
+    });
+    for (const s of document.querySelectorAll('script:not([src])')) {
+      const text = s.textContent || '';
+      if (!text.toUpperCase().includes(vinUpper)) continue;
+      for (const m of text.matchAll(/"(https?:\/\/[^"\\]{15,})"/g)) {
+        const url = m[1].replace(/\\u002F/g, '/').replace(/\\n/g, '').replace(/\\/g, '');
+        if (url.toUpperCase().includes(vinUpper) && isPhotoUrl(url)) found.add(url);
       }
     }
+    console.log('[BWA] S4-VIN-filter photos:', found.size);
+
+    // ── Strategy 5: performance resource timeline — catches all network-loaded images ──
+    // Even if <img> tags don't exist yet, fetched image URLs appear here
+    try {
+      const perfEntries = performance.getEntriesByType('resource');
+      const perfPhotos = perfEntries
+        .map(e => e.name)
+        .filter(u => u && !junkRe.test(u) && (photoExtRe.test(u) || cdnRe.test(u)));
+      console.log('[BWA] S5-perf photos:', perfPhotos.length, perfPhotos.slice(0, 4));
+      // Prefer VIN-specific; otherwise keep all
+      const vinPerf = perfPhotos.filter(u => u.toUpperCase().includes(vinUpper));
+      const perfResult = vinPerf.length > 0 ? vinPerf : perfPhotos;
+      perfResult.forEach(u => found.add(u));
+      if (found.size > 0) return [...found];
+    } catch (e) {}
 
     return [...found];
   }
@@ -1139,6 +1208,25 @@
 
     // Notify popup if open
     try { chrome.runtime.sendMessage({ action: 'scanReady', data }).catch(() => {}); } catch (e) {}
+
+    // For ADESA: if photos came back empty, retry every 2s (gallery loads asynchronously)
+    if (isAdesa && photos.length === 0) {
+      let attempts = 0;
+      const photoRetry = setInterval(() => {
+        attempts++;
+        const retryPhotos = extractAdesaPhotos(vin);
+        console.log('[BWA] ADESA photo retry', attempts, '— found:', retryPhotos.length);
+        if (retryPhotos.length > 0 || attempts >= 6) {
+          clearInterval(photoRetry);
+          if (retryPhotos.length > 0) {
+            data.photos = retryPhotos;
+            try { chrome.storage.local.set({ [`bwa_scan_${vin}`]: data, bwa_last_scan: data }); } catch (e) {}
+            try { chrome.runtime.sendMessage({ action: 'scanReady', data }).catch(() => {}); } catch (e) {}
+            console.log('[BWA] ADESA photos found on retry', attempts, ':', retryPhotos.length);
+          }
+        }
+      }, 2000);
+    }
   }
 
   // ── MutationObserver — fire when the page stabilizes ──

@@ -2304,6 +2304,150 @@ app.post('/api/ext/proposal', async (req, res) => {
 });
 
 /**
+ * Download FB CDN photos and rehost to Supabase (FB URLs expire within hours)
+ */
+async function rehostFbPhotos(photoUrls: string[], storageKey: string): Promise<string[]> {
+  const uploaded: string[] = [];
+  for (let i = 0; i < Math.min(photoUrls.length, 20); i++) {
+    const photoUrl = photoUrls[i];
+    try {
+      const imgRes = await fetch(photoUrl, {
+        headers: { 'Referer': 'https://www.facebook.com/', 'User-Agent': 'Mozilla/5.0' },
+      });
+      if (!imgRes.ok) continue;
+      const buffer = Buffer.from(await imgRes.arrayBuffer());
+      const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+      const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg';
+      const fileName = `${storageKey}/fb_${Date.now()}_${i}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('vehicle-photos')
+        .upload(fileName, buffer, { contentType });
+
+      if (uploadError) { console.error('FB photo upload error:', uploadError); continue; }
+
+      const { data: urlData } = supabase.storage
+        .from('vehicle-photos')
+        .getPublicUrl(fileName);
+
+      uploaded.push(urlData.publicUrl);
+    } catch (e) {
+      console.error(`Failed to rehost FB photo ${i}:`, e);
+    }
+  }
+  return uploaded;
+}
+
+/**
+ * Facebook Marketplace proposal — scrapes listing data sent from Chrome extension,
+ * rehosts expiring FB CDN photos to Supabase, and creates a proposal draft.
+ */
+app.post('/api/ext/fb-proposal', async (req, res) => {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== process.env['BWA_EXT_API_KEY']) {
+    res.status(401).json({ error: 'Invalid API key' });
+    return;
+  }
+  try {
+    const { listing_id, title, price, description, photos, vin, year, mileage, source_url, extracted_at } = req.body;
+
+    // Build vehicle object from whatever FB gave us
+    let vehicle: any = {};
+    if (year) vehicle.year = year;
+    if (mileage) vehicle.mileage = mileage;
+
+    // Parse Year Make Model from title (e.g. "2019 Ford F-150 XLT")
+    if (title) {
+      const yearMatch = title.match(/\b(19[89]\d|20[012]\d)\b/);
+      if (yearMatch) {
+        const yi = title.indexOf(yearMatch[0]);
+        const rest = title.slice(yi + yearMatch[0].length).trim().split(/\s+/);
+        vehicle.year = vehicle.year || yearMatch[0];
+        if (rest[0]) vehicle.make = rest[0];
+        if (rest[1]) vehicle.model = rest[1];
+        if (rest.length > 2) vehicle.trim = rest.slice(2).join(' ');
+      }
+    }
+
+    // If we have a real VIN, enrich via NHTSA
+    if (vin) {
+      try {
+        const nhtsaRes = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/${vin}?format=json`);
+        if (nhtsaRes.ok) {
+          const nhtsaJson = await nhtsaRes.json();
+          const r = nhtsaJson?.Results?.[0];
+          if (r?.ModelYear) {
+            vehicle = {
+              ...vehicle,
+              year: r.ModelYear,
+              make: r.Make,
+              model: r.Model,
+              trim: r.Trim || vehicle.trim,
+              engine: r.DisplacementL ? `${r.DisplacementL}L ${r.FuelTypePrimary || ''}`.trim() : '',
+              transmission: r.TransmissionStyle,
+              drivetrain: r.DriveType,
+              fuel: r.FuelTypePrimary,
+              body: r.BodyClass,
+            };
+          }
+        }
+      } catch (e) {
+        console.error('NHTSA decode error (FB):', e);
+      }
+    }
+
+    // Deduplicate against an existing proposal if we have a real VIN
+    if (vin) {
+      const { data: existing } = await supabase
+        .from('vehicle_proposals')
+        .select('id')
+        .eq('vin', vin)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        const storageKey = vin;
+        const rehostedPhotos = await rehostFbPhotos(photos || [], storageKey);
+        await supabase.from('vehicle_proposals').update({
+          vehicle,
+          photos: rehostedPhotos,
+          source_url: source_url || '',
+          page_type: 'facebook_listing',
+          updated_at: new Date().toISOString(),
+        }).eq('id', existing.id);
+        res.json({ success: true, id: existing.id, merged: true, photos: rehostedPhotos.length });
+        return;
+      }
+    }
+
+    // Use VIN or listing_id as the storage folder key
+    const storageKey = vin || `fb_${listing_id || randomBytes(4).toString('hex')}`;
+    const rehostedPhotos = await rehostFbPhotos(photos || [], storageKey);
+
+    const id = randomBytes(6).toString('hex');
+    const { error } = await supabase.from('vehicle_proposals').insert({
+      id,
+      vin: vin || null,
+      vehicle,
+      condition: description ? { notes: description } : {},
+      photos: rehostedPhotos,
+      page_type: 'facebook_listing',
+      source_url: source_url || '',
+      asking_price: price || null,
+      extracted_at: extracted_at || new Date().toISOString(),
+      status: 'draft',
+    });
+
+    if (error) { console.error('FB proposal insert error:', error); res.status(500).json({ error: error.message }); return; }
+    res.json({ success: true, id, photos: rehostedPhotos.length });
+  } catch (err) {
+    console.error('FB proposal error:', err);
+    res.status(500).json({ error: 'Failed to create FB proposal' });
+  }
+});
+
+/**
  * Public proposal page — no auth required
  */
 app.get('/api/proposal/:id', async (req, res) => {
