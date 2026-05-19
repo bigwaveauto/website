@@ -858,9 +858,9 @@
   }
 
   function extractAdesaPhotos(vin) {
-    const junkRe = /logo|icon|avatar|sprite|banner|placeholder|flag|badge|chevron|arrow|check|star|\.svg|favicon|tracking|pixel|blank|carvana|vexgateway|carmax|autotrader|cars\.com/i;
+    const junkRe = /logo|icon|avatar|sprite|banner|placeholder|flag|badge|chevron|arrow|check|star|\.svg|favicon|tracking|pixel|blank|carvana|vexgateway|carmax|autotrader|cars\.com|\.js(\?|$)|\.css(\?|$)|\.woff|\.ttf|\.eot/i;
     const photoExtRe = /\.(jpg|jpeg|png|webp)(\?|$)/i;
-    const cdnRe = /adesa\.com|openlane\.com|coxautoinc\.com|cloudfront\.net|auctionaccess\.com|ipacket\.us|vehicleimages|s3\.amazonaws\.com|imgix\.net|kbb\.com/i;
+    const cdnRe = /adesa\.com|openlane\.com|cloudfront\.net|auctionaccess\.com|ipacket\.us|vehicleimages|s3\.amazonaws\.com|imgix\.net/i;
 
     function isPhotoUrl(v) {
       if (typeof v !== 'string' || v.length < 15 || !v.startsWith('http')) return false;
@@ -1345,11 +1345,12 @@
   // Upload ADESA photos from browser context (has auth cookies) to server → Supabase permanent URLs.
   // Runs in background; updates scan data with permanent URLs when done.
   async function uploadAdesaPhotosInBackground(photoUrls, vin) {
+    console.log('[BWA] uploadAdesaPhotosInBackground called:', photoUrls.length, 'URLs, VIN:', vin);
     try {
       const stored = await new Promise(resolve => chrome.storage.local.get(['serverUrl', 'apiKey'], resolve));
       const serverUrl = (stored.serverUrl || 'https://bigwaveauto.com').replace(/\/+$/, '');
       const apiKey = stored.apiKey;
-      if (!apiKey) return;
+      if (!apiKey) { console.warn('[BWA] No API key in storage — cannot upload photos'); return; }
 
       const top20 = photoUrls.slice(0, 20);
       console.log('[BWA] Uploading', top20.length, 'ADESA photos in parallel...');

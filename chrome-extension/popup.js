@@ -129,8 +129,15 @@ function displayData(data) {
 
   // Photos
   if (data.photos?.length) {
+    const isAdesa = data.page_type === 'adesa_listing' || data.page_type === 'openlane_listing';
+    const supabaseHost = 'supabase.co';
+    const photosUploaded = data.photos.every(p => p.includes(supabaseHost));
     $('photoCount').textContent = `${data.photos.length} photos`;
-    $('photosPreview').innerHTML = data.photos.slice(0, 20).map(url => `<img src="${url}" />`).join('');
+    if (isAdesa && !photosUploaded) {
+      $('photosPreview').innerHTML = '<span style="color:#94a3b8;font-size:11px">Uploading photos to server… will update when done.</span>';
+    } else {
+      $('photosPreview').innerHTML = data.photos.slice(0, 20).map(url => `<img src="${url}" />`).join('');
+    }
     $('photosSection').style.display = 'block';
   }
 
