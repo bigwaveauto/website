@@ -1299,6 +1299,27 @@
     return true; // keep channel open for async sendResponse
   });
 
+  // Listen for photo URLs relayed from adesa-interceptor.js (manifest MAIN-world script).
+  // Accumulate across multiple API calls (gallery may load in batches).
+  window.addEventListener('__bwa_photos__', (e) => {
+    const newUrls = (e.detail || []).filter(u => !/logo|icon|placeholder|carvana|vexgate/i.test(u));
+    if (!newUrls.length) return;
+    console.log('[BWA] Fetch-intercepted photos:', newUrls.length, newUrls[0]?.slice(0, 80));
+    const vin = getVin();
+    if (!vin) return;
+    const key = `bwa_scan_${vin}`;
+    chrome.storage.local.get([key], (result) => {
+      const data = result[key] || { vin, photos: [], vehicle: {}, condition: {}, auction: {}, page_type: 'adesa_listing', source_url: window.location.href, extracted_at: new Date().toISOString() };
+      // Merge — deduplicate by URL
+      const merged = [...new Set([...(data.photos || []), ...newUrls])];
+      if (merged.length === (data.photos || []).length) return; // nothing new
+      data.photos = merged;
+      try { chrome.storage.local.set({ [key]: data, bwa_last_scan: data }); } catch (e) {}
+      try { chrome.runtime.sendMessage({ action: 'scanReady', data }).catch(() => {}); } catch (e) {}
+      console.log('[BWA] Scan now has', merged.length, 'photos for', vin);
+    });
+  });
+
   // Inject the floating button once DOM is ready
   if (document.body) injectButton();
   else document.addEventListener('DOMContentLoaded', injectButton);

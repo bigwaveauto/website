@@ -36,6 +36,15 @@
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://*.adesa.com/*",
+        "https://*.openlane.com/*"
+      ],
+      "js": ["adesa-interceptor.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
     }
   ],
   "background": {
