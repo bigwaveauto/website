@@ -2256,6 +2256,12 @@ app.post('/api/ext/proposal', async (req, res) => {
       .limit(1)
       .maybeSingle();
 
+    // Rehost ADESA/OpenLane photos — their CDN URLs require auth and expire
+    const isAdesa = (page_type || '').includes('adesa') || (page_type || '').includes('openlane');
+    const finalPhotos = (isAdesa && photos?.length)
+      ? await rehostPhotos(photos, vin, 'https://marketplace.adesa.com/')
+      : (photos || []);
+
     if (existing) {
       // Merge: update vehicle/photo/auction data but leave all price & deal fields untouched
       const { error: mergeError } = await supabase.from('vehicle_proposals').update({
@@ -2263,7 +2269,7 @@ app.post('/api/ext/proposal', async (req, res) => {
         condition: condition || {},
         auction: auction || null,
         mmr: auction?.mmr || null,
-        photos: photos || [],
+        photos: finalPhotos,
         page_type: page_type || 'unknown',
         source_url: source_url || '',
         extracted_at: extracted_at || new Date().toISOString(),
@@ -2286,7 +2292,7 @@ app.post('/api/ext/proposal', async (req, res) => {
       condition: condition || {},
       auction: auction || null,
       mmr: auction?.mmr || null,
-      photos: photos || [],
+      photos: finalPhotos,
       page_type: page_type || 'unknown',
       source_url: source_url || '',
       extracted_at: extracted_at || new Date().toISOString(),
@@ -2304,21 +2310,22 @@ app.post('/api/ext/proposal', async (req, res) => {
 });
 
 /**
- * Download FB CDN photos and rehost to Supabase (FB URLs expire within hours)
+ * Download and rehost photos from an external CDN to Supabase.
+ * Used for FB and ADESA photos that expire or require auth.
  */
-async function rehostFbPhotos(photoUrls: string[], storageKey: string): Promise<string[]> {
+async function rehostPhotos(photoUrls: string[], storageKey: string, referer = 'https://www.facebook.com/'): Promise<string[]> {
   const uploaded: string[] = [];
   for (let i = 0; i < Math.min(photoUrls.length, 20); i++) {
     const photoUrl = photoUrls[i];
     try {
       const imgRes = await fetch(photoUrl, {
-        headers: { 'Referer': 'https://www.facebook.com/', 'User-Agent': 'Mozilla/5.0' },
+        headers: { 'Referer': referer, 'User-Agent': 'Mozilla/5.0' },
       });
       if (!imgRes.ok) continue;
       const buffer = Buffer.from(await imgRes.arrayBuffer());
       const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
       const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg';
-      const fileName = `${storageKey}/fb_${Date.now()}_${i}.${ext}`;
+      const fileName = `${storageKey}/${Date.now()}_${i}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from('vehicle-photos')
@@ -2408,7 +2415,7 @@ app.post('/api/ext/fb-proposal', async (req, res) => {
 
       if (existing) {
         const storageKey = vin;
-        const rehostedPhotos = await rehostFbPhotos(photos || [], storageKey);
+        const rehostedPhotos = await rehostPhotos(photos || [], storageKey);
         await supabase.from('vehicle_proposals').update({
           vehicle,
           photos: rehostedPhotos,
@@ -2423,7 +2430,7 @@ app.post('/api/ext/fb-proposal', async (req, res) => {
 
     // Use VIN or listing_id as the storage folder key
     const storageKey = vin || `fb_${listing_id || randomBytes(4).toString('hex')}`;
-    const rehostedPhotos = await rehostFbPhotos(photos || [], storageKey);
+    const rehostedPhotos = await rehostPhotos(photos || [], storageKey);
 
     const id = randomBytes(6).toString('hex');
     const { error } = await supabase.from('vehicle_proposals').insert({
