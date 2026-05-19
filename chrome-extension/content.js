@@ -1246,6 +1246,11 @@
     // Notify popup if open
     try { chrome.runtime.sendMessage({ action: 'scanReady', data }).catch(() => {}); } catch (e) {}
 
+    // For ADESA: upload photos from browser context immediately (CDN requires auth cookies)
+    if (isAdesa && photos.length > 0) {
+      uploadAdesaPhotosInBackground(photos, vin);
+    }
+
     // For ADESA: if photos came back empty, retry every 2s (gallery loads asynchronously)
     if (isAdesa && photos.length === 0) {
       let attempts = 0;
@@ -1260,6 +1265,7 @@
             try { chrome.storage.local.set({ [`bwa_scan_${vin}`]: data, bwa_last_scan: data }); } catch (e) {}
             try { chrome.runtime.sendMessage({ action: 'scanReady', data }).catch(() => {}); } catch (e) {}
             console.log('[BWA] ADESA photos found on retry', attempts, ':', retryPhotos.length);
+            uploadAdesaPhotosInBackground(retryPhotos, vin);
           }
         }
       }, 2000);
