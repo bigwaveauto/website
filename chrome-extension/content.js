@@ -653,6 +653,42 @@
     return [...photos];
   }
 
+  // ── ADESA VIN detection — avoids JSON parsing which picks up related-vehicle VINs ──
+  // Uses URL and visible page text only, so the main listing's VIN wins.
+  function getAdesaVin() {
+    const url = window.location.href;
+
+    // 1. URL path segment or query param
+    const urlPatterns = [
+      /[#/]([A-HJ-NPR-Z0-9]{17})(?:[/?#]|$)/i,
+      /[?&]vin=([A-HJ-NPR-Z0-9]{17})/i,
+    ];
+    for (const re of urlPatterns) {
+      const m = url.match(re);
+      if (m && vinCheckDigitValid(m[1])) return m[1].toUpperCase();
+    }
+
+    // 2. Prominent heading elements (h1, h2, data-testid containing "vin")
+    for (const el of document.querySelectorAll('h1, h2, [data-testid*="vin" i], [class*="vin" i]')) {
+      for (const m of (el.textContent || '').matchAll(/\b([A-HJ-NPR-Z0-9]{17})\b/g)) {
+        if (vinCheckDigitValid(m[1])) return m[1].toUpperCase();
+      }
+    }
+
+    // 3. "VIN" label in visible text — appears near the top of the listing
+    const bodyText = document.body.innerText || '';
+    for (const m of bodyText.matchAll(/\bVIN[^A-Z0-9\n]{0,15}([A-HJ-NPR-Z0-9]{17})\b/gi)) {
+      if (vinCheckDigitValid(m[1])) return m[1].toUpperCase();
+    }
+
+    // 4. First check-digit-valid VIN anywhere in visible text (main vehicle is near top)
+    for (const m of bodyText.matchAll(/\b([A-HJ-NPR-Z0-9]{17})\b/g)) {
+      if (vinCheckDigitValid(m[1])) return m[1].toUpperCase();
+    }
+
+    return '';
+  }
+
   // ── ADESA / OpenLane extraction ──
 
   function extractAdesaSpecs() {
@@ -1159,7 +1195,8 @@
     const isInsightCR = url.includes('insightcr.manheim.com') || url.includes('cr-display');
     const isLiveListing = !isInsightCR && (url.includes('search.manheim.com') || url.includes('/results') || url.includes('/listing'));
 
-    const vin = getVin();
+    // For ADESA/OpenLane, use text-based VIN detection to avoid picking up related-vehicle VINs from JSON
+    const vin = isAdesa ? (getAdesaVin() || getVin()) : getVin();
 
     // On Manheim search/results pages with no single VIN, try bulk list scan
     if (!vin && isManheim) {
