@@ -1351,15 +1351,24 @@
       const apiKey = stored.apiKey;
       if (!apiKey) return;
 
-      const permanent = [];
-      for (let i = 0; i < Math.min(photoUrls.length, 20); i++) {
+      const top20 = photoUrls.slice(0, 20);
+      console.log('[BWA] Uploading', top20.length, 'ADESA photos in parallel...');
+
+      // Upload 5 at a time so the popup gets updated quickly
+      async function uploadOne(url, i) {
         try {
-          const imgRes = await fetch(photoUrls[i]); // browser context → has ADESA session cookies
-          if (!imgRes.ok) continue;
+          const imgRes = await fetch(url); // browser context — uses cached response if already loaded
+          if (!imgRes.ok) {
+            console.warn('[BWA] Photo', i, 'fetch failed:', imgRes.status);
+            return null;
+          }
           const ct = imgRes.headers.get('content-type') || '';
-          if (!ct.startsWith('image/')) continue;
+          if (!ct.startsWith('image/')) {
+            console.warn('[BWA] Photo', i, 'non-image content-type:', ct);
+            return null;
+          }
           const blob = await imgRes.blob();
-          if (blob.size < 2000) continue;
+          if (blob.size < 2000) return null;
 
           const form = new FormData();
           form.append('photo', blob, `photo_${i}.jpg`);
@@ -1370,17 +1379,29 @@
             headers: { 'X-API-Key': apiKey },
             body: form,
           });
-          if (uploadRes.ok) {
-            const { url } = await uploadRes.json();
-            permanent.push(url);
-          }
-        } catch (e) {}
+          if (!uploadRes.ok) return null;
+          const { url: permanentUrl } = await uploadRes.json();
+          return permanentUrl;
+        } catch (e) {
+          return null;
+        }
       }
 
-      if (permanent.length === 0) return;
+      const permanent = [];
+      const BATCH = 5;
+      for (let i = 0; i < top20.length; i += BATCH) {
+        const batch = top20.slice(i, i + BATCH);
+        const results = await Promise.all(batch.map((url, j) => uploadOne(url, i + j)));
+        results.forEach(u => u && permanent.push(u));
+      }
+
+      if (permanent.length === 0) {
+        console.warn('[BWA] No ADESA photos uploaded — CDN may require auth cookies');
+        return;
+      }
       console.log('[BWA] Uploaded', permanent.length, 'ADESA photos to Supabase');
 
-      // Update scan data with permanent URLs
+      // Update scan data with permanent URLs and notify popup
       const key = `bwa_scan_${vin}`;
       const result = await new Promise(resolve => chrome.storage.local.get([key], resolve));
       const data = result[key];

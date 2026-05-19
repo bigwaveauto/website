@@ -638,7 +638,13 @@ $('submitBtn').addEventListener('click', async () => {
   showStatus('Submitting...', 'working');
 
   try {
-    const payload = { ...extractedData };
+    // Re-read storage so we pick up any photos uploaded by background worker after popup opened
+    const vin = extractedData.vin;
+    const scanKey = vin ? `bwa_scan_${vin}` : 'bwa_last_scan';
+    const latest = await chrome.storage.local.get([scanKey, 'bwa_last_scan']);
+    const freshData = latest[scanKey] || latest['bwa_last_scan'] || extractedData;
+    // Use freshData for photos/fields, but keep extractedData as fallback
+    const payload = { ...extractedData, ...freshData };
     if (selectedCustomer) {
       payload.customer_name = selectedCustomer.name;
       if (selectedCustomer.id) payload.customer_id = selectedCustomer.id;
