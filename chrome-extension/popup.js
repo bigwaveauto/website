@@ -230,7 +230,12 @@ $('scanBtn').addEventListener('click', async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     if (!isSupportedUrl(tab?.url)) {
-      showStatus('Navigate to a Manheim or ADESA/OpenLane listing first.', 'error');
+      const isFb = tab?.url?.includes('facebook.com');
+      if (isFb) {
+        showStatus('Open a specific Facebook Marketplace listing (facebook.com/marketplace/item/…), then use Import FB Listing — or use the batch button if you have multiple item tabs open.', 'error');
+      } else {
+        showStatus('Navigate to a Manheim or ADESA/OpenLane listing first.', 'error');
+      }
       $('scanBtn').disabled = false;
       return;
     }
@@ -291,7 +296,12 @@ chrome.runtime.onMessage.addListener((msg) => {
       $('fbBatchBtn').textContent = `📘 Import All ${fbTabs.length} FB Tab${fbTabs.length !== 1 ? 's' : ''} → Proposals`;
     }
 
-    if (!isSupportedUrl(tab?.url)) return;
+    if (!isSupportedUrl(tab?.url)) {
+      if (tab?.url?.includes('facebook.com')) {
+        showStatus('Click a specific vehicle listing on Facebook Marketplace to open it (facebook.com/marketplace/item/…), then open the extension on that tab.', 'error');
+      }
+      return;
+    }
 
     const vinMatch = tab.url.match(/[#/]([A-HJ-NPR-Z0-9]{17})(?:[/?#]|$)/i) ||
                      tab.url.match(/\/(?:details|vehicle|cr|listing)\/([A-HJ-NPR-Z0-9]{17})/i);
