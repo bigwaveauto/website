@@ -296,12 +296,14 @@ chrome.runtime.onMessage.addListener((msg) => {
       $('fbBatchBtn').textContent = `📘 Import All ${fbTabs.length} FB Tab${fbTabs.length !== 1 ? 's' : ''} → Proposals`;
     }
 
-    if (!isSupportedUrl(tab?.url)) {
-      if (tab?.url?.includes('facebook.com')) {
-        showStatus('Click a specific vehicle listing on Facebook Marketplace to open it (facebook.com/marketplace/item/…), then open the extension on that tab.', 'error');
-      }
-      return;
+    // Show tile scraper button on any FB marketplace browse/search/category page
+    const isFbBrowse = tab?.url?.includes('facebook.com/marketplace') && !isFbMarketplaceItem(tab?.url);
+    if (isFbBrowse) {
+      $('scanBtn').style.display = 'none';
+      $('fbTilesBtn').style.display = 'flex';
     }
+
+    if (!isSupportedUrl(tab?.url) && !isFbBrowse) return;
 
     const vinMatch = tab.url.match(/[#/]([A-HJ-NPR-Z0-9]{17})(?:[/?#]|$)/i) ||
                      tab.url.match(/\/(?:details|vehicle|cr|listing)\/([A-HJ-NPR-Z0-9]{17})/i);
@@ -639,6 +641,107 @@ $('fbBatchBtn').addEventListener('click', async () => {
     await chrome.tabs.reload(adminTab.id);
   } else {
     await chrome.tabs.create({ url: adminUrl, active: true });
+  }
+});
+
+// ── Facebook Marketplace Tile Scraper (injected into the browse/search page) ──
+function fbTilesScraper() {
+  const seen = new Set();
+  const listings = [];
+
+  for (const link of document.querySelectorAll('a[href*="/marketplace/item/"]')) {
+    const idMatch = link.href.match(/marketplace\/item\/(\d+)/);
+    if (!idMatch) continue;
+    const listingId = idMatch[1];
+    if (seen.has(listingId)) continue;
+    seen.add(listingId);
+
+    const img = link.querySelector('img');
+    const photo = (img?.src && !img.src.startsWith('data:')) ? img.src : '';
+
+    // Collect leaf-node text spans — FB tiles have price, title, mileage as separate spans
+    const spans = [...link.querySelectorAll('span')]
+      .map(s => s.childElementCount === 0 ? s.textContent.trim() : '')
+      .filter(t => t.length > 1 && t.length < 120);
+
+    const priceText = spans.find(t => /^\$[\d,]+/.test(t)) || '';
+    const price = priceText ? parseInt(priceText.replace(/\D/g, '')) : null;
+    const title = spans.find(t => /\b(19|20)\d{2}\b/.test(t)) || spans[0] || '';
+    const mileageText = spans.find(t => /[\d,]+\s*miles?/i.test(t)) || '';
+    const mileage = mileageText ? parseInt(mileageText.replace(/\D/g, '')) : null;
+    const location = spans.find(t => t !== priceText && t !== title && t !== mileageText && t.length > 2) || '';
+
+    listings.push({
+      listing_id: listingId,
+      source: 'facebook',
+      source_url: `https://www.facebook.com/marketplace/item/${listingId}/`,
+      title,
+      price,
+      photos: photo ? [photo] : [],
+      mileage,
+      location,
+      extracted_at: new Date().toISOString(),
+    });
+  }
+  return listings;
+}
+
+$('fbTilesBtn').addEventListener('click', async () => {
+  const serverUrl = ($('serverUrl').value || 'https://bigwaveauto.com').replace(/\/+$/, '');
+  const apiKey = $('apiKey').value;
+  if (!apiKey) { showStatus('Enter API key first.', 'error'); return; }
+
+  $('fbTilesBtn').disabled = true;
+  showStatus('Scraping visible listings...', 'working');
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [{ result: listings }] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: fbTilesScraper,
+    });
+
+    if (!listings?.length) {
+      showStatus('No listings found — scroll down to load tiles then try again.', 'error');
+      $('fbTilesBtn').disabled = false;
+      return;
+    }
+
+    showStatus(`Found ${listings.length} listings — importing...`, 'working');
+
+    let imported = 0;
+    let lastId = null;
+    for (const listing of listings) {
+      try {
+        const resp = await fetch(`${serverUrl}/api/ext/fb-proposal`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+          body: JSON.stringify(listing),
+        });
+        if (resp.ok) {
+          const result = await resp.json();
+          imported++;
+          if (result.id) lastId = result.id;
+        }
+      } catch (e) {}
+    }
+
+    $('fbTilesBtn').textContent = `✓ ${imported} of ${listings.length} imported`;
+    $('fbTilesBtn').style.background = '#16a34a';
+    showStatus(`Done! ${imported} proposal${imported !== 1 ? 's' : ''} created.`, 'success');
+
+    const adminBase = `${serverUrl}/admin/proposals`;
+    const adminUrl = lastId ? `${adminBase}?open=${lastId}` : adminBase;
+    const allTabs = await chrome.tabs.query({});
+    const adminTab = allTabs.find(t => t.url?.includes('/admin/proposals'));
+    if (adminTab) {
+      await chrome.tabs.update(adminTab.id, { active: true, url: adminUrl });
+    } else {
+      await chrome.tabs.create({ url: adminUrl, active: true });
+    }
+  } catch (err) {
+    showStatus('Failed: ' + err.message, 'error');
+    $('fbTilesBtn').disabled = false;
   }
 });
 
