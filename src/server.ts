@@ -3764,10 +3764,10 @@ app.get('/api/sales-stats', async (_req, res) => {
  */
 app.post('/api/admin/sales-stats', async (req, res) => {
   try {
-    const { salesByState, topBrands, totalSales } = req.body;
+    const { salesByState, topBrands, totalSales, hiddenBrands } = req.body;
     if (!salesByState) { res.status(400).json({ error: 'salesByState required' }); return; }
     await supabase.from('sales_stats').upsert(
-      { id: 'current', sales_by_state: salesByState, top_brands: topBrands || [], total_sales: totalSales || 0, updated_at: new Date().toISOString() },
+      { id: 'current', sales_by_state: salesByState, top_brands: topBrands || [], total_sales: totalSales || 0, hidden_brands: hiddenBrands || [], updated_at: new Date().toISOString() },
       { onConflict: 'id' }
     );
     res.json({ success: true });

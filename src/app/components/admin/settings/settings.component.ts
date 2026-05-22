@@ -149,7 +149,14 @@ export class AdminSettingsComponent implements OnInit {
     'Volkswagen': '/brands/volkswagen.png', 'Volvo': '/brands/volvo.png',
   };
   topBrands = signal<{ name: string; count: number; logo: string }[]>([]);
+  hiddenBrands = signal<string[]>([]);
   brandReportText = '';
+
+  isBrandHidden(name: string) { return this.hiddenBrands().includes(name); }
+  toggleBrand(name: string) {
+    const current = this.hiddenBrands();
+    this.hiddenBrands.set(current.includes(name) ? current.filter(b => b !== name) : [...current, name]);
+  }
 
   get salesStateList() {
     return Object.entries(this.salesByState())
@@ -176,6 +183,7 @@ export class AdminSettingsComponent implements OnInit {
           this.salesParsed.set(true);
         }
         if (data.top_brands?.length) this.topBrands.set(data.top_brands);
+        if (data.hidden_brands) this.hiddenBrands.set(data.hidden_brands);
       },
     });
   }
@@ -290,6 +298,7 @@ export class AdminSettingsComponent implements OnInit {
       salesByState: this.salesByState(),
       totalSales: this.totalSales(),
       topBrands: this.topBrands(),
+      hiddenBrands: this.hiddenBrands(),
     }).subscribe({
       next: () => {
         this.savingSales.set(false);

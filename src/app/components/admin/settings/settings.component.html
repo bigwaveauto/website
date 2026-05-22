@@ -219,12 +219,22 @@
         </div>
       </div>
       <div class="settings-card-body">
+        <p style="font-size:12px;color:#64748b;margin-bottom:8px">Top 5 visible brands appear on the About page. Hide brands you don't actively sell — the next in line fills the spot.</p>
         <div style="display:flex;flex-direction:column;gap:4px">
-          @for(b of topBrands(); track b.name){
-          <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:#f8f9fb;border-radius:8px;font-size:13px">
+          @for(b of topBrands(); track b.name; let i = $index){
+          <div [style.opacity]="isBrandHidden(b.name) ? '0.45' : '1'" style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:#f8f9fb;border-radius:8px;font-size:13px">
+            <span style="color:#94a3b8;font-size:11px;width:18px;text-align:right">{{ i + 1 }}</span>
             @if(b.logo){<img [src]="b.logo" [alt]="b.name" style="height:24px;width:48px;object-fit:contain;background:#fff;border-radius:4px;padding:2px 4px" />}
-            <span style="font-weight:600;width:120px">{{ b.name }}</span>
-            <span style="color:#555">{{ b.count }} sold</span>
+            <span style="font-weight:600;width:120px" [style.text-decoration]="isBrandHidden(b.name) ? 'line-through' : 'none'">{{ b.name }}</span>
+            <span style="color:#555;flex:1">{{ b.count }} sold</span>
+            @if(!isBrandHidden(b.name)){
+            <span style="font-size:11px;color:#16a34a;font-weight:600;margin-right:4px">SHOWN</span>
+            }@else{
+            <span style="font-size:11px;color:#dc2626;font-weight:600;margin-right:4px">HIDDEN</span>
+            }
+            <button (click)="toggleBrand(b.name)" style="font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;color:#334155">
+              {{ isBrandHidden(b.name) ? 'Show' : 'Hide' }}
+            </button>
           </div>
           }
         </div>

@@ -167,12 +167,16 @@ export class AboutComponent implements OnInit {
   }
 
   // Top brands sold — defaults, overwritten by API
-  topBrands: { name: string; count: number; logo: string }[] = [
+  allBrands: { name: string; count: number; logo: string }[] = [
     { name: 'Tesla', count: 34, logo: '/brands/tesla.png' },
     { name: 'Rivian', count: 25, logo: '/brands/rivian.png' },
     { name: 'BMW', count: 24, logo: '/brands/bmw.png' },
     { name: 'Porsche', count: 10, logo: '/brands/porsche.png' },
   ];
+  hiddenBrands: string[] = [];
+  get topBrands() {
+    return this.allBrands.filter(b => !this.hiddenBrands.includes(b.name)).slice(0, 5);
+  }
 
   ngOnInit() {
     this.http.get<any>('/api/sales-stats').subscribe({
@@ -183,7 +187,8 @@ export class AboutComponent implements OnInit {
           this.statesReached = Object.keys(this.salesByState).length;
         }
         if (data.total_sales) this.totalSales = data.total_sales;
-        if (data.top_brands?.length) this.topBrands = data.top_brands.slice(0, 4);
+        if (data.top_brands?.length) this.allBrands = data.top_brands;
+        if (data.hidden_brands) this.hiddenBrands = data.hidden_brands;
       },
     });
   }
