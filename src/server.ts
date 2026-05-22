@@ -4521,7 +4521,17 @@ app.post('/api/rivian-report/unlock', async (req, res) => {
 });
 
 // Admin: bulk ingest from Chrome extension
-app.post('/api/admin/rivian/ingest', requireAdmin, async (req, res) => {
+app.post('/api/admin/rivian/ingest', async (req, res) => {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== process.env['BWA_EXT_API_KEY']) {
+    // Fall back to admin session auth
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) { res.status(401).json({ error: 'Auth required' }); return; }
+    const { data: { user }, error } = await supabase.auth.getUser(authHeader.slice(7));
+    if (error || !user?.email || !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+      res.status(401).json({ error: 'Auth required' }); return;
+    }
+  }
   try {
     const listings: any[] = req.body.listings || [];
     if (!listings.length) { res.status(400).json({ error: 'No listings provided' }); return; }
