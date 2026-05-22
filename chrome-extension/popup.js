@@ -298,11 +298,12 @@ chrome.runtime.onMessage.addListener((msg) => {
       $('fbRivianBtn').textContent = `🌿 Scan ${fbTabs.length} FB Tab${fbTabs.length !== 1 ? 's' : ''} → Rivian Watch`;
     }
 
-    // Show tile scraper button on any FB marketplace browse/search/category page
+    // Show tile scraper buttons on any FB marketplace browse/search/category page
     const isFbBrowse = tab?.url?.includes('facebook.com/marketplace') && !isFbMarketplaceItem(tab?.url);
     if (isFbBrowse) {
       $('scanBtn').style.display = 'none';
       $('fbTilesBtn').style.display = 'flex';
+      $('fbRivianTilesBtn').style.display = 'flex';
     }
 
     if (!isSupportedUrl(tab?.url) && !isFbBrowse) return;
@@ -851,6 +852,74 @@ $('fbTilesBtn').addEventListener('click', async () => {
   } catch (err) {
     showStatus('Failed: ' + err.message, 'error');
     $('fbTilesBtn').disabled = false;
+  }
+});
+
+// ── FB Tiles → Rivian Watch ──
+$('fbRivianTilesBtn').addEventListener('click', async () => {
+  const serverUrl = ($('serverUrl').value || 'https://bigwaveauto.com').replace(/\/+$/, '');
+  const apiKey = $('apiKey').value;
+  if (!apiKey) { showStatus('Enter API key first.', 'error'); return; }
+
+  $('fbRivianTilesBtn').disabled = true;
+  showStatus('Scanning visible listings for Rivian data…', 'working');
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [{ result: tiles }] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: fbTilesScraper,
+    });
+
+    if (!tiles?.length) {
+      showStatus('No listings found — scroll to load tiles then try again.', 'error');
+      $('fbRivianTilesBtn').disabled = false;
+      return;
+    }
+
+    showStatus(`Found ${tiles.length} listings — saving to Rivian Watch…`, 'working');
+
+    const listings = tiles.map(d => {
+      const specs = parseRivianSpecs(d);
+      return {
+        source: 'facebook',
+        source_url: d.source_url,
+        listing_id: d.listing_id,
+        year: d.year ? parseInt(d.year) : null,
+        model: specs.model,
+        trim: specs.trim,
+        battery: specs.battery,
+        drive_config: specs.drive,
+        exterior_color: specs.exterior_color,
+        interior_color: specs.interior_color,
+        mileage: d.mileage || null,
+        asking_price: d.price || null,
+        photos: d.photos || [],
+        description: d.title || '',
+        location: d.location || null,
+      };
+    });
+
+    const resp = await fetch(`${serverUrl}/api/admin/rivian/ingest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+      body: JSON.stringify({ listings }),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    const result = await resp.json();
+
+    $('fbRivianTilesBtn').textContent = `✓ ${result.ingested} saved`;
+    $('fbRivianTilesBtn').style.background = '#16a34a';
+    showStatus(`${result.ingested} listing${result.ingested !== 1 ? 's' : ''} added to Rivian Watch.`, 'success');
+
+    const allTabs = await chrome.tabs.query({});
+    const adminTab = allTabs.find(t => t.url?.includes('/admin/rivians'));
+    const adminUrl = `${serverUrl}/admin/rivians`;
+    if (adminTab) { await chrome.tabs.update(adminTab.id, { active: true, url: adminUrl }); }
+    else { await chrome.tabs.create({ url: adminUrl, active: true }); }
+  } catch (err) {
+    showStatus('Failed: ' + err.message, 'error');
+    $('fbRivianTilesBtn').disabled = false;
   }
 });
 
