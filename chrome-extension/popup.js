@@ -289,11 +289,13 @@ chrome.runtime.onMessage.addListener((msg) => {
       chrome.tabs.query({}),
     ]);
 
-    // Show batch import button whenever FB marketplace tabs are open (any page)
+    // Show batch/rivian buttons whenever FB marketplace tabs are open (any page)
     const fbTabs = allTabs.filter(t => isFbMarketplaceItem(t.url));
     if (fbTabs.length > 0) {
       $('fbBatchBtn').style.display = 'flex';
       $('fbBatchBtn').textContent = `📘 Import All ${fbTabs.length} FB Tab${fbTabs.length !== 1 ? 's' : ''} → Proposals`;
+      $('fbRivianBtn').style.display = 'flex';
+      $('fbRivianBtn').textContent = `🌿 Scan ${fbTabs.length} FB Tab${fbTabs.length !== 1 ? 's' : ''} → Rivian Watch`;
     }
 
     // Show tile scraper button on any FB marketplace browse/search/category page
@@ -641,6 +643,113 @@ $('fbBatchBtn').addEventListener('click', async () => {
     await chrome.tabs.reload(adminTab.id);
   } else {
     await chrome.tabs.create({ url: adminUrl, active: true });
+  }
+});
+
+// ── Rivian spec parser — runs on already-scraped FB listing data ──
+function parseRivianSpecs(data) {
+  const text = `${data.title || ''} ${data.description || ''}`;
+  const model = /r1s/i.test(text) ? 'R1S' : /r1t/i.test(text) ? 'R1T' : null;
+  let trim = null;
+  if (/launch edition|launch ed/i.test(text)) trim = 'Launch Edition';
+  else if (/adventure/i.test(text)) trim = 'Adventure';
+  else if (/explore/i.test(text)) trim = 'Explore';
+  else if (/performance/i.test(text)) trim = 'Performance';
+  let battery = null;
+  if (/max pack|max range/i.test(text)) battery = 'Max';
+  else if (/large pack|extended range|180\s*k/i.test(text)) battery = 'Large';
+  else if (/standard pack|standard range|135\s*k/i.test(text)) battery = 'Standard';
+  let drive = null;
+  if (/quad.motor|quad motor/i.test(text)) drive = 'Quad-Motor';
+  else if (/dual.motor|dual motor|awd/i.test(text)) drive = 'Dual-Motor AWD';
+  const colorMap = [
+    ['Forest Green', /forest green/i], ['Limestone', /limestone/i],
+    ['Glacier White', /glacier white/i], ['El Cap Granite', /el cap granite/i],
+    ['Rivian Blue', /rivian blue/i], ['Launch Green', /launch green/i],
+    ['Red Canyon', /red canyon/i], ['Midnight', /midnight/i],
+    ['Neptune', /neptune/i], ['Compass Yellow', /compass yellow/i],
+  ];
+  let exterior_color = data.exterior_color || null;
+  if (!exterior_color) {
+    for (const [name, re] of colorMap) { if (re.test(text)) { exterior_color = name; break; } }
+  }
+  const interiorMap = [
+    ['Forest Edge', /forest edge/i], ['Dark Ash Wood', /dark ash/i],
+    ['Ocean Coast', /ocean coast/i], ['Black Mountain', /black mountain/i],
+  ];
+  let interior_color = null;
+  for (const [name, re] of interiorMap) { if (re.test(text)) { interior_color = name; break; } }
+  return { model, trim, battery, drive, exterior_color, interior_color };
+}
+
+// ── FB Tabs → Rivian Watch ──
+$('fbRivianBtn').addEventListener('click', async () => {
+  const serverUrl = ($('serverUrl').value || 'https://bigwaveauto.com').replace(/\/+$/, '');
+  const apiKey = $('apiKey').value;
+  if (!apiKey) { showStatus('Enter API key first.', 'error'); return; }
+
+  $('fbRivianBtn').disabled = true;
+  showStatus('Scanning FB tabs for Rivian data…', 'working');
+
+  try {
+    const allTabs = await chrome.tabs.query({});
+    const fbTabs = allTabs.filter(t => isFbMarketplaceItem(t.url));
+    if (!fbTabs.length) { showStatus('No FB Marketplace item tabs open.', 'error'); $('fbRivianBtn').disabled = false; return; }
+
+    const scraped = [];
+    for (const tab of fbTabs) {
+      try {
+        const [{ result }] = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: fbPageScraper });
+        if (result?.title) scraped.push(result);
+      } catch (e) {}
+    }
+
+    if (!scraped.length) { showStatus('Could not scrape any tabs — make sure pages are fully loaded.', 'error'); $('fbRivianBtn').disabled = false; return; }
+
+    showStatus(`Scraped ${scraped.length} listings — saving to Rivian Watch…`, 'working');
+
+    const listings = scraped.map(d => {
+      const specs = parseRivianSpecs(d);
+      return {
+        source: 'facebook',
+        source_url: d.source_url,
+        listing_id: d.listing_id,
+        vin: d.vin || null,
+        year: d.year ? parseInt(d.year) : specs.model ? 2022 : null,
+        model: specs.model,
+        trim: specs.trim,
+        battery: specs.battery,
+        drive_config: specs.drive,
+        exterior_color: specs.exterior_color,
+        interior_color: specs.interior_color,
+        mileage: d.mileage || null,
+        asking_price: d.price || null,
+        photos: d.photos || [],
+        description: d.description || '',
+        location: d.location || null,
+      };
+    });
+
+    const resp = await fetch(`${serverUrl}/api/admin/rivian/ingest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+      body: JSON.stringify({ listings }),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    const result = await resp.json();
+
+    $('fbRivianBtn').textContent = `✓ ${result.ingested} saved`;
+    $('fbRivianBtn').style.background = '#16a34a';
+    showStatus(`${result.ingested} Rivian listing${result.ingested !== 1 ? 's' : ''} added to Rivian Watch.`, 'success');
+
+    const allOpenTabs = await chrome.tabs.query({});
+    const adminTab = allOpenTabs.find(t => t.url?.includes('/admin/rivians'));
+    const adminUrl = `${serverUrl}/admin/rivians`;
+    if (adminTab) { await chrome.tabs.update(adminTab.id, { active: true, url: adminUrl }); }
+    else { await chrome.tabs.create({ url: adminUrl, active: true }); }
+  } catch (err) {
+    showStatus('Failed: ' + err.message, 'error');
+    $('fbRivianBtn').disabled = false;
   }
 });
 

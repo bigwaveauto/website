@@ -4526,38 +4526,49 @@ app.post('/api/admin/rivian/ingest', requireAdmin, async (req, res) => {
     const listings: any[] = req.body.listings || [];
     if (!listings.length) { res.status(400).json({ error: 'No listings provided' }); return; }
 
-    const rows = listings.map((l: any) => ({
-      vin: l.vin || null,
-      source: l.source || 'manheim',
-      year: l.year ? parseInt(l.year) : null,
-      model: l.model || null,
-      trim: l.trim || null,
-      mileage: l.mileage ? parseInt(String(l.mileage).replace(/\D/g, '')) : null,
-      exterior_color: l.exterior_color || l.exteriorColor || null,
-      interior_color: l.interior_color || l.interiorColor || null,
-      mmr: l.mmr ? parseFloat(String(l.mmr).replace(/[^0-9.]/g, '')) : null,
-      asking_price: l.asking_price || l.buy_now || null,
-      buy_now: l.buy_now || null,
-      photos: Array.isArray(l.photos) ? l.photos.slice(0, 20) : [],
-      location: l.location || null,
-      auction_channel: l.auction_channel || l.channel || null,
-      sale_date: l.sale_date || null,
-      condition_grade: l.condition_grade || l.grade || null,
-      status: 'active',
-    }));
+    let ingested = 0;
+    for (const l of listings) {
+      const row: any = {
+        vin: l.vin || null,
+        source: l.source || 'manheim',
+        source_url: l.source_url || null,
+        year: l.year ? parseInt(l.year) : null,
+        model: l.model || null,
+        trim: l.trim || null,
+        battery: l.battery || null,
+        drive_config: l.drive_config || null,
+        mileage: l.mileage ? parseInt(String(l.mileage).replace(/\D/g, '')) : null,
+        exterior_color: l.exterior_color || l.exteriorColor || null,
+        interior_color: l.interior_color || l.interiorColor || null,
+        mmr: l.mmr ? parseFloat(String(l.mmr).replace(/[^0-9.]/g, '')) : null,
+        asking_price: l.asking_price || l.buy_now || null,
+        buy_now: l.buy_now || null,
+        photos: Array.isArray(l.photos) ? l.photos.slice(0, 20) : [],
+        description: l.description || null,
+        location: l.location || null,
+        auction_channel: l.auction_channel || l.channel || null,
+        sale_date: l.sale_date || null,
+        condition_grade: l.condition_grade || l.grade || null,
+        status: 'active',
+      };
 
-    // Upsert by VIN when available, else insert
-    const withVin = rows.filter(r => r.vin);
-    const withoutVin = rows.filter(r => !r.vin);
-
-    if (withVin.length) {
-      await supabase.from('rivian_listings').upsert(withVin, { onConflict: 'vin', ignoreDuplicates: false });
+      if (row.vin) {
+        await supabase.from('rivian_listings').upsert(row, { onConflict: 'vin', ignoreDuplicates: false });
+      } else if (row.source === 'facebook' && row.source_url) {
+        // Dedup FB listings by source_url
+        const { data: existing } = await supabase.from('rivian_listings').select('id').eq('source_url', row.source_url).maybeSingle();
+        if (existing) {
+          await supabase.from('rivian_listings').update(row).eq('id', existing.id);
+        } else {
+          await supabase.from('rivian_listings').insert(row);
+        }
+      } else {
+        await supabase.from('rivian_listings').insert(row);
+      }
+      ingested++;
     }
-    if (withoutVin.length) {
-      await supabase.from('rivian_listings').insert(withoutVin);
-    }
 
-    res.json({ ok: true, ingested: rows.length });
+    res.json({ ok: true, ingested });
   } catch (err: any) { res.status(500).json({ error: err.message }); }
 });
 
