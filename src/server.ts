@@ -4556,19 +4556,24 @@ app.post('/api/admin/rivian/ingest', requireAdmin, async (req, res) => {
         status: 'active',
       };
 
+      let opError: any = null;
       if (row.vin) {
-        await supabase.from('rivian_listings').upsert(row, { onConflict: 'vin', ignoreDuplicates: false });
+        const { error } = await supabase.from('rivian_listings').upsert(row, { onConflict: 'vin', ignoreDuplicates: false });
+        opError = error;
       } else if (row.source === 'facebook' && row.source_url) {
-        // Dedup FB listings by source_url
         const { data: existing } = await supabase.from('rivian_listings').select('id').eq('source_url', row.source_url).maybeSingle();
         if (existing) {
-          await supabase.from('rivian_listings').update(row).eq('id', existing.id);
+          const { error } = await supabase.from('rivian_listings').update(row).eq('id', existing.id);
+          opError = error;
         } else {
-          await supabase.from('rivian_listings').insert(row);
+          const { error } = await supabase.from('rivian_listings').insert(row);
+          opError = error;
         }
       } else {
-        await supabase.from('rivian_listings').insert(row);
+        const { error } = await supabase.from('rivian_listings').insert(row);
+        opError = error;
       }
+      if (opError) { console.error('[rivian ingest]', opError.message, JSON.stringify(row).slice(0, 200)); continue; }
       ingested++;
     }
 
