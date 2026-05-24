@@ -324,6 +324,10 @@ const ADMIN_EMAILS = ['dave@bigwaveauto.com', 'dlucas589@gmail.com'];
 
 // Server-side admin auth middleware — validates Supabase JWT and checks email whitelist
 async function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  // Extension API key is accepted as an alternative to admin session auth
+  const apiKey = req.headers['x-api-key'];
+  if (apiKey && apiKey === process.env['BWA_EXT_API_KEY']) { next(); return; }
+
   console.log('[requireAdmin]', req.method, req.path, 'auth:', req.headers.authorization ? 'present' : 'MISSING');
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
@@ -4521,17 +4525,7 @@ app.post('/api/rivian-report/unlock', async (req, res) => {
 });
 
 // Admin: bulk ingest from Chrome extension
-app.post('/api/admin/rivian/ingest', async (req, res) => {
-  const apiKey = req.headers['x-api-key'];
-  if (!apiKey || apiKey !== process.env['BWA_EXT_API_KEY']) {
-    // Fall back to admin session auth
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) { res.status(401).json({ error: 'Auth required' }); return; }
-    const { data: { user }, error } = await supabase.auth.getUser(authHeader.slice(7));
-    if (error || !user?.email || !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
-      res.status(401).json({ error: 'Auth required' }); return;
-    }
-  }
+app.post('/api/admin/rivian/ingest', requireAdmin, async (req, res) => {
   try {
     const listings: any[] = req.body.listings || [];
     if (!listings.length) { res.status(400).json({ error: 'No listings provided' }); return; }
