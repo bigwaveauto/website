@@ -4526,10 +4526,12 @@ app.post('/api/rivian-report/unlock', async (req, res) => {
 
 // Admin: bulk ingest from Chrome extension
 function isLikelyRivianVehicle(l: any): boolean {
-  const text = `${l.title || ''} ${l.description || ''}`;
-  const junkRe = /referral\s*code|\boem\b|door\s*shell|headlight|tail\s*?light|bumper|fender|floor\s*mat|seat\s*cover|cargo\s*(mat|liner|tray)|\bwrap\b|tonneau|running\s*board|mud\s*flap|charging\s*cable|\badapter\b|wheel\s*set|\brims?\b|side\s*mirror|windshield|wiper|air\s*filter|lug\s*nut|tow\s*hitch|\bparts?\s*(for|lot)\b|for\s*parts/i;
+  const text = `${l.title || ''} ${l.description || ''} ${l.model || ''}`;
+  // Must actually reference R1T or R1S (catches non-Rivian items from FB search results)
+  if (!/r1[ts]/i.test(text)) return false;
+  // Block parts, accessories, referrals
+  const junkRe = /parting\s*out|part\s*out|referral\s*code|\boem\b|door\s*shell|headlight|tail\s*?light|bumper|fender|floor\s*mat|seat\s*cover|cargo\s*(mat|liner|tray)|\bwrap\b|tonneau|running\s*board|mud\s*flap|charging\s*cable|\badapter\b|wheel\s*set|\brims?\b|side\s*mirror|windshield|wiper|air\s*filter|lug\s*nut|tow\s*hitch|\bparts?\s*(for|lot)\b|for\s*parts/i;
   if (junkRe.test(text)) return false;
-  // Referral / promo listings have tiny prices
   if (l.asking_price && l.asking_price < 8000) return false;
   return true;
 }
