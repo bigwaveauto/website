@@ -4561,7 +4561,7 @@ app.post('/api/admin/rivian/ingest', requireAdmin, async (req, res) => {
         asking_price: l.asking_price || l.buy_now || null,
         buy_now: l.buy_now || null,
         photos: Array.isArray(l.photos) ? l.photos.slice(0, 20) : [],
-        description: l.description || null,
+        description: l.description || l.title || null,
         location: l.location || null,
         auction_channel: l.auction_channel || l.channel || null,
         sale_date: l.sale_date || null,
