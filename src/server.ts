@@ -4525,13 +4525,24 @@ app.post('/api/rivian-report/unlock', async (req, res) => {
 });
 
 // Admin: bulk ingest from Chrome extension
+function isLikelyRivianVehicle(l: any): boolean {
+  const text = `${l.title || ''} ${l.description || ''}`;
+  const junkRe = /referral\s*code|\boem\b|door\s*shell|headlight|tail\s*?light|bumper|fender|floor\s*mat|seat\s*cover|cargo\s*(mat|liner|tray)|\bwrap\b|tonneau|running\s*board|mud\s*flap|charging\s*cable|\badapter\b|wheel\s*set|\brims?\b|side\s*mirror|windshield|wiper|air\s*filter|lug\s*nut|tow\s*hitch|\bparts?\s*(for|lot)\b|for\s*parts/i;
+  if (junkRe.test(text)) return false;
+  // Referral / promo listings have tiny prices
+  if (l.asking_price && l.asking_price < 8000) return false;
+  return true;
+}
+
 app.post('/api/admin/rivian/ingest', requireAdmin, async (req, res) => {
   try {
     const listings: any[] = req.body.listings || [];
     if (!listings.length) { res.status(400).json({ error: 'No listings provided' }); return; }
 
     let ingested = 0;
+    let skipped = 0;
     for (const l of listings) {
+      if (!isLikelyRivianVehicle(l)) { skipped++; continue; }
       const row: any = {
         vin: l.vin || null,
         source: l.source || 'manheim',
@@ -4577,7 +4588,7 @@ app.post('/api/admin/rivian/ingest', requireAdmin, async (req, res) => {
       ingested++;
     }
 
-    res.json({ ok: true, ingested });
+    res.json({ ok: true, ingested, skipped });
   } catch (err: any) { res.status(500).json({ error: err.message }); }
 });
 

@@ -378,7 +378,8 @@ $('rivianScanBtn').addEventListener('click', async () => {
 
     $('rivianScanBtn').textContent = `✓ ${result.ingested || listings.length} ingested`;
     $('rivianScanBtn').style.background = '#16a34a';
-    showStatus(`Ingested ${result.ingested || listings.length} Rivian listings into admin.`, 'success');
+    const skipMsgM = result.skipped ? ` (${result.skipped} filtered out)` : '';
+    showStatus(`Ingested ${result.ingested || listings.length} Rivian listings into admin.${skipMsgM}`, 'success');
 
     // Open admin Rivians tab
     const allTabs = await chrome.tabs.query({});
@@ -741,7 +742,8 @@ $('fbRivianBtn').addEventListener('click', async () => {
 
     $('fbRivianBtn').textContent = `✓ ${result.ingested} saved`;
     $('fbRivianBtn').style.background = '#16a34a';
-    showStatus(`${result.ingested} Rivian listing${result.ingested !== 1 ? 's' : ''} added to Rivian Watch.`, 'success');
+    const skipMsg = result.skipped ? ` (${result.skipped} parts/junk filtered out)` : '';
+    showStatus(`${result.ingested} Rivian listing${result.ingested !== 1 ? 's' : ''} added to Rivian Watch.${skipMsg}`, 'success');
 
     const allOpenTabs = await chrome.tabs.query({});
     const adminTab = allOpenTabs.find(t => t.url?.includes('/admin/rivians'));
@@ -910,7 +912,8 @@ $('fbRivianTilesBtn').addEventListener('click', async () => {
 
     $('fbRivianTilesBtn').textContent = `✓ ${result.ingested} saved`;
     $('fbRivianTilesBtn').style.background = '#16a34a';
-    showStatus(`${result.ingested} listing${result.ingested !== 1 ? 's' : ''} added to Rivian Watch.`, 'success');
+    const skipMsg2 = result.skipped ? ` (${result.skipped} parts/junk filtered out)` : '';
+    showStatus(`${result.ingested} listing${result.ingested !== 1 ? 's' : ''} added to Rivian Watch.${skipMsg2}`, 'success');
 
     const allTabs = await chrome.tabs.query({});
     const adminTab = allTabs.find(t => t.url?.includes('/admin/rivians'));
