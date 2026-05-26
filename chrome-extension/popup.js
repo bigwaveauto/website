@@ -462,7 +462,11 @@ function fbPageScraper() {
   const listingIdMatch = url.match(/marketplace\/item\/(\d+)/);
   const listingId = listingIdMatch?.[1] || String(Date.now());
 
-  let title = document.querySelector('meta[property="og:title"]')?.content || '';
+  // Title: og:title is most reliable, fallback to h1 or page title
+  let title = document.querySelector('meta[property="og:title"]')?.content?.trim() || '';
+  if (!title) { const h1 = document.querySelector('h1'); if (h1) title = h1.textContent.trim(); }
+  if (!title) title = document.title.replace(/\s*[|\-–]\s*Facebook.*$/i, '').trim();
+
   let description = '';
   let price = null;
   const photos = [];
@@ -471,43 +475,63 @@ function fbPageScraper() {
   const ogImg = document.querySelector('meta[property="og:image"]')?.content || '';
   if (ogImg && !seen.has(ogImg)) { photos.push(ogImg); seen.add(ogImg); }
 
+  // Two-pass: first collect photos (needs scontent filter), then text data (all scripts)
   for (const s of document.querySelectorAll('script')) {
     const text = s.textContent || '';
-    if (!text.includes('scontent') || text.length < 200) continue;
+    if (text.length < 100) continue;
 
-    const matches = [...text.matchAll(/"uri"\s*:\s*"(https:\\?\/\\?\/scontent[^"\\]*(?:\\.[^"\\]*)*)"/g)];
-    for (const m of matches) {
-      const imgUrl = m[1].replace(/\\u002F/g, '/').replace(/\\n/g, '').replace(/\\/g, '');
-      if (!seen.has(imgUrl) && photos.length < 30) { photos.push(imgUrl); seen.add(imgUrl); }
+    // Photos
+    if (text.includes('scontent') || text.includes('fbcdn')) {
+      const matches = [...text.matchAll(/"uri"\s*:\s*"(https:\\?\/\\?\/(?:scontent|[^"]*fbcdn)[^"\\]*(?:\\.[^"\\]*)*)"/g)];
+      for (const m of matches) {
+        const imgUrl = m[1].replace(/\\u002F/g, '/').replace(/\\n/g, '').replace(/\\/g, '');
+        if (!seen.has(imgUrl) && photos.length < 30) { photos.push(imgUrl); seen.add(imgUrl); }
+      }
     }
 
+    // Description — FB now uses {"text":"..."} wrapper
     if (!description) {
-      const dm = text.match(/"description"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-      if (dm && dm[1].length > 20) description = dm[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\/g, '');
+      const dm = text.match(/"description"\s*:\s*\{\s*"text"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+      if (dm && dm[1].length > 10) description = dm[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\/g, '');
+    }
+    if (!description) {
+      const dm2 = text.match(/"description"\s*:\s*"((?:[^"\\]|\\.){10,})"/);
+      if (dm2) description = dm2[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\/g, '');
     }
 
+    // Price
     if (!price) {
       const pm = text.match(/"formatted_amount"\s*:\s*"\$?([\d,]+)"/);
       if (pm) price = parseInt(pm[1].replace(/,/g, ''));
     }
     if (!price) {
-      const pm2 = text.match(/"amount"\s*:\s*"(\d+)"/);
-      if (pm2) {
-        const raw = parseInt(pm2[1]);
-        price = raw > 100000 ? Math.round(raw / 100) : raw;
-      }
+      const pm2 = text.match(/"listing_price"[^}]*"amount"\s*:\s*"(\d+)"/);
+      if (pm2) { const raw = parseInt(pm2[1]); price = raw > 100000 ? Math.round(raw / 100) : raw; }
+    }
+    if (!price) {
+      const pm3 = text.match(/"amount"\s*:\s*"(\d+)"/);
+      if (pm3) { const raw = parseInt(pm3[1]); price = raw > 100000 ? Math.round(raw / 100) : raw; }
     }
 
+    // Title from JSON
     if (!title) {
-      const tm = text.match(/"marketplace_listing_item"[^{]*\{[^}]*"name"\s*:\s*"([^"]+)"/);
-      if (tm) title = tm[1];
+      const tm = text.match(/"name"\s*:\s*"((?:[^"\\]|\\.){5,120})"/);
+      if (tm) title = tm[1].replace(/\\"/g, '"');
     }
   }
 
+  // DOM fallback for price
+  if (!price) {
+    const priceEl = [...document.querySelectorAll('span, h1, h2, div')]
+      .find(el => el.childElementCount === 0 && /^\$[\d,]+$/.test(el.textContent.trim()));
+    if (priceEl) price = parseInt(priceEl.textContent.replace(/\D/g, ''));
+  }
+
+  // DOM fallback for photos
   if (photos.length <= 1) {
     for (const img of document.querySelectorAll('img')) {
       const src = img.src || '';
-      if (!src.includes('scontent') || seen.has(src)) continue;
+      if ((!src.includes('scontent') && !src.includes('fbcdn')) || seen.has(src)) continue;
       if ((img.naturalWidth || img.width) >= 200) {
         photos.push(src); seen.add(src);
         if (photos.length >= 20) break;
