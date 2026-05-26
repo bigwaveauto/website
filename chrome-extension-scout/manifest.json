@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "BWA Auction Scout",
+  "version": "1.0",
+  "description": "Scan Manheim/OVE auction search pages for Rivians and save to Rivian Watch",
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": ["https://*.manheim.com/*", "https://*.ove.com/*", "https://*.adesa.com/*", "https://*.openlane.com/*", "https://bigwaveauto.com/*", "http://localhost:*/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": { "48": "icon.png" }
+  }
+}

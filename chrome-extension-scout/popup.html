@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { width: 360px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f9fb; }
+
+    .header { padding: 14px 16px; background: #052e16; color: white; }
+    .header h1 { font-size: 15px; font-weight: 800; }
+    .header p { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+
+    .body { padding: 14px 16px; }
+
+    .status { padding: 10px 12px; border-radius: 8px; font-size: 12px; margin-bottom: 12px; display: none; line-height: 1.4; }
+    .status.show { display: block; }
+    .status.success { background: #dcfce7; color: #166534; }
+    .status.error { background: #fee2e2; color: #991b1b; }
+    .status.working { background: #fef9c3; color: #854d0e; }
+
+    .config-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .config { flex: 1; }
+    .config label { display: block; font-size: 10px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .config input { width: 100%; padding: 7px 9px; border: 1.5px solid #e2e8f0; border-radius: 6px; font-size: 12px; font-family: inherit; }
+    .config input:focus { outline: none; border-color: #16a34a; }
+
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s; margin-bottom: 8px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-scan { background: #15803d; color: white; }
+    .btn-scan:hover:not(:disabled) { background: #166534; }
+    .btn-fb { background: #1877f2; color: white; }
+    .btn-fb:hover:not(:disabled) { background: #1461cc; }
+
+    .results { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-top: 4px; display: none; }
+    .results.show { display: block; }
+
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #f3f4f6; font-size: 12px; }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { color: #64748b; font-weight: 600; }
+    .stat-val { font-weight: 800; color: #111; }
+    .stat-val.green { color: #16a34a; }
+    .stat-val.blue { color: #2563eb; }
+    .stat-val.muted { color: #94a3b8; font-weight: 600; }
+
+    .vehicle-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .vehicle-card { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 3px solid #16a34a; border-radius: 8px; padding: 8px 10px; font-size: 11px; }
+    .vehicle-card .vc-title { font-weight: 800; font-size: 12px; color: #111; margin-bottom: 3px; }
+    .vehicle-card .vc-meta { color: #64748b; display: flex; gap: 8px; flex-wrap: wrap; }
+    .vehicle-card .vc-meta span { }
+    .vehicle-card .vc-price { font-weight: 800; color: #15803d; font-size: 13px; }
+    .vehicle-card .vc-mmr { color: #2563eb; font-weight: 700; }
+
+    .hint { font-size: 11px; color: #94a3b8; margin-top: 8px; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>🌿 BWA Auction Scout</h1>
+    <p>Rivian Watch — Auction Page Scanner</p>
+  </div>
+
+  <div class="body">
+    <div id="status" class="status"></div>
+
+    <div class="config-row">
+      <div class="config">
+        <label>Server URL</label>
+        <input id="serverUrl" type="text" placeholder="https://bigwaveauto.com" />
+      </div>
+      <div class="config">
+        <label>API Key</label>
+        <input id="apiKey" type="password" placeholder="API key" />
+      </div>
+    </div>
+
+    <button id="scanBtn" class="btn btn-scan">🔍 Scan This Page for Rivians</button>
+    <button id="fbBtn" class="btn btn-fb" style="display:none">📘 Scan FB Marketplace Tabs</button>
+
+    <div id="results" class="results">
+      <div id="statsArea"></div>
+      <div id="vehicleList" class="vehicle-list"></div>
+      <div id="hint" class="hint"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
