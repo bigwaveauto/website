@@ -4533,6 +4533,14 @@ function isLikelyRivianVehicle(l: any): boolean {
   const junkRe = /parting\s*out|part\s*out|referral\s*code|\boem\b|door\s*shell|headlight|tail\s*?light|bumper|fender|floor\s*mat|seat\s*cover|cargo\s*(mat|liner|tray)|\bwrap\b|tonneau|running\s*board|mud\s*flap|charging\s*cable|\badapter\b|wheel\s*set|\brims?\b|side\s*mirror|windshield|wiper|air\s*filter|lug\s*nut|tow\s*hitch|\bparts?\s*(for|lot)\b|for\s*parts/i;
   if (junkRe.test(text)) return false;
   if (l.asking_price && l.asking_price < 8000) return false;
+  // Require a parsed model (R1S/R1T) — sparse records that only mention "r1t" in
+  // a description but produced no structured data are not actionable.
+  if (!l.model || !/^R1[STX]$/i.test(l.model)) return false;
+  // Require at least one actionable signal beyond the model name.
+  const hasYear = !!l.year;
+  const hasPrice = !!(l.asking_price || l.buy_now);
+  const hasPhoto = Array.isArray(l.photos) && l.photos.length > 0;
+  if (!hasYear && !hasPrice && !hasPhoto) return false;
   return true;
 }
 
@@ -4627,6 +4635,60 @@ app.delete('/api/admin/rivian/:id', requireAdmin, async (req, res) => {
     const { error } = await supabase.from('rivian_listings').delete().eq('id', req.params['id']);
     if (error) throw error;
     res.json({ ok: true });
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+// Admin: report or purge "junk" rivian listings (sparse rows lacking model
+// or all of {year, price, photos}). Dry-run by default; pass ?confirm=true to delete.
+app.post('/api/admin/rivian/cleanup', requireAdmin, async (req, res) => {
+  try {
+    const confirm = String(req.query['confirm'] || '') === 'true';
+    const { data, error } = await supabase
+      .from('rivian_listings')
+      .select('id, vin, model, year, asking_price, buy_now, photos, source, source_url, description');
+    if (error) throw error;
+
+    const isJunk = (r: any) => {
+      if (!r.model || !/^R1[STX]$/i.test(r.model)) return true;
+      const hasYear = !!r.year;
+      const hasPrice = !!(r.asking_price || r.buy_now);
+      const hasPhoto = Array.isArray(r.photos) && r.photos.length > 0;
+      return !hasYear && !hasPrice && !hasPhoto;
+    };
+    const junk = (data || []).filter(isJunk);
+    const sample = junk.slice(0, 5).map(r => ({
+      id: r.id, model: r.model, year: r.year, price: r.asking_price ?? r.buy_now,
+      photos: r.photos?.length || 0, source: r.source, url: r.source_url,
+    }));
+
+    if (!confirm) {
+      res.json({ dryRun: true, totalRows: data?.length || 0, junkCount: junk.length, sample });
+      return;
+    }
+    if (!junk.length) { res.json({ deleted: 0 }); return; }
+    const ids = junk.map(r => r.id);
+    const { error: delErr } = await supabase.from('rivian_listings').delete().in('id', ids);
+    if (delErr) throw delErr;
+    res.json({ deleted: ids.length, totalRows: data?.length || 0 });
+  } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+// Admin: bulk actions on multiple listings
+app.post('/api/admin/rivian/bulk', requireAdmin, async (req, res) => {
+  try {
+    const { action, ids } = req.body as { action: 'hide' | 'show' | 'delete'; ids: (number | string)[] };
+    if (!Array.isArray(ids) || !ids.length) { res.status(400).json({ error: 'No ids provided' }); return; }
+    if (!['hide', 'show', 'delete'].includes(action)) { res.status(400).json({ error: 'Invalid action' }); return; }
+
+    if (action === 'delete') {
+      const { error } = await supabase.from('rivian_listings').delete().in('id', ids);
+      if (error) throw error;
+    } else {
+      const status = action === 'hide' ? 'hidden' : 'active';
+      const { error } = await supabase.from('rivian_listings').update({ status }).in('id', ids);
+      if (error) throw error;
+    }
+    res.json({ ok: true, count: ids.length });
   } catch (err: any) { res.status(500).json({ error: err.message }); }
 });
 

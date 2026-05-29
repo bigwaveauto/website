@@ -1,198 +1,257 @@
-<div class="riv-list">
+<div class="riv-page">
 
-  <div class="riv-header">
-    <h1 class="riv-title">Rivian Watch</h1>
-    <div class="riv-header-controls">
-      <a href="/rivian-report" target="_blank" class="riv-preview-btn">
-        <lucide-icon name="external-link" style="width:13px;height:13px" />
-        Public Page
-      </a>
+  <!-- ── Sidebar (filters) ── -->
+  <aside class="riv-sidebar">
+    <div class="riv-sidebar-header">
+      <h1 class="riv-title">Rivian Watch</h1>
+      <div class="riv-subtitle">{{ stats().total }} tracked</div>
     </div>
-  </div>
 
-  <!-- Filter Panel -->
-  <div class="riv-filters">
     <div class="riv-search-wrap">
       <lucide-icon name="search" class="riv-search-icon" />
-      <input class="riv-search" placeholder="Search VIN, color, description…"
+      <input class="riv-search" placeholder="Search VIN, color, location…"
              [ngModel]="search()" (ngModelChange)="search.set($event)" />
     </div>
 
-    <select class="riv-filter" [ngModel]="modelFilter()" (ngModelChange)="modelFilter.set($event)">
-      <option value="all">R1T + R1S</option>
-      <option value="R1T">R1T only</option>
-      <option value="R1S">R1S only</option>
-    </select>
+    <!-- Sort -->
+    <div class="riv-filter-group">
+      <label class="riv-filter-label">Sort by</label>
+      <select class="riv-select" [ngModel]="sortMode()" (ngModelChange)="changeSort($event)">
+        <option value="best-deal">Best deal</option>
+        <option value="newest">Newest</option>
+        <option value="price-asc">Price: low → high</option>
+        <option value="price-desc">Price: high → low</option>
+        <option value="miles-asc">Mileage: low → high</option>
+      </select>
+    </div>
 
-    <select class="riv-filter" [ngModel]="trimFilter()" (ngModelChange)="trimFilter.set($event)">
-      <option value="all">All Trims</option>
-      <option value="Launch Edition">Launch Edition</option>
-      <option value="Adventure">Adventure</option>
-      <option value="Explore">Explore</option>
-      <option value="Performance">Performance</option>
-    </select>
+    <!-- Model pills -->
+    <div class="riv-filter-group">
+      <label class="riv-filter-label">Model</label>
+      <div class="riv-pills">
+        <button class="riv-pill" [class.riv-pill--active]="modelFilter() === 'all'" (click)="modelFilter.set('all')">All</button>
+        <button class="riv-pill" [class.riv-pill--active]="modelFilter() === 'R1S'" (click)="modelFilter.set('R1S')">R1S</button>
+        <button class="riv-pill" [class.riv-pill--active]="modelFilter() === 'R1T'" (click)="modelFilter.set('R1T')">R1T</button>
+      </div>
+    </div>
 
-    <select class="riv-filter" [ngModel]="batteryFilter()" (ngModelChange)="batteryFilter.set($event)">
-      <option value="all">Any Battery</option>
-      <option value="Max">Max Pack</option>
-      <option value="Large">Large Pack</option>
-      <option value="Standard">Standard Pack</option>
-    </select>
+    <!-- Trim pills -->
+    <div class="riv-filter-group">
+      <label class="riv-filter-label">Trim</label>
+      <div class="riv-pills">
+        <button class="riv-pill" [class.riv-pill--active]="trimFilter() === 'all'" (click)="trimFilter.set('all')">All</button>
+        <button class="riv-pill" [class.riv-pill--active]="trimFilter() === 'Launch Edition'" (click)="trimFilter.set('Launch Edition')">Launch</button>
+        <button class="riv-pill" [class.riv-pill--active]="trimFilter() === 'Adventure'" (click)="trimFilter.set('Adventure')">Adventure</button>
+        <button class="riv-pill" [class.riv-pill--active]="trimFilter() === 'Explore'" (click)="trimFilter.set('Explore')">Explore</button>
+        <button class="riv-pill" [class.riv-pill--active]="trimFilter() === 'Performance'" (click)="trimFilter.set('Performance')">Performance</button>
+      </div>
+    </div>
 
-    <select class="riv-filter" [ngModel]="sourceFilter()" (ngModelChange)="sourceFilter.set($event)">
-      <option value="all">All Sources</option>
-      <option value="facebook">Facebook</option>
-      <option value="manheim">Manheim</option>
-    </select>
+    <!-- Battery pills -->
+    <div class="riv-filter-group">
+      <label class="riv-filter-label">Battery</label>
+      <div class="riv-pills">
+        <button class="riv-pill" [class.riv-pill--active]="batteryFilter() === 'all'" (click)="batteryFilter.set('all')">Any</button>
+        <button class="riv-pill" [class.riv-pill--active]="batteryFilter() === 'Max'" (click)="batteryFilter.set('Max')">Max</button>
+        <button class="riv-pill" [class.riv-pill--active]="batteryFilter() === 'Large'" (click)="batteryFilter.set('Large')">Large</button>
+        <button class="riv-pill" [class.riv-pill--active]="batteryFilter() === 'Standard'" (click)="batteryFilter.set('Standard')">Standard</button>
+      </div>
+    </div>
 
-    <input class="riv-filter riv-filter-num" type="number" placeholder="Max price"
-           [ngModel]="maxPrice()" (ngModelChange)="maxPrice.set($event ? +$event : null)" />
+    <!-- Source pills -->
+    <div class="riv-filter-group">
+      <label class="riv-filter-label">Source</label>
+      <div class="riv-pills">
+        <button class="riv-pill" [class.riv-pill--active]="sourceFilter() === 'all'" (click)="sourceFilter.set('all')">All</button>
+        <button class="riv-pill" [class.riv-pill--active]="sourceFilter() === 'facebook'" (click)="sourceFilter.set('facebook')">Facebook</button>
+        <button class="riv-pill" [class.riv-pill--active]="sourceFilter() === 'manheim'" (click)="sourceFilter.set('manheim')">Manheim</button>
+      </div>
+    </div>
 
-    <input class="riv-filter riv-filter-num" type="number" placeholder="Max miles"
-           [ngModel]="maxMileage()" (ngModelChange)="maxMileage.set($event ? +$event : null)" />
-
-    <input class="riv-filter" style="width:130px" type="text" placeholder="Color…"
-           [ngModel]="colorFilter()" (ngModelChange)="colorFilter.set($event)" />
+    <!-- Numeric ranges -->
+    <div class="riv-filter-group">
+      <label class="riv-filter-label">Max price</label>
+      <input class="riv-input" type="number" placeholder="No max"
+             [ngModel]="maxPrice()" (ngModelChange)="maxPrice.set($event ? +$event : null)" />
+    </div>
+    <div class="riv-filter-group">
+      <label class="riv-filter-label">Max miles</label>
+      <input class="riv-input" type="number" placeholder="No max"
+             [ngModel]="maxMileage()" (ngModelChange)="maxMileage.set($event ? +$event : null)" />
+    </div>
+    <div class="riv-filter-group">
+      <label class="riv-filter-label">Color contains</label>
+      <input class="riv-input" type="text" placeholder="white, blue…"
+             [ngModel]="colorFilter()" (ngModelChange)="colorFilter.set($event)" />
+    </div>
 
     @if(activeFilterCount > 0){
     <button class="riv-clear-btn" (click)="clearFilters()">
       Clear {{ activeFilterCount }} filter{{ activeFilterCount !== 1 ? 's' : '' }}
     </button>
     }
-  </div>
 
-  <div class="riv-count">
-    {{ filtered().length }} of {{ listings().length }} listing{{ listings().length !== 1 ? 's' : '' }}
-  </div>
+    <div class="riv-sidebar-footer">
+      <a href="/rivian-report" target="_blank" class="riv-sidebar-link">
+        <lucide-icon name="external-link" style="width:13px;height:13px" /> Public page
+      </a>
+      <button class="riv-sidebar-link" (click)="load()">
+        <lucide-icon name="refresh-cw" style="width:13px;height:13px" /> Refresh
+      </button>
+    </div>
+  </aside>
 
-  @if(loading()){
-  <div class="riv-loading">Loading listings…</div>
-  }@else if(!filtered().length){
-  <div class="riv-loading">No listings match your filters.</div>
-  }@else{
-  <div class="riv-cards">
-    @for(l of filtered(); track l.id){
-    <div class="riv-card" [class.riv-card--hidden]="l.status === 'hidden'">
+  <!-- ── Main column ── -->
+  <main class="riv-main-col">
 
-      <!-- Photo -->
-      <div class="riv-card-photo">
-        @if(l.photos?.length){
-        <img [src]="l.photos[0]" alt="" (error)="$any($event.target).style.display='none'" />
-        }@else{
-        <lucide-icon name="image" class="riv-photo-ph" />
-        }
-        <span class="riv-source-badge" [class.riv-source-fb]="l.source === 'facebook'">
-          {{ sourceLabel(l) }}
-        </span>
-      </div>
-
-      <!-- Body -->
-      <div class="riv-card-body">
-        <div class="riv-card-title">
-          {{ l.year }} Rivian {{ l.model }}
-          @if(l.trim){ <span class="riv-trim-chip">{{ l.trim }}</span> }
-        </div>
-
-        <div class="riv-spec-chips">
-          @if(l.battery){ <span class="riv-chip">{{ l.battery }} Pack</span> }
-          @if(l.drive_config){ <span class="riv-chip">{{ l.drive_config }}</span> }
-          @if(l.exterior_color){ <span class="riv-chip riv-chip--color">{{ l.exterior_color }}</span> }
-          @if(l.interior_color){ <span class="riv-chip riv-chip--interior">{{ l.interior_color }} int.</span> }
-        </div>
-
-        <div class="riv-card-meta">
-          @if(l.mileage){ <span>{{ fmtMi(l.mileage) }}</span> }
-          @if(l.location){ <span>{{ l.location }}</span> }
-          @if(l.vin){ <span class="riv-vin">{{ l.vin }}</span> }
-        </div>
-
-        @if(l.description){
-        <p class="riv-description">{{ l.description | slice:0:160 }}{{ l.description.length > 160 ? '…' : '' }}</p>
-        }
-
-        <div class="riv-card-links">
-          @if(sourceUrl(l)){
-          <a [href]="sourceUrl(l)" target="_blank" class="riv-source-link"
-             [class.riv-source-link--fb]="l.source === 'facebook'">
-            @if(l.source === 'facebook'){
-            <lucide-icon name="external-link" style="width:12px;height:12px" /> View on Facebook ↗
-            }@else{
-            <lucide-icon name="external-link" style="width:12px;height:12px" /> View on Manheim ↗
-            }
-          </a>
-          }
-        </div>
-      </div>
-
-      <!-- Right -->
-      <div class="riv-card-right">
-        <div class="riv-prices">
-          @if(l.asking_price){ <div class="riv-price">{{ fmt(l.asking_price) }}</div> }
-          @else{ <div class="riv-price riv-price--unknown">Price TBD</div> }
-          @if(l.buy_now){ <div class="riv-price-sub">Auction: {{ fmt(l.buy_now) }}</div> }
-          @if(l.mmr){ <div class="riv-price-sub">MMR: {{ fmt(l.mmr) }}</div> }
-        </div>
-
-        <div class="riv-badges">
-          <span class="riv-status-badge" [class.riv-status-active]="l.status === 'active'"
-                [class.riv-status-hidden]="l.status === 'hidden'">
-            {{ l.status || 'active' }}
-          </span>
-          @if(leadCount(l) > 0){
-          <span class="riv-lead-badge">{{ leadCount(l) }} lead{{ leadCount(l) !== 1 ? 's' : '' }}</span>
-          }
-        </div>
-
-        <div class="riv-actions">
-          <button class="riv-btn riv-btn-toggle" (click)="toggleStatus(l)">
-            {{ l.status === 'active' ? 'Hide' : 'Show' }}
-          </button>
-          <button class="riv-btn riv-btn-edit" (click)="toggleExpand(l.id)">Edit</button>
-          <button class="riv-btn riv-btn-delete" (click)="deleteListing(l)">
-            <lucide-icon name="trash-2" style="width:12px;height:12px" />
-          </button>
-        </div>
-      </div>
-
+    <!-- Stats strip -->
+    <div class="riv-stats">
+      <div class="riv-stat"><span class="riv-stat-label">R1S</span><span class="riv-stat-val">{{ stats().r1s }}</span>@if(stats().r1sAvg){<span class="riv-stat-sub">avg {{ fmt(stats().r1sAvg) }}</span>}</div>
+      <div class="riv-stat"><span class="riv-stat-label">R1T</span><span class="riv-stat-val">{{ stats().r1t }}</span>@if(stats().r1tAvg){<span class="riv-stat-sub">avg {{ fmt(stats().r1tAvg) }}</span>}</div>
+      <div class="riv-stat"><span class="riv-stat-label">With Leads</span><span class="riv-stat-val">{{ stats().withLeads }}</span></div>
+      <div class="riv-stat"><span class="riv-stat-label">Hidden</span><span class="riv-stat-val">{{ stats().hidden }}</span></div>
     </div>
 
-    <!-- Expanded editor -->
-    @if(expandedId() === l.id){
-    <div class="riv-editor">
-      <div class="riv-editor-row">
-        <label>Public Price</label>
-        <input type="number" [(ngModel)]="l.asking_price" placeholder="Leave blank to hide price" />
-      </div>
-      <div class="riv-editor-row">
-        <label>Notes (shown on public listing)</label>
-        <textarea [(ngModel)]="l.notes" rows="3" placeholder="Add context, highlights, or a deal summary…"></textarea>
+    <!-- Count + show-hidden toggle -->
+    <div class="riv-result-bar">
+      <span class="riv-count">{{ visible().length }} of {{ listings().length }} listing{{ listings().length !== 1 ? 's' : '' }}</span>
+      @if(hiddenCount() > 0){
+      <button class="riv-toggle-hidden" (click)="toggleShowHidden()">
+        {{ showHidden() ? 'Hide hidden' : 'Show ' + hiddenCount() + ' hidden' }}
+      </button>
+      }
+    </div>
+
+    <!-- Bulk action bar -->
+    @if(selectedCount() > 0){
+    <div class="riv-bulk-bar">
+      <span class="riv-bulk-count">{{ selectedCount() }} selected</span>
+      <button class="riv-bulk-btn" (click)="bulkAction('hide')" [disabled]="bulkBusy()">Hide</button>
+      <button class="riv-bulk-btn" (click)="bulkAction('show')" [disabled]="bulkBusy()">Show</button>
+      <button class="riv-bulk-btn riv-bulk-btn--danger" (click)="bulkAction('delete')" [disabled]="bulkBusy()">Delete</button>
+      <button class="riv-bulk-btn riv-bulk-btn--ghost" (click)="selectAllVisible()" [disabled]="bulkBusy()">Select all visible</button>
+      <button class="riv-bulk-btn riv-bulk-btn--ghost" (click)="clearSelection()" [disabled]="bulkBusy()">Clear</button>
+    </div>
+    }
+
+    @if(loading()){
+    <div class="riv-loading">Loading listings…</div>
+    }@else if(!visible().length){
+    <div class="riv-loading">No listings match your filters.</div>
+    }@else{
+
+    <div class="riv-rows">
+      @for(l of visible(); track l.id){
+
+      <div class="riv-row" [class.riv-row--hidden]="l.status === 'hidden'"
+           [class.riv-row--selected]="isSelected(l.id)"
+           [class.riv-row--expanded]="expandedId() === l.id"
+           (click)="toggleExpand(l.id)">
+
+        <label class="riv-check" (click)="$event.stopPropagation()">
+          <input type="checkbox" [checked]="isSelected(l.id)" (change)="toggleSelect(l.id, $event)" />
+        </label>
+
+        <div class="riv-thumb">
+          @if(hasPhoto(l)){
+          <img [src]="l.photos[0]" alt="" loading="lazy" (error)="onPhotoError(l.id)" />
+          }@else{
+          <div class="riv-thumb-fallback" [style.background]="modelBadgeColor(l)">{{ l.model || '?' }}</div>
+          }
+        </div>
+
+        <div class="riv-title-cell">
+          <span class="riv-row-title">{{ title(l) }}</span>
+          @if(l.trim){ <span class="riv-trim-chip">{{ l.trim }}</span> }
+          @if(isNew(l)){ <span class="riv-new-chip">NEW</span> }
+          @if(dupeCount(l) > 0){ <span class="riv-dupe-chip">{{ dupeCount(l) }}×</span> }
+          @if(leadCount(l) > 0){ <span class="riv-lead-chip">{{ leadCount(l) }} lead</span> }
+        </div>
+
+        <div class="riv-specs-cell">
+          @if(l.battery){ <span class="riv-chip">{{ l.battery }}</span> }
+          @if(l.exterior_color){ <span class="riv-chip riv-chip--color">{{ l.exterior_color }}</span> }
+          @if(l.condition_grade){ <span class="riv-chip riv-chip--cr">CR {{ l.condition_grade }}</span> }
+        </div>
+
+        <div class="riv-mileage-cell">{{ fmtMi(l.mileage) }}</div>
+
+        <div class="riv-location-cell">{{ l.location || '—' }}</div>
+
+        <div class="riv-source-cell">
+          @if(sourceUrl(l)){
+          <a class="riv-src-link" [class.riv-src-link--fb]="l.source === 'facebook'"
+             [href]="sourceUrl(l)" target="_blank" (click)="$event.stopPropagation()"
+             [title]="'Open on ' + sourceLabel(l)">
+            <lucide-icon name="external-link" style="width:11px;height:11px" />
+            {{ sourceLabel(l) }}
+          </a>
+          }@else{
+          <span class="riv-src-pill" [class.riv-src-fb]="l.source === 'facebook'">{{ sourceLabel(l) }}</span>
+          }
+        </div>
+
+        <div class="riv-price-cell">
+          @if(l.asking_price){
+          <span class="riv-price">{{ fmt(l.asking_price) }}</span>
+          }@else{
+          <span class="riv-price riv-price--tbd">TBD</span>
+          }
+          @if(dealBadge(l); as d){<span class="riv-deal" [ngClass]="d.cls">{{ d.label }}</span>}
+        </div>
+
+        <div class="riv-actions" (click)="$event.stopPropagation()">
+          <button class="riv-btn" (click)="toggleStatus(l, $event)" [title]="l.status === 'active' ? 'Hide' : 'Show'">
+            <lucide-icon [name]="l.status === 'active' ? 'eye-off' : 'eye'" style="width:13px;height:13px" />
+          </button>
+          <button class="riv-btn riv-btn-edit" (click)="toggleExpand(l.id, $event)" title="Edit">
+            <lucide-icon name="pencil" style="width:13px;height:13px" />
+          </button>
+          <button class="riv-btn riv-btn-delete" (click)="deleteListing(l, $event)" title="Delete">
+            <lucide-icon name="trash-2" style="width:13px;height:13px" />
+          </button>
+        </div>
       </div>
 
-      @if(leadCount(l) > 0){
-      <div class="riv-leads-section">
-        <div class="riv-leads-title">Unlock Leads</div>
-        @for(lead of l.rivian_unlocks; track lead.id){
-        <div class="riv-lead-row">
-          <span class="riv-lead-name">{{ lead.name }}</span>
-          <span class="riv-lead-contact">{{ lead.email }}</span>
-          @if(lead.phone){ <span class="riv-lead-contact">{{ lead.phone }}</span> }
-          <span class="riv-lead-mindset">{{ lead.mindset || '—' }}</span>
-          <span class="riv-lead-date">{{ lead.created_at | date:'M/d h:mma' }}</span>
+      <!-- Expanded editor -->
+      @if(expandedId() === l.id){
+      <div class="riv-editor" (click)="$event.stopPropagation()">
+        <div class="riv-editor-grid">
+          <div class="riv-editor-row">
+            <label>Public Price</label>
+            <input type="number" [(ngModel)]="l.asking_price" placeholder="Leave blank to hide" />
+          </div>
+          <div class="riv-editor-row riv-editor-row--full">
+            <label>Notes (shown on public listing)</label>
+            <textarea [(ngModel)]="l.notes" rows="3" placeholder="Add context, highlights, or a deal summary…"></textarea>
+          </div>
+        </div>
+
+        @if(leadCount(l) > 0){
+        <div class="riv-leads-section">
+          <div class="riv-leads-title">Unlock Leads ({{ leadCount(l) }})</div>
+          @for(lead of l.rivian_unlocks; track lead.id){
+          <div class="riv-lead-row">
+            <span class="riv-lead-name">{{ lead.name }}</span>
+            <span class="riv-lead-contact">{{ lead.email }}</span>
+            @if(lead.phone){ <span class="riv-lead-contact">{{ lead.phone }}</span> }
+            <span class="riv-lead-mindset">{{ lead.mindset || '—' }}</span>
+            <span class="riv-lead-date">{{ lead.created_at | date:'M/d h:mma' }}</span>
+          </div>
+          }
         </div>
         }
+
+        <div class="riv-editor-actions">
+          <button class="riv-save-btn" (click)="saveNotes(l)" [disabled]="saving() === l.id">
+            {{ saving() === l.id ? 'Saving…' : 'Save' }}
+          </button>
+          <button class="riv-cancel-btn" (click)="toggleExpand(l.id, $event)">Cancel</button>
+        </div>
       </div>
       }
-
-      <div class="riv-editor-actions">
-        <button class="riv-save-btn" (click)="saveNotes(l)" [disabled]="saving() === l.id">
-          {{ saving() === l.id ? 'Saving…' : 'Save' }}
-        </button>
-        <button class="riv-cancel-btn" (click)="toggleExpand(l.id)">Cancel</button>
-      </div>
+      }
     </div>
     }
-    }
-  </div>
-  }
-
+  </main>
 </div>

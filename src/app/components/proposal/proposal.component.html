@@ -184,12 +184,12 @@
           <div class="wi-section">
             <div class="wi-section-head">Price of the Vehicle</div>
             <div class="wi-row">
-              <span class="wi-lbl"><span class="wi-letter">a.</span> Dealer Retail Price</span>
+              <span class="wi-lbl">Dealer Retail Price</span>
               <span class="wi-amt">{{ askingPrice | currency:'USD':'symbol':'1.2-2' }}</span>
             </div>
             @for(li of taxableLineItems; track $index){
             <div class="wi-row">
-              <span class="wi-lbl"><span class="wi-letter">{{ $index === 0 ? 'b.' : 'c.' }}</span> {{ li.label }}</span>
+              <span class="wi-lbl">{{ li.label }}</span>
               <span class="wi-amt">{{ li.amount | currency:'USD':'symbol':'1.2-2' }}</span>
             </div>
             }
@@ -218,7 +218,7 @@
           <div class="wi-section">
             <div class="wi-section-head">Sales Tax Calculation</div>
             <div class="wi-row wi-row-sub">
-              <span class="wi-lbl"><span class="wi-letter">g.</span> Amount Subject to Sales Tax</span>
+              <span class="wi-lbl">Amount Subject to Sales Tax</span>
               <span class="wi-amt">{{ taxableAmount | currency:'USD':'symbol':'1.2-2' }}</span>
             </div>
             <div class="wi-row wi-row-sub">

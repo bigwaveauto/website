@@ -606,10 +606,6 @@ $hv: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 .wi-lbl { flex: 1; line-height: 1.4; }
 .wi-amt { font-weight: 600; white-space: nowrap; font-family: $hv; }
 
-.wi-letter {
-  display: inline-block; width: 18px; color: #94a3b8; font-style: italic; font-size: 12px;
-}
-
 .wi-subtotal {
   display: flex; justify-content: space-between; align-items: baseline;
   padding: 7px 0 10px; gap: 8px;

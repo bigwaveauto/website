@@ -4,9 +4,18 @@
   "version": "1.0",
   "description": "Scan Manheim/OVE auction search pages for Rivians and save to Rivian Watch",
   "permissions": ["activeTab", "scripting", "storage", "tabs"],
-  "host_permissions": ["https://*.manheim.com/*", "https://*.ove.com/*", "https://*.adesa.com/*", "https://*.openlane.com/*", "https://bigwaveauto.com/*", "http://localhost:*/*"],
+  "host_permissions": ["https://*.manheim.com/*", "https://*.ove.com/*", "https://*.adesa.com/*", "https://*.openlane.com/*", "https://*.facebook.com/*", "https://bigwaveauto.com/*", "http://localhost:*/*"],
   "action": {
     "default_popup": "popup.html",
-    "default_icon": { "48": "icon.png" }
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
   }
 }

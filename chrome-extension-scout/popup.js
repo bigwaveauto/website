@@ -284,59 +284,98 @@ function scrapeAuctionPage() {
   return { results, diagnostics, url: window.location.href };
 }
 
-// ── FB Marketplace tile scraper ──
-function fbTilesScraper() {
+// ── FB Marketplace tile scraper (auto-scrolls past virtualization) ──
+async function fbTilesScraper() {
   const seen = new Set();
   const listings = [];
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-  for (const link of document.querySelectorAll('a[href*="/marketplace/item/"]')) {
-    const idMatch = link.href.match(/marketplace\/item\/(\d+)/);
-    if (!idMatch) continue;
-    const listingId = idMatch[1];
-    if (seen.has(listingId)) continue;
-    seen.add(listingId);
+  function captureVisible() {
+    for (const link of document.querySelectorAll('a[href*="/marketplace/item/"]')) {
+      const idMatch = link.href.match(/marketplace\/item\/(\d+)/);
+      if (!idMatch) continue;
+      const listingId = idMatch[1];
+      if (seen.has(listingId)) continue;
 
-    const img = link.querySelector('img');
-    const photo = (img?.src && !img.src.startsWith('data:')) ? img.src : '';
-    const spans = [...link.querySelectorAll('span')]
-      .map(s => s.childElementCount === 0 ? s.textContent.trim() : '')
-      .filter(t => t.length > 1 && t.length < 120);
+      const img = link.querySelector('img');
+      const photo = (img?.src && !img.src.startsWith('data:')) ? img.src : '';
+      const spans = [...link.querySelectorAll('span')]
+        .map(s => s.childElementCount === 0 ? s.textContent.trim() : '')
+        .filter(t => t.length > 1 && t.length < 120);
 
-    const priceText = spans.find(t => /^\$[\d,]+/.test(t)) || '';
-    const price = priceText ? parseInt(priceText.replace(/\D/g, '')) : null;
-    const title = spans.find(t => /\b(19|20)\d{2}\b/.test(t)) || spans[0] || '';
-    const mileageText = spans.find(t => /[\d,]+\s*miles?/i.test(t)) || '';
-    const mileage = mileageText ? parseInt(mileageText.replace(/\D/g, '')) : null;
-    const location = spans.find(t => t !== priceText && t !== title && t !== mileageText && t.length > 2 && /,\s*[A-Z]{2}$/.test(t)) || '';
+      const priceText = spans.find(t => /^\$[\d,]+/.test(t)) || '';
+      const price = priceText ? parseInt(priceText.replace(/\D/g, '')) : null;
+      const title = spans.find(t => /\b(19|20)\d{2}\b/.test(t)) || spans[0] || '';
+      const mileageText = spans.find(t => /[\d,]+\s*miles?/i.test(t)) || '';
+      const mileage = mileageText ? parseInt(mileageText.replace(/\D/g, '')) : null;
+      const location = spans.find(t => t !== priceText && t !== title && t !== mileageText && t.length > 2 && /,\s*[A-Z]{2}$/.test(t)) || '';
 
-    const text = title + ' ' + (location || '');
-    const modelMatch = /r1s/i.test(text) ? 'R1S' : /r1t/i.test(text) ? 'R1T' : null;
-    if (!modelMatch) continue; // Only keep Rivians
+      const text = title + ' ' + (location || '');
+      const modelMatch = /r1s/i.test(text) ? 'R1S' : /r1t/i.test(text) ? 'R1T' : null;
+      if (!modelMatch) continue; // Only keep Rivians
 
-    let trim = null;
-    if (/launch edition|launch ed/i.test(text)) trim = 'Launch Edition';
-    else if (/adventure/i.test(text)) trim = 'Adventure';
-    else if (/explore/i.test(text)) trim = 'Explore';
-    else if (/performance/i.test(text)) trim = 'Performance';
+      let trim = null;
+      if (/launch edition|launch ed/i.test(text)) trim = 'Launch Edition';
+      else if (/adventure/i.test(text)) trim = 'Adventure';
+      else if (/explore/i.test(text)) trim = 'Explore';
+      else if (/performance/i.test(text)) trim = 'Performance';
 
-    const yearMatch = title.match(/\b(19|20)\d{2}\b/);
-    const year = yearMatch ? parseInt(yearMatch[0]) : null;
+      const yearMatch = title.match(/\b(19|20)\d{2}\b/);
+      const year = yearMatch ? parseInt(yearMatch[0]) : null;
 
-    listings.push({
-      listing_id: listingId,
-      source: 'facebook',
-      source_url: `https://www.facebook.com/marketplace/item/${listingId}/`,
-      title,
-      model: modelMatch,
-      trim,
-      year,
-      asking_price: price,
-      photos: photo ? [photo] : [],
-      mileage,
-      location: location || null,
-      extracted_at: new Date().toISOString(),
-    });
+      seen.add(listingId);
+      listings.push({
+        listing_id: listingId,
+        source: 'facebook',
+        source_url: `https://www.facebook.com/marketplace/item/${listingId}/`,
+        title,
+        model: modelMatch,
+        trim,
+        year,
+        asking_price: price,
+        photos: photo ? [photo] : [],
+        mileage,
+        location: location || null,
+        extracted_at: new Date().toISOString(),
+      });
+    }
   }
+
+  // Scroll the page repeatedly, capturing newly-rendered tiles each time.
+  // FB Marketplace virtualizes the list, so off-screen tiles aren't in the DOM.
+  captureVisible();
+  const origScroll = window.scrollY;
+  let lastTileCount = -1;
+  let stableIters = 0;
+  const MAX_SCROLLS = 80;
+
+  for (let i = 0; i < MAX_SCROLLS; i++) {
+    const tilesNow = document.querySelectorAll('a[href*="/marketplace/item/"]').length;
+    window.scrollBy(0, window.innerHeight);
+    await sleep(600);
+    captureVisible();
+
+    if (tilesNow === lastTileCount) {
+      stableIters++;
+      // Give FB extra time for slow loads, but bail after several stable iterations
+      if (stableIters >= 4) break;
+      await sleep(800);
+    } else {
+      stableIters = 0;
+    }
+    lastTileCount = tilesNow;
+
+    // Stop if we've reached the bottom
+    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 50) {
+      await sleep(1000);
+      captureVisible();
+      const newHeight = document.documentElement.scrollHeight;
+      if (window.scrollY + window.innerHeight >= newHeight - 50) break;
+    }
+  }
+
+  // Restore scroll position so user isn't disoriented
+  window.scrollTo(0, origScroll);
   return listings;
 }
 
@@ -401,6 +440,21 @@ async function ingest(serverUrl, apiKey, listings) {
   return resp.json();
 }
 
+// Open the admin Rivian Watch page — focus an existing tab if one is open,
+// otherwise open a new tab. Uses startsWith so query params/hashes still match.
+async function openAdminRivians(serverUrl) {
+  const target = `${serverUrl}/admin/rivians`;
+  const tabs = await chrome.tabs.query({});
+  const existing = tabs.find(t => t.url && t.url.split(/[?#]/)[0] === target);
+  if (existing) {
+    await chrome.tabs.update(existing.id, { active: true });
+    await chrome.windows.update(existing.windowId, { focused: true });
+    await chrome.tabs.reload(existing.id);
+  } else {
+    await chrome.tabs.create({ url: target });
+  }
+}
+
 // ── Scan auction page ──
 $('scanBtn').addEventListener('click', async () => {
   const serverUrl = ($('serverUrl').value || 'https://bigwaveauto.com').replace(/\/+$/, '');
@@ -436,8 +490,9 @@ $('scanBtn').addEventListener('click', async () => {
 
     showStatus(`Found ${rivians.length} Rivian${rivians.length !== 1 ? 's' : ''} — saving…`, 'working');
     const result2 = await ingest(serverUrl, apiKey, rivians);
-    showStatus(`✓ ${result2.ingested} saved to Rivian Watch${result2.skipped ? ` (${result2.skipped} filtered)` : ''}`, 'success');
+    showStatus(`✓ ${result2.ingested} saved to Rivian Watch${result2.skipped ? ` (${result2.skipped} filtered)` : ''} — opening admin…`, 'success');
     showResults(rivians, result2.ingested, result2.skipped || 0);
+    await openAdminRivians(serverUrl);
 
   } catch (err) {
     showStatus('Error: ' + err.message, 'error');
@@ -465,28 +520,42 @@ $('fbBtn').addEventListener('click', async () => {
       return;
     }
 
-    const listings = [];
-    for (const tab of fbTabs) {
+    showStatus(`Scrolling & scraping ${fbTabs.length} tabs in parallel…`, 'working');
+
+    const tabResults = await Promise.all(fbTabs.map(async (tab) => {
       try {
         const [{ result }] = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: fbTilesScraper });
-        if (result?.length) listings.push(...result);
-      } catch (e) { console.warn('Tab scrape failed:', tab.url, e); }
-    }
+        return { tab, listings: result || [], error: null };
+      } catch (e) {
+        console.warn('Tab scrape failed:', tab.url, e);
+        return { tab, listings: [], error: e.message };
+      }
+    }));
+
+    const listings = tabResults.flatMap(r => r.listings);
+    const failedTabs = tabResults.filter(r => r.error).length;
+    const emptyTabs = tabResults.filter(r => !r.error && r.listings.length === 0).length;
 
     // Deduplicate by source_url
     const seen = new Set();
     const unique = listings.filter(l => { if (seen.has(l.source_url)) return false; seen.add(l.source_url); return true; });
 
     if (unique.length === 0) {
-      showStatus('No Rivian listings found in those tabs. Make sure FB Marketplace search results are visible.', 'error');
+      const detail = failedTabs ? ` (${failedTabs}/${fbTabs.length} tabs failed — reload extension after granting Facebook permission)` : '';
+      showStatus(`No Rivian listings found${detail}. Make sure FB Marketplace search results are visible.`, 'error');
       $('fbBtn').disabled = false;
       return;
     }
 
+    if (failedTabs || emptyTabs) {
+      console.log(`FB scrape: ${fbTabs.length} tabs, ${failedTabs} failed, ${emptyTabs} empty, ${unique.length} unique listings`);
+    }
+
     showStatus(`Found ${unique.length} Rivian tile${unique.length !== 1 ? 's' : ''} — saving…`, 'working');
     const result = await ingest(serverUrl, apiKey, unique);
-    showStatus(`✓ ${result.ingested} saved to Rivian Watch${result.skipped ? ` (${result.skipped} filtered)` : ''}`, 'success');
+    showStatus(`✓ ${result.ingested} saved to Rivian Watch${result.skipped ? ` (${result.skipped} filtered)` : ''} — opening admin…`, 'success');
     showResults(unique, result.ingested, result.skipped || 0);
+    await openAdminRivians(serverUrl);
 
   } catch (err) {
     showStatus('Error: ' + err.message, 'error');
