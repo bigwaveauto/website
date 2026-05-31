@@ -1344,30 +1344,53 @@
 
   // Upload ADESA photos from browser context (has auth cookies) to server → Supabase permanent URLs.
   // Runs in background; updates scan data with permanent URLs when done.
+  // Tracks in-flight uploads per VIN so a second call doesn't duplicate work.
+  const uploadInFlight = new Set();
+
   async function uploadAdesaPhotosInBackground(photoUrls, vin) {
+    if (uploadInFlight.has(vin)) {
+      console.log('[BWA] Upload already in flight for', vin, '— skipping duplicate');
+      return;
+    }
+    uploadInFlight.add(vin);
     console.log('[BWA] uploadAdesaPhotosInBackground called:', photoUrls.length, 'URLs, VIN:', vin);
+
+    const key = `bwa_scan_${vin}`;
+
+    // Push a progress snapshot to storage + notify popup. status: 'uploading' | 'done' | 'failed'.
+    async function pushProgress(uploaded, total, status, photosForPopup) {
+      try {
+        const result = await new Promise(resolve => chrome.storage.local.get([key], resolve));
+        const data = result[key];
+        if (!data) return;
+        data.upload_status = status;
+        data.upload_progress = { uploaded, total };
+        if (photosForPopup) data.photos = photosForPopup;
+        chrome.storage.local.set({ [key]: data, bwa_last_scan: data });
+        try { chrome.runtime.sendMessage({ action: 'scanReady', data }).catch(() => {}); } catch (e) {}
+      } catch (e) { console.warn('[BWA] pushProgress failed:', e.message); }
+    }
+
     try {
       const stored = await new Promise(resolve => chrome.storage.local.get(['serverUrl', 'apiKey'], resolve));
       const serverUrl = (stored.serverUrl || 'https://bigwaveauto.com').replace(/\/+$/, '');
       const apiKey = stored.apiKey;
-      if (!apiKey) { console.warn('[BWA] No API key in storage — cannot upload photos'); return; }
+      if (!apiKey) {
+        console.warn('[BWA] No API key in storage — cannot upload photos');
+        await pushProgress(0, photoUrls.length, 'failed', photoUrls);
+        return;
+      }
 
       const top20 = photoUrls.slice(0, 20);
       console.log('[BWA] Uploading', top20.length, 'ADESA photos in parallel...');
+      await pushProgress(0, top20.length, 'uploading', photoUrls);
 
-      // Upload 5 at a time so the popup gets updated quickly
       async function uploadOne(url, i) {
         try {
           const imgRes = await fetch(url); // browser context — uses cached response if already loaded
-          if (!imgRes.ok) {
-            console.warn('[BWA] Photo', i, 'fetch failed:', imgRes.status);
-            return null;
-          }
+          if (!imgRes.ok) { console.warn('[BWA] Photo', i, 'fetch failed:', imgRes.status); return null; }
           const ct = imgRes.headers.get('content-type') || '';
-          if (!ct.startsWith('image/')) {
-            console.warn('[BWA] Photo', i, 'non-image content-type:', ct);
-            return null;
-          }
+          if (!ct.startsWith('image/')) { console.warn('[BWA] Photo', i, 'non-image content-type:', ct); return null; }
           const blob = await imgRes.blob();
           if (blob.size < 2000) return null;
 
@@ -1380,10 +1403,11 @@
             headers: { 'X-API-Key': apiKey },
             body: form,
           });
-          if (!uploadRes.ok) return null;
+          if (!uploadRes.ok) { console.warn('[BWA] Photo', i, 'server returned', uploadRes.status); return null; }
           const { url: permanentUrl } = await uploadRes.json();
           return permanentUrl;
         } catch (e) {
+          console.warn('[BWA] Photo', i, 'threw:', e.message);
           return null;
         }
       }
@@ -1393,25 +1417,25 @@
       for (let i = 0; i < top20.length; i += BATCH) {
         const batch = top20.slice(i, i + BATCH);
         const results = await Promise.all(batch.map((url, j) => uploadOne(url, i + j)));
-        results.forEach(u => u && permanent.push(u));
+        for (const u of results) if (u) permanent.push(u);
+        // After each batch, push progress so popup unsticks immediately
+        await pushProgress(permanent.length, top20.length, 'uploading',
+          permanent.length ? [...permanent, ...photoUrls.slice(permanent.length)] : photoUrls);
       }
 
       if (permanent.length === 0) {
-        console.warn('[BWA] No ADESA photos uploaded — CDN may require auth cookies');
+        console.warn('[BWA] 0 of', top20.length, 'photos uploaded — CDN may require auth. Server will rehost on submit.');
+        await pushProgress(0, top20.length, 'failed', photoUrls);
         return;
       }
-      console.log('[BWA] Uploaded', permanent.length, 'ADESA photos to Supabase');
 
-      // Update scan data with permanent URLs and notify popup
-      const key = `bwa_scan_${vin}`;
-      const result = await new Promise(resolve => chrome.storage.local.get([key], resolve));
-      const data = result[key];
-      if (!data) return;
-      data.photos = permanent;
-      try { chrome.storage.local.set({ [key]: data, bwa_last_scan: data }); } catch (e) {}
-      try { chrome.runtime.sendMessage({ action: 'scanReady', data }).catch(() => {}); } catch (e) {}
+      console.log('[BWA] Uploaded', permanent.length, 'of', top20.length, 'ADESA photos to Supabase');
+      await pushProgress(permanent.length, top20.length, 'done', permanent);
     } catch (e) {
       console.warn('[BWA] Background photo upload failed:', e.message);
+      try { await pushProgress(0, photoUrls.length, 'failed', photoUrls); } catch {}
+    } finally {
+      uploadInFlight.delete(vin);
     }
   }
 

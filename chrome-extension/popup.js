@@ -125,13 +125,27 @@ function displayData(data) {
   if (data.photos?.length) {
     const isAdesa = data.page_type === 'adesa_listing' || data.page_type === 'openlane_listing';
     const supabaseHost = 'supabase.co';
-    const photosUploaded = data.photos.every(p => p.includes(supabaseHost));
+    const supabasePhotos = data.photos.filter(p => p.includes(supabaseHost));
+    const allSupabase = data.photos.every(p => p.includes(supabaseHost));
+    const status = data.upload_status;
+    const progress = data.upload_progress;
+
     $('photoCount').textContent = `${data.photos.length} photos`;
-    if (isAdesa && !photosUploaded) {
-      $('photosPreview').innerHTML = '<span style="color:#94a3b8;font-size:11px">Uploading photos to server… will update when done.</span>';
-    } else {
-      $('photosPreview').innerHTML = data.photos.slice(0, 20).map(url => `<img src="${url}" />`).join('');
+
+    let statusBanner = '';
+    if (isAdesa && !allSupabase) {
+      if (status === 'failed') {
+        statusBanner = `<div style="color:#dc2626;font-size:11px;margin-bottom:6px">Photo pre-upload failed (server will rehost on submit).</div>`;
+      } else if (status === 'uploading' || (!status && supabasePhotos.length < data.photos.length)) {
+        const done = progress?.uploaded ?? supabasePhotos.length;
+        const total = progress?.total ?? data.photos.length;
+        statusBanner = `<div style="color:#94a3b8;font-size:11px;margin-bottom:6px">Uploading photos to server… ${done} of ${total}</div>`;
+      }
     }
+
+    // Always show whatever photos we have — rehosted Supabase URLs first, then originals
+    const ordered = [...supabasePhotos, ...data.photos.filter(p => !p.includes(supabaseHost))];
+    $('photosPreview').innerHTML = statusBanner + ordered.slice(0, 20).map(url => `<img src="${url}" />`).join('');
     $('photosSection').style.display = 'block';
   }
 
