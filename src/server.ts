@@ -35,8 +35,11 @@ const supabase = createClient(
 const resend = new Resend(process.env['RESEND_API_KEY']);
 const NOTIFY_EMAIL = 'dave@bigwaveauto.com';
 const DEALERCENTER_EMAIL = '18548085@leadsprod.dealercenter.net';
-const DEALERCENTER_API_TOKEN = process.env['DEALERCENTER_API_TOKEN'] || '3b6e8c4f-03fa-478b-9c0b-224e85431aad';
+const DEALERCENTER_API_TOKEN = process.env['DEALERCENTER_API_TOKEN'];
 const DEALERCENTER_DEALER_ID = process.env['DEALERCENTER_DEALER_ID'] || 'NOWCOM';
+if (!DEALERCENTER_API_TOKEN) {
+  console.warn('[startup] DEALERCENTER_API_TOKEN not set — DealerCenter integrations will fail until configured.');
+}
 const FROM_EMAIL = process.env['FROM_EMAIL'] || 'onboarding@resend.dev';
 
 // ADF/XML lead format for DealerCenter CRM
@@ -208,6 +211,10 @@ function buildCreditAppXml(raw: { [k: string]: any }, id: string): string {
 }
 
 async function postCreditAppToDealerCenter(xml: string, applicantName: string): Promise<void> {
+  if (!DEALERCENTER_API_TOKEN) {
+    console.error(`DealerCenter credit app skipped for ${applicantName}: DEALERCENTER_API_TOKEN env var not set`);
+    return;
+  }
   try {
     const res = await fetch('https://betaservices.dealercenter.net/LeadXmlService.svc/json/PostXml', {
       method: 'POST',
