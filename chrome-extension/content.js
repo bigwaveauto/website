@@ -1023,10 +1023,42 @@
         .map(e => e.name)
         .filter(u => u && !junkRe.test(u) && (photoExtRe.test(u) || photoPathRe.test(u)));
       console.log('[BWA] S5-perf photos:', perfPhotos.length, perfPhotos.slice(0, 4));
-      // Prefer VIN-specific; otherwise keep all
-      const vinPerf = perfPhotos.filter(u => u.toUpperCase().includes(vinUpper));
-      const perfResult = vinPerf.length > 0 ? vinPerf : perfPhotos;
-      perfResult.forEach(u => found.add(u));
+
+      // ── Cluster by listing ID so we don't mix in "similar listings" photos ──
+      // Carvana CDN URLs encode the listing as /vex-<N>/. ADESA also surfaces
+      // other vehicles' photos in the same page (suggestions, recently viewed),
+      // so we group by that ID and keep only the largest cluster — the main car.
+      // Pattern is captured as a discrete listing slug; falls back to keeping
+      // everything if no cluster ID is detectable.
+      const listingIdRe = /\/vex-(\d+)\//i;
+      const clusters = {};
+      for (const u of perfPhotos) {
+        const m = u.match(listingIdRe);
+        const id = m ? m[1] : '__noid__';
+        (clusters[id] ||= []).push(u);
+      }
+      const clusterKeys = Object.keys(clusters);
+      let perfResult = perfPhotos;
+      if (clusterKeys.length > 1) {
+        // Multi-listing page — pick the biggest cluster.
+        const winner = clusterKeys.sort((a, b) => clusters[b].length - clusters[a].length)[0];
+        perfResult = clusters[winner];
+        console.log('[BWA] S5 listing clusters:', clusterKeys.map(k => `${k}:${clusters[k].length}`).join(' '), '→ keeping', winner);
+      }
+      // Prefer the highest-resolution variant of each photo (drop width=400 if width=800 of same path exists).
+      const byPath = {};
+      for (const u of perfResult) {
+        const path = u.split('?')[0];
+        const widthM = u.match(/[?&]width=(\d+)/i);
+        const w = widthM ? parseInt(widthM[1]) : 0;
+        if (!byPath[path] || w > byPath[path].w) byPath[path] = { u, w };
+      }
+      perfResult = Object.values(byPath).map(v => v.u);
+
+      // Prefer VIN-specific; otherwise keep cluster
+      const vinPerf = perfResult.filter(u => u.toUpperCase().includes(vinUpper));
+      const finalResult = vinPerf.length > 0 ? vinPerf : perfResult;
+      finalResult.forEach(u => found.add(u));
       if (found.size > 0) return [...found];
     } catch (e) {}
 
