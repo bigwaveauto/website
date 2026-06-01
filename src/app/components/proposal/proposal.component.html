@@ -271,11 +271,18 @@
           </div>
           }
 
-          <!-- OTD Total -->
-          <div class="wi-balance">
-            <div class="wi-balance-label">Out-the-Door Cash Price</div>
-            <div class="wi-balance-amount">{{ cashPrice | currency:'USD':'symbol':'1.2-2' }}</div>
-          </div>
+          <!-- OTD Total — flips to "Cash Owed to Customer" when trade equity exceeds the price -->
+          @if(cashPrice >= 0){
+            <div class="wi-balance">
+              <div class="wi-balance-label">Out-the-Door Cash Price</div>
+              <div class="wi-balance-amount">{{ cashPrice | currency:'USD':'symbol':'1.2-2' }}</div>
+            </div>
+          }@else{
+            <div class="wi-balance">
+              <div class="wi-balance-label wi-credit">Cash Owed to Customer</div>
+              <div class="wi-balance-amount wi-credit">{{ -cashPrice | currency:'USD':'symbol':'1.2-2' }}</div>
+            </div>
+          }
 
         </div>
         }@else{

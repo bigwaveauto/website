@@ -225,9 +225,13 @@ export class ProposalComponent implements OnInit, OnDestroy {
     return this.nonTaxableItems.reduce((s: number, li: any) => s + (li.amount || 0), 0);
   }
 
-  // OTD = (asking − trade_allowance) + fees + tax  (trade allowance baked into taxableAmount)
+  // OTD = (asking − trade_allowance) + fees + tax. Uses the *un-clamped* trade
+  // allowance so excess trade equity can carry through to the bottom line as
+  // "Cash Owed to Customer". taxableAmount stays clamped at 0 because tax can't
+  // be negative — that's a separate concern.
   get cashPrice(): number {
-    return this.taxableAmount + this.taxAmount + this.nonTaxableTotal;
+    const tradeAllowance = this.tradeIn?.allowance || 0;
+    return (this.taxableGross - tradeAllowance) + this.taxAmount + this.nonTaxableTotal;
   }
 
   get tradePayoff(): number {
