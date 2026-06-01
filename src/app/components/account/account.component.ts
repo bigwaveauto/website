@@ -3,10 +3,23 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
+
+interface CustomerProposal {
+  id: string;
+  vin: string;
+  vehicle: { year?: string | number; make?: string; model?: string; trim?: string } | null;
+  asking_price: number | null;
+  status: string | null;
+  sent_at: string | null;
+  created_at: string;
+  photo: string | null;
+  deal_group_id: string | null;
+}
 
 export interface GarageVehicleLoan {
   monthlyPayment: number | null;
@@ -38,12 +51,18 @@ export class AccountComponent implements OnInit {
   private fb     = inject(FormBuilder);
   private http   = inject(HttpClient);
 
-  activeTab = 'requests';
+  activeTab = 'proposals';
   tabs = [
-    { id: 'requests', label: 'Find My Car',      icon: 'search'  },
-    { id: 'saved',    label: 'Saved Vehicles',   icon: 'heart'   },
-    { id: 'searches', label: 'Saved Searches',   icon: 'bell'    },
+    { id: 'proposals', label: 'My Proposals',    icon: 'file-text' },
+    { id: 'requests',  label: 'Find My Car',     icon: 'search'    },
+    { id: 'saved',     label: 'Saved Vehicles',  icon: 'heart'     },
+    { id: 'searches',  label: 'Saved Searches',  icon: 'bell'      },
   ];
+
+  // ── Proposals state ──
+  proposals       = signal<CustomerProposal[]>([]);
+  proposalsLoaded = signal(false);
+  proposalsError  = signal<string | null>(null);
 
   // Garage state
   showAddForm    = signal(false);
@@ -207,6 +226,35 @@ export class AccountComponent implements OnInit {
     this.garageForm.reset({ condition: 'good' });
   }
 
+  async loadProposals() {
+    if (!this.auth.isLoggedIn()) return;
+    this.proposalsError.set(null);
+    try {
+      const token = await this.auth.getAccessToken();
+      if (!token) { this.proposalsError.set('Sign in to view your proposals.'); return; }
+      const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+      const list = await firstValueFrom(this.http.get<CustomerProposal[]>('/api/customer/proposals', { headers }));
+      this.proposals.set(list || []);
+      this.proposalsLoaded.set(true);
+    } catch (err: any) {
+      this.proposalsError.set(err?.error?.error || 'Failed to load your proposals.');
+      this.proposalsLoaded.set(true);
+    }
+  }
+
+  proposalTitle(p: CustomerProposal): string {
+    const v = p.vehicle || {};
+    const parts = [v.year, v.make, v.model, v.trim].filter(Boolean).map(String);
+    return parts.join(' ') || `Proposal ${p.id}`;
+  }
+
+  setActiveTab(id: string) {
+    this.activeTab = id;
+    // Lazy-load proposals the first time the tab is opened (or whenever the
+    // user explicitly clicks it again — gives them a way to refresh).
+    if (id === 'proposals') this.loadProposals();
+  }
+
   ngOnInit() {
     if (!this.auth.isLoggedIn() && !this.auth.loading()) {
       this.auth.openAuthModal();
@@ -218,6 +266,10 @@ export class AccountComponent implements OnInit {
         this.activeTab = tab;
       }
     });
+
+    // Auto-fetch proposals once on initial load if user is already signed in
+    // (covers reload-while-logged-in; tab clicks handle the rest).
+    if (this.auth.isLoggedIn()) this.loadProposals();
   }
 
 }

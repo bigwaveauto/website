@@ -359,6 +359,41 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+// Look up an auth.users row by email so we can link a proposal to a real
+// account. Returns null on no-match or any failure — callers should treat
+// "no user yet" as normal (the customer may sign up later; the trigger
+// link_proposals_on_signup will connect them then).
+// Calls the get_user_id_by_email RPC defined in scripts/2026-05-31-attach-proposals-to-users.sql.
+async function findUserIdByEmail(email: string | null | undefined): Promise<string | null> {
+  if (!email || !email.includes('@')) return null;
+  try {
+    const { data, error } = await supabase.rpc('get_user_id_by_email', { p_email: email });
+    if (error || !data) return null;
+    return data as string;
+  } catch { return null; }
+}
+
+// Same Supabase-JWT check as requireAdmin but without the admin email gate —
+// any signed-in customer passes. Attaches `req.user` for downstream handlers.
+async function requireUser(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Authentication required' });
+    return;
+  }
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(authHeader.slice(7));
+    if (error || !user?.email) {
+      res.status(401).json({ error: 'Invalid or expired token' });
+      return;
+    }
+    (req as any).user = user;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Authentication failed' });
+  }
+}
+
 // Input validation helpers
 function validateEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || '');
@@ -2527,6 +2562,31 @@ app.get('/api/proposal/:id', async (req, res) => {
 });
 
 /**
+ * Customer portal — list proposals belonging to the signed-in user.
+ * Matches by customer_user_id (set when admin linked it) OR customer_email
+ * (catches proposals attached before the user signed up). Slim payload —
+ * the full proposal still loads via /api/proposal/:id.
+ */
+app.get('/api/customer/proposals', requireUser, async (req, res) => {
+  try {
+    const user = (req as any).user;
+    const email = (user.email || '').toLowerCase();
+    const { data, error } = await supabase
+      .from('vehicle_proposals')
+      .select('id, vin, vehicle, asking_price, status, sent_at, created_at, photos, customer_user_id, customer_email, deal_group_id')
+      .or(`customer_user_id.eq.${user.id},customer_email.eq.${email}`)
+      .order('sent_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    // Trim to one thumbnail per proposal to keep the response small.
+    const slim = (data || []).map(p => ({ ...p, photo: p.photos?.[0] || null, photos: undefined }));
+    res.json(slim);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * Public — proposal feedback (interest / pass)
  */
 app.post('/api/proposal/:id/feedback', async (req, res) => {
@@ -2715,6 +2775,21 @@ app.post('/api/admin/deal-groups/:id', async (req, res) => {
     }
     const { error } = await supabase.from('deal_groups').update(updates).eq('id', req.params['id']);
     if (error) { res.status(500).json({ error: error.message }); return; }
+
+    // Cascade customer_email + customer_user_id down to every proposal in this
+    // deal group so the customer portal can find them. Frontend already mirrors
+    // deal customer fields into the individual proposal autosave, but email is
+    // special: it drives the auth.users link, and we don't want to rely on the
+    // admin opening every proposal to trigger it.
+    if (req.body.customer_email !== undefined) {
+      const normalized = (req.body.customer_email || '').toLowerCase().trim() || null;
+      const userId = await findUserIdByEmail(normalized);
+      await supabase
+        .from('vehicle_proposals')
+        .update({ customer_email: normalized, customer_user_id: userId })
+        .eq('deal_group_id', req.params['id']);
+    }
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update deal group' });
@@ -2822,6 +2897,13 @@ app.post('/api/admin/proposal/:id', async (req, res) => {
     if (req.body.customer_phone !== undefined) updates['customer_phone'] = req.body.customer_phone;
     if (req.body.customer_address !== undefined) updates['customer_address'] = req.body.customer_address;
     if (req.body.customer_zip !== undefined) updates['customer_zip'] = req.body.customer_zip;
+    if (req.body.customer_email !== undefined) {
+      const normalized = (req.body.customer_email || '').toLowerCase().trim() || null;
+      updates['customer_email'] = normalized;
+      // Auto-link to auth.users when email matches an existing account.
+      // If no match yet, the signup trigger will link it later.
+      updates['customer_user_id'] = await findUserIdByEmail(normalized);
+    }
     if (req.body.lien_payoff !== undefined) updates['lien_payoff'] = req.body.lien_payoff;
     if (req.body.apr !== undefined) updates['apr'] = req.body.apr;
     if (req.body.term_months !== undefined) updates['term_months'] = req.body.term_months;

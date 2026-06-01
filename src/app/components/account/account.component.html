@@ -33,9 +33,12 @@
     <!-- Main nav -->
     <nav class="acct-nav">
       @for(tab of tabs; track tab.id){
-      <button class="acct-nav-item" [class.active]="activeTab === tab.id" (click)="activeTab = tab.id">
+      <button class="acct-nav-item" [class.active]="activeTab === tab.id" (click)="setActiveTab(tab.id)">
         <lucide-icon [name]="tab.icon" />
         {{ tab.label }}
+        @if(tab.id === 'proposals' && proposalsLoaded() && proposals().length){
+          <span class="acct-nav-badge">{{ proposals().length }}</span>
+        }
       </button>
       }
       <div class="acct-nav-divider"></div>
@@ -48,6 +51,60 @@
 
   <!-- Content -->
   <main class="acct-content">
+
+    @if(activeTab === 'proposals'){
+    <div class="acct-heading-row">
+      <h1 class="acct-heading">My Proposals</h1>
+      <button class="acct-refresh-btn" (click)="loadProposals()" title="Refresh">
+        <lucide-icon name="refresh-cw" />
+      </button>
+    </div>
+
+    @if(!proposalsLoaded()){
+      <div class="acct-empty">Loading your proposals…</div>
+    }@else if(proposalsError()){
+      <div class="acct-empty acct-empty--error">{{ proposalsError() }}</div>
+    }@else if(proposals().length === 0){
+      <div class="acct-empty">
+        <lucide-icon name="file-text" class="acct-empty-icon" />
+        <p class="acct-empty-title">No proposals yet</p>
+        <p class="acct-empty-sub">When Big Wave Auto sends you a vehicle proposal, it'll show up here.</p>
+      </div>
+    }@else{
+      <div class="acct-prop-grid">
+        @for(p of proposals(); track p.id){
+        <a class="acct-prop-card" [routerLink]="['/proposal', p.id]">
+          <div class="acct-prop-photo">
+            @if(p.photo){
+              <img [src]="p.photo" alt="" loading="lazy" />
+            }@else{
+              <lucide-icon name="car" class="acct-prop-photo-ph" />
+            }
+          </div>
+          <div class="acct-prop-body">
+            <p class="acct-prop-title">{{ proposalTitle(p) }}</p>
+            <div class="acct-prop-meta">
+              @if(p.asking_price){
+                <span class="acct-prop-price">{{ p.asking_price | currency:'USD':'symbol':'1.0-0' }}</span>
+              }
+              <span class="acct-prop-status" [class.acct-prop-status--sent]="p.status === 'sent'">
+                {{ p.status || 'draft' }}
+              </span>
+            </div>
+            <p class="acct-prop-date">
+              @if(p.sent_at){
+                Sent {{ p.sent_at | date:'M/d/yy' }}
+              }@else{
+                Created {{ p.created_at | date:'M/d/yy' }}
+              }
+            </p>
+          </div>
+          <lucide-icon name="chevron-right" class="acct-prop-chevron" />
+        </a>
+        }
+      </div>
+    }
+    }
 
     @if(activeTab === 'garage'){
     <h1 class="acct-heading">My Garage</h1>
