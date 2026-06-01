@@ -8,7 +8,9 @@
   // Prevent photos from falling off the perf timeline as more JS/CSS loads
   try { performance.setResourceTimingBufferSize(1000); } catch(e) {}
 
-  const JUNK = /logo|icon|placeholder|carvana|vexgate|tracking|pixel|drivehappy|\.js(\.gz)?(\?|$)|\.css(\.gz)?(\?|$)|\.svg(\?|$)|\.html?(\?|$)|\.json(\?|$)|\.woff|\.ttf|\.eot|\/analytics?\/|\.analytics\.|\/authorize|\/auth(\?|\/)|\/oauth|sitecontext|\/chat\/|insight-tag/i;
+  // Carvana acquired ADESA in 2022 — vehicle photos now live at
+  // vexgateway.fastly.carvana.io/vex-*, so the old carvana/vexgate block was wrong.
+  const JUNK = /logo|icon|placeholder|tracking|pixel|drivehappy|extension-logo|\.js(\.gz)?(\?|$)|\.css(\.gz)?(\?|$)|\.svg(\?|$)|\.html?(\?|$)|\.json(\?|$)|\.woff|\.ttf|\.eot|\/analytics?\/|\.analytics\.|\/authorize|\/auth(\?|\/)|\/oauth|sitecontext|\/chat\/|insight-tag/i;
 
   function isImg(u) {
     if (typeof u !== 'string' || u.length < 20 || !u.startsWith('http')) return false;

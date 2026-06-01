@@ -858,10 +858,13 @@
   }
 
   function extractAdesaPhotos(vin) {
-    const junkRe = /logo|icon|avatar|sprite|banner|placeholder|flag|badge|chevron|arrow|check|star|\.svg|favicon|tracking|pixel|blank|carvana|vexgateway|carmax|autotrader|cars\.com|\.js(\.gz)?(\?|$)|\.css(\.gz)?(\?|$)|\.html?(\?|$)|\.json(\?|$)|\.woff|\.ttf|\.eot|\/analytics?\/|\.analytics\.|\/authorize|\/auth(\?|\/)|\/oauth|sitecontext|\/chat\/|insight-tag|sentry|datadog|segment\.io|googletagmanager/i;
+    // NOTE: carvana/vexgateway were previously in the block list from when
+    // Carvana was a competitor. Carvana acquired ADESA in 2022 and now hosts
+    // ADESA's vehicle photos at vexgateway.fastly.carvana.io. Don't block them.
+    const junkRe = /logo|icon|avatar|sprite|banner|placeholder|flag|badge|chevron|arrow|check|star|\.svg|favicon|tracking|pixel|blank|drivehappy|extension-logo|\.js(\.gz)?(\?|$)|\.css(\.gz)?(\?|$)|\.html?(\?|$)|\.json(\?|$)|\.woff|\.ttf|\.eot|\/analytics?\/|\.analytics\.|\/authorize|\/auth(\?|\/)|\/oauth|sitecontext|\/chat\/|insight-tag|sentry|datadog|segment\.io|googletagmanager/i;
     const photoExtRe = /\.(jpg|jpeg|png|webp|gif|heic|heif)(\?|$)/i;
-    // Only match vehicle-photo paths, not generic adesa.com (which would let analytics through).
-    const cdnRe = /(?:vehicleimages?|listing[\-_]?image|vehicle[\-_]?photo|gallery|cdn-photo|media\/photo)\b/i;
+    // Known vehicle-photo CDN paths.
+    const cdnRe = /(?:vehicleimages?|listing[\-_]?image|vehicle[\-_]?photo|gallery|cdn-photo|media\/photo|vexgateway\.fastly\.carvana\.io\/vex-)/i;
 
     function isPhotoUrl(v) {
       if (typeof v !== 'string' || v.length < 15 || !v.startsWith('http')) return false;
