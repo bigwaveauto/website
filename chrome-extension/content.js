@@ -966,6 +966,25 @@
     console.log('[BWA] S2 gallery candidates:', candidates.length);
     candidates.forEach((c, i) => console.log(`[BWA]   [${i}] count=${c.count} testid="${c.testid}" cls="${c.cls}" first="${c.imgs[0]?.slice(0,80)}"`));
 
+    // Carvana CDN encodes listing id in the URL path: /vex-<N>/.
+    // Group a URL list by that id and keep only the biggest cluster — drops the
+    // "similar listings" carousel where every photo is a different vehicle.
+    // Returns the input unchanged if no IDs are detected.
+    function keepLargestCluster(urls, label) {
+      const listingIdRe = /\/vex-(\d+)\//i;
+      const clusters = {};
+      for (const u of urls) {
+        const m = u.match(listingIdRe);
+        const id = m ? m[1] : '__noid__';
+        (clusters[id] ||= []).push(u);
+      }
+      const keys = Object.keys(clusters);
+      if (keys.length <= 1) return urls;
+      const winner = keys.sort((a, b) => clusters[b].length - clusters[a].length)[0];
+      console.log(`[BWA] ${label} clusters:`, keys.map(k => `${k}:${clusters[k].length}`).join(' '), '→ keeping', winner);
+      return clusters[winner];
+    }
+
     // Pick the one highest on the page (smallest offsetTop), breaking ties by count
     if (candidates.length > 0) {
       candidates.sort((a, b) => {
@@ -973,9 +992,17 @@
         const bTop = b.el.getBoundingClientRect().top + window.scrollY;
         return aTop !== bTop ? aTop - bTop : b.count - a.count;
       });
-      console.log('[BWA] S2 winner: count=', candidates[0].count, 'top=', Math.round(candidates[0].el.getBoundingClientRect().top + window.scrollY));
-      candidates[0].imgs.forEach(u => found.add(u));
-      if (found.size > 0) return [...found];
+      const winnerImgs = keepLargestCluster(candidates[0].imgs, 'S2');
+      console.log('[BWA] S2 winner: count=', candidates[0].count, 'top=', Math.round(candidates[0].el.getBoundingClientRect().top + window.scrollY), 'after cluster:', winnerImgs.length);
+      // If the chosen container looks like a "similar listings" carousel (lots
+      // of items, each a different listing → cluster collapse left very few),
+      // skip S2 entirely and let S5 (perf timeline + cluster) try.
+      if (winnerImgs.length >= 3) {
+        winnerImgs.forEach(u => found.add(u));
+        if (found.size > 0) return [...found];
+      } else {
+        console.log('[BWA] S2 looks like a similar-listings carousel — skipping to S5');
+      }
     }
 
     // ── Strategy 3: background-image CSS (ADESA gallery uses this instead of <img>) ──
@@ -1024,27 +1051,9 @@
         .filter(u => u && !junkRe.test(u) && (photoExtRe.test(u) || photoPathRe.test(u)));
       console.log('[BWA] S5-perf photos:', perfPhotos.length, perfPhotos.slice(0, 4));
 
-      // ── Cluster by listing ID so we don't mix in "similar listings" photos ──
-      // Carvana CDN URLs encode the listing as /vex-<N>/. ADESA also surfaces
-      // other vehicles' photos in the same page (suggestions, recently viewed),
-      // so we group by that ID and keep only the largest cluster — the main car.
-      // Pattern is captured as a discrete listing slug; falls back to keeping
-      // everything if no cluster ID is detectable.
-      const listingIdRe = /\/vex-(\d+)\//i;
-      const clusters = {};
-      for (const u of perfPhotos) {
-        const m = u.match(listingIdRe);
-        const id = m ? m[1] : '__noid__';
-        (clusters[id] ||= []).push(u);
-      }
-      const clusterKeys = Object.keys(clusters);
-      let perfResult = perfPhotos;
-      if (clusterKeys.length > 1) {
-        // Multi-listing page — pick the biggest cluster.
-        const winner = clusterKeys.sort((a, b) => clusters[b].length - clusters[a].length)[0];
-        perfResult = clusters[winner];
-        console.log('[BWA] S5 listing clusters:', clusterKeys.map(k => `${k}:${clusters[k].length}`).join(' '), '→ keeping', winner);
-      }
+      // Drop "similar listings" mixins by clustering on Carvana vex-<N> id.
+      let perfResult = keepLargestCluster(perfPhotos, 'S5');
+
       // Prefer the highest-resolution variant of each photo (drop width=400 if width=800 of same path exists).
       const byPath = {};
       for (const u of perfResult) {
