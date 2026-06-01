@@ -858,9 +858,10 @@
   }
 
   function extractAdesaPhotos(vin) {
-    const junkRe = /logo|icon|avatar|sprite|banner|placeholder|flag|badge|chevron|arrow|check|star|\.svg|favicon|tracking|pixel|blank|carvana|vexgateway|carmax|autotrader|cars\.com|\.js(\?|$)|\.css(\?|$)|\.woff|\.ttf|\.eot/i;
-    const photoExtRe = /\.(jpg|jpeg|png|webp)(\?|$)/i;
-    const cdnRe = /adesa\.com|openlane\.com|cloudfront\.net|auctionaccess\.com|ipacket\.us|vehicleimages|s3\.amazonaws\.com|imgix\.net/i;
+    const junkRe = /logo|icon|avatar|sprite|banner|placeholder|flag|badge|chevron|arrow|check|star|\.svg|favicon|tracking|pixel|blank|carvana|vexgateway|carmax|autotrader|cars\.com|\.js(\.gz)?(\?|$)|\.css(\.gz)?(\?|$)|\.html?(\?|$)|\.json(\?|$)|\.woff|\.ttf|\.eot|\/analytics?\/|\.analytics\.|\/authorize|\/auth(\?|\/)|\/oauth|sitecontext|\/chat\/|insight-tag|sentry|datadog|segment\.io|googletagmanager/i;
+    const photoExtRe = /\.(jpg|jpeg|png|webp|gif|heic|heif)(\?|$)/i;
+    // Only match vehicle-photo paths, not generic adesa.com (which would let analytics through).
+    const cdnRe = /(?:vehicleimages?|listing[\-_]?image|vehicle[\-_]?photo|gallery|cdn-photo|media\/photo)\b/i;
 
     function isPhotoUrl(v) {
       if (typeof v !== 'string' || v.length < 15 || !v.startsWith('http')) return false;
@@ -1006,13 +1007,18 @@
     }
     console.log('[BWA] S4-VIN-filter photos:', found.size);
 
-    // ── Strategy 5: performance resource timeline — catches all network-loaded images ──
-    // Even if <img> tags don't exist yet, fetched image URLs appear here
+    // ── Strategy 5: performance resource timeline — only entries the browser loaded as <img> ──
+    // The old version accepted any URL whose host matched cdnRe (adesa.com),
+    // which let analytics/auth/JS through and tried to upload them as photos.
+    // We now require initiatorType==='img' AND a real image extension OR a
+    // path that obviously names a vehicle/listing photo.
     try {
       const perfEntries = performance.getEntriesByType('resource');
+      const photoPathRe = /(?:vehicle|listing|photo|image|gallery|media)s?[\-_/]/i;
       const perfPhotos = perfEntries
+        .filter(e => e.initiatorType === 'img' || e.initiatorType === 'css')
         .map(e => e.name)
-        .filter(u => u && !junkRe.test(u) && (photoExtRe.test(u) || cdnRe.test(u)));
+        .filter(u => u && !junkRe.test(u) && (photoExtRe.test(u) || photoPathRe.test(u)));
       console.log('[BWA] S5-perf photos:', perfPhotos.length, perfPhotos.slice(0, 4));
       // Prefer VIN-specific; otherwise keep all
       const vinPerf = perfPhotos.filter(u => u.toUpperCase().includes(vinUpper));
@@ -1020,6 +1026,26 @@
       perfResult.forEach(u => found.add(u));
       if (found.size > 0) return [...found];
     } catch (e) {}
+
+    // Diagnostic: if nothing was found, dump a sample of what was on the page
+    // so we can tell whether photos genuinely aren't there yet vs. our filter missed them.
+    if (found.size === 0) {
+      try {
+        const imgCount = document.querySelectorAll('img').length;
+        const sampleImgs = [...document.querySelectorAll('img')]
+          .map(img => img.src || img.dataset?.src || '')
+          .filter(s => s && !s.startsWith('data:'))
+          .slice(0, 5);
+        const perfImgs = performance.getEntriesByType('resource')
+          .filter(e => e.initiatorType === 'img')
+          .map(e => e.name)
+          .slice(0, 8);
+        console.log('[BWA] PHOTOS EMPTY — diagnostic:');
+        console.log('[BWA]   <img> tags on page:', imgCount, 'sample srcs:', sampleImgs);
+        console.log('[BWA]   perf <img> loads:', perfImgs);
+        console.log('[BWA]   Try scrolling to the photo gallery, then click Scan again.');
+      } catch (e) {}
+    }
 
     return [...found];
   }
@@ -1385,29 +1411,55 @@
       console.log('[BWA] Uploading', top20.length, 'ADESA photos in parallel...');
       await pushProgress(0, top20.length, 'uploading', photoUrls);
 
+      // Hard timeout per photo — without this, a stuck request hangs the whole batch
+      // and the popup never leaves "Uploading... 0 of N". 15s is plenty for a cached image.
+      function withTimeout(promise, ms, label) {
+        return Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timeout after ${ms}ms`)), ms)),
+        ]);
+      }
+
       async function uploadOne(url, i) {
+        const shortUrl = url.length > 80 ? url.slice(0, 80) + '...' : url;
         try {
-          const imgRes = await fetch(url); // browser context — uses cached response if already loaded
-          if (!imgRes.ok) { console.warn('[BWA] Photo', i, 'fetch failed:', imgRes.status); return null; }
+          // Use the browser's default credentials handling. credentials:'include'
+          // fights ADESA's `Access-Control-Allow-Origin: *` responses, which the
+          // CORS spec forbids combining with credentials — every public-image
+          // request would fail outright.
+          const imgRes = await withTimeout(
+            fetch(url),
+            15000,
+            `photo ${i} fetch`
+          );
+          if (!imgRes.ok) { console.warn('[BWA] Photo', i, `fetch ${imgRes.status} ${imgRes.statusText}`, shortUrl); return null; }
           const ct = imgRes.headers.get('content-type') || '';
-          if (!ct.startsWith('image/')) { console.warn('[BWA] Photo', i, 'non-image content-type:', ct); return null; }
+          if (!ct.startsWith('image/')) { console.warn('[BWA] Photo', i, `non-image content-type "${ct}"`, shortUrl); return null; }
           const blob = await imgRes.blob();
-          if (blob.size < 2000) return null;
+          if (blob.size < 2000) { console.warn('[BWA] Photo', i, `too small (${blob.size}B)`, shortUrl); return null; }
 
           const form = new FormData();
           form.append('photo', blob, `photo_${i}.jpg`);
           form.append('storageKey', vin);
 
-          const uploadRes = await fetch(`${serverUrl}/api/ext/photo-upload`, {
-            method: 'POST',
-            headers: { 'X-API-Key': apiKey },
-            body: form,
-          });
-          if (!uploadRes.ok) { console.warn('[BWA] Photo', i, 'server returned', uploadRes.status); return null; }
+          const uploadRes = await withTimeout(
+            fetch(`${serverUrl}/api/ext/photo-upload`, {
+              method: 'POST',
+              headers: { 'X-API-Key': apiKey },
+              body: form,
+            }),
+            20000,
+            `photo ${i} upload`
+          );
+          if (!uploadRes.ok) {
+            const body = await uploadRes.text().catch(() => '');
+            console.warn('[BWA] Photo', i, `server ${uploadRes.status}`, body.slice(0, 120));
+            return null;
+          }
           const { url: permanentUrl } = await uploadRes.json();
           return permanentUrl;
         } catch (e) {
-          console.warn('[BWA] Photo', i, 'threw:', e.message);
+          console.warn('[BWA] Photo', i, 'failed:', e.message, shortUrl);
           return null;
         }
       }

@@ -8,14 +8,14 @@
   // Prevent photos from falling off the perf timeline as more JS/CSS loads
   try { performance.setResourceTimingBufferSize(1000); } catch(e) {}
 
-  const JUNK = /logo|icon|placeholder|carvana|vexgate|tracking|pixel|\.js(\?|$)|\.css(\?|$)|\.svg(\?|$)|\.woff|\.ttf|\.eot/i;
+  const JUNK = /logo|icon|placeholder|carvana|vexgate|tracking|pixel|drivehappy|\.js(\.gz)?(\?|$)|\.css(\.gz)?(\?|$)|\.svg(\?|$)|\.html?(\?|$)|\.json(\?|$)|\.woff|\.ttf|\.eot|\/analytics?\/|\.analytics\.|\/authorize|\/auth(\?|\/)|\/oauth|sitecontext|\/chat\/|insight-tag/i;
 
   function isImg(u) {
     if (typeof u !== 'string' || u.length < 20 || !u.startsWith('http')) return false;
     if (JUNK.test(u)) return false;
     // Image extension (covers most CDN signed URLs)
-    if (/\.(jpg|jpeg|png|webp)(\?|$)/i.test(u)) return true;
-    // Known vehicle image CDN domains/paths without extension
+    if (/\.(jpg|jpeg|png|webp|gif|heic|heif)(\?|$)/i.test(u)) return true;
+    // Vehicle-image paths (avoid generic adesa.com which would let analytics through)
     if (/(?:adesa|openlane|coxauto)\.com\/(?:images?|photos?|media|vehicle|listing)/i.test(u)) return true;
     if (/cloudfront\.net\/[^?#]*(?:vehicle|photo|image|listing)/i.test(u)) return true;
     if (/s3(?:[-.][\w-]+)?\.amazonaws\.com\/[^?#]*(?:vehicle|photo|image)/i.test(u)) return true;
