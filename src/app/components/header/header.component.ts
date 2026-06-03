@@ -38,6 +38,15 @@ export class HeaderComponent {
 
     floating = input<boolean>(false);
 
+    // Auto-show the closure banner through the last day of closure (inclusive).
+    // After this date passes, the normal announcement bar returns with no code change.
+    closureActive = (() => {
+      const today = new Date();
+      const start = new Date(2026, 5, 3); // Jun 3 2026 (announce a few days ahead)
+      const end   = new Date(2026, 5, 16, 23, 59, 59); // through end of Jun 16
+      return today >= start && today <= end;
+    })();
+
     menuOpen = signal(false);
     locationOpen = signal(false);
     contactOpen = signal(false);

@@ -16,6 +16,14 @@ $blue: #2563eb;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Closure variant — amber so it reads as a notice, not just generic info */
+.announcement-bar--closure {
+  background: #b45309; // amber-700
+  color: #fff;
+  strong { color: #fff; font-weight: 700; letter-spacing: 0.2px; }
+  .announcement-link { color: #fff; text-decoration: underline; }
+}
+
 .announcement-link {
   color: white;
   font-weight: 600;
