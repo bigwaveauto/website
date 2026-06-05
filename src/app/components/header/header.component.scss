@@ -16,9 +16,10 @@ $blue: #2563eb;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Closure variant — amber so it reads as a notice, not just generic info */
+/* Closure variant — teal complements the site's navy + blue palette while
+   still standing out clearly against both the dark header and white page. */
 .announcement-bar--closure {
-  background: #b45309; // amber-700
+  background: #0e7490; // cyan-700
   color: #fff;
   strong { color: #fff; font-weight: 700; letter-spacing: 0.2px; }
   .announcement-link { color: #fff; text-decoration: underline; }
