@@ -45,14 +45,20 @@
       </div>
       }
 
-      <!-- Window Sticker -->
+      <!-- Window Sticker — mirrors the Carfax inline embed pattern above -->
       @if(p.window_sticker_url){
       <div class="prop-section">
-        <h2 class="prop-heading">Window Sticker</h2>
-        @if(p.window_sticker_url.endsWith('.pdf')){
-        <a [href]="p.window_sticker_url" target="_blank" class="prop-carfax-view-btn">View Window Sticker →</a>
+        <div class="prop-carfax-bar">
+          <div class="prop-carfax-bar-left">
+            <span class="prop-carfax-badge prop-carfax-badge--ws">MONRONEY</span>
+            <span class="prop-carfax-label">Window Sticker</span>
+          </div>
+          <a [href]="p.window_sticker_url" target="_blank" class="prop-carfax-view-btn">View Sticker →</a>
+        </div>
+        @if(safeWindowStickerUrl()){
+        <iframe class="prop-carfax-embed" [src]="safeWindowStickerUrl()" frameborder="0"></iframe>
         }@else{
-        <img [src]="p.window_sticker_url" style="width:100%;border-radius:10px" alt="Window Sticker" />
+        <img [src]="p.window_sticker_url" class="prop-carfax-embed prop-carfax-embed--img" alt="Window Sticker" />
         }
       </div>
       }

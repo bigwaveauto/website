@@ -77,6 +77,13 @@ export class ProposalComponent implements OnInit, OnDestroy {
     return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
   });
 
+  // PDF window stickers render inline in an <iframe> like Carfax; non-PDF
+  // images fall back to plain <img> in the template.
+  safeWindowStickerUrl = computed(() => {
+    const url = this.proposal()?.window_sticker_url;
+    return url?.endsWith('.pdf') ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  });
+
   // Question modal
   showQuestion = signal(false);
   questionText = signal('');
