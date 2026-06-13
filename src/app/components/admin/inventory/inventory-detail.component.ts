@@ -136,6 +136,10 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   windowStickerUrl = signal<string | null>(null);
   uploadingSticker = signal(false);
 
+  // Carfax PDF
+  carfaxPdfUrl = signal<string | null>(null);
+  uploadingCarfax = signal(false);
+
   // Description
   description = signal('');
   generatingDesc = signal(false);
@@ -284,6 +288,7 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
         if (data.floorPlans?.length) this.floorPlans.set(data.floorPlans.map((fp: any) => ({ ...fp, payments: fp.payments || [] })));
         if (data.photos?.length) this.photos.set(data.photos);
         if (data.windowSticker) this.windowStickerUrl.set(data.windowSticker);
+        if (data.carfaxPdf) this.carfaxPdfUrl.set(data.carfaxPdf);
         if (data.pricing) {
           this.askingPrice.set(data.pricing.asking_price ?? this.askingPrice());
           this.advertisingPrice.set(data.pricing.advertising_price ?? this.advertisingPrice());
@@ -743,6 +748,35 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
     const vin = this.vehicle()?.vin;
     this.http.delete(`/api/admin/vehicle/window-sticker/${vin}`).subscribe({
       next: () => this.windowStickerUrl.set(null),
+    });
+  }
+
+  // ── Carfax PDF ──
+  onCarfaxSelect(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (input.files?.[0]) this.uploadCarfax(input.files[0]);
+  }
+
+  uploadCarfax(file: File) {
+    this.uploadingCarfax.set(true);
+    const vin = this.vehicle()?.vin;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('vin', vin);
+
+    this.http.post<any>('/api/admin/vehicle/carfax', formData).subscribe({
+      next: (res) => {
+        if (res.url) this.carfaxPdfUrl.set(res.url);
+        this.uploadingCarfax.set(false);
+      },
+      error: () => this.uploadingCarfax.set(false),
+    });
+  }
+
+  removeCarfax() {
+    const vin = this.vehicle()?.vin;
+    this.http.delete(`/api/admin/vehicle/carfax/${vin}`).subscribe({
+      next: () => this.carfaxPdfUrl.set(null),
     });
   }
 

@@ -419,6 +419,32 @@
       }
     </div>
     }
+
+    <!-- Carfax Report PDF -->
+    <div class="det-card-header" style="margin-top:24px">
+      <h2 class="det-card-title" style="margin:0;border:none;padding:0">Carfax Report</h2>
+    </div>
+    @if(carfaxPdfUrl()){
+    <div class="det-sticker-preview">
+      <a [href]="carfaxPdfUrl()" target="_blank" class="det-sticker-link">
+        <lucide-icon name="file-text" /> View Carfax PDF
+      </a>
+      <button class="det-btn-danger-sm" (click)="removeCarfax()">
+        <lucide-icon name="trash-2" /> Remove
+      </button>
+    </div>
+    }@else{
+    <div class="det-photo-drop" (click)="carfaxInput.click()">
+      <input #carfaxInput type="file" accept="application/pdf" (change)="onCarfaxSelect($event)" hidden />
+      @if(uploadingCarfax()){
+        <div class="det-mini-spinner"></div>
+        <span>Uploading…</span>
+      }@else{
+        <lucide-icon name="plus" />
+        <span>Upload Carfax report (PDF)</span>
+      }
+    </div>
+    }
   </div>
   }
 

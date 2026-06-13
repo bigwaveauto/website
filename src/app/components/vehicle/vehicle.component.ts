@@ -8,6 +8,7 @@ import { ActivatedRoute, ParamMap, RouterLink, RouterOutlet } from '@angular/rou
 import { CommonModule, SlicePipe, UpperCasePipe } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { DomSanitizer } from '@angular/platform-browser';
 import { BehaviorSubject, of, Subject, switchMap, takeUntil, tap } from 'rxjs';
 import { VehicleService } from '../../services/vehicleSearch';
 import { VehicleApiResponse } from '../../models/vehicleExtended';
@@ -46,8 +47,19 @@ export class VehicleComponent implements OnInit, OnDestroy {
   readonly reserve = inject(ReservationService);
   private http = inject(HttpClient);
   private fb   = inject(FormBuilder);
+  private sanitizer = inject(DomSanitizer);
 
   fullVehicle = signal<VehicleApiResponse | null>(null);
+
+  // Inline-embed PDF helpers (mirror the proposal page pattern).
+  safeCarfaxPdfUrl = computed(() => {
+    const url = (this.fullVehicle() as any)?.carfaxpdf;
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  });
+  safeWindowStickerUrl = computed(() => {
+    const url = (this.fullVehicle() as any)?.monroneysticker;
+    return url?.endsWith('.pdf') ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  });
   selectedPhotoIndex = signal(0);
   lightboxOpen = signal(false);
   singlePhotoOpen = signal(false);

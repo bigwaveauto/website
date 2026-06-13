@@ -3059,6 +3059,62 @@ app.delete('/api/admin/vehicle/window-sticker/:vin', async (req, res) => {
 });
 
 /**
+ * Admin — upload Carfax PDF (mirrors the window-sticker upload).
+ * Stored in vehicle_documents with type='carfax' and surfaced as v.carfaxpdf
+ * on the /api/inventory/:vin response so the VDP can render it inline.
+ */
+app.post('/api/admin/vehicle/carfax', upload.single('file'), async (req: any, res) => {
+  try {
+    if (!req.file) { res.status(400).json({ error: 'No file' }); return; }
+    const vin = req.body.vin;
+    if (!vin) { res.status(400).json({ error: 'VIN required' }); return; }
+    const ext = req.file.originalname.split('.').pop() || 'pdf';
+    const fileName = `${vin}/carfax.${ext}`;
+
+    // Remove old file if exists
+    await supabase.storage.from('vehicle-documents').remove([fileName]);
+
+    const { error: uploadError } = await supabase.storage
+      .from('vehicle-documents')
+      .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+
+    if (uploadError) {
+      console.error('Carfax upload error:', uploadError);
+      res.status(500).json({ error: 'Upload failed' });
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('vehicle-documents')
+      .getPublicUrl(fileName);
+
+    await supabase.from('vehicle_documents').upsert(
+      { vin, type: 'carfax', url: urlData.publicUrl, updated_at: new Date().toISOString() },
+      { onConflict: 'vin,type' }
+    );
+
+    res.json({ url: urlData.publicUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Carfax upload failed' });
+  }
+});
+
+/**
+ * Admin — delete Carfax PDF
+ */
+app.delete('/api/admin/vehicle/carfax/:vin', async (req, res) => {
+  try {
+    const { vin } = req.params;
+    await supabase.from('vehicle_documents').delete().eq('vin', vin).eq('type', 'carfax');
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Delete failed' });
+  }
+});
+
+/**
  * Admin — list all vehicles from Supabase
  */
 app.get('/api/admin/vehicles', async (_req, res) => {
@@ -3147,12 +3203,13 @@ app.get('/api/admin/vehicle/:vin', async (req, res) => {
   try {
     const { vin } = req.params;
 
-    const [pricing, costAdds, floorPlans, photos, windowSticker, marketData] = await Promise.all([
+    const [pricing, costAdds, floorPlans, photos, windowSticker, carfaxDoc, marketData] = await Promise.all([
       supabase.from('vehicle_pricing').select('*').eq('vin', vin).maybeSingle(),
       supabase.from('vehicle_cost_adds').select('*').eq('vin', vin).order('date_added', { ascending: true }),
       supabase.from('vehicle_floor_plans').select('*').eq('vin', vin).order('date_floored', { ascending: true }),
       supabase.from('vehicle_photos').select('*').eq('vin', vin).order('sort_order', { ascending: true }),
       Promise.resolve(supabase.from('vehicle_documents').select('url').eq('vin', vin).eq('type', 'window_sticker').maybeSingle()).then(r => r.data).catch(() => null),
+      Promise.resolve(supabase.from('vehicle_documents').select('url').eq('vin', vin).eq('type', 'carfax').maybeSingle()).then(r => r.data).catch(() => null),
       supabase.from('vehicle_market_data').select('mmr,kbb,market_avg').eq('vin', vin).maybeSingle(),
     ]);
 
@@ -3162,6 +3219,7 @@ app.get('/api/admin/vehicle/:vin', async (req, res) => {
       floorPlans: floorPlans.data || [],
       photos: photos.data || [],
       windowSticker: (windowSticker as any)?.url || null,
+      carfaxPdf: (carfaxDoc as any)?.url || null,
       marketData: marketData.data || null,
     });
   } catch (err) {
@@ -4234,15 +4292,17 @@ app.get('/api/inventory/:vin', async (req, res) => {
     const v = vehicles.find(v => v.vin.toLowerCase() === req.params['vin'].toLowerCase());
     if (!v) { res.status(404).json({ error: 'Vehicle not found' }); return; }
 
-    // Load window sticker + saved photo categories
-    const [wsResult, catsResult] = await Promise.all([
+    // Load window sticker + Carfax + saved photo categories
+    const [wsResult, cfResult, catsResult] = await Promise.all([
       Promise.resolve(supabase.from('vehicle_documents').select('url').eq('vin', v.vin).eq('type', 'window_sticker').maybeSingle()).then(r => r.data).catch(() => null),
+      Promise.resolve(supabase.from('vehicle_documents').select('url').eq('vin', v.vin).eq('type', 'carfax').maybeSingle()).then(r => r.data).catch(() => null),
       supabase.from('vehicle_photo_categories')
       .select('url, category, sort_order')
       .eq('vin', v.vin)
       .order('sort_order'),
     ]);
     const wsDoc = wsResult;
+    const cfDoc = cfResult;
     const savedCats = catsResult?.data;
     const catMap = new Map((savedCats || []).map((c: any) => [c.url, c.category]));
 
@@ -4341,6 +4401,7 @@ app.get('/api/inventory/:vin', async (req, res) => {
       carfaxsnapshotkey: '',
       autocheck: null,
       monroneysticker: wsDoc?.url || null,
+      carfaxpdf: cfDoc?.url || null,
       notes: '',
       tags: null,
       highlights: highlightCategories,

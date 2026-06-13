@@ -79,70 +79,21 @@
     </div>
   </div>
 
-  <!-- History and inspection -->
-  <div class="vdp-history-section">
-    <h2 class="vdp-highlights-heading">History and inspection</h2>
-    <div class="vdp-history-grid">
-
-      <!-- Vehicle history (Carfax) -->
-      <div class="vdp-history-card">
-        <div class="vdp-history-card-header">
-          <span class="vdp-history-card-title">Vehicle history</span>
-          <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="vdp-history-carfax-logo" loading="lazy" />
-        </div>
-        <div class="vdp-history-card-body">
-          @if(v.carfaxownerstext){
-          <div class="vdp-history-check-item">
-            <lucide-icon name="check" class="vdp-history-check-icon" />
-            <span>{{ v.carfaxownerstext }}</span>
-          </div>}
-          @if(v.carfaxaccidenttext){
-          <div class="vdp-history-check-item">
-            <lucide-icon name="check" class="vdp-history-check-icon" />
-            <span>{{ v.carfaxaccidenttext }}</span>
-          </div>}
-          @if(!v.carfaxownerstext && !v.carfaxaccidenttext){
-          <div class="vdp-history-check-item">
-            <lucide-icon name="check" class="vdp-history-check-icon" />
-            <span>Vehicle history available</span>
-          </div>}
-        </div>
-        <a href="http://www.carfax.com/VehicleHistory/p/Report.cfx?partner=DVW_1&vin={{ v.vin }}" target="_blank" rel="noopener" class="vdp-history-link">
-          View Carfax report <lucide-icon name="chevron-right" class="vdp-history-link-arrow" />
-        </a>
+  <!-- Carfax (inline embed) — same pattern as the proposal page -->
+  @if(safeCarfaxPdfUrl()){
+  <div class="vdp-doc-section">
+    <div class="vdp-doc-bar">
+      <div class="vdp-doc-bar-left">
+        <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="vdp-doc-carfax-logo" loading="lazy" />
+        <span class="vdp-doc-label">Vehicle History Report</span>
       </div>
-
-      <!-- Inspection -->
-      <div class="vdp-history-card">
-        <div class="vdp-history-card-header">
-          <span class="vdp-history-card-title">Multi-point inspection</span>
-          <span class="vdp-history-badge">
-            <lucide-icon name="shield-check" class="vdp-history-badge-icon" />
-            Inspected
-          </span>
-        </div>
-        <div class="vdp-history-card-body">
-          <div class="vdp-history-check-item">
-            <lucide-icon name="check" class="vdp-history-check-icon" />
-            <span>Mechanical condition</span>
-          </div>
-          <div class="vdp-history-check-item">
-            <lucide-icon name="check" class="vdp-history-check-icon" />
-            <span>Exterior condition</span>
-          </div>
-          <div class="vdp-history-check-item">
-            <lucide-icon name="check" class="vdp-history-check-icon" />
-            <span>Interior condition</span>
-          </div>
-          <div class="vdp-history-check-item">
-            <lucide-icon name="check" class="vdp-history-check-icon" />
-            <span>Road test</span>
-          </div>
-        </div>
-      </div>
-
+      <a [href]="$any(v).carfaxpdf" target="_blank" rel="noopener" class="vdp-doc-view-btn">
+        View Report <lucide-icon name="chevron-right" class="vdp-history-link-arrow" />
+      </a>
     </div>
+    <iframe class="vdp-doc-embed" [src]="safeCarfaxPdfUrl()" frameborder="0"></iframe>
   </div>
+  }
 
   <!-- Description -->
   @if(v.vehicledescription || v.notes){
@@ -151,11 +102,24 @@
     <p class="vdp-description">{{ v.vehicledescription || v.notes }}</p>
   </div>}
 
-  <!-- Window Sticker -->
+  <!-- Window Sticker / Build Sheet (inline embed) -->
   @if(v.monroneysticker){
-  <a [href]="v.monroneysticker" target="_blank" rel="noopener" class="vdp-btn-sticker">
-    <lucide-icon name="file-text" /> Window Sticker / Build Sheet
-  </a>
+  <div class="vdp-doc-section">
+    <div class="vdp-doc-bar">
+      <div class="vdp-doc-bar-left">
+        <span class="vdp-doc-badge vdp-doc-badge--monroney">MONRONEY</span>
+        <span class="vdp-doc-label">Window Sticker</span>
+      </div>
+      <a [href]="v.monroneysticker" target="_blank" rel="noopener" class="vdp-doc-view-btn">
+        View Sticker <lucide-icon name="chevron-right" class="vdp-history-link-arrow" />
+      </a>
+    </div>
+    @if(safeWindowStickerUrl()){
+    <iframe class="vdp-doc-embed" [src]="safeWindowStickerUrl()" frameborder="0"></iframe>
+    }@else{
+    <img [src]="v.monroneysticker" class="vdp-doc-embed vdp-doc-embed--img" alt="Window Sticker" />
+    }
+  </div>
   }
 
     </div><!-- /vdp-below -->
