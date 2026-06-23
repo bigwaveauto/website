@@ -52,9 +52,15 @@ export class VehicleComponent implements OnInit, OnDestroy {
   fullVehicle = signal<VehicleApiResponse | null>(null);
 
   // Inline-embed PDF helpers (mirror the proposal page pattern).
+  // safeCarfaxPdfUrl — only set when there's an actual PDF to embed in the iframe.
   safeCarfaxPdfUrl = computed(() => {
     const url = (this.fullVehicle() as any)?.carfaxpdf;
     return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  });
+  // carfaxLinkUrl — the best available Carfax URL for the "View Report" link.
+  carfaxLinkUrl = computed(() => {
+    const v = this.fullVehicle() as any;
+    return v?.carfaxpdf || v?.carfaxurl || null;
   });
   safeWindowStickerUrl = computed(() => {
     const url = (this.fullVehicle() as any)?.monroneysticker;

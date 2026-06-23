@@ -3313,9 +3313,10 @@ app.get('/api/admin/vehicle/:vin/stages', async (req, res) => {
 // Get current stages for ALL vehicles (for inventory list badges)
 app.get('/api/admin/stages/current', async (_req, res) => {
   try {
-    // Get all stage records, then pick the latest per VIN
+    // Only fetch open stages (exited_at IS NULL) — one per VIN by design.
+    // Avoids scanning all historical stage rows as the table grows.
     const { data, error } = await supabase.from('vehicle_stages')
-      .select('*').order('entered_at', { ascending: false });
+      .select('*').is('exited_at', null);
     if (error) { res.status(500).json({ error: error.message }); return; }
 
     const byVin: Record<string, any> = {};
@@ -3523,6 +3524,7 @@ function mapVautoRow(r: Record<string, string>): any {
     featuredphoto: photoList[0] || '',
     photocount: parseInt(g(['Photo Count']), 10) || photoList.length,
     certified: g(['Certified']).toLowerCase() === 'yes' ? 1 : 0,
+    carfaxurl: g(['CarfaxURL', 'Carfax URL', 'CarfaxReportLink', 'Carfax Report Link', 'CarfaxLink']),
     dateinstock: g(['Inventory Date', 'DateInStock', 'Date In Stock', 'StockDate']) || new Date().toISOString(),
     created_at: g(['Inventory Date', 'DateInStock', 'Date In Stock', 'StockDate']) || new Date().toISOString(),
     age: parseInt(g(['Age']), 10) || 0,
@@ -4387,7 +4389,7 @@ app.get('/api/inventory/:vin', async (req, res) => {
       rearwheel: '',
       fronttire: '',
       reartire: '',
-      carfaxurl: '',
+      carfaxurl: v.carfaxurl || '',
       carfaxicon: '',
       carfaxalt: '',
       carfaxoneowner: 0,

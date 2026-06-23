@@ -80,18 +80,20 @@
   </div>
 
   <!-- Carfax (inline embed) — same pattern as the proposal page -->
-  @if(safeCarfaxPdfUrl()){
+  @if(carfaxLinkUrl()){
   <div class="vdp-doc-section">
     <div class="vdp-doc-bar">
       <div class="vdp-doc-bar-left">
         <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="vdp-doc-carfax-logo" loading="lazy" />
         <span class="vdp-doc-label">Vehicle History Report</span>
       </div>
-      <a [href]="$any(v).carfaxpdf" target="_blank" rel="noopener" class="vdp-doc-view-btn">
+      <a [href]="carfaxLinkUrl()" target="_blank" rel="noopener" class="vdp-doc-view-btn">
         View Report <lucide-icon name="chevron-right" class="vdp-history-link-arrow" />
       </a>
     </div>
+    @if(safeCarfaxPdfUrl()){
     <iframe class="vdp-doc-embed" [src]="safeCarfaxPdfUrl()" frameborder="0"></iframe>
+    }
   </div>
   }
 

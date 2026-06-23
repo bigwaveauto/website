@@ -38,78 +38,88 @@ $text-muted: rgba(0,0,0,0.45);
 
 .inv-loading { padding: 60px; text-align: center; color: $text-muted; font-size: 15px; }
 
-/* ── Cards ── */
-.inv-cards { display: flex; flex-direction: column; gap: 8px; }
+/* ── Table ── */
+.inv-table { display: flex; flex-direction: column; }
 
-.inv-card {
-  display: flex; align-items: center; gap: 16px;
-  background: white; border-radius: 12px;
-  border: 1.5px solid $border;
-  border-left: 4px solid transparent;
-  padding: 12px 16px 12px 12px;
-  cursor: pointer; text-decoration: none; color: inherit;
-  transition: box-shadow 0.15s, border-color 0.15s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+.inv-row {
+  display: grid;
+  grid-template-columns:
+    130px   /* stage badge */
+    52px    /* stage days */
+    72px    /* stock # */
+    1fr     /* vehicle name — flex */
+    72px    /* miles */
+    90px    /* color */
+    56px    /* lot days */
+    88px;   /* ask price */
+  align-items: center;
+  gap: 0 12px;
+  padding: 0 14px;
+  min-height: 36px;
+  border-left: 3px solid transparent;
+  text-decoration: none;
+  color: inherit;
+  cursor: default;
 
-  &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #c7d2e6; }
-  &.inv-card--red  { border-left-color: #ef4444; background: #fef2f2; }
-  &.inv-card--yellow { border-left-color: #f59e0b; background: #fffbeb; }
+  &.inv-row--header {
+    font-size: 10px; font-weight: 700; color: $text-muted;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    min-height: 32px;
+    border-bottom: 1.5px solid $border;
+    margin-bottom: 2px;
+  }
+
+  &:not(.inv-row--header) {
+    border-bottom: 1px solid $border;
+    font-size: 13px;
+    cursor: pointer;
+    &:hover { background: #f8faff; }
+    &:last-child { border-bottom: none; }
+  }
+
+  &.inv-row--red    { border-left-color: #ef4444; background: #fff8f8; &:hover { background: #fef2f2; } }
+  &.inv-row--yellow { border-left-color: #f59e0b; background: #fffdf5; &:hover { background: #fffbeb; } }
 }
 
-/* Photo */
-.inv-card-photo {
-  width: 100px; height: 72px; flex-shrink: 0;
-  background: #f1f5f9; border-radius: 8px; overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
+.inv-col { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.inv-col-stage  { }
+.inv-col-days   { text-align: right; font-size: 12px; font-weight: 600; }
+.inv-col-stock  { font-size: 12px; }
+.inv-col-vehicle {
+  display: flex; align-items: baseline; gap: 6px; overflow: hidden;
 }
-.inv-card-photo-placeholder { width: 28px; height: 28px; color: #cbd5e1; }
+.inv-col-miles  { text-align: right; font-size: 12px; }
+.inv-col-color  { font-size: 12px; }
+.inv-col-lot    { text-align: right; font-size: 12px; font-weight: 600; }
+.inv-col-price  { text-align: right; font-size: 13px; font-weight: 800; color: #111; }
 
-/* Body */
-.inv-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-
-.inv-card-title {
-  font-size: 15px; font-weight: 800; color: #111;
+/* Vehicle name */
+.inv-vehicle-name {
+  font-weight: 700; color: #111;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  flex-shrink: 0;
 }
-.inv-card-trim {
-  font-size: 12px; color: $text-muted;
+.inv-vehicle-trim {
+  font-size: 11px; color: $text-muted;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.inv-card-meta {
-  display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px;
-  font-size: 12px; color: #64748b;
-
-  span + span::before { content: '·'; margin-right: 10px; }
+  flex: 1;
 }
 
-/* Right */
-.inv-card-right {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0;
-}
-
-.inv-card-price {
-  font-size: 18px; font-weight: 900; color: #111;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  letter-spacing: -0.5px;
-}
-
-.inv-card-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-
+/* Stage badge */
 .inv-stage-badge {
   display: inline-block; font-size: 10px; font-weight: 700;
-  padding: 3px 8px; border-radius: 6px;
+  padding: 2px 7px; border-radius: 5px;
   background: #f0f1f3; color: #555; white-space: nowrap;
-
   &.inv-stage-yellow { background: #fef3c7; color: #92400e; }
   &.inv-stage-red    { background: #fee2e2; color: #991b1b; }
 }
 
-.inv-card-days, .inv-card-lot {
-  font-size: 11px; color: $text-muted; white-space: nowrap;
-}
-.inv-days-yellow, .aging-warn { color: #d97706 !important; font-weight: 700; }
-.inv-days-red, .aging-danger  { color: #dc2626 !important; font-weight: 700; }
+/* Muted values */
+.inv-muted { color: #64748b; }
+
+/* Day alerts */
+.inv-days-yellow, .aging-warn { color: #d97706 !important; }
+.inv-days-red, .aging-danger  { color: #dc2626 !important; }
 
 lucide-icon { display: inline-flex; align-items: center; }
