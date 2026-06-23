@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -38,6 +38,52 @@ export class AdminInventoryListComponent implements OnInit {
     'In Mechanical', 'In Body/Paint', 'In Detail', 'In Photos',
     'Listed', 'Offered/Negotiating', 'Sold — Pending Delivery', 'Sold — Delivered',
   ];
+
+  readonly pipelineOrder = [
+    '__none__',
+    'At Auction — Won, Awaiting Pickup', 'In Transport', 'Arrived — Needs Intake',
+    'In Mechanical', 'In Body/Paint', 'In Detail', 'In Photos',
+    'Listed', 'Offered/Negotiating',
+    'Sold — Pending Delivery', 'Sold — Delivered',
+  ];
+
+  readonly earlyStages = new Set([
+    'At Auction — Won, Awaiting Pickup', 'In Transport', 'Arrived — Needs Intake',
+    'In Mechanical', 'In Body/Paint', 'In Detail', 'In Photos',
+  ]);
+
+  readonly saleStages = new Set(['Listed', 'Offered/Negotiating']);
+
+  isGrouped = computed(() => !this.search() && !this.stageFilter());
+
+  groupedVehicles = computed(() => {
+    const stages = this.stages(); // track signal
+    const all = this.vehicles();
+    const buckets = new Map<string, any[]>();
+    for (const s of this.pipelineOrder) buckets.set(s, []);
+
+    for (const v of all) {
+      const stage = stages[v.vin]?.stage || '__none__';
+      if (!buckets.has(stage)) buckets.set(stage, []);
+      buckets.get(stage)!.push(v);
+    }
+
+    return [...buckets.entries()]
+      .filter(([, vs]) => vs.length > 0)
+      .map(([stage, vs]) => ({
+        stage,
+        label: stage === '__none__' ? 'No Stage Set' : stage,
+        vehicles: vs.sort((a: any, b: any) => {
+          const da = stages[a.vin] ? Math.floor((Date.now() - new Date(stages[a.vin].entered_at).getTime()) / 86400000) : 0;
+          const db = stages[b.vin] ? Math.floor((Date.now() - new Date(stages[b.vin].entered_at).getTime()) / 86400000) : 0;
+          return db - da; // most stale first
+        }),
+        type: stage === '__none__' ? 'none'
+            : this.earlyStages.has(stage) ? 'early'
+            : this.saleStages.has(stage) ? 'sale'
+            : 'sold',
+      }));
+  });
 
   columns = [
     { key: 'stage', label: 'Stage', width: '140px' },

@@ -38,24 +38,44 @@ $text-muted: rgba(0,0,0,0.45);
 
 .inv-loading { padding: 60px; text-align: center; color: $text-muted; font-size: 15px; }
 
+/* ── Stage groups ── */
+.inv-group { margin-bottom: 20px; }
+
+.inv-group-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 14px; margin-bottom: 2px;
+  border-radius: 8px;
+  font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px;
+}
+.inv-group-label { flex: 1; }
+.inv-group-count {
+  font-size: 11px; font-weight: 900;
+  background: rgba(0,0,0,0.08); border-radius: 10px;
+  padding: 1px 7px;
+}
+
+.inv-group--none  { background: #fef2f2; color: #991b1b; }
+.inv-group--early { background: #fef9c3; color: #854d0e; }
+.inv-group--sale  { background: #dcfce7; color: #166534; }
+.inv-group--sold  { background: #f1f5f9; color: #64748b; }
+
 /* ── Table ── */
 .inv-table { display: flex; flex-direction: column; }
 
 .inv-row {
   display: grid;
   grid-template-columns:
-    130px   /* stage badge */
     52px    /* stage days */
     72px    /* stock # */
-    1fr     /* vehicle name — flex */
+    1fr     /* vehicle name */
     72px    /* miles */
     90px    /* color */
-    56px    /* lot days */
+    80px    /* lot days */
     88px;   /* ask price */
   align-items: center;
   gap: 0 12px;
   padding: 0 14px;
-  min-height: 36px;
+  min-height: 34px;
   border-left: 3px solid transparent;
   text-decoration: none;
   color: inherit;
@@ -64,7 +84,7 @@ $text-muted: rgba(0,0,0,0.45);
   &.inv-row--header {
     font-size: 10px; font-weight: 700; color: $text-muted;
     text-transform: uppercase; letter-spacing: 0.5px;
-    min-height: 32px;
+    min-height: 30px;
     border-bottom: 1.5px solid $border;
     margin-bottom: 2px;
   }
@@ -77,13 +97,12 @@ $text-muted: rgba(0,0,0,0.45);
     &:last-child { border-bottom: none; }
   }
 
-  &.inv-row--red    { border-left-color: #ef4444; background: #fff8f8; &:hover { background: #fef2f2; } }
-  &.inv-row--yellow { border-left-color: #f59e0b; background: #fffdf5; &:hover { background: #fffbeb; } }
+  &.inv-row--red    { border-left-color: #ef4444; &:hover { background: #fef2f2; } }
+  &.inv-row--yellow { border-left-color: #f59e0b; &:hover { background: #fffbeb; } }
 }
 
 .inv-col { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.inv-col-stage  { }
 .inv-col-days   { text-align: right; font-size: 12px; font-weight: 600; }
 .inv-col-stock  { font-size: 12px; }
 .inv-col-vehicle {
