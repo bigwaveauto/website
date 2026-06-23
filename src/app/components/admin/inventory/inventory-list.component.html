@@ -66,7 +66,7 @@
   }@else{
 
   <!-- ── Flat filtered/sorted view ── -->
-  <div class="inv-table">
+  <div class="inv-table inv-table--flat">
     <div class="inv-row inv-row--header">
       <span class="inv-col inv-col-stock    inv-th" (click)="toggleSort('stocknumber')">Stock # <span class="inv-sort-arrow">{{ sortCol() === 'stocknumber' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
       <span class="inv-col inv-col-purchase inv-th" (click)="toggleSort('daysinstock')">Purchased <span class="inv-sort-arrow">{{ sortCol() === 'daysinstock' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>

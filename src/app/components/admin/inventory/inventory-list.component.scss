@@ -132,8 +132,8 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 /* Flat view (search/filter active) adds stock# column */
-.inv-table > .inv-row--header,
-.inv-table > .inv-row:not(.inv-row--header) {
+.inv-table--flat > .inv-row--header,
+.inv-table--flat > .inv-row:not(.inv-row--header) {
   grid-template-columns:
     60px    /* stock # */
     52px    /* since purchase */
