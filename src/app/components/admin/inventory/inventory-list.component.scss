@@ -65,12 +65,12 @@ $text-muted: rgba(0,0,0,0.45);
 .inv-row {
   display: grid;
   grid-template-columns:
-    1fr     /* vehicle name */
     52px    /* since purchase */
     52px    /* on lot */
-    62px    /* miles */
-    80px    /* color */
-    80px;   /* ask price */
+    1fr     /* vehicle name */
+    65px    /* miles */
+    90px    /* color */
+    88px;   /* ask price */
   align-items: center;
   gap: 0 12px;
   padding: 0 14px;
@@ -136,12 +136,12 @@ $text-muted: rgba(0,0,0,0.45);
 .inv-table > .inv-row:not(.inv-row--header) {
   grid-template-columns:
     60px    /* stock # */
+    52px    /* since purchase */
+    52px    /* on lot */
     1fr     /* vehicle */
-    72px    /* since purchase */
-    60px    /* on lot */
-    62px    /* miles */
-    80px    /* color */
-    80px;   /* price */
+    65px    /* miles */
+    90px    /* color */
+    88px;   /* price */
 }
 
 /* Sortable headers */

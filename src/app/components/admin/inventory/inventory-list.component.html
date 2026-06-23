@@ -40,10 +40,6 @@
         <a class="inv-row" [class.inv-row--red]="getStageAlert(v.vin) === 'red'"
            [class.inv-row--yellow]="getStageAlert(v.vin) === 'yellow'"
            [routerLink]="'/admin/inventory/' + v.vin">
-          <span class="inv-col inv-col-vehicle">
-            <span class="inv-vehicle-name">{{ v.year }} {{ v.make }} {{ v.model }}</span>
-            @if(v.trim){ <span class="inv-vehicle-trim">{{ v.trim }}</span> }
-          </span>
           <span class="inv-col inv-col-purchase"
                 [class.aging-warn]="v.daysinstock > 45"
                 [class.aging-danger]="v.daysinstock > 60">
@@ -53,6 +49,10 @@
                 [class.aging-warn]="v.daysinstock > 45"
                 [class.aging-danger]="v.daysinstock > 60">
             {{ v.daysinstock }}d
+          </span>
+          <span class="inv-col inv-col-vehicle">
+            <span class="inv-vehicle-name">{{ v.year }} {{ v.make }} {{ v.model }}</span>
+            @if(v.trim){ <span class="inv-vehicle-trim">{{ v.trim }}</span> }
           </span>
           <span class="inv-col inv-col-miles inv-muted">{{ v.mileage ? formatNumber(v.mileage) : '—' }}</span>
           <span class="inv-col inv-col-color inv-muted">{{ v.exteriorcolorstandard || '—' }}</span>
@@ -68,23 +68,19 @@
   <!-- ── Flat filtered/sorted view ── -->
   <div class="inv-table">
     <div class="inv-row inv-row--header">
-      <span class="inv-col inv-col-stock   inv-th" (click)="toggleSort('stocknumber')">Stock # <span class="inv-sort-arrow">{{ sortCol() === 'stocknumber' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
-      <span class="inv-col inv-col-vehicle inv-th" (click)="toggleSort('make')">Vehicle <span class="inv-sort-arrow">{{ sortCol() === 'make' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
-      <span class="inv-col inv-col-purchase inv-th" (click)="toggleSort('daysinstock')">Since Purchase <span class="inv-sort-arrow">{{ sortCol() === 'daysinstock' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
-      <span class="inv-col inv-col-lot     inv-th" (click)="toggleSort('daysinstock')">On Lot <span class="inv-sort-arrow"></span></span>
-      <span class="inv-col inv-col-miles   inv-th" (click)="toggleSort('mileage')">Miles <span class="inv-sort-arrow">{{ sortCol() === 'mileage' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
-      <span class="inv-col inv-col-color   inv-th" (click)="toggleSort('exteriorcolorstandard')">Color <span class="inv-sort-arrow">{{ sortCol() === 'exteriorcolorstandard' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
-      <span class="inv-col inv-col-price   inv-th" (click)="toggleSort('price')">Ask Price <span class="inv-sort-arrow">{{ sortCol() === 'price' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-stock    inv-th" (click)="toggleSort('stocknumber')">Stock # <span class="inv-sort-arrow">{{ sortCol() === 'stocknumber' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-purchase inv-th" (click)="toggleSort('daysinstock')">Purchased <span class="inv-sort-arrow">{{ sortCol() === 'daysinstock' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-lot      inv-th">On Lot</span>
+      <span class="inv-col inv-col-vehicle  inv-th" (click)="toggleSort('make')">Vehicle <span class="inv-sort-arrow">{{ sortCol() === 'make' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-miles    inv-th" (click)="toggleSort('mileage')">Miles <span class="inv-sort-arrow">{{ sortCol() === 'mileage' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-color    inv-th" (click)="toggleSort('exteriorcolorstandard')">Color <span class="inv-sort-arrow">{{ sortCol() === 'exteriorcolorstandard' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-price    inv-th" (click)="toggleSort('price')">Ask Price <span class="inv-sort-arrow">{{ sortCol() === 'price' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
     </div>
     @for(v of filtered(); track v.vin){
     <a class="inv-row" [class.inv-row--red]="getStageAlert(v.vin) === 'red'"
        [class.inv-row--yellow]="getStageAlert(v.vin) === 'yellow'"
        [routerLink]="'/admin/inventory/' + v.vin">
       <span class="inv-col inv-col-stock inv-muted">{{ v.stocknumber || '—' }}</span>
-      <span class="inv-col inv-col-vehicle">
-        <span class="inv-vehicle-name">{{ v.year }} {{ v.make }} {{ v.model }}</span>
-        @if(v.trim){ <span class="inv-vehicle-trim">{{ v.trim }}</span> }
-      </span>
       <span class="inv-col inv-col-purchase"
             [class.aging-warn]="v.daysinstock > 45"
             [class.aging-danger]="v.daysinstock > 60">
@@ -94,6 +90,10 @@
             [class.aging-warn]="v.daysinstock > 45"
             [class.aging-danger]="v.daysinstock > 60">
         {{ v.daysinstock }}d
+      </span>
+      <span class="inv-col inv-col-vehicle">
+        <span class="inv-vehicle-name">{{ v.year }} {{ v.make }} {{ v.model }}</span>
+        @if(v.trim){ <span class="inv-vehicle-trim">{{ v.trim }}</span> }
       </span>
       <span class="inv-col inv-col-miles inv-muted">{{ v.mileage ? formatNumber(v.mileage) : '—' }}</span>
       <span class="inv-col inv-col-color inv-muted">{{ v.exteriorcolorstandard || '—' }}</span>
