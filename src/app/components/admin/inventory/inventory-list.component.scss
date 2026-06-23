@@ -115,6 +115,13 @@ $text-muted: rgba(0,0,0,0.45);
   &.inv-stage-red    { background: #fee2e2; color: #991b1b; }
 }
 
+/* Sortable headers */
+.inv-th {
+  cursor: pointer; user-select: none;
+  &:hover { color: #111; }
+}
+.inv-sort-arrow { color: $blue; font-size: 11px; margin-left: 2px; }
+
 /* Muted values */
 .inv-muted { color: #64748b; }
 

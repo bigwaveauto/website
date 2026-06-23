@@ -27,14 +27,14 @@
 
     <!-- Header -->
     <div class="inv-row inv-row--header">
-      <span class="inv-col inv-col-stage">Stage</span>
-      <span class="inv-col inv-col-days">Stage Days</span>
-      <span class="inv-col inv-col-stock">Stock #</span>
-      <span class="inv-col inv-col-vehicle">Vehicle</span>
-      <span class="inv-col inv-col-miles">Miles</span>
-      <span class="inv-col inv-col-color">Color</span>
-      <span class="inv-col inv-col-lot">Lot Days</span>
-      <span class="inv-col inv-col-price">Ask Price</span>
+      <span class="inv-col inv-col-stage  inv-th" (click)="toggleSort('stage')">Stage <span class="inv-sort-arrow">{{ sortCol() === 'stage'       ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-days   inv-th" (click)="toggleSort('stageDays')">Stage Days <span class="inv-sort-arrow">{{ sortCol() === 'stageDays'   ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-stock  inv-th" (click)="toggleSort('stocknumber')">Stock # <span class="inv-sort-arrow">{{ sortCol() === 'stocknumber' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-vehicle inv-th" (click)="toggleSort('make')">Vehicle <span class="inv-sort-arrow">{{ sortCol() === 'make'        ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-miles  inv-th" (click)="toggleSort('mileage')">Miles <span class="inv-sort-arrow">{{ sortCol() === 'mileage'     ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-color  inv-th" (click)="toggleSort('exteriorcolorstandard')">Color <span class="inv-sort-arrow">{{ sortCol() === 'exteriorcolorstandard' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-lot    inv-th" (click)="toggleSort('daysinstock')">Lot Days <span class="inv-sort-arrow">{{ sortCol() === 'daysinstock' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-price  inv-th" (click)="toggleSort('price')">Ask Price <span class="inv-sort-arrow">{{ sortCol() === 'price'       ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
     </div>
 
     @for(v of filtered(); track v.vin){
