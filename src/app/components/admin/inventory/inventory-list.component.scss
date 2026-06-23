@@ -65,13 +65,12 @@ $text-muted: rgba(0,0,0,0.45);
 .inv-row {
   display: grid;
   grid-template-columns:
-    52px    /* stage days */
-    72px    /* stock # */
     1fr     /* vehicle name */
-    72px    /* miles */
-    90px    /* color */
-    80px    /* lot days */
-    88px;   /* ask price */
+    52px    /* since purchase */
+    52px    /* on lot */
+    62px    /* miles */
+    80px    /* color */
+    80px;   /* ask price */
   align-items: center;
   gap: 0 12px;
   padding: 0 14px;
@@ -103,15 +102,13 @@ $text-muted: rgba(0,0,0,0.45);
 
 .inv-col { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.inv-col-days   { text-align: right; font-size: 12px; font-weight: 600; }
-.inv-col-stock  { font-size: 12px; }
-.inv-col-vehicle {
-  display: flex; align-items: baseline; gap: 6px; overflow: hidden;
-}
-.inv-col-miles  { text-align: right; font-size: 12px; }
-.inv-col-color  { font-size: 12px; }
-.inv-col-lot    { text-align: right; font-size: 12px; font-weight: 600; }
-.inv-col-price  { text-align: right; font-size: 13px; font-weight: 800; color: #111; }
+.inv-col-vehicle  { display: flex; align-items: baseline; gap: 6px; overflow: hidden; }
+.inv-col-purchase { text-align: right; font-size: 12px; font-weight: 600; }
+.inv-col-lot      { text-align: right; font-size: 12px; font-weight: 600; }
+.inv-col-stock    { font-size: 12px; flex-shrink: 0; }
+.inv-col-miles    { text-align: right; font-size: 12px; }
+.inv-col-color    { font-size: 12px; }
+.inv-col-price    { text-align: right; font-size: 13px; font-weight: 800; color: #111; }
 
 /* Vehicle name */
 .inv-vehicle-name {
@@ -132,6 +129,19 @@ $text-muted: rgba(0,0,0,0.45);
   background: #f0f1f3; color: #555; white-space: nowrap;
   &.inv-stage-yellow { background: #fef3c7; color: #92400e; }
   &.inv-stage-red    { background: #fee2e2; color: #991b1b; }
+}
+
+/* Flat view (search/filter active) adds stock# column */
+.inv-table > .inv-row--header,
+.inv-table > .inv-row:not(.inv-row--header) {
+  grid-template-columns:
+    60px    /* stock # */
+    1fr     /* vehicle */
+    72px    /* since purchase */
+    60px    /* on lot */
+    62px    /* miles */
+    80px    /* color */
+    80px;   /* price */
 }
 
 /* Sortable headers */
