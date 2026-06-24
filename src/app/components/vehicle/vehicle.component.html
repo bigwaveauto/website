@@ -79,6 +79,9 @@
     </div>
   </div>
 
+  <!-- Recurrent battery health badge — renders automatically for EVs/PHEVs, no-op for others -->
+  <div class="recurrent_badge_container" [attr.data-vin]="$any(v).vin"></div>
+
   <!-- Carfax (inline embed) — same pattern as the proposal page -->
   @if(carfaxLinkUrl()){
   <div class="vdp-doc-section">
