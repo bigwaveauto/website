@@ -48,8 +48,19 @@
       @for(item of detailsItems; track $index){
         @let val = $any(v)[item.datacol];
         @if(val){
-        <div class="vdp-highlight-card">
-          @if($any(item).colorType; as ct){
+        <div class="vdp-highlight-card" [class.vdp-highlight-card--odometer]="$any(item).odometer">
+          @if($any(item).odometer){
+            <span class="vdp-highlight-label">{{ item.displayName }}</span>
+            <div class="vdp-odometer">
+              @for(ch of formatOdometer(val); track $index; let i = $index){
+                @if(ch === ','){ <span class="vdp-odo-comma">,</span> }
+                @else {
+                <span class="vdp-odo-slot" [style.animation-delay]="(formatOdometer(val).length - 1 - i) * 55 + 'ms'">{{ ch }}</span>
+                }
+              }
+            </div>
+            <span class="vdp-odo-unit">miles</span>
+          } @else if($any(item).colorType; as ct){
             @let hex = getColorHex(val);
             @if(hex){
             <div class="vdp-color-swatch" [style.background]="hex" [class.vdp-color-light]="hex === '#FAFAFA' || hex === '#F0F0F0' || hex === '#FFFFF0' || hex === '#F5F0E1' || hex === '#E8DCC8' || hex === '#EFDECD'"></div>
@@ -57,15 +68,18 @@
             <div class="vdp-highlight-icon-wrap">
               <lucide-icon [name]="item.icon" class="vdp-highlight-icon" />
             </div>}
+            <span class="vdp-highlight-label">{{ item.displayName }}</span>
+            <span class="vdp-highlight-value">{{ val }}</span>
           } @else {
           <div class="vdp-highlight-icon-wrap">
             <lucide-icon [name]="item.icon" class="vdp-highlight-icon" />
-          </div>}
+          </div>
           <span class="vdp-highlight-label">{{ item.displayName }}</span>
           <span class="vdp-highlight-value">
             @if(item.format === 'miles'){ {{ val | number:'1.0-0' }} miles }
             @else { {{ val }} }
           </span>
+          }
         </div>}
       }
       @if(v.mpgcity && v.mpghwy){

@@ -381,7 +381,7 @@ export class VehicleComponent implements OnInit, OnDestroy {
   }
 
   detailsItems = [
-    { displayName: 'Mileage', datacol: 'mileage', icon: 'gauge', format: 'miles' },
+    { displayName: 'Mileage', datacol: 'mileage', icon: 'gauge', format: 'miles', odometer: true },
     { displayName: 'Exterior Color', datacol: 'exteriorcolorstandard', icon: 'palette', colorType: 'ext' },
     { displayName: 'Interior Color', datacol: 'interiorcolorstandard', icon: 'armchair', colorType: 'int' },
     { displayName: 'Drivetrain', datacol: 'drivetrainstandard', icon: 'cog' },
@@ -399,6 +399,11 @@ export class VehicleComponent implements OnInit, OnDestroy {
     const slug = v.make.toLowerCase().replace(/\s+/g, '-');
     return `/brands/${slug}.png`;
   });
+
+  // Returns an array of characters ('0'-'9' or ',') for the odometer display.
+  formatOdometer(miles: number): string[] {
+    return Math.round(miles).toLocaleString('en-US').split('');
+  }
 
   private colorMap: Record<string, string> = {
     'black': '#111111', 'ebony': '#111111', 'jet black': '#111111', 'shadow black': '#111111',
