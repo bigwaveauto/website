@@ -26,42 +26,52 @@
 
   <!-- ── Grouped view (default) ── -->
   @if(isGrouped()){
-    @for(group of groupedVehicles(); track group.stage){
-    <div class="inv-group">
-      <div class="inv-group-header" [class.inv-group--early]="group.type === 'early'"
-           [class.inv-group--none]="group.type === 'none'"
-           [class.inv-group--sale]="group.type === 'sale'"
-           [class.inv-group--sold]="group.type === 'sold'">
-        <span class="inv-group-label">{{ group.label }}</span>
-        <span class="inv-group-count">{{ group.vehicles.length }}</span>
-      </div>
-      <div class="inv-table">
-        @for(v of group.vehicles; track v.vin){
-        <a class="inv-row" [class.inv-row--red]="getStageAlert(v.vin) === 'red'"
-           [class.inv-row--yellow]="getStageAlert(v.vin) === 'yellow'"
-           [routerLink]="'/admin/inventory/' + v.vin">
-          <span class="inv-col inv-col-purchase"
-                [class.aging-warn]="v.daysinstock > 45"
-                [class.aging-danger]="v.daysinstock > 60">
-            {{ v.daysinstock }}d
-          </span>
-          <span class="inv-col inv-col-lot"
-                [class.aging-warn]="v.daysinstock > 45"
-                [class.aging-danger]="v.daysinstock > 60">
-            {{ v.daysinstock }}d
-          </span>
-          <span class="inv-col inv-col-vehicle">
-            <span class="inv-vehicle-name">{{ v.year }} {{ v.make }} {{ v.model }}</span>
-            @if(v.trim){ <span class="inv-vehicle-trim">{{ v.trim }}</span> }
-          </span>
-          <span class="inv-col inv-col-miles inv-muted">{{ v.mileage ? formatNumber(v.mileage) : '—' }}</span>
-          <span class="inv-col inv-col-color inv-muted">{{ v.exteriorcolorstandard || '—' }}</span>
-          <span class="inv-col inv-col-price">{{ formatCurrency(v.price) }}</span>
-        </a>
-        }
-      </div>
+  <div class="inv-table">
+    <!-- Single column header for all groups -->
+    <div class="inv-row inv-row--header">
+      <span class="inv-col inv-col-purchase">Since Purchase</span>
+      <span class="inv-col inv-col-lot">On Lot</span>
+      <span class="inv-col inv-col-vehicle">Vehicle</span>
+      <span class="inv-col inv-col-miles">Miles</span>
+      <span class="inv-col inv-col-color">Color</span>
+      <span class="inv-col inv-col-price">Price</span>
     </div>
+
+    @for(group of groupedVehicles(); track group.stage){
+    <!-- Group divider spans all columns -->
+    <div class="inv-group-header" [class.inv-group--early]="group.type === 'early'"
+         [class.inv-group--none]="group.type === 'none'"
+         [class.inv-group--sale]="group.type === 'sale'"
+         [class.inv-group--sold]="group.type === 'sold'">
+      <span class="inv-group-label">{{ group.label }}</span>
+      <span class="inv-group-count">{{ group.vehicles.length }}</span>
+    </div>
+
+    @for(v of group.vehicles; track v.vin){
+    <a class="inv-row" [class.inv-row--red]="getStageAlert(v.vin) === 'red'"
+       [class.inv-row--yellow]="getStageAlert(v.vin) === 'yellow'"
+       [routerLink]="'/admin/inventory/' + v.vin">
+      <span class="inv-col inv-col-purchase"
+            [class.aging-warn]="v.daysinstock > 45"
+            [class.aging-danger]="v.daysinstock > 60">
+        {{ v.daysinstock }}d
+      </span>
+      <span class="inv-col inv-col-lot"
+            [class.aging-warn]="v.daysinstock > 45"
+            [class.aging-danger]="v.daysinstock > 60">
+        {{ v.daysinstock }}d
+      </span>
+      <span class="inv-col inv-col-vehicle">
+        <span class="inv-vehicle-name">{{ v.year }} {{ v.make }} {{ v.model }}</span>
+        @if(v.trim){ <span class="inv-vehicle-trim">{{ v.trim }}</span> }
+      </span>
+      <span class="inv-col inv-col-miles inv-muted">{{ v.mileage ? formatNumber(v.mileage) : '—' }}</span>
+      <span class="inv-col inv-col-color inv-muted">{{ v.exteriorcolorstandard || '—' }}</span>
+      <span class="inv-col inv-col-price">{{ formatCurrency(v.price) }}</span>
+    </a>
     }
+    }
+  </div>
 
   }@else{
 
