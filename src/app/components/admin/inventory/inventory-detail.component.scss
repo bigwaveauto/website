@@ -1019,8 +1019,6 @@ select.det-dv {
   transition: all 0.2s; user-select: none;
   lucide-icon { width: 24px; height: 24px; }
   &:hover, &.dragover { border-color: $blue; background: #f0f4ff; color: $blue; }
-  /* when rendered as a <label> element */
-  &[for], label& { cursor: pointer; }
 }
 
 .det-card-header-row {
