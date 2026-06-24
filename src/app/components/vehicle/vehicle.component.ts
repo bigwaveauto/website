@@ -54,18 +54,18 @@ export class VehicleComponent implements OnInit, OnDestroy {
   // Inline-embed PDF helpers (mirror the proposal page pattern).
   // safeCarfaxPdfUrl — only set when there's an actual PDF to embed in the iframe.
   safeCarfaxPdfUrl = computed(() => {
-    const url = (this.fullVehicle() as any)?.carfaxpdf;
+    const url = (this.fullVehicle() as any)?.results?.carfaxpdf;
     return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
   });
   // carfaxLinkUrl — the best available Carfax URL for the "View Report" link.
   // Falls back to carfax.com free check so the section always shows on used vehicles.
   carfaxLinkUrl = computed(() => {
-    const v = this.fullVehicle() as any;
+    const v = (this.fullVehicle() as any)?.results;
     if (!v) return null;
     return v?.carfaxpdf || v?.carfaxurl || (v?.vin ? `https://www.carfax.com/vehicle/${v.vin}` : null);
   });
   safeWindowStickerUrl = computed(() => {
-    const url = (this.fullVehicle() as any)?.monroneysticker;
+    const url = (this.fullVehicle() as any)?.results?.monroneysticker;
     return url?.endsWith('.pdf') ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
   });
   selectedPhotoIndex = signal(0);
