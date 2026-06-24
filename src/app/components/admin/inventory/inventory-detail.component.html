@@ -408,8 +408,8 @@
       </button>
     </div>
     }@else{
-    <div class="det-photo-drop" (click)="stickerInput.click()">
-      <input #stickerInput type="file" accept="image/*,application/pdf" (change)="onStickerSelect($event)" hidden />
+    <label class="det-photo-drop">
+      <input type="file" accept="image/*,application/pdf" (change)="onStickerSelect($event)" hidden />
       @if(uploadingSticker()){
         <div class="det-mini-spinner"></div>
         <span>Uploading…</span>
@@ -417,7 +417,7 @@
         <lucide-icon name="plus" />
         <span>Upload window sticker (image or PDF)</span>
       }
-    </div>
+    </label>
     }
 
     <!-- Carfax Report PDF -->
@@ -434,8 +434,8 @@
       </button>
     </div>
     }@else{
-    <div class="det-photo-drop" (click)="carfaxInput.click()">
-      <input #carfaxInput type="file" accept="application/pdf" (change)="onCarfaxSelect($event)" hidden />
+    <label class="det-photo-drop">
+      <input type="file" accept="application/pdf" (change)="onCarfaxSelect($event)" hidden />
       @if(uploadingCarfax()){
         <div class="det-mini-spinner"></div>
         <span>Uploading…</span>
@@ -443,7 +443,7 @@
         <lucide-icon name="plus" />
         <span>Upload Carfax report (PDF)</span>
       }
-    </div>
+    </label>
     }
   </div>
   }

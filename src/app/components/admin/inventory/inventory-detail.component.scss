@@ -1016,9 +1016,11 @@ select.det-dv {
   padding: 32px; margin-bottom: 16px;
   border: 2px dashed rgba(0,0,0,0.1); border-radius: 12px;
   background: #fafbfc; cursor: pointer; font-size: 14px; color: $text-muted;
-  transition: all 0.2s;
+  transition: all 0.2s; user-select: none;
   lucide-icon { width: 24px; height: 24px; }
   &:hover, &.dragover { border-color: $blue; background: #f0f4ff; color: $blue; }
+  /* when rendered as a <label> element */
+  &[for], label& { cursor: pointer; }
 }
 
 .det-card-header-row {
