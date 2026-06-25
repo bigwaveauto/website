@@ -73,11 +73,7 @@ export class AdminInventoryListComponent implements OnInit {
       .map(([stage, vs]) => ({
         stage,
         label: stage === '__none__' ? 'No Stage Set' : stage,
-        vehicles: vs.sort((a: any, b: any) => {
-          const da = stages[a.vin] ? Math.floor((Date.now() - new Date(stages[a.vin].entered_at).getTime()) / 86400000) : 0;
-          const db = stages[b.vin] ? Math.floor((Date.now() - new Date(stages[b.vin].entered_at).getTime()) / 86400000) : 0;
-          return db - da; // most stale first
-        }),
+        vehicles: vs.sort((a: any, b: any) => (b.daysinstock || 0) - (a.daysinstock || 0)),
         type: stage === '__none__' ? 'none'
             : this.earlyStages.has(stage) ? 'early'
             : this.saleStages.has(stage) ? 'sale'
