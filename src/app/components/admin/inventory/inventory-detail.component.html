@@ -91,7 +91,15 @@
   <!-- Tabs -->
   <div class="det-tabs">
     <button class="det-tab" [class.active]="activeTab() === 'overview'" (click)="activeTab.set('overview')">Overview</button>
-    <button class="det-tab" [class.active]="activeTab() === 'photos'" (click)="activeTab.set('photos')">Photos</button>
+    <button class="det-tab" [class.active]="activeTab() === 'photos'" (click)="activeTab.set('photos')">
+      Photos @if(photos().length > 0){ <span class="det-tab-badge">{{ photos().length }}</span> }
+    </button>
+    <button class="det-tab" [class.active]="activeTab() === 'sticker'" (click)="activeTab.set('sticker')">
+      Build Sheet @if(windowStickerUrl()){ <span class="det-tab-badge det-tab-badge--done">✓</span> }
+    </button>
+    <button class="det-tab" [class.active]="activeTab() === 'carfax'" (click)="activeTab.set('carfax')">
+      Carfax @if(carfaxPdfUrl()){ <span class="det-tab-badge det-tab-badge--done">✓</span> }
+    </button>
     <button class="det-tab" [class.active]="activeTab() === 'description'" (click)="activeTab.set('description')">Description</button>
   </div>
 
@@ -330,9 +338,8 @@
   </div>
   }
 
-  <!-- ═══ PHOTOS TAB ═══ -->
-  @if(activeTab() === 'photos'){
-  <div class="det-card">
+  <!-- ═══ PHOTOS TAB — always in DOM so photos signal renders immediately ═══ -->
+  <div class="det-card" [hidden]="activeTab() !== 'photos'">
     <div class="det-card-header-row">
       <h2 class="det-card-title">Photos</h2>
       <div class="det-photo-actions">
@@ -364,7 +371,6 @@
     </div>
 
     @if(photos().length > 0){
-    <!-- Category filter tabs -->
     <div class="det-photo-cats">
       @for(cat of photoCategoryCounts(); track cat.key){
       <button class="det-photo-cat" [class.active]="photoCatFilter() === cat.key"
@@ -373,7 +379,6 @@
       </button>
       }
     </div>
-
     <div class="det-photo-grid">
       @for(p of filteredPhotos(); track p.index){
       <div class="det-photo-item">
@@ -393,11 +398,12 @@
     }@else{
     <p class="det-empty">No photos yet. Click "Import from Feed" to pull in vAuto photos, or drag and drop to upload.</p>
     }
+  </div>
 
-    <!-- Window Sticker / Build Sheet -->
-    <div class="det-card-header" style="margin-top:24px">
-      <h2 class="det-card-title" style="margin:0;border:none;padding:0">Window Sticker / Build Sheet</h2>
-    </div>
+  <!-- ═══ BUILD SHEET TAB ═══ -->
+  @if(activeTab() === 'sticker'){
+  <div class="det-card">
+    <h2 class="det-card-title">Window Sticker / Build Sheet</h2>
     @if(windowStickerUrl()){
     <div class="det-sticker-preview">
       <a [href]="windowStickerUrl()" target="_blank" class="det-sticker-link">
@@ -407,6 +413,11 @@
         <lucide-icon name="trash-2" /> Remove
       </button>
     </div>
+    @if(windowStickerUrl()!.endsWith('.pdf')){
+    <iframe [src]="safeWindowStickerIframe()" class="det-doc-embed" frameborder="0"></iframe>
+    }@else{
+    <img [src]="windowStickerUrl()" class="det-sticker-img" alt="Window sticker" />
+    }
     }@else{
     <label class="det-photo-drop">
       <input type="file" accept="image/*,application/pdf" (change)="onStickerSelect($event)" hidden />
@@ -414,25 +425,28 @@
         <div class="det-mini-spinner"></div>
         <span>Uploading…</span>
       }@else{
-        <lucide-icon name="plus" />
-        <span>Upload window sticker (image or PDF)</span>
+        <lucide-icon name="file-text" />
+        <span>Drop the window sticker here or click to upload (image or PDF)</span>
       }
     </label>
     }
+  </div>
+  }
 
-    <!-- Carfax Report PDF -->
-    <div class="det-card-header" style="margin-top:24px">
-      <h2 class="det-card-title" style="margin:0;border:none;padding:0">Carfax Report</h2>
-    </div>
+  <!-- ═══ CARFAX TAB ═══ -->
+  @if(activeTab() === 'carfax'){
+  <div class="det-card">
+    <h2 class="det-card-title">Carfax Report</h2>
     @if(carfaxPdfUrl()){
     <div class="det-sticker-preview">
       <a [href]="carfaxPdfUrl()" target="_blank" class="det-sticker-link">
-        <lucide-icon name="file-text" /> View Carfax PDF
+        <lucide-icon name="file-text" /> View PDF
       </a>
       <button class="det-btn-danger-sm" (click)="removeCarfax()">
         <lucide-icon name="trash-2" /> Remove
       </button>
     </div>
+    <iframe [src]="safeCarfaxIframe()" class="det-doc-embed" frameborder="0"></iframe>
     }@else{
     <label class="det-photo-drop">
       <input type="file" accept="application/pdf" (change)="onCarfaxSelect($event)" hidden />
@@ -440,8 +454,8 @@
         <div class="det-mini-spinner"></div>
         <span>Uploading…</span>
       }@else{
-        <lucide-icon name="plus" />
-        <span>Upload Carfax report (PDF)</span>
+        <lucide-icon name="file-text" />
+        <span>Drop the Carfax PDF here or click to upload</span>
       }
     </label>
     }

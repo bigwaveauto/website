@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, signal, OnDestroy } from '@angular/core';
+import { Component, computed, inject, OnInit, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer } from '@angular/platform-browser';
 import { LucideAngularModule } from 'lucide-angular';
 
 interface CostAdd {
@@ -60,6 +61,7 @@ const PHOTO_CATEGORIES = ['Exterior', 'Interior', 'Mechanical', 'Damage', 'Misce
 export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
+  private sanitizer = inject(DomSanitizer);
   private tickInterval: any;
 
   vehicle = signal<any>(null);
@@ -135,10 +137,18 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   // Window sticker
   windowStickerUrl = signal<string | null>(null);
   uploadingSticker = signal(false);
+  safeWindowStickerIframe = computed(() => {
+    const url = this.windowStickerUrl();
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  });
 
   // Carfax PDF
   carfaxPdfUrl = signal<string | null>(null);
   uploadingCarfax = signal(false);
+  safeCarfaxIframe = computed(() => {
+    const url = this.carfaxPdfUrl();
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  });
 
   // Description
   description = signal('');
