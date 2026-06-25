@@ -33,7 +33,8 @@
       <span class="inv-col inv-col-lot">On Lot</span>
       <span class="inv-col inv-col-vehicle">Vehicle</span>
       <span class="inv-col inv-col-miles">Miles</span>
-      <span class="inv-col inv-col-color">Color</span>
+      <span class="inv-col inv-col-color">Ext Color</span>
+      <span class="inv-col inv-col-intcolor">Int Color</span>
       <span class="inv-col inv-col-price">Price</span>
     </div>
 
@@ -67,6 +68,7 @@
       </span>
       <span class="inv-col inv-col-miles inv-muted">{{ v.mileage ? formatNumber(v.mileage) : '—' }}</span>
       <span class="inv-col inv-col-color inv-muted">{{ v.exteriorcolorstandard || '—' }}</span>
+      <span class="inv-col inv-col-intcolor inv-muted">{{ v.interiorcolorstandard || '—' }}</span>
       <span class="inv-col inv-col-price">{{ formatCurrency(v.price) }}</span>
     </a>
     }
@@ -83,7 +85,8 @@
       <span class="inv-col inv-col-lot      inv-th">On Lot</span>
       <span class="inv-col inv-col-vehicle  inv-th" (click)="toggleSort('make')">Vehicle <span class="inv-sort-arrow">{{ sortCol() === 'make' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
       <span class="inv-col inv-col-miles    inv-th" (click)="toggleSort('mileage')">Miles <span class="inv-sort-arrow">{{ sortCol() === 'mileage' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
-      <span class="inv-col inv-col-color    inv-th" (click)="toggleSort('exteriorcolorstandard')">Color <span class="inv-sort-arrow">{{ sortCol() === 'exteriorcolorstandard' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-color    inv-th" (click)="toggleSort('exteriorcolorstandard')">Ext Color <span class="inv-sort-arrow">{{ sortCol() === 'exteriorcolorstandard' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-intcolor inv-th" (click)="toggleSort('interiorcolorstandard')">Int Color <span class="inv-sort-arrow">{{ sortCol() === 'interiorcolorstandard' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
       <span class="inv-col inv-col-price    inv-th" (click)="toggleSort('price')">Ask Price <span class="inv-sort-arrow">{{ sortCol() === 'price' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
     </div>
     @for(v of filtered(); track v.vin){
@@ -107,6 +110,7 @@
       </span>
       <span class="inv-col inv-col-miles inv-muted">{{ v.mileage ? formatNumber(v.mileage) : '—' }}</span>
       <span class="inv-col inv-col-color inv-muted">{{ v.exteriorcolorstandard || '—' }}</span>
+      <span class="inv-col inv-col-intcolor inv-muted">{{ v.interiorcolorstandard || '—' }}</span>
       <span class="inv-col inv-col-price">{{ formatCurrency(v.price) }}</span>
     </a>
     }
