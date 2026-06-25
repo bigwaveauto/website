@@ -3132,6 +3132,56 @@ app.get('/api/admin/vehicles', async (_req, res) => {
 });
 
 /**
+ * Admin — cost summary for all vehicles (purchase price + recon + flooring)
+ */
+app.get('/api/admin/inventory/costs', async (_req, res) => {
+  try {
+    const [pricingRes, costsRes, floorsRes] = await Promise.all([
+      supabase.from('vehicle_pricing').select('vin, purchase_price'),
+      supabase.from('vehicle_cost_adds').select('vin, cost'),
+      supabase.from('vehicle_floor_plans').select('vin, amount_floored, date_floored, interest_rate, admin_fee, floor_fee, highline_fee, est_flooring, status, payments'),
+    ]);
+
+    const map: Record<string, { purchasePrice: number; reconTotal: number; flooringTotal: number }> = {};
+    const ensure = (vin: string) => { if (!map[vin]) map[vin] = { purchasePrice: 0, reconTotal: 0, flooringTotal: 0 }; };
+
+    for (const p of pricingRes.data || []) {
+      ensure(p.vin);
+      map[p.vin].purchasePrice = p.purchase_price || 0;
+    }
+
+    for (const c of costsRes.data || []) {
+      ensure(c.vin);
+      map[c.vin].reconTotal += c.cost || 0;
+    }
+
+    const now = Date.now();
+    for (const fp of floorsRes.data || []) {
+      ensure(fp.vin);
+      let flooringCost = 0;
+      if (fp.status === 'Paid Off') {
+        flooringCost = fp.est_flooring || 0;
+      } else {
+        const days = Math.floor((now - new Date(fp.date_floored).getTime()) / 86400000);
+        const curtailments = ((fp.payments as any[]) || [])
+          .filter((p: any) => p.type === 'curtailment')
+          .reduce((s: number, p: any) => s + (p.amount || 0), 0);
+        const principal = Math.max(0, (fp.amount_floored || 0) - curtailments);
+        const dailyRate = (principal * ((fp.interest_rate || 8.25) / 100)) / 365;
+        const fees = (fp.admin_fee || 0) + (fp.floor_fee || 0) + (fp.highline_fee || 0);
+        flooringCost = Math.round((dailyRate * days + fees) * 100) / 100;
+      }
+      map[fp.vin].flooringTotal += flooringCost;
+    }
+
+    res.json(map);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to load costs' });
+  }
+});
+
+/**
  * Admin vehicle intake — create vehicle + seller + optional floor plan
  */
 app.post('/api/admin/vehicle/intake', async (req, res) => {

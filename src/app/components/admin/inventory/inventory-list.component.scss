@@ -58,18 +58,19 @@ $text-muted: rgba(0,0,0,0.45);
 .inv-group--sold  { background: #f1f5f9; color: #64748b; }
 
 /* ── Table ── */
-.inv-table { display: flex; flex-direction: column; max-width: 960px; }
+.inv-table { display: flex; flex-direction: column; max-width: 1100px; }
 
 .inv-row {
   display: grid;
   grid-template-columns:
     70px    /* since purchase */
     60px    /* on lot */
-    240px   /* vehicle name */
+    200px   /* vehicle name */
     70px    /* miles */
-    100px   /* ext color */
-    100px   /* int color */
-    90px;   /* ask price */
+    90px    /* ext color */
+    90px    /* int color */
+    88px    /* listed price */
+    88px;   /* total cost */
   align-items: center;
   gap: 0 12px;
   padding: 0 14px;
@@ -106,8 +107,9 @@ $text-muted: rgba(0,0,0,0.45);
 .inv-col-lot      { text-align: right; font-size: 12px; font-weight: 600; }
 .inv-col-stock    { font-size: 12px; flex-shrink: 0; }
 .inv-col-miles    { text-align: right; font-size: 12px; }
-.inv-col-color    { font-size: 12px; }
-.inv-col-intcolor { font-size: 12px; }
+.inv-col-color     { font-size: 12px; }
+.inv-col-intcolor  { font-size: 12px; }
+.inv-col-totalcost { text-align: right; font-size: 13px; font-weight: 700; color: #dc2626; }
 .inv-col-price    { text-align: right; font-size: 13px; font-weight: 800; color: #111; }
 
 /* Vehicle name */
@@ -140,9 +142,10 @@ $text-muted: rgba(0,0,0,0.45);
     60px    /* on lot */
     1fr     /* vehicle */
     70px    /* miles */
-    100px   /* ext color */
-    100px   /* int color */
-    90px;   /* price */
+    90px    /* ext color */
+    90px    /* int color */
+    88px    /* listed price */
+    88px;   /* total cost */
 }
 
 /* Sortable headers */

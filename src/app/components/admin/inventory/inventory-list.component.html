@@ -35,7 +35,8 @@
       <span class="inv-col inv-col-miles">Miles</span>
       <span class="inv-col inv-col-color">Ext Color</span>
       <span class="inv-col inv-col-intcolor">Int Color</span>
-      <span class="inv-col inv-col-price">Price</span>
+      <span class="inv-col inv-col-price">Listed Price</span>
+      <span class="inv-col inv-col-totalcost">Total Cost</span>
     </div>
 
     @for(group of groupedVehicles(); track group.stage){
@@ -70,6 +71,7 @@
       <span class="inv-col inv-col-color inv-muted">{{ v.exteriorcolorstandard || '—' }}</span>
       <span class="inv-col inv-col-intcolor inv-muted">{{ v.interiorcolorstandard || '—' }}</span>
       <span class="inv-col inv-col-price">{{ formatCurrency(v.price) }}</span>
+      <span class="inv-col inv-col-totalcost" [class.inv-muted]="!getTotalCost(v.vin)">{{ getTotalCost(v.vin) ? formatCurrency(getTotalCost(v.vin)) : '—' }}</span>
     </a>
     }
     }
@@ -87,7 +89,8 @@
       <span class="inv-col inv-col-miles    inv-th" (click)="toggleSort('mileage')">Miles <span class="inv-sort-arrow">{{ sortCol() === 'mileage' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
       <span class="inv-col inv-col-color    inv-th" (click)="toggleSort('exteriorcolorstandard')">Ext Color <span class="inv-sort-arrow">{{ sortCol() === 'exteriorcolorstandard' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
       <span class="inv-col inv-col-intcolor inv-th" (click)="toggleSort('interiorcolorstandard')">Int Color <span class="inv-sort-arrow">{{ sortCol() === 'interiorcolorstandard' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
-      <span class="inv-col inv-col-price    inv-th" (click)="toggleSort('price')">Ask Price <span class="inv-sort-arrow">{{ sortCol() === 'price' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-price    inv-th" (click)="toggleSort('price')">Listed Price <span class="inv-sort-arrow">{{ sortCol() === 'price' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}</span></span>
+      <span class="inv-col inv-col-totalcost inv-th">Total Cost</span>
     </div>
     @for(v of filtered(); track v.vin){
     <a class="inv-row" [class.inv-row--red]="getStageAlert(v.vin) === 'red'"
@@ -112,6 +115,7 @@
       <span class="inv-col inv-col-color inv-muted">{{ v.exteriorcolorstandard || '—' }}</span>
       <span class="inv-col inv-col-intcolor inv-muted">{{ v.interiorcolorstandard || '—' }}</span>
       <span class="inv-col inv-col-price">{{ formatCurrency(v.price) }}</span>
+      <span class="inv-col inv-col-totalcost" [class.inv-muted]="!getTotalCost(v.vin)">{{ getTotalCost(v.vin) ? formatCurrency(getTotalCost(v.vin)) : '—' }}</span>
     </a>
     }
   </div>

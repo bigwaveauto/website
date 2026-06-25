@@ -32,6 +32,7 @@ export class AdminInventoryListComponent implements OnInit {
 
   stages = signal<Record<string, any>>({});
   thresholds = signal<StageThreshold[]>([]);
+  costs = signal<Record<string, { purchasePrice: number; reconTotal: number; flooringTotal: number }>>({});
 
   stageList = [
     'At Auction — Won, Awaiting Pickup', 'In Transport', 'Arrived — Needs Intake',
@@ -152,6 +153,10 @@ export class AdminInventoryListComponent implements OnInit {
     this.http.get<StageThreshold[]>('/api/admin/stages/thresholds').subscribe({
       next: (data) => { this.thresholds.set(data || []); },
     });
+
+    this.http.get<any>('/api/admin/inventory/costs').subscribe({
+      next: (data) => { this.costs.set(data || {}); },
+    });
   }
 
   getStage(vin: string): string {
@@ -238,6 +243,12 @@ export class AdminInventoryListComponent implements OnInit {
   onStageFilter(val: string) {
     this.stageFilter.set(val);
     this.applyFilter();
+  }
+
+  getTotalCost(vin: string): number {
+    const c = this.costs()[vin];
+    if (!c) return 0;
+    return c.purchasePrice + c.reconTotal + c.flooringTotal;
   }
 
   formatCurrency(val: number | null) {
