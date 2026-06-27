@@ -4,9 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { LucideAngularModule } from 'lucide-angular';
 
-// Matches Big Wave Auto LLC QuickBooks chart of accounts
+// Matches Big Wave Auto LLC QuickBooks chart of accounts (verified against Transaction List 2025–2026)
 const CATEGORIES = [
-  // COGS — vehicle-specific costs
+  // COGS — vehicle-specific (need a VIN)
   'Auction Fees',
   'Detailing',
   'Fuel',
@@ -23,14 +23,16 @@ const CATEGORIES = [
   'Advertising',
   'Bank Fees',
   'Insurance',
+  'Internet',
   'Licenses & Permits',
   'Miscellaneous',
   'Office Expenses',
   'Professional Fees',
   'Rent',
+  'Shipping & Postage',
   'Small Tools & Equipment',
   'Software & Subscriptions',
-  'Utilities',
+  'Telephone',
   'Website',
 ];
 

@@ -4901,9 +4901,9 @@ app.post('/api/admin/rivian/bulk', requireAdmin, async (req, res) => {
 import { parseTransactionCSV, buildDedupHash } from './parsers/transaction-parser.js';
 import { createHash as _createHash } from 'node:crypto';
 
-// Matches Big Wave Auto LLC QuickBooks chart of accounts (Trial Balance 2026-06-26)
+// Matches Big Wave Auto LLC QuickBooks chart of accounts (verified against Transaction List 2025–2026)
 const TX_CATEGORIES = [
-  // Cost of Goods Sold (vehicle-specific)
+  // COGS — vehicle-specific (need a VIN)
   'Auction Fees',
   'Detailing',
   'Fuel',
@@ -4916,18 +4916,20 @@ const TX_CATEGORIES = [
   'Transportation',
   'Vehicle History Reports',
   'Warranty Coverage',
-  // Operating expenses (overhead — no vehicle)
+  // Operating expenses — overhead (no vehicle needed)
   'Advertising',
   'Bank Fees',
   'Insurance',
+  'Internet',
   'Licenses & Permits',
   'Miscellaneous',
   'Office Expenses',
   'Professional Fees',
   'Rent',
+  'Shipping & Postage',
   'Small Tools & Equipment',
   'Software & Subscriptions',
-  'Utilities',
+  'Telephone',
   'Website',
 ];
 
