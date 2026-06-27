@@ -22,6 +22,41 @@
   @if(activeTab() === 'review'){
   <div class="tx-review">
 
+    <!-- Gmail receipt sync strip -->
+    <div class="tx-gmail-strip">
+      @if(!gmailConnected()){
+      <button class="tx-btn tx-btn--gmail" (click)="connectGmail()">
+        <lucide-icon name="mail" /> Connect Gmail
+      </button>
+      <span class="tx-gmail-hint">Pull receipts automatically from your inbox</span>
+      } @else {
+      <div class="tx-gmail-connected">
+        <lucide-icon name="mail-check" class="tx-gmail-icon--connected" />
+        <span class="tx-gmail-label">Gmail connected</span>
+        @if(gmailLastSync()){
+        <span class="tx-gmail-meta">Last sync: {{ gmailLastSync().imported }} receipts · {{ gmailLastSync().at | date:'M/d h:mm a' }}</span>
+        }
+      </div>
+      <select class="tx-select tx-select--sm" [ngModel]="gmailSyncDays()" (ngModelChange)="gmailSyncDays.set(+$event)">
+        <option value="30">Last 30 days</option>
+        <option value="60">Last 60 days</option>
+        <option value="90">Last 90 days</option>
+        <option value="180">Last 180 days</option>
+      </select>
+      <button class="tx-btn tx-btn--gmail" [disabled]="gmailSyncing()" (click)="syncGmail()">
+        <lucide-icon name="refresh-cw" />
+        {{ gmailSyncing() ? 'Syncing…' : 'Sync Receipts' }}
+      </button>
+      <button class="tx-btn tx-btn--ghost" (click)="disconnectGmail()">Disconnect</button>
+      }
+      @if(gmailSyncResult()){
+      <span class="tx-badge tx-badge--green">+{{ gmailSyncResult().imported }} imported</span>
+      @if(gmailSyncResult().skipped){ <span class="tx-badge tx-badge--gray">{{ gmailSyncResult().skipped }} skipped</span> }
+      <span class="tx-badge tx-badge--gray">{{ gmailSyncResult().found }} found</span>
+      }
+      @if(gmailError()){ <span class="tx-error">{{ gmailError() }}</span> }
+    </div>
+
     <!-- Import strip -->
     <div class="tx-import-strip">
       <select class="tx-select" [ngModel]="selectedAccountId()" (ngModelChange)="selectedAccountId.set($event)">

@@ -104,12 +104,32 @@ export class TransactionsComponent implements OnInit {
   // ── Imports history ────────────────────────────────────────────────────────
   imports = signal<any[]>([]);
 
+  // ── Gmail ──────────────────────────────────────────────────────────────────
+  gmailConnected = signal(false);
+  gmailLastSync  = signal<any>(null);
+  gmailSyncing   = signal(false);
+  gmailSyncResult = signal<any>(null);
+  gmailError     = signal('');
+  gmailSyncDays  = signal(90);
+
   ngOnInit() {
     this.loadAccounts();
     this.loadTransactions();
     this.loadVehicles();
     this.loadRules();
     this.loadImports();
+    this.loadGmailStatus();
+
+    // Handle redirect back from Google OAuth
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('gmailConnected')) {
+      this.loadGmailStatus();
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    if (params.get('gmailError')) {
+      this.gmailError.set(decodeURIComponent(params.get('gmailError') || ''));
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }
 
   // ── Loaders ────────────────────────────────────────────────────────────────
@@ -375,6 +395,49 @@ export class TransactionsComponent implements OnInit {
     if (!tx.ai_category) return;
     this.updateField(tx.id, 'category', tx.ai_category);
     if (tx.ai_vin) this.updateField(tx.id, 'vin', tx.ai_vin);
+  }
+
+  // ── Gmail ──────────────────────────────────────────────────────────────────
+
+  loadGmailStatus() {
+    this.http.get<any>('/api/admin/gmail/status').subscribe({
+      next: s => {
+        this.gmailConnected.set(s.connected);
+        this.gmailLastSync.set(s.lastSync);
+      },
+    });
+  }
+
+  connectGmail() {
+    this.http.get<any>('/api/admin/gmail/auth-url').subscribe({
+      next: r => { window.location.href = r.url; },
+    });
+  }
+
+  disconnectGmail() {
+    if (!confirm('Disconnect Gmail? You can reconnect at any time.')) return;
+    this.http.delete('/api/admin/gmail/disconnect').subscribe({
+      next: () => { this.gmailConnected.set(false); this.gmailLastSync.set(null); },
+    });
+  }
+
+  syncGmail() {
+    if (this.gmailSyncing()) return;
+    this.gmailSyncing.set(true);
+    this.gmailSyncResult.set(null);
+    this.gmailError.set('');
+    this.http.post<any>('/api/admin/gmail/sync', { days: this.gmailSyncDays() }).subscribe({
+      next: result => {
+        this.gmailSyncResult.set(result);
+        this.gmailSyncing.set(false);
+        this.loadGmailStatus();
+        if (result.imported > 0) this.loadTransactions();
+      },
+      error: err => {
+        this.gmailError.set(err.error?.error || 'Sync failed');
+        this.gmailSyncing.set(false);
+      },
+    });
   }
 
   updateNewAccount(field: string, value: string) {

@@ -38,6 +38,36 @@ $muted:  rgba(0,0,0,0.45);
   &.tx-badge--gray  { background: #f1f5f9; color: #475569; }
 }
 
+// ── Gmail strip ───────────────────────────────────────────────────────────────
+
+.tx-gmail-strip {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 16px; background: #f0fdf4;
+  border: 1.5px solid #bbf7d0; border-radius: 10px;
+}
+
+.tx-gmail-connected {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.tx-gmail-icon--connected { color: #16a34a; width: 16px; height: 16px; }
+.tx-gmail-label { font-size: 13px; font-weight: 600; color: #15803d; }
+.tx-gmail-meta  { font-size: 12px; color: #6b7280; }
+.tx-gmail-hint  { font-size: 12px; color: #6b7280; }
+
+.tx-select--sm { font-size: 12px; padding: 6px 10px; }
+
+.tx-btn--gmail {
+  background: #16a34a; color: white;
+  &:hover:not(:disabled) { background: #15803d; }
+  &:disabled { background: #86efac; cursor: not-allowed; }
+}
+
+.tx-btn--ghost {
+  background: transparent; color: #6b7280; border: 1px solid #d1d5db;
+  &:hover { background: #f3f4f6; color: #374151; }
+}
+
 // ── Import strip ─────────────────────────────────────────────────────────────
 
 .tx-import-strip {

@@ -21,6 +21,7 @@ const zipcodes = _require('zipcodes');
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import cors from 'cors';
+import { google } from 'googleapis';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -5453,6 +5454,309 @@ app.get('/api/admin/transactions/report', requireAdmin, async (req, res) => {
   } catch (err: any) {
     console.error('Report export error:', err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GMAIL MODULE — OAuth connect + receipt sync
+// ═══════════════════════════════════════════════════════════════════════════
+
+const GMAIL_REDIRECT_URI = process.env['GOOGLE_REDIRECT_URI'] || 'https://bigwaveauto.com/api/auth/gmail/callback';
+const GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
+
+function makeOAuth2Client() {
+  return new google.auth.OAuth2(
+    process.env['GOOGLE_CLIENT_ID'],
+    process.env['GOOGLE_CLIENT_SECRET'],
+    GMAIL_REDIRECT_URI,
+  );
+}
+
+async function getStoredGmailToken(): Promise<any | null> {
+  const { data } = await supabase
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'gmail_tokens')
+    .single();
+  return data ? JSON.parse(data['value']) : null;
+}
+
+async function saveGmailToken(tokens: any): Promise<void> {
+  await supabase.from('app_settings').upsert({
+    key: 'gmail_tokens',
+    value: JSON.stringify(tokens),
+    updated_at: new Date().toISOString(),
+  });
+}
+
+/** GET /api/admin/gmail/auth-url — generate the Google consent URL */
+app.get('/api/admin/gmail/auth-url', requireAdmin, (_req, res) => {
+  const auth = makeOAuth2Client();
+  const url = auth.generateAuthUrl({
+    access_type: 'offline',
+    scope: GMAIL_SCOPES,
+    prompt: 'consent', // force refresh_token to be returned
+  });
+  res.json({ url });
+});
+
+/** GET /api/auth/gmail/callback — Google redirects here after consent */
+app.get('/api/auth/gmail/callback', async (req, res) => {
+  const { code, error } = req.query as any;
+  if (error) {
+    res.redirect(`/admin/transactions?gmailError=${encodeURIComponent(error)}`);
+    return;
+  }
+  try {
+    const auth = makeOAuth2Client();
+    const { tokens } = await auth.getToken(code);
+    await saveGmailToken(tokens);
+    res.redirect('/admin/transactions?gmailConnected=1');
+  } catch (err: any) {
+    console.error('Gmail OAuth callback error:', err);
+    res.redirect(`/admin/transactions?gmailError=${encodeURIComponent(err.message)}`);
+  }
+});
+
+/** GET /api/admin/gmail/status */
+app.get('/api/admin/gmail/status', requireAdmin, async (_req, res) => {
+  const tokens = await getStoredGmailToken();
+  const { data: lastSync } = await supabase
+    .from('app_settings')
+    .select('value, updated_at')
+    .eq('key', 'gmail_last_sync')
+    .single();
+  res.json({
+    connected: !!tokens?.refresh_token,
+    lastSync: lastSync ? JSON.parse(lastSync['value']) : null,
+  });
+});
+
+/** DELETE /api/admin/gmail/disconnect */
+app.delete('/api/admin/gmail/disconnect', requireAdmin, async (_req, res) => {
+  await supabase.from('app_settings').delete().eq('key', 'gmail_tokens');
+  res.json({ ok: true });
+});
+
+/** POST /api/admin/gmail/sync — fetch receipts, parse with Claude, queue as transactions */
+app.post('/api/admin/gmail/sync', requireAdmin, async (req: any, res) => {
+  try {
+    const tokens = await getStoredGmailToken();
+    if (!tokens?.refresh_token) {
+      res.status(400).json({ error: 'Gmail not connected. Connect it first.' });
+      return;
+    }
+
+    const { days = 90 } = req.body as { days?: number };
+
+    const auth = makeOAuth2Client();
+    auth.setCredentials(tokens);
+
+    // Refresh and persist updated tokens
+    auth.on('tokens', async (newTokens) => {
+      const merged = { ...tokens, ...newTokens };
+      await saveGmailToken(merged);
+    });
+
+    const gmail = google.gmail({ version: 'v1', auth });
+
+    // Search for receipt-like emails
+    const query = [
+      `newer_than:${days}d`,
+      '(',
+      'subject:(receipt OR invoice OR "order confirmation" OR "your order" OR "payment confirmation")',
+      'OR from:(amazon.com OR ebay.com OR autozone.com OR oreillyauto.com OR napaonline.com',
+      '  OR advanceauto.com OR pepboys.com OR harborfreight.com)',
+      ')',
+      '-label:spam',
+    ].join(' ');
+
+    const listRes = await gmail.users.messages.list({
+      userId: 'me',
+      q: query,
+      maxResults: 150,
+    });
+
+    const messages = listRes.data.messages || [];
+    if (!messages.length) {
+      res.json({ found: 0, imported: 0, skipped: 0 });
+      return;
+    }
+
+    // Find already-imported message IDs
+    const msgIds = messages.map(m => m.id!);
+    const { data: existing } = await supabase
+      .from('transactions')
+      .select('gmail_message_id')
+      .in('gmail_message_id', msgIds);
+    const existingIds = new Set((existing || []).map((r: any) => r.gmail_message_id));
+
+    const newMsgIds = msgIds.filter(id => !existingIds.has(id));
+    if (!newMsgIds.length) {
+      res.json({ found: messages.length, imported: 0, skipped: messages.length });
+      return;
+    }
+
+    // Fetch full content for new messages (batch, max 50 per sync to control cost)
+    const toProcess = newMsgIds.slice(0, 50);
+    const emailBodies: Array<{ id: string; subject: string; from: string; date: string; body: string }> = [];
+
+    for (const msgId of toProcess) {
+      try {
+        const msg = await gmail.users.messages.get({ userId: 'me', id: msgId, format: 'full' });
+        const headers = msg.data.payload?.headers || [];
+        const get = (name: string) => headers.find((h: any) => h.name.toLowerCase() === name.toLowerCase())?.value || '';
+
+        // Extract plain text body (prefer text/plain, fall back to text/html stripped)
+        let body = '';
+        const extractText = (part: any): string => {
+          if (part.mimeType === 'text/plain' && part.body?.data) {
+            return Buffer.from(part.body.data, 'base64').toString('utf-8');
+          }
+          if (part.parts) return part.parts.map(extractText).join('\n');
+          if (part.mimeType === 'text/html' && part.body?.data && !body) {
+            return Buffer.from(part.body.data, 'base64').toString('utf-8')
+              .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 3000);
+          }
+          return '';
+        };
+        body = extractText(msg.data.payload).slice(0, 3000);
+
+        emailBodies.push({
+          id: msgId,
+          subject: get('Subject'),
+          from: get('From'),
+          date: get('Date'),
+          body,
+        });
+      } catch { /* skip unreadable messages */ }
+    }
+
+    if (!emailBodies.length) {
+      res.json({ found: messages.length, imported: 0, skipped: messages.length });
+      return;
+    }
+
+    // Find or create a "Gmail Receipts" transaction account
+    let gmailAccountId: string;
+    const { data: gmailAcct } = await supabase
+      .from('transaction_accounts')
+      .select('id')
+      .eq('name', 'Gmail Receipts')
+      .single();
+
+    if (gmailAcct) {
+      gmailAccountId = (gmailAcct as any).id;
+    } else {
+      const { data: newAcct } = await supabase
+        .from('transaction_accounts')
+        .insert({ name: 'Gmail Receipts', institution: 'Google', account_type: 'checking' })
+        .select('id')
+        .single();
+      gmailAccountId = (newAcct as any).id;
+    }
+
+    // Create an import batch
+    const { data: importRec } = await supabase
+      .from('transaction_imports')
+      .insert({
+        account_id: gmailAccountId,
+        filename: `Gmail sync — last ${days} days`,
+        row_count: emailBodies.length,
+        imported_by: req.adminUser?.email || null,
+      })
+      .select('id')
+      .single();
+    const importId = (importRec as any).id;
+
+    // Ask Claude to parse all emails in one batch
+    const parsePrompt = `You are parsing receipt emails for a car dealership called Big Wave Auto.
+For each email, extract the key expense details. Return a JSON array — one object per email.
+
+Available expense categories: ${TX_CATEGORIES.join(', ')}
+
+Emails to parse:
+${emailBodies.map((e, i) => `
+[${i + 1}] ID: ${e.id}
+From: ${e.from}
+Subject: ${e.subject}
+Date: ${e.date}
+Body excerpt: ${e.body.slice(0, 800)}
+`).join('\n---\n')}
+
+For each email return:
+{
+  "gmail_message_id": "<the ID field from above>",
+  "vendor": "clean vendor/store name",
+  "amount": <numeric total, negative for expenses, null if not found>,
+  "transaction_date": "YYYY-MM-DD or null",
+  "category": "one of the available categories or null",
+  "vehicle_ref": "stock number like BW123456 or year/make/model if mentioned, else null",
+  "description": "one line: what was purchased",
+  "skip": false
+}
+
+Set skip=true for emails that are clearly NOT expenses (newsletters, shipping notifications with no amount, etc.).
+Return ONLY the JSON array, no other text.`;
+
+    const aiRes = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: parsePrompt }],
+    });
+
+    const rawText = ((aiRes.content[0] as any).text || '').trim()
+      .replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    const parsed: any[] = JSON.parse(rawText);
+
+    const toInsert = parsed
+      .filter(p => !p.skip && p.amount !== null && p.gmail_message_id)
+      .map(p => ({
+        import_id: importId,
+        gmail_message_id: p.gmail_message_id,
+        transaction_date: p.transaction_date || new Date().toISOString().split('T')[0],
+        description: p.description || p.vendor || 'Gmail receipt',
+        amount: typeof p.amount === 'number' ? p.amount : -Math.abs(parseFloat(p.amount) || 0),
+        category: p.category || null,
+        vin: null, // vehicle_ref stored in notes for now; user confirms VIN in review
+        notes: p.vehicle_ref ? `Vehicle ref: ${p.vehicle_ref}` : null,
+        status: 'pending',
+        dedup_hash: `gmail-${p.gmail_message_id}`,
+      }));
+
+    let importedCount = 0;
+    if (toInsert.length) {
+      const { data: inserted } = await supabase
+        .from('transactions')
+        .upsert(toInsert, { onConflict: 'dedup_hash', ignoreDuplicates: true })
+        .select('id');
+      importedCount = (inserted || []).length;
+
+      await supabase.from('transaction_imports').update({
+        new_count: importedCount,
+        duplicate_count: toInsert.length - importedCount,
+      }).eq('id', importId);
+
+      // Apply vendor rules to newly imported transactions
+      await applyVendorRules((inserted || []).map((r: any) => r.id));
+    }
+
+    // Save last sync timestamp
+    await supabase.from('app_settings').upsert({
+      key: 'gmail_last_sync',
+      value: JSON.stringify({ at: new Date().toISOString(), found: messages.length, imported: importedCount }),
+      updated_at: new Date().toISOString(),
+    });
+
+    res.json({
+      found: messages.length,
+      processed: emailBodies.length,
+      imported: importedCount,
+      skipped: parsed.filter(p => p.skip).length,
+    });
+  } catch (err: any) {
+    console.error('Gmail sync error:', err);
+    res.status(500).json({ error: err.message || 'Gmail sync failed' });
   }
 });
 
