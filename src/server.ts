@@ -4901,9 +4901,34 @@ app.post('/api/admin/rivian/bulk', requireAdmin, async (req, res) => {
 import { parseTransactionCSV, buildDedupHash } from './parsers/transaction-parser.js';
 import { createHash as _createHash } from 'node:crypto';
 
+// Matches Big Wave Auto LLC QuickBooks chart of accounts (Trial Balance 2026-06-26)
 const TX_CATEGORIES = [
-  'Transport', 'Auction Fee', 'Mechanical', 'Body/Paint', 'Detail',
-  'Registration', 'Parts', 'Photography', 'Marketing', 'Overhead', 'Other',
+  // Cost of Goods Sold (vehicle-specific)
+  'Auction Fees',
+  'Detailing',
+  'Fuel',
+  'Inspection',
+  'Listing Fees',
+  'Reconditioning',
+  'Repairs & Parts',
+  'Supplies',
+  'Tires',
+  'Transportation',
+  'Vehicle History Reports',
+  'Warranty Coverage',
+  // Operating expenses (overhead — no vehicle)
+  'Advertising',
+  'Bank Fees',
+  'Insurance',
+  'Licenses & Permits',
+  'Miscellaneous',
+  'Office Expenses',
+  'Professional Fees',
+  'Rent',
+  'Small Tools & Equipment',
+  'Software & Subscriptions',
+  'Utilities',
+  'Website',
 ];
 
 /** Apply saved vendor rules to a list of transaction rows in DB. */
