@@ -56,6 +56,10 @@ export const routes: Routes = [
     loadComponent: () => import('../components/rivian-report/rivian-report.component').then(m => m.RivianReportComponent),
   },
   {
+    path: 'privacy',
+    loadComponent: () => import('../components/privacy/privacy.component').then(m => m.PrivacyComponent),
+  },
+  {
     path: 'admin',
     loadComponent: () => import('../components/admin/admin.component').then(m => m.AdminComponent),
     children: [
