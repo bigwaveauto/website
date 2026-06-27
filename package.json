@@ -7,6 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:server": "vitest run",
     "serve:ssr:MotorDeal": "node dist/MotorDeal/server/server.mjs"
   },
   "prettier": {
@@ -66,6 +67,8 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.9.2"
+    "tsx": "^4.22.4",
+    "typescript": "~5.9.2",
+    "vitest": "^3.2.6"
   }
 }

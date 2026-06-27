@@ -4894,6 +4894,545 @@ app.post('/api/admin/rivian/bulk', requireAdmin, async (req, res) => {
   } catch (err: any) { res.status(500).json({ error: err.message }); }
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// TRANSACTIONS MODULE — CSV import, rule engine, AI suggest, approve batch
+// ═══════════════════════════════════════════════════════════════════════════
+
+import { parseTransactionCSV, buildDedupHash } from './parsers/transaction-parser.js';
+import { createHash as _createHash } from 'node:crypto';
+
+const TX_CATEGORIES = [
+  'Transport', 'Auction Fee', 'Mechanical', 'Body/Paint', 'Detail',
+  'Registration', 'Parts', 'Photography', 'Marketing', 'Overhead', 'Other',
+];
+
+/** Apply saved vendor rules to a list of transaction rows in DB. */
+async function applyVendorRules(txIds: string[]): Promise<void> {
+  if (!txIds.length) return;
+  const { data: rules } = await supabase
+    .from('transaction_vendor_rules')
+    .select('*')
+    .order('use_count', { ascending: false });
+  if (!rules?.length) return;
+
+  const { data: txs } = await supabase
+    .from('transactions')
+    .select('id, description')
+    .in('id', txIds)
+    .eq('status', 'pending');
+  if (!txs?.length) return;
+
+  for (const tx of txs) {
+    const desc = (tx.description as string).toUpperCase();
+    for (const rule of rules) {
+      const pat = (rule.vendor_pattern as string).toUpperCase();
+      const matched =
+        rule.match_type === 'exact'       ? desc === pat :
+        rule.match_type === 'starts_with' ? desc.startsWith(pat) :
+                                            desc.includes(pat);
+      if (matched) {
+        await supabase
+          .from('transactions')
+          .update({
+            category: rule.category,
+            rule_matched: rule.vendor_pattern,
+            status: rule.auto_approve ? 'approved' : 'pending',
+          })
+          .eq('id', tx.id);
+        await supabase
+          .from('transaction_vendor_rules')
+          .update({ use_count: (rule.use_count || 0) + 1, updated_at: new Date().toISOString() })
+          .eq('id', rule.id);
+        break; // first matching rule wins
+      }
+    }
+  }
+}
+
+// ── Account management ───────────────────────────────────────────────────────
+
+/** GET /api/admin/transaction-accounts */
+app.get('/api/admin/transaction-accounts', requireAdmin, async (_req, res) => {
+  const { data, error } = await supabase
+    .from('transaction_accounts')
+    .select('*')
+    .order('name');
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.json(data || []);
+});
+
+/** POST /api/admin/transaction-accounts — create */
+app.post('/api/admin/transaction-accounts', requireAdmin, async (req, res) => {
+  const { name, institution, account_type, last_four } = req.body;
+  if (!name?.trim()) { res.status(400).json({ error: 'name is required' }); return; }
+  const { data, error } = await supabase
+    .from('transaction_accounts')
+    .insert({ name: name.trim(), institution: institution || '', account_type: account_type || 'checking', last_four: last_four || null })
+    .select()
+    .single();
+  if (error) { res.status(400).json({ error: error.message }); return; }
+  res.json(data);
+});
+
+/** PATCH /api/admin/transaction-accounts/:id */
+app.patch('/api/admin/transaction-accounts/:id', requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { name, institution, account_type, last_four, active } = req.body;
+  const { data, error } = await supabase
+    .from('transaction_accounts')
+    .update({ name, institution, account_type, last_four, active })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) { res.status(400).json({ error: error.message }); return; }
+  res.json(data);
+});
+
+/** DELETE /api/admin/transaction-accounts/:id — only if no imports linked */
+app.delete('/api/admin/transaction-accounts/:id', requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { count } = await supabase
+    .from('transaction_imports')
+    .select('*', { count: 'exact', head: true })
+    .eq('account_id', id);
+  if ((count || 0) > 0) {
+    res.status(409).json({ error: 'Cannot delete account — it has import history. Deactivate it instead.' });
+    return;
+  }
+  const { error } = await supabase.from('transaction_accounts').delete().eq('id', id);
+  if (error) { res.status(400).json({ error: error.message }); return; }
+  res.json({ ok: true });
+});
+
+// ── CSV Import ───────────────────────────────────────────────────────────────
+
+/** POST /api/admin/transactions/import — multipart: file + accountId */
+app.post('/api/admin/transactions/import', requireAdmin, upload.single('file'), async (req: any, res) => {
+  try {
+    if (!req.file) { res.status(400).json({ error: 'No file uploaded' }); return; }
+    const { accountId } = req.body;
+    if (!accountId) { res.status(400).json({ error: 'accountId is required' }); return; }
+
+    // Load the account for its name (used in dedup hash)
+    const { data: account, error: acctErr } = await supabase
+      .from('transaction_accounts')
+      .select('id, name')
+      .eq('id', accountId)
+      .single();
+    if (acctErr || !account) { res.status(404).json({ error: 'Account not found' }); return; }
+
+    const rawCSV = req.file.buffer.toString('utf-8');
+    const result = parseTransactionCSV(rawCSV);
+
+    if (!result.transactions.length && result.errors.length > 0) {
+      res.status(422).json({
+        error: 'Could not parse any valid transactions from this file',
+        bank: result.bank,
+        parseErrors: result.errors.slice(0, 5),
+      });
+      return;
+    }
+
+    // Create the import batch record
+    const datesSorted = [...result.transactions]
+      .map(t => t.transactionDate)
+      .sort();
+    const { data: imp, error: impErr } = await supabase
+      .from('transaction_imports')
+      .insert({
+        account_id: accountId,
+        filename: req.file.originalname,
+        row_count: result.transactions.length,
+        date_from: datesSorted[0] || null,
+        date_to: datesSorted[datesSorted.length - 1] || null,
+        imported_by: req.adminUser?.email || null,
+      })
+      .select('id')
+      .single();
+    if (impErr || !imp) { res.status(500).json({ error: 'Failed to create import record' }); return; }
+
+    // Insert transactions, skip duplicates
+    const rows = result.transactions.map(tx => ({
+      import_id: (imp as any).id,
+      transaction_date: tx.transactionDate,
+      post_date: tx.postDate || null,
+      description: tx.description,
+      amount: tx.amount,
+      status: 'pending',
+      dedup_hash: buildDedupHash(tx, (account as any).name),
+    }));
+
+    let newCount = 0;
+    let duplicateCount = 0;
+    const newIds: string[] = [];
+
+    // Insert in batches of 100 to avoid URL length limits
+    for (let i = 0; i < rows.length; i += 100) {
+      const batch = rows.slice(i, i + 100);
+      const { data: inserted, error: insErr } = await supabase
+        .from('transactions')
+        .upsert(batch, { onConflict: 'dedup_hash', ignoreDuplicates: true })
+        .select('id');
+      if (insErr) {
+        console.error('Transaction insert error:', insErr);
+        continue;
+      }
+      const freshIds = (inserted || []).map((r: any) => r.id);
+      newCount += freshIds.length;
+      duplicateCount += batch.length - freshIds.length;
+      newIds.push(...freshIds);
+    }
+
+    // Update import record with actual counts
+    await supabase.from('transaction_imports').update({
+      new_count: newCount,
+      duplicate_count: duplicateCount,
+    }).eq('id', (imp as any).id);
+
+    // Apply vendor rules to new transactions
+    await applyVendorRules(newIds);
+
+    res.json({
+      importId: (imp as any).id,
+      bank: result.bank,
+      newCount,
+      duplicateCount,
+      parseErrors: result.errors.length,
+      validationWarning: result.validationWarning || null,
+    });
+  } catch (err: any) {
+    console.error('Transaction import error:', err);
+    res.status(500).json({ error: err.message || 'Import failed' });
+  }
+});
+
+// ── Transaction CRUD ─────────────────────────────────────────────────────────
+
+/** GET /api/admin/transactions?status=pending&importId=&limit=200&offset=0 */
+app.get('/api/admin/transactions', requireAdmin, async (req, res) => {
+  const { status, importId, limit = '200', offset = '0' } = req.query as any;
+  let q = supabase
+    .from('transactions')
+    .select(`
+      id, transaction_date, post_date, description, amount, category, vin,
+      status, ai_category, ai_vin, ai_confidence, ai_reasoning,
+      rule_matched, notes, reviewed_at,
+      transaction_imports!inner(
+        id, account_id, filename, date_from, date_to,
+        transaction_accounts!inner(name, institution, account_type)
+      )
+    `)
+    .order('transaction_date', { ascending: false })
+    .range(Number(offset), Number(offset) + Number(limit) - 1);
+
+  if (status) q = q.eq('status', status);
+  if (importId) q = q.eq('import_id', importId);
+
+  const { data, error } = await q;
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.json(data || []);
+});
+
+/** GET /api/admin/transactions/imports — list import batches */
+app.get('/api/admin/transactions/imports', requireAdmin, async (_req, res) => {
+  const { data, error } = await supabase
+    .from('transaction_imports')
+    .select(`
+      id, created_at, filename, row_count, new_count, duplicate_count, date_from, date_to, imported_by,
+      transaction_accounts(name, institution)
+    `)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.json(data || []);
+});
+
+/** GET /api/admin/transactions/categories — static list */
+app.get('/api/admin/transactions/categories', requireAdmin, (_req, res) => {
+  res.json(TX_CATEGORIES);
+});
+
+/** PATCH /api/admin/transactions/:id */
+app.patch('/api/admin/transactions/:id', requireAdmin, async (req: any, res) => {
+  const { id } = req.params;
+  const allowed = ['category', 'vin', 'status', 'notes'];
+  const update: Record<string, any> = {};
+  for (const k of allowed) {
+    if (req.body[k] !== undefined) update[k] = req.body[k];
+  }
+  if (!Object.keys(update).length) { res.status(400).json({ error: 'No valid fields to update' }); return; }
+  update['reviewed_by'] = req.adminUser?.email || null;
+  update['reviewed_at'] = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from('transactions')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) { res.status(400).json({ error: error.message }); return; }
+  res.json(data);
+});
+
+// ── AI Suggest ───────────────────────────────────────────────────────────────
+
+/** POST /api/admin/transactions/ai-suggest { ids: string[] } */
+app.post('/api/admin/transactions/ai-suggest', requireAdmin, async (req, res) => {
+  try {
+    const { ids } = req.body as { ids: string[] };
+    if (!ids?.length) { res.status(400).json({ error: 'ids array required' }); return; }
+    if (ids.length > 50) { res.status(400).json({ error: 'Max 50 transactions per AI call' }); return; }
+
+    // Load the transactions to categorize
+    const { data: txs } = await supabase
+      .from('transactions')
+      .select('id, transaction_date, description, amount')
+      .in('id', ids);
+    if (!txs?.length) { res.status(404).json({ error: 'No transactions found' }); return; }
+
+    // Load current inventory as vehicle context
+    const { data: vehicles } = await supabase
+      .from('vehicles')
+      .select('vin, year, make, model, stock_number, date_in_stock')
+      .order('date_in_stock', { ascending: false })
+      .limit(30);
+
+    const vehicleList = (vehicles || [])
+      .map((v: any) => `${v.year} ${v.make} ${v.model} — VIN: ${v.vin}, Stock: ${v.stock_number || 'N/A'}, Acquired: ${v.date_in_stock || 'unknown'}`)
+      .join('\n');
+
+    const txList = (txs as any[])
+      .map(t => `ID: ${t.id} | Date: ${t.transaction_date} | Amount: $${Math.abs(t.amount).toFixed(2)} | Desc: ${t.description}`)
+      .join('\n');
+
+    const prompt = `You are a car dealership bookkeeper. Categorize each transaction and, when possible, match it to a specific vehicle.
+
+Available categories: ${TX_CATEGORIES.join(', ')}
+
+Current inventory:
+${vehicleList || '(no vehicles in inventory)'}
+
+Transactions to categorize:
+${txList}
+
+For each transaction ID, respond with a JSON array. Each object must have:
+- id: the transaction ID
+- category: one of the available categories
+- vin: the matching vehicle VIN or null if not vehicle-specific (e.g. overhead)
+- confidence: 0.0–1.0
+- reasoning: one short sentence
+
+Respond ONLY with valid JSON array, no other text.`;
+
+    const aiRes = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 2048,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const text = (aiRes.content[0] as any).text.trim();
+    // Strip markdown code fences if present
+    const jsonText = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    const suggestions = JSON.parse(jsonText) as Array<{
+      id: string; category: string; vin: string | null; confidence: number; reasoning: string;
+    }>;
+
+    // Write AI suggestions back to each transaction
+    for (const s of suggestions) {
+      if (!ids.includes(s.id)) continue; // safety: only update requested ids
+      await supabase.from('transactions').update({
+        ai_category: s.category,
+        ai_vin: s.vin || null,
+        ai_confidence: Math.min(1, Math.max(0, s.confidence || 0)),
+        ai_reasoning: s.reasoning,
+        // Pre-fill category/vin from AI if not already set by a rule
+        category: s.category,
+        vin: s.vin || null,
+      }).eq('id', s.id).is('rule_matched', null); // don't overwrite rule-matched entries
+    }
+
+    res.json({ updated: suggestions.length, suggestions });
+  } catch (err: any) {
+    console.error('AI suggest error:', err);
+    res.status(500).json({ error: err.message || 'AI categorization failed' });
+  }
+});
+
+// ── Approve / Ignore batch ───────────────────────────────────────────────────
+
+/** POST /api/admin/transactions/approve-batch { ids: string[] }
+ *  Approves transactions → writes to vehicle_cost_adds for vehicle-linked ones. */
+app.post('/api/admin/transactions/approve-batch', requireAdmin, async (req: any, res) => {
+  try {
+    const { ids } = req.body as { ids: string[] };
+    if (!ids?.length) { res.status(400).json({ error: 'ids array required' }); return; }
+
+    const { data: txs } = await supabase
+      .from('transactions')
+      .select(`
+        id, transaction_date, description, amount, category, vin,
+        transaction_imports!inner(transaction_accounts!inner(name))
+      `)
+      .in('id', ids)
+      .eq('status', 'pending');
+
+    if (!txs?.length) { res.json({ approved: 0, costAddsCreated: 0 }); return; }
+
+    const now = new Date().toISOString();
+    let costAddsCreated = 0;
+
+    for (const tx of txs as any[]) {
+      // Write to vehicle_cost_adds only if a vehicle is assigned
+      if (tx.vin && tx.category) {
+        const accountName = tx.transaction_imports?.transaction_accounts?.name || 'Bank Import';
+        await supabase.from('vehicle_cost_adds').insert({
+          vin: tx.vin,
+          description: tx.description,
+          category: tx.category,
+          cost: Math.abs(tx.amount),
+          payment_method: accountName,
+          vendor: tx.description,
+          date_added: tx.transaction_date,
+          memo: `Imported from ${accountName}`,
+        });
+        costAddsCreated++;
+      }
+    }
+
+    // Mark all as approved
+    await supabase.from('transactions').update({
+      status: 'approved',
+      reviewed_by: req.adminUser?.email || null,
+      reviewed_at: now,
+    }).in('id', ids);
+
+    res.json({ approved: txs.length, costAddsCreated });
+  } catch (err: any) {
+    console.error('Approve batch error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/** POST /api/admin/transactions/ignore-batch { ids: string[] } */
+app.post('/api/admin/transactions/ignore-batch', requireAdmin, async (req: any, res) => {
+  const { ids } = req.body as { ids: string[] };
+  if (!ids?.length) { res.status(400).json({ error: 'ids required' }); return; }
+  const { error } = await supabase.from('transactions').update({
+    status: 'ignored',
+    reviewed_by: req.adminUser?.email || null,
+    reviewed_at: new Date().toISOString(),
+  }).in('id', ids);
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.json({ ignored: ids.length });
+});
+
+// ── Vendor Rules ─────────────────────────────────────────────────────────────
+
+/** GET /api/admin/transaction-rules */
+app.get('/api/admin/transaction-rules', requireAdmin, async (_req, res) => {
+  const { data, error } = await supabase
+    .from('transaction_vendor_rules')
+    .select('*')
+    .order('use_count', { ascending: false });
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.json(data || []);
+});
+
+/** POST /api/admin/transaction-rules — upsert by pattern+match_type */
+app.post('/api/admin/transaction-rules', requireAdmin, async (req, res) => {
+  const { vendor_pattern, match_type = 'contains', category, auto_approve = false } = req.body;
+  if (!vendor_pattern?.trim() || !category) {
+    res.status(400).json({ error: 'vendor_pattern and category are required' });
+    return;
+  }
+  const { data, error } = await supabase
+    .from('transaction_vendor_rules')
+    .upsert(
+      { vendor_pattern: vendor_pattern.trim(), match_type, category, auto_approve, updated_at: new Date().toISOString() },
+      { onConflict: 'vendor_pattern,match_type' }
+    )
+    .select()
+    .single();
+  if (error) { res.status(400).json({ error: error.message }); return; }
+  res.json(data);
+});
+
+/** DELETE /api/admin/transaction-rules/:id */
+app.delete('/api/admin/transaction-rules/:id', requireAdmin, async (req, res) => {
+  const { error } = await supabase.from('transaction_vendor_rules').delete().eq('id', req.params['id']);
+  if (error) { res.status(400).json({ error: error.message }); return; }
+  res.json({ ok: true });
+});
+
+// ── Accountant Report Export ─────────────────────────────────────────────────
+
+/** GET /api/admin/transactions/report?from=YYYY-MM-DD&to=YYYY-MM-DD&format=csv */
+app.get('/api/admin/transactions/report', requireAdmin, async (req, res) => {
+  try {
+    const { from, to } = req.query as any;
+
+    let q = supabase
+      .from('transactions')
+      .select(`
+        transaction_date, description, amount, category, vin, notes,
+        transaction_imports!inner(transaction_accounts!inner(name))
+      `)
+      .eq('status', 'approved')
+      .order('transaction_date');
+
+    if (from) q = q.gte('transaction_date', from);
+    if (to)   q = q.lte('transaction_date', to);
+
+    const { data: txs, error } = await q;
+    if (error) { res.status(500).json({ error: error.message }); return; }
+
+    // Enrich with vehicle year/make/model/stock_number
+    const vins = [...new Set((txs || []).map((t: any) => t.vin).filter(Boolean))];
+    let vehicleMap: Record<string, any> = {};
+    if (vins.length) {
+      const { data: vs } = await supabase
+        .from('vehicles')
+        .select('vin, year, make, model, stock_number')
+        .in('vin', vins);
+      vehicleMap = Object.fromEntries((vs || []).map((v: any) => [v.vin, v]));
+    }
+
+    const headers = ['Date', 'Account', 'Description', 'Amount', 'Category', 'Stock #', 'Year', 'Make', 'Model', 'VIN', 'Notes'];
+    const escape = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const csvRows = [
+      headers.map(escape).join(','),
+      ...(txs || []).map((t: any) => {
+        const v = vehicleMap[t.vin] || {};
+        const acct = t.transaction_imports?.transaction_accounts?.name || '';
+        return [
+          t.transaction_date,
+          acct,
+          t.description,
+          t.amount,
+          t.category || '',
+          v.stock_number || '',
+          v.year || '',
+          v.make || '',
+          v.model || '',
+          t.vin || '',
+          t.notes || '',
+        ].map(escape).join(',');
+      }),
+    ];
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="transactions-${from || 'all'}-to-${to || 'all'}.csv"`);
+    res.send(csvRows.join('\n'));
+  } catch (err: any) {
+    console.error('Report export error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// END TRANSACTIONS MODULE
+// ═══════════════════════════════════════════════════════════════════════════
+
 /**
  * Handle all other requests by rendering the Angular application.
  */

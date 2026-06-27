@@ -1,0 +1,275 @@
+$blue:   #2563eb;
+$green:  #16a34a;
+$red:    #dc2626;
+$yellow: #d97706;
+$border: rgba(0,0,0,0.08);
+$muted:  rgba(0,0,0,0.45);
+
+.tx-page { display: flex; flex-direction: column; gap: 16px; }
+
+// ── Header ──────────────────────────────────────────────────────────────────
+
+.tx-header {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  padding-bottom: 4px;
+}
+.tx-title { font-size: 26px; font-weight: 800; color: #111; margin: 0; flex-shrink: 0; }
+
+.tx-tabs { display: flex; gap: 4px; }
+.tx-tab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 8px; border: none;
+  font-size: 13px; font-weight: 600; font-family: inherit;
+  cursor: pointer; background: transparent; color: $muted;
+  transition: background 0.12s, color 0.12s;
+  &.active { background: #eff6ff; color: $blue; }
+  &:hover:not(.active) { background: #f3f4f6; color: #111; }
+}
+
+// ── Badges ───────────────────────────────────────────────────────────────────
+
+.tx-badge {
+  display: inline-flex; align-items: center;
+  font-size: 11px; font-weight: 800;
+  padding: 2px 7px; border-radius: 20px;
+  background: $blue; color: white;
+  &.tx-badge--green { background: #dcfce7; color: #166534; }
+  &.tx-badge--red   { background: #fee2e2; color: #991b1b; }
+  &.tx-badge--gray  { background: #f1f5f9; color: #475569; }
+}
+
+// ── Import strip ─────────────────────────────────────────────────────────────
+
+.tx-import-strip {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 12px 16px; background: #f8faff;
+  border: 1.5px solid #dbeafe; border-radius: 10px;
+}
+
+.tx-select {
+  padding: 8px 12px; border: 1.5px solid $border; border-radius: 8px;
+  font-size: 13px; font-family: inherit; background: white; outline: none;
+  &:focus { border-color: $blue; }
+}
+
+.tx-upload-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  background: $blue; color: white;
+  font-size: 13px; font-weight: 600;
+  transition: background 0.12s;
+  input[type="file"] { display: none; }
+  &:hover { background: #1d4ed8; }
+  &.tx-upload-btn--disabled { background: #93c5fd; cursor: not-allowed; }
+  lucide-icon { width: 14px; height: 14px; }
+}
+
+.tx-import-result { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tx-import-bank { font-size: 11px; color: $muted; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; }
+.tx-warn { font-size: 12px; color: $yellow; font-weight: 600; }
+.tx-error { font-size: 12px; color: $red; font-weight: 600; }
+
+// ── Toolbar ───────────────────────────────────────────────────────────────────
+
+.tx-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+}
+.tx-status-tabs { display: flex; gap: 2px; }
+.tx-status-tab {
+  padding: 6px 12px; border-radius: 6px; border: 1.5px solid $border;
+  font-size: 12px; font-weight: 600; font-family: inherit;
+  cursor: pointer; background: white; color: $muted;
+  &.active { background: #111; color: white; border-color: #111; }
+  &:hover:not(.active) { background: #f3f4f6; color: #111; }
+}
+.tx-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tx-selected-count { font-size: 12px; font-weight: 600; color: $muted; }
+.tx-approve-result { font-size: 12px; color: $green; font-weight: 600; }
+
+.tx-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 8px; border: none;
+  font-size: 13px; font-weight: 700; font-family: inherit;
+  cursor: pointer; transition: background 0.12s, opacity 0.12s;
+  lucide-icon { width: 14px; height: 14px; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  &.tx-btn--primary  { background: $blue;  color: white; &:hover:not(:disabled) { background: #1d4ed8; } }
+  &.tx-btn--ai       { background: #7c3aed; color: white; &:hover:not(:disabled) { background: #6d28d9; } }
+  &.tx-btn--approve  { background: $green; color: white; &:hover:not(:disabled) { background: #15803d; } }
+  &.tx-btn--ignore   { background: #f1f5f9; color: #475569; &:hover:not(:disabled) { background: #e2e8f0; } }
+}
+
+// ── Table ──────────────────────────────────────────────────────────────────────
+
+.tx-loading, .tx-empty {
+  padding: 40px; text-align: center; color: $muted; font-size: 14px;
+}
+
+.tx-table-wrap { overflow-x: auto; }
+
+.tx-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 12px;
+}
+
+.tx-th {
+  padding: 8px 10px; text-align: left;
+  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+  color: $muted; border-bottom: 1.5px solid $border;
+  white-space: nowrap;
+  &.tx-th--check  { width: 32px; }
+  &.tx-th--desc   { min-width: 200px; }
+  &.tx-th--amt    { text-align: right; }
+  &.tx-th--vehicle { min-width: 160px; }
+}
+
+.tx-row {
+  border-bottom: 1px solid $border;
+  &:hover td { background: #f8faff; }
+  &.tx-row--selected td { background: #eff6ff; }
+  &.tx-row--approved td { opacity: 0.6; }
+}
+
+.tx-td {
+  padding: 7px 10px; vertical-align: middle;
+  &.tx-td--check   { width: 32px; }
+  &.tx-td--date    { white-space: nowrap; color: $muted; }
+  &.tx-td--acct    { white-space: nowrap; color: $muted; font-size: 11px; }
+  &.tx-td--desc    { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  &.tx-td--amt     { text-align: right; white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; }
+  &.tx-td--cat     { min-width: 120px; }
+  &.tx-td--vehicle { min-width: 160px; }
+  &.tx-td--ai      { min-width: 130px; }
+  &.tx-td--actions { white-space: nowrap; }
+}
+
+.tx-amt--expense { color: $red; }
+.tx-amt--credit  { color: $green; }
+
+// Inline selects inside table cells
+.tx-inline-select {
+  width: 100%; padding: 4px 6px; border: 1px solid $border; border-radius: 5px;
+  font-size: 12px; font-family: inherit; background: white; outline: none;
+  &:focus { border-color: $blue; }
+}
+
+// AI chip
+.tx-ai-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 7px; border-radius: 5px;
+  font-size: 11px; font-weight: 600;
+  background: #f1f5f9; color: #475569;
+  &.tx-conf--green  { background: #dcfce7; color: #166534; }
+  &.tx-conf--yellow { background: #fef9c3; color: #854d0e; }
+  &.tx-conf--red    { background: #fee2e2; color: #991b1b; }
+}
+.tx-conf-pct { font-size: 10px; opacity: 0.7; }
+.tx-ai-accept {
+  padding: 0 3px; background: transparent; border: none; cursor: pointer;
+  font-size: 12px; color: currentColor; opacity: 0.8;
+  &:hover { opacity: 1; }
+}
+.tx-rule-tag {
+  display: inline-block; font-size: 10px;
+  padding: 2px 6px; border-radius: 4px;
+  background: #fef9c3; color: #854d0e;
+}
+
+// Action button in row
+.tx-action-btn {
+  padding: 4px 6px; border: none; background: transparent; cursor: pointer;
+  color: $muted; border-radius: 5px;
+  &:hover { background: #f1f5f9; color: #111; }
+  &.tx-action-btn--danger:hover { background: #fee2e2; color: $red; }
+  lucide-icon { width: 14px; height: 14px; display: flex; }
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+
+.tx-history { margin-top: 8px; }
+.tx-history-toggle {
+  font-size: 12px; font-weight: 600; color: $muted; cursor: pointer;
+  padding: 6px 0; list-style: none;
+  &::-webkit-details-marker { display: none; }
+  &:before { content: '▶ '; font-size: 10px; }
+}
+details[open] .tx-history-toggle:before { content: '▼ '; }
+.tx-history-list { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+.tx-history-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 10px; border-radius: 6px; background: #f8faff;
+  font-size: 11px; flex-wrap: wrap;
+}
+.tx-history-acct { font-weight: 700; color: #111; }
+.tx-history-file { color: $muted; }
+.tx-history-date { color: $muted; margin-left: auto; }
+.tx-history-range { font-size: 10px; color: $muted; }
+
+// ── Panel (accounts, rules, report) ───────────────────────────────────────────
+
+.tx-panel { display: flex; flex-direction: column; gap: 20px; max-width: 700px; }
+.tx-section-title { font-size: 18px; font-weight: 800; color: #111; margin: 0; }
+.tx-section-sub { font-size: 13px; color: $muted; margin: 0; }
+
+.tx-card {
+  border: 1.5px solid $border; border-radius: 12px; padding: 20px;
+  display: flex; flex-direction: column; gap: 14px;
+  background: white;
+}
+.tx-card-title { font-size: 14px; font-weight: 700; color: #111; margin: 0; }
+
+.tx-form-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  &.tx-form-grid--narrow { grid-template-columns: 180px 180px; }
+}
+.tx-field { display: flex; flex-direction: column; gap: 4px; }
+.tx-field--check { justify-content: flex-end; }
+.tx-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: $muted; }
+.tx-input {
+  padding: 8px 10px; border: 1.5px solid $border; border-radius: 7px;
+  font-size: 13px; font-family: inherit; background: white; outline: none;
+  &:focus { border-color: $blue; }
+}
+.tx-check-label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: #111; cursor: pointer; padding: 8px 0;
+}
+
+// ── Accounts list ─────────────────────────────────────────────────────────────
+
+.tx-accounts-list { display: flex; flex-direction: column; gap: 8px; }
+.tx-account-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border: 1px solid $border; border-radius: 8px; background: white;
+}
+.tx-account-info { display: flex; flex-direction: column; gap: 2px; }
+.tx-account-name { font-size: 13px; font-weight: 700; color: #111; }
+.tx-account-meta { font-size: 11px; color: $muted; }
+
+// ── Rules list ────────────────────────────────────────────────────────────────
+
+.tx-rules-list { display: flex; flex-direction: column; gap: 6px; }
+.tx-rule-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 14px; border: 1px solid $border; border-radius: 8px; background: white;
+}
+.tx-rule-pattern { font-weight: 700; font-family: monospace; font-size: 12px; color: #111; }
+.tx-rule-type    { flex-shrink: 0; }
+.tx-rule-cat     { font-weight: 600; color: #111; font-size: 13px; }
+.tx-rule-uses    { margin-left: auto; font-size: 11px; }
+
+// ── Report ────────────────────────────────────────────────────────────────────
+
+.tx-report-columns {
+  font-size: 11px; color: $muted;
+  padding: 10px 14px; background: #f8faff; border-radius: 8px; margin: 0;
+}
+
+// ── Misc ──────────────────────────────────────────────────────────────────────
+
+.tx-muted { color: $muted; }
+.tx-empty-sm { font-size: 13px; color: $muted; }
+
+lucide-icon { display: inline-flex; align-items: center; }

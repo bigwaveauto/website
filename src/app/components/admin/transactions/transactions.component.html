@@ -1,0 +1,341 @@
+<div class="tx-page">
+
+  <div class="tx-header">
+    <h1 class="tx-title">Transactions</h1>
+    <nav class="tx-tabs">
+      <button class="tx-tab" [class.active]="activeTab() === 'review'" (click)="activeTab.set('review')">
+        Review
+        @if(pendingCountOf('pending') > 0){
+        <span class="tx-badge">{{ pendingCountOf('pending') }}</span>
+        }
+      </button>
+      <button class="tx-tab" [class.active]="activeTab() === 'accounts'" (click)="activeTab.set('accounts')">Accounts</button>
+      <button class="tx-tab" [class.active]="activeTab() === 'rules'" (click)="activeTab.set('rules')">
+        Rules
+        @if(rules().length){ <span class="tx-badge tx-badge--gray">{{ rules().length }}</span> }
+      </button>
+      <button class="tx-tab" [class.active]="activeTab() === 'report'" (click)="activeTab.set('report')">Export</button>
+    </nav>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ REVIEW TAB ══ -->
+  @if(activeTab() === 'review'){
+  <div class="tx-review">
+
+    <!-- Import strip -->
+    <div class="tx-import-strip">
+      <select class="tx-select" [ngModel]="selectedAccountId()" (ngModelChange)="selectedAccountId.set($event)">
+        <option value="">— Select account —</option>
+        @for(a of accounts(); track a.id){
+        <option [value]="a.id">{{ a.name }}</option>
+        }
+      </select>
+
+      <label class="tx-upload-btn" [class.tx-upload-btn--disabled]="!selectedAccountId() || importing()"
+             (dragover)="onDragOver($event)" (drop)="onDropFile($event)">
+        <lucide-icon name="upload" />
+        {{ importing() ? 'Importing…' : 'Upload CSV' }}
+        <input type="file" accept=".csv,text/csv" (change)="onFileSelect($event)" [disabled]="!selectedAccountId() || importing()" />
+      </label>
+
+      @if(importResult()){
+      <div class="tx-import-result">
+        <span class="tx-badge tx-badge--green">+{{ importResult().newCount }} new</span>
+        @if(importResult().duplicateCount){ <span class="tx-badge tx-badge--gray">{{ importResult().duplicateCount }} dupes skipped</span> }
+        @if(importResult().parseErrors){ <span class="tx-badge tx-badge--red">{{ importResult().parseErrors }} parse errors</span> }
+        <span class="tx-import-bank">{{ importResult().bank }}</span>
+        @if(importResult().validationWarning){ <span class="tx-warn">⚠ {{ importResult().validationWarning }}</span> }
+      </div>
+      }
+      @if(importError()){ <span class="tx-error">{{ importError() }}</span> }
+    </div>
+
+    <!-- Toolbar -->
+    <div class="tx-toolbar">
+      <div class="tx-status-tabs">
+        <button class="tx-status-tab" [class.active]="statusFilter() === 'pending'" (click)="onStatusFilterChange('pending')">
+          Pending @if(pendingCountOf('pending')){ ({{ pendingCountOf('pending') }}) }
+        </button>
+        <button class="tx-status-tab" [class.active]="statusFilter() === 'approved'" (click)="onStatusFilterChange('approved')">
+          Approved
+        </button>
+        <button class="tx-status-tab" [class.active]="statusFilter() === 'ignored'" (click)="onStatusFilterChange('ignored')">
+          Ignored
+        </button>
+      </div>
+
+      <div class="tx-actions">
+        @if(selectedIds().size > 0){
+        <span class="tx-selected-count">{{ selectedIds().size }} selected</span>
+
+        <button class="tx-btn tx-btn--ai" [disabled]="aiRunning()" (click)="runAI()">
+          <lucide-icon name="sparkles" />
+          {{ aiRunning() ? 'Running AI…' : 'Run AI' }}
+        </button>
+
+        @if(statusFilter() === 'pending'){
+        <button class="tx-btn tx-btn--approve" [disabled]="approveRunning() || blockedFromApprove() > 0" (click)="approveBatch()">
+          <lucide-icon name="check" />
+          {{ approveRunning() ? 'Approving…' : 'Approve' }}
+        </button>
+        <button class="tx-btn tx-btn--ignore" (click)="ignoreBatch()">
+          <lucide-icon name="x" />
+          Ignore
+        </button>
+        }
+        }
+        @if(aiError()){ <span class="tx-error">{{ aiError() }}</span> }
+        @if(approveResult()){
+        <span class="tx-approve-result">
+          ✓ {{ approveResult().approved }} approved · {{ approveResult().costAddsCreated }} cost adds written
+        </span>
+        }
+      </div>
+    </div>
+
+    <!-- Transaction table -->
+    @if(txLoading()){
+    <div class="tx-loading">Loading transactions…</div>
+    } @else if(transactions().length === 0){
+    <div class="tx-empty">
+      @if(statusFilter() === 'pending'){ No pending transactions. Upload a bank CSV above. }
+      @else { No {{ statusFilter() }} transactions. }
+    </div>
+    } @else {
+
+    <div class="tx-table-wrap">
+      <table class="tx-table">
+        <thead>
+          <tr>
+            <th class="tx-th tx-th--check">
+              <input type="checkbox" [checked]="isAllSelected()" (change)="toggleSelectAll()" />
+            </th>
+            <th class="tx-th">Date</th>
+            <th class="tx-th">Account</th>
+            <th class="tx-th tx-th--desc">Description</th>
+            <th class="tx-th tx-th--amt">Amount</th>
+            <th class="tx-th">Category</th>
+            <th class="tx-th tx-th--vehicle">Vehicle</th>
+            <th class="tx-th">AI</th>
+            <th class="tx-th">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for(tx of transactions(); track tx.id){
+          <tr class="tx-row" [class.tx-row--selected]="isSelected(tx.id)" [class.tx-row--approved]="tx.status === 'approved'">
+            <td class="tx-td tx-td--check">
+              <input type="checkbox" [checked]="isSelected(tx.id)" (change)="toggleSelect(tx.id)" />
+            </td>
+            <td class="tx-td tx-td--date">{{ tx.transaction_date | date:'MM/dd/yy' }}</td>
+            <td class="tx-td tx-td--acct">{{ accountName(tx) }}</td>
+            <td class="tx-td tx-td--desc" [title]="tx.description">{{ tx.description }}</td>
+            <td class="tx-td tx-td--amt" [class.tx-amt--expense]="tx.amount < 0" [class.tx-amt--credit]="tx.amount > 0">
+              {{ formatCurrency(tx.amount) }}
+            </td>
+            <td class="tx-td tx-td--cat">
+              <select class="tx-inline-select" [ngModel]="tx.category" (ngModelChange)="updateField(tx.id, 'category', $event)">
+                <option value="">— Category —</option>
+                @for(c of categories; track c){
+                <option [value]="c">{{ c }}</option>
+                }
+              </select>
+            </td>
+            <td class="tx-td tx-td--vehicle">
+              <select class="tx-inline-select" [ngModel]="tx.vin" (ngModelChange)="updateField(tx.id, 'vin', $event)">
+                <option value="">— No vehicle —</option>
+                @for(v of vehicles(); track v.vin){
+                <option [value]="v.vin">{{ v.year }} {{ v.make }} {{ v.model }}</option>
+                }
+              </select>
+            </td>
+            <td class="tx-td tx-td--ai">
+              @if(tx.ai_category){
+              <div class="tx-ai-chip" [class]="confidenceClass(tx)" [title]="tx.ai_reasoning">
+                <span>{{ tx.ai_category }}</span>
+                @if(tx.ai_confidence !== null){ <span class="tx-conf-pct">{{ (tx.ai_confidence * 100).toFixed(0) }}%</span> }
+                @if(tx.status === 'pending'){
+                <button class="tx-ai-accept" (click)="acceptAI(tx)" title="Accept AI suggestion">✓</button>
+                }
+              </div>
+              }
+              @if(tx.rule_matched){
+              <span class="tx-rule-tag" title="Matched rule: {{ tx.rule_matched }}">⚡ {{ tx.rule_matched }}</span>
+              }
+            </td>
+            <td class="tx-td tx-td--actions">
+              @if(tx.category && tx.status === 'pending'){
+              <button class="tx-action-btn" title="Save rule from this vendor" (click)="saveRuleFromRow(tx)">
+                <lucide-icon name="zap" />
+              </button>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+
+    <!-- Import history -->
+    @if(imports().length){
+    <details class="tx-history">
+      <summary class="tx-history-toggle">Import history ({{ imports().length }})</summary>
+      <div class="tx-history-list">
+        @for(imp of imports(); track imp.id){
+        <div class="tx-history-row">
+          <span class="tx-history-acct">{{ imp.transaction_accounts?.name }}</span>
+          <span class="tx-history-file">{{ imp.filename }}</span>
+          <span class="tx-history-date">{{ imp.created_at | date:'MM/dd/yy h:mm a' }}</span>
+          <span class="tx-badge tx-badge--green">+{{ imp.new_count }}</span>
+          @if(imp.duplicate_count){ <span class="tx-badge tx-badge--gray">{{ imp.duplicate_count }} dupes</span> }
+          <span class="tx-history-range">{{ imp.date_from }} → {{ imp.date_to }}</span>
+        </div>
+        }
+      </div>
+    </details>
+    }
+
+  </div>
+  }
+
+  <!-- ═════════════════════════════════════════════════ ACCOUNTS TAB ══ -->
+  @if(activeTab() === 'accounts'){
+  <div class="tx-panel">
+    <h2 class="tx-section-title">Bank & CC Accounts</h2>
+    <p class="tx-section-sub">Configure your accounts once — select from this list when importing a CSV.</p>
+
+    <!-- Existing accounts -->
+    <div class="tx-accounts-list">
+      @for(a of accounts(); track a.id){
+      <div class="tx-account-row">
+        <div class="tx-account-info">
+          <span class="tx-account-name">{{ a.name }}</span>
+          <span class="tx-account-meta">{{ a.institution }} · {{ a.account_type }} @if(a.last_four){ · ···{{ a.last_four }} }</span>
+        </div>
+        <button class="tx-action-btn tx-action-btn--danger" (click)="deleteAccount(a.id)">
+          <lucide-icon name="trash-2" />
+        </button>
+      </div>
+      } @empty {
+      <p class="tx-empty-sm">No accounts yet.</p>
+      }
+    </div>
+
+    <!-- Add account form -->
+    <div class="tx-card">
+      <h3 class="tx-card-title">Add Account</h3>
+      <div class="tx-form-grid">
+        <div class="tx-field">
+          <label class="tx-label">Account Name *</label>
+          <input class="tx-input" placeholder="Chase Checking" [ngModel]="newAccount().name" (ngModelChange)="updateNewAccount('name', $event)" />
+        </div>
+        <div class="tx-field">
+          <label class="tx-label">Institution</label>
+          <input class="tx-input" placeholder="Chase" [ngModel]="newAccount().institution" (ngModelChange)="updateNewAccount('institution', $event)" />
+        </div>
+        <div class="tx-field">
+          <label class="tx-label">Type</label>
+          <select class="tx-input" [ngModel]="newAccount().account_type" (ngModelChange)="updateNewAccount('account_type', $event)">
+            <option value="checking">Checking</option>
+            <option value="credit_card">Credit Card</option>
+          </select>
+        </div>
+        <div class="tx-field">
+          <label class="tx-label">Last 4 digits</label>
+          <input class="tx-input" placeholder="4242" maxlength="4" [ngModel]="newAccount().last_four" (ngModelChange)="updateNewAccount('last_four', $event)" />
+        </div>
+      </div>
+      <button class="tx-btn tx-btn--primary" [disabled]="!newAccount().name.trim() || accountSaving()" (click)="saveAccount()">
+        {{ accountSaving() ? 'Saving…' : 'Add Account' }}
+      </button>
+    </div>
+  </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════ RULES TAB ══ -->
+  @if(activeTab() === 'rules'){
+  <div class="tx-panel">
+    <h2 class="tx-section-title">Vendor Rules</h2>
+    <p class="tx-section-sub">Rules auto-categorize future transactions. Higher use count rules run first.</p>
+
+    <div class="tx-rules-list">
+      @for(r of rules(); track r.id){
+      <div class="tx-rule-row">
+        <span class="tx-rule-pattern">{{ r.vendor_pattern }}</span>
+        <span class="tx-rule-type tx-badge tx-badge--gray">{{ r.match_type }}</span>
+        <span class="tx-rule-cat">→ {{ r.category }}</span>
+        @if(r.auto_approve){ <span class="tx-badge tx-badge--green">auto-approve</span> }
+        <span class="tx-rule-uses tx-muted">{{ r.use_count }}×</span>
+        <button class="tx-action-btn tx-action-btn--danger" (click)="deleteRule(r.id)">
+          <lucide-icon name="trash-2" />
+        </button>
+      </div>
+      } @empty {
+      <p class="tx-empty-sm">No rules yet. Approve some transactions to start building your rule library.</p>
+      }
+    </div>
+
+    <div class="tx-card">
+      <h3 class="tx-card-title">Add Rule</h3>
+      <div class="tx-form-grid">
+        <div class="tx-field">
+          <label class="tx-label">Vendor pattern *</label>
+          <input class="tx-input" placeholder="COPART" [ngModel]="newRule().vendor_pattern" (ngModelChange)="updateNewRule('vendor_pattern', $event)" />
+        </div>
+        <div class="tx-field">
+          <label class="tx-label">Match type</label>
+          <select class="tx-input" [ngModel]="newRule().match_type" (ngModelChange)="updateNewRule('match_type', $event)">
+            <option value="contains">Contains</option>
+            <option value="starts_with">Starts with</option>
+            <option value="exact">Exact</option>
+          </select>
+        </div>
+        <div class="tx-field">
+          <label class="tx-label">Category *</label>
+          <select class="tx-input" [ngModel]="newRule().category" (ngModelChange)="updateNewRule('category', $event)">
+            <option value="">— Select —</option>
+            @for(c of categories; track c){
+            <option [value]="c">{{ c }}</option>
+            }
+          </select>
+        </div>
+        <div class="tx-field tx-field--check">
+          <label class="tx-check-label">
+            <input type="checkbox" [ngModel]="newRule().auto_approve" (ngModelChange)="updateNewRule('auto_approve', $event)" />
+            Auto-approve matching transactions
+          </label>
+        </div>
+      </div>
+      <button class="tx-btn tx-btn--primary" [disabled]="!newRule().vendor_pattern.trim() || !newRule().category || ruleSaving()" (click)="saveRule()">
+        {{ ruleSaving() ? 'Saving…' : 'Save Rule' }}
+      </button>
+    </div>
+  </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════ REPORT TAB ══ -->
+  @if(activeTab() === 'report'){
+  <div class="tx-panel">
+    <h2 class="tx-section-title">Export for Accountant</h2>
+    <p class="tx-section-sub">Downloads approved transactions as a CSV with vehicle info. Leave dates blank to export all time.</p>
+    <div class="tx-form-grid tx-form-grid--narrow">
+      <div class="tx-field">
+        <label class="tx-label">From date</label>
+        <input type="date" class="tx-input" [ngModel]="reportFrom()" (ngModelChange)="reportFrom.set($event)" />
+      </div>
+      <div class="tx-field">
+        <label class="tx-label">To date</label>
+        <input type="date" class="tx-input" [ngModel]="reportTo()" (ngModelChange)="reportTo.set($event)" />
+      </div>
+    </div>
+    <button class="tx-btn tx-btn--primary" (click)="downloadReport()">
+      <lucide-icon name="download" />
+      Download CSV Report
+    </button>
+    <p class="tx-report-columns">
+      Columns: Date · Account · Description · Amount · Category · Stock # · Year · Make · Model · VIN · Notes
+    </p>
+  </div>
+  }
+
+</div>

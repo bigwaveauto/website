@@ -75,6 +75,7 @@ export const routes: Routes = [
       { path: 'deals', loadComponent: () => import('../components/admin/stub/stub.component').then(m => m.AdminStubComponent), data: { title: 'Deal' } },
       { path: 'marketing', loadComponent: () => import('../components/admin/stub/stub.component').then(m => m.AdminStubComponent), data: { title: 'Marketing' } },
       { path: 'accounting', loadComponent: () => import('../components/admin/stub/stub.component').then(m => m.AdminStubComponent), data: { title: 'Accounting' } },
+      { path: 'transactions', loadComponent: () => import('../components/admin/transactions/transactions.component').then(m => m.TransactionsComponent) },
       { path: 'rivians', loadComponent: () => import('../components/admin/rivians/rivians.component').then(m => m.AdminRiviansComponent) },
       { path: 'settings', loadComponent: () => import('../components/admin/settings/settings.component').then(m => m.AdminSettingsComponent) },
     ],
