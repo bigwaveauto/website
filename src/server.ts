@@ -5461,6 +5461,32 @@ app.get('/api/admin/transactions/report', requireAdmin, async (req, res) => {
 // GMAIL MODULE — OAuth connect + receipt sync
 // ═══════════════════════════════════════════════════════════════════════════
 
+/**
+ * Strip sensitive patterns from email text before sending to Claude.
+ * Removes card numbers, SSNs, bank account numbers, passwords, and auth tokens.
+ */
+function scrubSensitiveData(text: string): string {
+  return text
+    // Full 13–19 digit card numbers (with or without spaces/dashes)
+    .replace(/\b(?:\d[ -]?){13,19}\b/g, '[CARD#]')
+    // SSN  XXX-XX-XXXX or XXXXXXXXX
+    .replace(/\b\d{3}-\d{2}-\d{4}\b/g, '[SSN]')
+    .replace(/\b\d{9}\b(?=\s*(?:ssn|social))/gi, '[SSN]')
+    // Routing + account number pairs (9-digit routing)
+    .replace(/\b\d{9}\b/g, (m, offset, str) => {
+      const ctx = str.slice(Math.max(0, offset - 30), offset + m.length + 30).toLowerCase();
+      return ctx.includes('routing') || ctx.includes('aba') ? '[ROUTING#]' : m;
+    })
+    // Bank account numbers (10–17 digits not already caught)
+    .replace(/\b(?:account|acct)[\s#:]*\d{6,17}\b/gi, '[ACCT#]')
+    // Passwords in plain text
+    .replace(/\bpassword[:\s]+\S+/gi, '[PASSWORD]')
+    // Bearer tokens / API keys (long alphanumeric strings 32+ chars)
+    .replace(/\b[A-Za-z0-9_\-]{32,}\b/g, '[TOKEN]')
+    // "ending in XXXX" — keep last 4 hint but remove if preceded by more digits
+    .replace(/\b(\d{6,})\s*(?:ending in|last 4:?)\s*(\d{4})\b/gi, '[CARD ending in $2]');
+}
+
 const GMAIL_REDIRECT_URI = process.env['GOOGLE_REDIRECT_URI'] || 'https://bigwaveauto.com/api/auth/gmail/callback';
 const GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
 
@@ -5620,7 +5646,7 @@ app.post('/api/admin/gmail/sync', requireAdmin, async (req: any, res) => {
           }
           return '';
         };
-        body = extractText(msg.data.payload).slice(0, 3000);
+        body = scrubSensitiveData(extractText(msg.data.payload).slice(0, 3000));
 
         emailBodies.push({
           id: msgId,
