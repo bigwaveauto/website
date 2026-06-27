@@ -247,14 +247,36 @@
           <span class="tx-account-name">{{ a.name }}</span>
           <span class="tx-account-meta">{{ a.institution }} · {{ a.account_type }} @if(a.last_four){ · ···{{ a.last_four }} }</span>
         </div>
-        <button class="tx-action-btn tx-action-btn--danger" (click)="deleteAccount(a.id)">
-          <lucide-icon name="trash-2" />
-        </button>
+        <div class="tx-account-actions">
+          @if(plaidStatusMap()[a.id]){
+          <span class="tx-badge tx-badge--green tx-badge--sm">
+            <lucide-icon name="link" />
+            Plaid · {{ plaidStatusMap()[a.id].institution_name || 'Connected' }}
+          </span>
+          <button class="tx-btn tx-btn--sm" [disabled]="plaidSyncingId() === a.id" (click)="syncPlaid(a.id)">
+            <lucide-icon name="refresh-cw" />
+            {{ plaidSyncingId() === a.id ? 'Syncing…' : 'Sync' }}
+          </button>
+          <button class="tx-action-btn" (click)="disconnectPlaid(a.id)" title="Disconnect Plaid">
+            <lucide-icon name="unlink" />
+          </button>
+          } @else {
+          <button class="tx-btn tx-btn--sm tx-btn--plaid" [disabled]="plaidLinking()" (click)="connectPlaid(a.id)">
+            <lucide-icon name="link" />
+            Connect Bank
+          </button>
+          }
+          <button class="tx-action-btn tx-action-btn--danger" (click)="deleteAccount(a.id)">
+            <lucide-icon name="trash-2" />
+          </button>
+        </div>
       </div>
       } @empty {
       <p class="tx-empty-sm">No accounts yet.</p>
       }
     </div>
+    @if(plaidSyncResult()){ <div class="tx-plaid-sync-result">Plaid sync: +{{ plaidSyncResult().imported }} imported, {{ plaidSyncResult().skipped }} skipped ({{ plaidSyncResult().found }} found)</div> }
+    @if(plaidError()){ <div class="tx-error">{{ plaidError() }}</div> }
 
     <!-- Add account form -->
     <div class="tx-card">

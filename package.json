@@ -48,6 +48,7 @@
     "multer": "^2.1.1",
     "ngx-flexible-layout": "^20.0.0",
     "persona": "^5.7.0",
+    "plaid": "^42.2.0",
     "resend": "^6.9.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

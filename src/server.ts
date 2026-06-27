@@ -5761,6 +5761,197 @@ Return ONLY the JSON array, no other text.`;
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
+// PLAID MODULE — bank account linking + transaction sync
+// ═══════════════════════════════════════════════════════════════════════════
+
+import { PlaidApi, Configuration, PlaidEnvironments, Products, CountryCode, TransactionsSyncRequest } from 'plaid';
+
+const plaidConfig = new Configuration({
+  basePath: PlaidEnvironments[process.env['PLAID_ENV'] || 'sandbox'],
+  baseOptions: {
+    headers: {
+      'PLAID-CLIENT-ID': process.env['PLAID_CLIENT_ID'] || '',
+      'PLAID-SECRET':    process.env['PLAID_SECRET'] || '',
+    },
+  },
+});
+const plaidClient = new PlaidApi(plaidConfig);
+
+/** POST /api/admin/plaid/link-token — create a short-lived Link token for the frontend */
+app.post('/api/admin/plaid/link-token', requireAdmin, async (req: any, res) => {
+  try {
+    const response = await plaidClient.linkTokenCreate({
+      user: { client_user_id: req.adminUser?.id || 'bwa-admin' },
+      client_name: 'Big Wave Auto',
+      products: [Products.Transactions],
+      country_codes: [CountryCode.Us],
+      language: 'en',
+    });
+    res.json({ link_token: response.data.link_token });
+  } catch (err: any) {
+    console.error('Plaid link-token error:', err.response?.data || err.message);
+    res.status(500).json({ error: err.response?.data?.error_message || 'Failed to create link token' });
+  }
+});
+
+/** POST /api/admin/plaid/exchange — exchange public_token for access_token, tie to a transaction account */
+app.post('/api/admin/plaid/exchange', requireAdmin, async (req: any, res) => {
+  const { publicToken, accountId, institutionName } = req.body as {
+    publicToken: string;
+    accountId: string;
+    institutionName?: string;
+  };
+  if (!publicToken || !accountId) {
+    res.status(400).json({ error: 'publicToken and accountId required' });
+    return;
+  }
+  try {
+    const exRes = await plaidClient.itemPublicTokenExchange({ public_token: publicToken });
+    const { access_token, item_id } = exRes.data;
+
+    // Upsert: one item per transaction_account (re-linking replaces old token)
+    const { error } = await supabase.from('plaid_items').upsert({
+      account_id: accountId,
+      plaid_item_id: item_id,
+      access_token,
+      institution_name: institutionName || null,
+      cursor: null, // reset cursor on re-link
+    }, { onConflict: 'plaid_item_id' });
+
+    if (error) throw error;
+    res.json({ ok: true, itemId: item_id });
+  } catch (err: any) {
+    console.error('Plaid exchange error:', err.response?.data || err.message);
+    res.status(500).json({ error: err.response?.data?.error_message || 'Token exchange failed' });
+  }
+});
+
+/** GET /api/admin/plaid/status — which accounts have Plaid linked */
+app.get('/api/admin/plaid/status', requireAdmin, async (_req, res) => {
+  const { data, error } = await supabase
+    .from('plaid_items')
+    .select('account_id, institution_name, last_synced_at, created_at');
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.json(data || []);
+});
+
+/** DELETE /api/admin/plaid/disconnect/:accountId — remove stored access token */
+app.delete('/api/admin/plaid/disconnect/:accountId', requireAdmin, async (req, res) => {
+  const { accountId } = req.params as any;
+  // Optionally tell Plaid to invalidate the token
+  const { data: item } = await supabase
+    .from('plaid_items')
+    .select('access_token')
+    .eq('account_id', accountId)
+    .single();
+  if (item) {
+    try { await plaidClient.itemRemove({ access_token: (item as any).access_token }); } catch { /* best effort */ }
+  }
+  await supabase.from('plaid_items').delete().eq('account_id', accountId);
+  res.json({ ok: true });
+});
+
+/** POST /api/admin/plaid/sync/:accountId — pull new transactions using cursor-based sync */
+app.post('/api/admin/plaid/sync/:accountId', requireAdmin, async (req: any, res) => {
+  const { accountId } = req.params as any;
+
+  const { data: plaidItem, error: itemErr } = await supabase
+    .from('plaid_items')
+    .select('*')
+    .eq('account_id', accountId)
+    .single();
+
+  if (itemErr || !plaidItem) {
+    res.status(404).json({ error: 'No Plaid connection found for this account. Connect it first.' });
+    return;
+  }
+
+  try {
+    const item = plaidItem as any;
+    let cursor: string | undefined = item.cursor || undefined;
+    let added: any[] = [];
+    let hasMore = true;
+
+    // Paginate through all new transactions
+    while (hasMore) {
+      const request: TransactionsSyncRequest = {
+        access_token: item.access_token,
+        ...(cursor ? { cursor } : {}),
+        count: 500,
+      };
+      const syncRes = await plaidClient.transactionsSync(request);
+      const { data } = syncRes;
+      added = added.concat(data.added);
+      hasMore = data.has_more;
+      cursor = data.next_cursor;
+    }
+
+    if (!added.length) {
+      await supabase.from('plaid_items').update({ last_synced_at: new Date().toISOString(), cursor })
+        .eq('account_id', accountId);
+      res.json({ found: 0, imported: 0, skipped: 0 });
+      return;
+    }
+
+    // Find or create an import record
+    const { data: importRec } = await supabase
+      .from('transaction_imports')
+      .insert({
+        account_id: accountId,
+        filename: `Plaid sync — ${new Date().toLocaleDateString()}`,
+        row_count: added.length,
+        imported_by: req.adminUser?.email || null,
+      })
+      .select('id')
+      .single();
+    const importId = (importRec as any).id;
+
+    // Normalize Plaid transactions to our schema
+    // Plaid: positive amount = money OUT (debit), negative = money IN (credit)
+    // Our convention: negative = expense, positive = income/refund
+    const toInsert = added.map((tx: any) => ({
+      import_id: importId,
+      transaction_date: tx.date,
+      description: tx.merchant_name || tx.name || 'Unknown',
+      amount: -tx.amount, // flip Plaid's sign convention
+      category: null,     // vendor rules + AI will fill this
+      vin: null,
+      status: 'pending',
+      dedup_hash: `plaid-${tx.transaction_id}`,
+    }));
+
+    const { data: inserted } = await supabase
+      .from('transactions')
+      .upsert(toInsert, { onConflict: 'dedup_hash', ignoreDuplicates: true })
+      .select('id');
+
+    const importedCount = (inserted || []).length;
+    const skipped = toInsert.length - importedCount;
+
+    await supabase.from('transaction_imports').update({
+      new_count: importedCount,
+      duplicate_count: skipped,
+    }).eq('id', importId);
+
+    // Save updated cursor
+    await supabase.from('plaid_items').update({
+      cursor,
+      last_synced_at: new Date().toISOString(),
+    }).eq('account_id', accountId);
+
+    // Apply vendor rules to newly imported transactions
+    if (importedCount > 0) {
+      await applyVendorRules((inserted || []).map((r: any) => r.id));
+    }
+
+    res.json({ found: added.length, imported: importedCount, skipped });
+  } catch (err: any) {
+    console.error('Plaid sync error:', err.response?.data || err.message);
+    res.status(500).json({ error: err.response?.data?.error_message || 'Sync failed' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
 // END TRANSACTIONS MODULE
 // ═══════════════════════════════════════════════════════════════════════════
 

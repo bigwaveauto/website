@@ -104,6 +104,13 @@ export class TransactionsComponent implements OnInit {
   // ── Imports history ────────────────────────────────────────────────────────
   imports = signal<any[]>([]);
 
+  // ── Plaid ──────────────────────────────────────────────────────────────────
+  plaidStatusMap  = signal<Record<string, any>>({});
+  plaidLinking    = signal(false);
+  plaidSyncingId  = signal<string | null>(null);
+  plaidSyncResult = signal<any>(null);
+  plaidError      = signal('');
+
   // ── Gmail ──────────────────────────────────────────────────────────────────
   gmailConnected = signal(false);
   gmailLastSync  = signal<any>(null);
@@ -118,6 +125,7 @@ export class TransactionsComponent implements OnInit {
     this.loadVehicles();
     this.loadRules();
     this.loadImports();
+    this.loadPlaidStatus();
     this.loadGmailStatus();
 
     // Handle redirect back from Google OAuth
@@ -395,6 +403,77 @@ export class TransactionsComponent implements OnInit {
     if (!tx.ai_category) return;
     this.updateField(tx.id, 'category', tx.ai_category);
     if (tx.ai_vin) this.updateField(tx.id, 'vin', tx.ai_vin);
+  }
+
+  // ── Plaid ──────────────────────────────────────────────────────────────────
+
+  loadPlaidStatus() {
+    this.http.get<any[]>('/api/admin/plaid/status').subscribe({
+      next: items => {
+        const map: Record<string, any> = {};
+        (items || []).forEach(i => { map[i.account_id] = i; });
+        this.plaidStatusMap.set(map);
+      },
+    });
+  }
+
+  connectPlaid(accountId: string) {
+    this.plaidLinking.set(true);
+    this.plaidError.set('');
+    this.http.post<any>('/api/admin/plaid/link-token', {}).subscribe({
+      next: ({ link_token }) => {
+        // Load Plaid Link script dynamically and open it
+        const script = document.createElement('script');
+        script.src = 'https://cdn.plaid.com/link/v2/stable/link-initialize.js';
+        script.onload = () => {
+          const handler = (window as any).Plaid.create({
+            token: link_token,
+            onSuccess: (publicToken: string, metadata: any) => {
+              this.http.post('/api/admin/plaid/exchange', {
+                publicToken,
+                accountId,
+                institutionName: metadata?.institution?.name,
+              }).subscribe({
+                next: () => { this.plaidLinking.set(false); this.loadPlaidStatus(); },
+                error: err => { this.plaidError.set(err.error?.error || 'Exchange failed'); this.plaidLinking.set(false); },
+              });
+            },
+            onExit: () => this.plaidLinking.set(false),
+          });
+          handler.open();
+        };
+        document.head.appendChild(script);
+      },
+      error: err => { this.plaidError.set(err.error?.error || 'Failed to start Plaid Link'); this.plaidLinking.set(false); },
+    });
+  }
+
+  syncPlaid(accountId: string) {
+    if (this.plaidSyncingId()) return;
+    this.plaidSyncingId.set(accountId);
+    this.plaidSyncResult.set(null);
+    this.plaidError.set('');
+    this.http.post<any>(`/api/admin/plaid/sync/${accountId}`, {}).subscribe({
+      next: result => {
+        this.plaidSyncResult.set(result);
+        this.plaidSyncingId.set(null);
+        this.loadPlaidStatus();
+        if (result.imported > 0) this.loadTransactions();
+      },
+      error: err => {
+        this.plaidError.set(err.error?.error || 'Sync failed');
+        this.plaidSyncingId.set(null);
+      },
+    });
+  }
+
+  disconnectPlaid(accountId: string) {
+    if (!confirm('Disconnect Plaid from this account? You can reconnect at any time.')) return;
+    this.http.delete(`/api/admin/plaid/disconnect/${accountId}`).subscribe({
+      next: () => {
+        this.plaidStatusMap.update(m => { const n = { ...m }; delete n[accountId]; return n; });
+      },
+    });
   }
 
   // ── Gmail ──────────────────────────────────────────────────────────────────
