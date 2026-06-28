@@ -1460,6 +1460,7 @@ $bb-accent: #0e7490;
   display: flex;
   flex-direction: column;
   outline: none;
+  touch-action: none; /* our handlers own all touch gestures */
 }
 
 .vdp-lb-header {
@@ -1526,7 +1527,6 @@ $bb-accent: #0e7490;
   overflow: hidden;
   position: relative;
   padding: 16px;
-  touch-action: none; /* let our handlers control pinch/pan */
 }
 
 .vdp-lb-img {

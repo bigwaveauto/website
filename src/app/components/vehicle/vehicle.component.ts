@@ -328,7 +328,10 @@ export class VehicleComponent implements OnInit, OnDestroy {
   private _boundTouchEnd: ((e: TouchEvent) => void) | null = null;
 
   private _attachLbTouch() {
-    this._lbWrap = document.querySelector('.vdp-lb-img-wrap');
+    // Attach to the full lightbox overlay, not just the img-wrap,
+    // so fingers anywhere in the panel are captured before the browser
+    // interprets them as sidebar scroll.
+    this._lbWrap = document.querySelector('.vdp-lb');
     if (!this._lbWrap) return;
 
     this._boundTouchStart = (e: TouchEvent) => {
@@ -352,21 +355,17 @@ export class VehicleComponent implements OnInit, OnDestroy {
         const dist = Math.sqrt(dx * dx + dy * dy);
         const next = Math.min(Math.max(this._pinchStartZoom * (dist / this._pinchStartDist), 1), 4);
         this.zoomLevel.set(Math.round(next * 100) / 100);
-      } else if (e.touches.length === 1 && this.zoomLevel() > 1) {
-        e.preventDefault(); // allow panning image when zoomed
       }
     };
 
     this._boundTouchEnd = (e: TouchEvent) => {
-      // Swipe navigation only when not zoomed
-      if (e.changedTouches.length === 1 && this.zoomLevel() <= 1) {
+      // Swipe to navigate only when not zoomed and single finger
+      if (e.changedTouches.length === 1 && this.zoomLevel() <= 1.05) {
         const dx = e.changedTouches[0].clientX - this._swipeStartX;
         const dy = e.changedTouches[0].clientY - this._swipeStartY;
         if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
           const v = this.fullVehicle()?.results;
-          if (v) {
-            dx < 0 ? this.nextPhoto(v.photos.length) : this.prevPhoto(v.photos.length);
-          }
+          if (v) dx < 0 ? this.nextPhoto(v.photos.length) : this.prevPhoto(v.photos.length);
         }
       }
     };
