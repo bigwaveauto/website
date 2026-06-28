@@ -207,12 +207,12 @@ $text-muted: rgba(0,0,0,0.45);
 .vdp-title-block { display: flex; flex-direction: column; gap: 4px; }
 
 .vdp-buybox-logo {
-  height: 28px;
+  height: 52px;
   width: auto;
+  max-width: 160px;
   object-fit: contain;
   object-position: left center;
-  margin-bottom: 4px;
-  opacity: 0.85;
+  margin-bottom: 6px;
 }
 
 .vdp-vin-stock {
@@ -784,21 +784,14 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-highlights-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  align-items: start;
-
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  @media (max-width: 600px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 .vdp-highlight-card {
+  flex: 0 0 calc(25% - 6px);
+  min-width: 0;
   background: white;
   border: 1.5px solid #f0f0f0;
   border-radius: 14px;
@@ -813,6 +806,14 @@ $text-muted: rgba(0,0,0,0.45);
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     transform: translateY(-2px);
     border-color: #e0e0e0;
+  }
+
+  @media (max-width: 900px) {
+    flex: 0 0 calc(33.333% - 6px);
+  }
+
+  @media (max-width: 600px) {
+    flex: 0 0 calc(50% - 4px);
   }
 }
 
