@@ -455,14 +455,11 @@ export class VehicleComponent implements OnInit, OnDestroy {
 
   detailsItems = [
     { displayName: 'Mileage', datacol: 'mileage', icon: 'gauge', format: 'miles', odometer: true },
-    { displayName: 'Exterior Color', datacol: 'exteriorcolorstandard', icon: 'palette', colorType: 'ext' },
-    { displayName: 'Interior Color', datacol: 'interiorcolorstandard', icon: 'armchair', colorType: 'int' },
     { displayName: 'Drivetrain', datacol: 'drivetrainstandard', icon: 'cog' },
     { displayName: 'Engine', datacol: 'engine', icon: 'zap' },
     { displayName: 'Transmission', datacol: 'transmissionstandard', icon: 'settings' },
     { displayName: 'Fuel Type', datacol: 'fuel', icon: 'fuel' },
     { displayName: 'Body Type', datacol: 'body', icon: 'car' },
-    { displayName: 'Condition', datacol: 'condition', icon: 'badge-check' },
     { displayName: 'Trim', datacol: 'trim', icon: 'tag' },
   ];
 
@@ -477,6 +474,133 @@ export class VehicleComponent implements OnInit, OnDestroy {
   formatOdometer(miles: number): string[] {
     return Math.round(miles).toLocaleString('en-US').split('');
   }
+
+  private brandColorMap: Record<string, { hex: string; metallic?: boolean }> = {
+    // Rivian exterior
+    'forest green': { hex: '#2F4438', metallic: true },
+    'limestone': { hex: '#A8A08C', metallic: true },
+    'rivian blue': { hex: '#005FCC', metallic: true },
+    'launch green': { hex: '#5C7A3E', metallic: true },
+    'el cap granite': { hex: '#5B5B5A', metallic: true },
+    'midnight': { hex: '#16161A' },
+    'glacier white': { hex: '#F0F0EC' },
+    'red canyon': { hex: '#7A2B28', metallic: true },
+    'silver coast': { hex: '#9DA3A8', metallic: true },
+    'sentinel blue': { hex: '#1B3A6E', metallic: true },
+    'storm blue metallic': { hex: '#2C4A7C', metallic: true },
+    'compass yellow': { hex: '#D4A02A' },
+    // Rivian interior
+    'black mountain': { hex: '#1A1A1A' },
+    'forest edge': { hex: '#6B5448' },
+    'ocean coast': { hex: '#4A6FA5' },
+    // Tesla exterior
+    'midnight silver metallic': { hex: '#74787A', metallic: true },
+    'deep blue metallic': { hex: '#1C3358', metallic: true },
+    'red multi-coat': { hex: '#BE1517' },
+    'pearl white multi-coat': { hex: '#EFF0ED' },
+    'solid black': { hex: '#161616' },
+    'ultra red': { hex: '#C41E3A' },
+    'stealth grey': { hex: '#6D6F71', metallic: true },
+    'lunar silver metallic': { hex: '#9B9EA1', metallic: true },
+    // Tesla interior
+    'white': { hex: '#F2EFE7' },
+    'cream': { hex: '#D4C4A0' },
+    // Cadillac exterior
+    'opulent blue metallic': { hex: '#1A3A6B', metallic: true },
+    'stellar black metallic': { hex: '#1A1A1A', metallic: true },
+    'argent silver metallic': { hex: '#9A9DA2', metallic: true },
+    'midnight steel metallic': { hex: '#3D3D3D', metallic: true },
+    'radiant red tintcoat': { hex: '#8B1A1A' },
+    'crystal white tricoat': { hex: '#F5F5F5' },
+    'gallery white': { hex: '#EFEFEF' },
+    // Cadillac interior
+    'sheer gray': { hex: '#8A8A8A' },
+    'sahara beige': { hex: '#C4B090' },
+  };
+
+  private getBrandColor(name: string | undefined): { hex: string; metallic: boolean } | null {
+    if (!name) return null;
+    const lower = name.toLowerCase().trim();
+    if (this.brandColorMap[lower]) return { hex: this.brandColorMap[lower].hex, metallic: !!this.brandColorMap[lower].metallic };
+    for (const [key, val] of Object.entries(this.brandColorMap)) {
+      if (lower.includes(key)) return { hex: val.hex, metallic: !!val.metallic };
+    }
+    const hex = this.getColorHex(name);
+    if (hex) return { hex, metallic: lower.includes('metallic') || lower.includes('pearl') || lower.includes('tricoat') };
+    return null;
+  }
+
+  private isLightHex(hex: string): boolean {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 145;
+  }
+
+  extColorInfo = computed(() => {
+    const v = this.fullVehicle()?.results;
+    const name = v?.exteriorcolorstandard;
+    const info = this.getBrandColor(name);
+    return { name, hex: info?.hex ?? null, metallic: info?.metallic ?? false };
+  });
+
+  intColorInfo = computed(() => {
+    const v = this.fullVehicle()?.results;
+    const name = v?.interiorcolorstandard;
+    const info = this.getBrandColor(name);
+    return { name, hex: info?.hex ?? null, metallic: info?.metallic ?? false };
+  });
+
+  isExtLight = computed(() => {
+    const hex = this.extColorInfo().hex;
+    return hex ? this.isLightHex(hex) : false;
+  });
+
+  isIntLight = computed(() => {
+    const hex = this.intColorInfo().hex;
+    return hex ? this.isLightHex(hex) : false;
+  });
+
+  interiorMaterial = computed((): string => {
+    const make = (this.fullVehicle()?.results?.make || '').toLowerCase();
+    if (make.includes('rivian')) return 'Leather & Sustainable Materials';
+    if (make.includes('tesla')) return 'Vegan Leather';
+    if (make.includes('cadillac') || make.includes('bmw') || make.includes('mercedes') || make.includes('lexus') || make.includes('audi')) return 'Leather';
+    return 'Premium Interior';
+  });
+
+  warrantyItems = computed((): { name: string; status: string; pct: number; expired: boolean }[] => {
+    const v = this.fullVehicle()?.results;
+    if (!v) return [];
+    const year = parseInt(v.year) || 2020;
+    const mileage = v.mileage || 0;
+    const age = 2026 - year;
+    const make = (v.make || '').toLowerCase();
+
+    let plans: { name: string; years: number; miles: number }[];
+    if (make.includes('rivian')) {
+      plans = [{ name: 'Basic Vehicle', years: 5, miles: 60000 }, { name: 'Battery & Drive Units', years: 8, miles: 175000 }];
+    } else if (make.includes('tesla')) {
+      plans = [{ name: 'Basic Vehicle', years: 4, miles: 50000 }, { name: 'Battery & Drive', years: 8, miles: 150000 }];
+    } else if (make.includes('cadillac')) {
+      plans = [{ name: 'Basic Vehicle', years: 4, miles: 50000 }, { name: 'EV Powertrain', years: 6, miles: 70000 }];
+    } else {
+      plans = [{ name: 'Basic Coverage', years: 3, miles: 36000 }, { name: 'Powertrain', years: 5, miles: 60000 }];
+    }
+
+    return plans.map(p => {
+      const yearPct = Math.max(0, 1 - age / p.years);
+      const milePct = Math.max(0, 1 - mileage / p.miles);
+      const pct = Math.min(yearPct, milePct);
+      if (pct <= 0) return { name: p.name, status: 'Expired', pct: 0, expired: true };
+      const remYears = Math.max(0, p.years - age);
+      const remMiles = Math.max(0, p.miles - mileage);
+      const parts: string[] = [];
+      if (remYears > 0) parts.push(`${remYears} yr`);
+      if (remMiles > 0) parts.push(`${remMiles.toLocaleString()} mi`);
+      return { name: p.name, status: parts.join(' · ') + ' remaining', pct: Math.round(pct * 100), expired: false };
+    });
+  });
 
   private colorMap: Record<string, string> = {
     'black': '#111111', 'ebony': '#111111', 'jet black': '#111111', 'shadow black': '#111111',

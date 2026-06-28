@@ -853,14 +853,160 @@ $bb-accent: #0e7490;
   object-fit: contain;
 }
 
-/* Highlights cards — Rivian vertical style */
-/* ── Specs section (replaces card grid) ── */
+/* ── Specs section ── */
 .vdp-specs-section {
   padding: 20px 28px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 
   @media (max-width: 1024px) {
     padding: 16px 20px 0;
   }
+}
+
+/* Color identity panels */
+.vdp-color-identity {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 156px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.vdp-color-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px 18px;
+  overflow: hidden;
+  color: white;
+
+  /* Scrim so white text is legible on any color */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.52) 0%, transparent 58%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Metallic sheen */
+  &--metallic::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 38%, rgba(0,0,0,0.06) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Light-color panels: darken text instead */
+  &--light {
+    color: #1a1a1a;
+    &::before {
+      background: linear-gradient(to top, rgba(255,255,255,0.55) 0%, transparent 58%);
+    }
+  }
+}
+
+.vdp-color-panel-label {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.vdp-color-panel-role {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.65;
+}
+
+.vdp-color-panel-name {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.vdp-color-panel-material {
+  font-size: 11px;
+  opacity: 0.6;
+  margin-top: 1px;
+}
+
+/* Warranty section */
+.vdp-warranty-section {
+  background: #f5f5f7;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vdp-warranty-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(0,0,0,0.32);
+  margin: 0 0 2px;
+}
+
+.vdp-warranty-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vdp-warranty-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.vdp-warranty-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+}
+
+.vdp-warranty-status {
+  font-size: 12px;
+  color: rgba(0,0,0,0.4);
+  white-space: nowrap;
+  &.expired { color: #dc2626; }
+}
+
+.vdp-warranty-track {
+  height: 4px;
+  background: rgba(0,0,0,0.09);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.vdp-warranty-fill {
+  height: 100%;
+  background: $bb-accent;
+  border-radius: 2px;
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  &.expired { background: #ef4444; width: 100% !important; }
+}
+
+.vdp-warranty-note {
+  font-size: 11px;
+  color: rgba(0,0,0,0.28);
+  margin: 2px 0 0;
+  line-height: 1.5;
+  padding-top: 6px;
+  border-top: 1px solid rgba(0,0,0,0.06);
 }
 
 /* Mileage hero — dark odometer above spec list */
@@ -869,7 +1015,6 @@ $bb-accent: #0e7490;
   flex-direction: row;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
 }
 
 .vdp-mileage-label {

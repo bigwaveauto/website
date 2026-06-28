@@ -141,6 +141,36 @@
 
   <!-- Specs -->
   <section class="vdp-specs-section">
+
+    <!-- Color identity panels -->
+    @if(v.exteriorcolorstandard || v.interiorcolorstandard){
+    <div class="vdp-color-identity">
+      @if(v.exteriorcolorstandard){
+      <div class="vdp-color-panel"
+           [style.background]="extColorInfo().hex || '#2a2a2a'"
+           [class.vdp-color-panel--light]="isExtLight()"
+           [class.vdp-color-panel--metallic]="extColorInfo().metallic">
+        <div class="vdp-color-panel-label">
+          <span class="vdp-color-panel-role">Exterior</span>
+          <span class="vdp-color-panel-name">{{ v.exteriorcolorstandard }}</span>
+        </div>
+      </div>
+      }
+      @if(v.interiorcolorstandard){
+      <div class="vdp-color-panel"
+           [style.background]="intColorInfo().hex || '#1a1a1a'"
+           [class.vdp-color-panel--light]="isIntLight()"
+           [class.vdp-color-panel--metallic]="intColorInfo().metallic">
+        <div class="vdp-color-panel-label">
+          <span class="vdp-color-panel-role">Interior</span>
+          <span class="vdp-color-panel-name">{{ v.interiorcolorstandard }}</span>
+          <span class="vdp-color-panel-material">{{ interiorMaterial() }}</span>
+        </div>
+      </div>
+      }
+    </div>
+    }
+
     <!-- Mileage hero -->
     <div class="vdp-mileage-hero">
       <div class="vdp-odometer">
@@ -161,13 +191,7 @@
         @if(val && !$any(item).odometer){
         <div class="vdp-spec-row">
           <dt class="vdp-spec-label">{{ item.displayName }}</dt>
-          <dd class="vdp-spec-value">
-            @if($any(item).colorType){
-              @let hex = getColorHex(val);
-              @if(hex){ <span class="vdp-spec-swatch" [style.background]="hex" [class.vdp-spec-swatch--light]="hex === '#FAFAFA' || hex === '#F0F0F0' || hex === '#FFFFF0' || hex === '#F5F0E1' || hex === '#E8DCC8' || hex === '#EFDECD'"></span> }
-            }
-            {{ val }}
-          </dd>
+          <dd class="vdp-spec-value">{{ val }}</dd>
         </div>}
       }
       @if(v.mpgcity && v.mpghwy){
@@ -176,6 +200,26 @@
         <dd class="vdp-spec-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</dd>
       </div>}
     </dl>
+
+    <!-- Warranty section -->
+    @if(warrantyItems().length){
+    <div class="vdp-warranty-section">
+      <h3 class="vdp-warranty-heading">Remaining Warranty</h3>
+      @for(w of warrantyItems(); track w.name){
+      <div class="vdp-warranty-row">
+        <div class="vdp-warranty-meta">
+          <span class="vdp-warranty-name">{{ w.name }}</span>
+          <span class="vdp-warranty-status" [class.expired]="w.expired">{{ w.status }}</span>
+        </div>
+        <div class="vdp-warranty-track">
+          <div class="vdp-warranty-fill" [style.width]="w.pct + '%'" [class.expired]="w.expired"></div>
+        </div>
+      </div>
+      }
+      <p class="vdp-warranty-note">Estimated based on original coverage terms. Verify current status with dealer.</p>
+    </div>
+    }
+
   </section>
 
   <!-- Recurrent battery health badge -->
