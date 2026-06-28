@@ -13,6 +13,7 @@
 
       <!-- Left strip: exterior thumbnails -->
       <div class="vdp-thumb-strip vdp-thumb-strip--left">
+        <span class="vdp-thumb-label">Exterior</span>
         @for(p of v.photos; track $index; let i = $index){
           @if(getPhotoCategory(i) === 'Exterior'){
           <button class="vdp-thumb" [class.active]="i === selectedPhotoIndex()" (click)="selectGalleryPhoto(i)">
@@ -36,6 +37,7 @@
 
       <!-- Right strip: interior thumbnails -->
       <div class="vdp-thumb-strip vdp-thumb-strip--right">
+        <span class="vdp-thumb-label">Interior</span>
         @for(p of v.photos; track $index; let i = $index){
           @if(getPhotoCategory(i) === 'Interior'){
           <button class="vdp-thumb" [class.active]="i === selectedPhotoIndex()" (click)="selectGalleryPhoto(i)">
