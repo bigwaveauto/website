@@ -478,7 +478,7 @@ export class VehicleComponent implements OnInit, OnDestroy {
   private brandColorMap: Record<string, { hex: string; metallic?: boolean }> = {
     // Rivian exterior
     'forest green': { hex: '#2F4438', metallic: true },
-    'limestone': { hex: '#A8A08C', metallic: true },
+    'limestone': { hex: '#C8BC9F', metallic: true },
     'rivian blue': { hex: '#005FCC', metallic: true },
     'launch green': { hex: '#5C7A3E', metallic: true },
     'el cap granite': { hex: '#5B5B5A', metallic: true },
@@ -491,7 +491,7 @@ export class VehicleComponent implements OnInit, OnDestroy {
     'compass yellow': { hex: '#D4A02A' },
     // Rivian interior
     'black mountain': { hex: '#1A1A1A' },
-    'forest edge': { hex: '#6B5448' },
+    'forest edge': { hex: '#9E7B58' },
     'ocean coast': { hex: '#4A6FA5' },
     // Tesla exterior
     'midnight silver metallic': { hex: '#74787A', metallic: true },
@@ -612,7 +612,7 @@ export class VehicleComponent implements OnInit, OnDestroy {
     'blue': '#2563EB', 'velocity blue': '#1E4DB7', 'atlas blue': '#1A3A6B', 'antimatter blue': '#1C2951',
     'lightning blue': '#4A90D9', 'alto blue': '#4169E1',
     'green': '#2D6A4F', 'eruption green': '#2ECC40', 'forged green': '#355E3B',
-    'limestone': '#9CA39C', 'rivian blue': '#4A6FA5', 'el cap granite': '#6E6E6E',
+    'rivian blue': '#4A6FA5', 'el cap granite': '#6E6E6E',
     'launch green': '#3B6B3B', 'forest green': '#3B6B3B', 'compass yellow': '#E2B842',
     'la silver': '#C0C0C0', 'midnight': '#1C2331',
     'yellow': '#F5C518', 'orange': '#E8740C', 'gold': '#C5A54E',
