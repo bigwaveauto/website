@@ -572,7 +572,7 @@ export class VehicleComponent implements OnInit, OnDestroy {
   warrantyItems = computed((): { name: string; status: string; pct: number; expired: boolean }[] => {
     const v = this.fullVehicle()?.results;
     if (!v) return [];
-    const year = parseInt(v.year) || 2020;
+    const year = parseInt(String(v.year)) || 2020;
     const mileage = v.mileage || 0;
     const age = 2026 - year;
     const make = (v.make || '').toLowerCase();
