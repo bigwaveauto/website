@@ -191,10 +191,10 @@ $bb-accent: #0e7490;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  min-height: 100dvh;
 
   @media (max-width: 1024px) {
-    min-height: unset;
+    margin: 0 12px;
+    border-radius: 20px;
     padding: 24px 20px 28px;
     gap: 16px;
   }
@@ -519,7 +519,6 @@ $bb-accent: #0e7490;
   gap: 6px 16px;
   padding-top: 8px;
   border-top: 1px solid $bb-border;
-  margin-top: auto;
 
   span {
     display: flex;
@@ -975,7 +974,9 @@ $bb-accent: #0e7490;
 }
 
 .vdp-btn-primary {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: $bb-surface;
   color: $bb-text;
   text-align: center;
@@ -987,7 +988,7 @@ $bb-accent: #0e7490;
   border: 1.5px solid $bb-border;
   cursor: pointer;
   font-family: inherit;
-  min-height: 52px;
+  min-height: 48px;
   transition: background 0.2s, border-color 0.2s;
   &:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.25); }
 }
