@@ -457,8 +457,174 @@ $text-muted: rgba(0,0,0,0.45);
 /* (specs now use .vdp-details-grid) */
 
 /* Price */
-.vdp-price { font-size: 32px; font-weight: 800; color: #111; line-height: 1; }
+.vdp-price { font-size: 36px; font-weight: 800; color: #111; line-height: 1; }
 .vdp-msrp { font-size: 16px; color: $text-muted; text-decoration: line-through; }
+
+.vdp-savings-badge {
+  display: inline-flex;
+  align-items: center;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.vdp-msrp-line {
+  font-size: 13px;
+  color: $text-muted;
+  margin-top: -4px;
+  text-decoration: line-through;
+}
+
+/* Trust strip (inside buy box) */
+.vdp-trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding-top: 4px;
+  border-top: 1px solid #f0f0f0;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+  }
+}
+
+.vdp-trust-check {
+  width: 13px;
+  height: 13px;
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+/* Trust bar (left column, below highlights) */
+.vdp-trust-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  background: #f8f9fb;
+  border: 1.5px solid #f0f0f0;
+  border-radius: 14px;
+  overflow: hidden;
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.vdp-trust-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  border-right: 1.5px solid #f0f0f0;
+
+  &:last-child { border-right: none; }
+
+  @media (max-width: 600px) {
+    &:nth-child(2) { border-right: none; }
+    &:nth-child(3), &:nth-child(4) { border-top: 1.5px solid #f0f0f0; }
+  }
+}
+
+.vdp-trust-icon {
+  width: 20px;
+  height: 20px;
+  color: #10b981;
+}
+
+/* Mobile sticky CTA bar */
+.vdp-mobile-sticky {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 12px 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+
+  @media (max-width: 1024px) {
+    display: flex;
+  }
+}
+
+.vdp-mobile-sticky-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.vdp-mobile-sticky-price {
+  font-size: 20px;
+  font-weight: 800;
+  color: #111;
+  line-height: 1;
+}
+
+.vdp-mobile-sticky-label {
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.vdp-mobile-sticky-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.vdp-mobile-btn-primary {
+  background: #111;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.2s;
+  &:hover { background: #333; }
+}
+
+.vdp-mobile-btn-secondary {
+  background: transparent;
+  color: #111;
+  border: 1.5px solid rgba(0,0,0,0.2);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: border-color 0.2s, background 0.2s;
+  &:hover { border-color: rgba(0,0,0,0.4); background: rgba(0,0,0,0.02); }
+}
 
 /* "What does this really cost?" card */
 .vdp-cost-card {

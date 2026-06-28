@@ -93,6 +93,26 @@
     </div>
   </div>
 
+  <!-- Trust bar -->
+  <div class="vdp-trust-bar">
+    <div class="vdp-trust-item">
+      <lucide-icon name="tag" class="vdp-trust-icon" />
+      <span>No-Haggle Pricing</span>
+    </div>
+    <div class="vdp-trust-item">
+      <lucide-icon name="shield-check" class="vdp-trust-icon" />
+      <span>Full Carfax Included</span>
+    </div>
+    <div class="vdp-trust-item">
+      <lucide-icon name="truck" class="vdp-trust-icon" />
+      <span>Nationwide Delivery</span>
+    </div>
+    <div class="vdp-trust-item">
+      <lucide-icon name="rotate-ccw" class="vdp-trust-icon" />
+      <span>7-Day Returns</span>
+    </div>
+  </div>
+
   <!-- Recurrent battery health badge — renders automatically for EVs/PHEVs, no-op for others -->
   <div class="recurrent_badge_container" [attr.data-vin]="$any(v).vin"></div>
 
@@ -179,8 +199,12 @@
       <div class="vdp-price-section">
         <span class="vdp-price">{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span>
         @if(v.msrp && v.msrp > v.price){
-        <span class="vdp-msrp">MSRP {{ v.msrp | currency:'USD':'symbol':'1.0-0' }}</span>}
+        <span class="vdp-savings-badge">Save {{ (v.msrp - v.price) | currency:'USD':'symbol':'1.0-0' }}</span>
+        }
       </div>
+      @if(v.msrp && v.msrp > v.price){
+      <div class="vdp-msrp-line">MSRP {{ v.msrp | currency:'USD':'symbol':'1.0-0' }}</div>
+      }
 
       <!-- Cost card -->
       <div class="vdp-cost-card" (click)="calcOpen.set(true)">
@@ -203,12 +227,19 @@
 
       <!-- CTAs -->
       <div class="vdp-cta-stack">
-        <button class="vdp-btn-reserve" (click)="reserveVehicle(v)">Reserve This Vehicle</button>
-        <button class="vdp-btn-primary" (click)="openTestDrive()">Request a Test Drive</button>
+        <button class="vdp-btn-reserve" (click)="reserveVehicle(v)">Get This Price</button>
+        <a routerLink="/financing" class="vdp-btn-primary">Apply for Financing</a>
         <div class="vdp-cta-row">
+          <button class="vdp-btn-outline" (click)="openTestDrive()">Schedule Test Drive</button>
           <button class="vdp-btn-outline" (click)="openMakeOffer()">Make an Offer</button>
-          <a routerLink="/financing" class="vdp-btn-outline">Apply for Financing</a>
         </div>
+      </div>
+
+      <!-- Trust strip -->
+      <div class="vdp-trust-strip">
+        <span><lucide-icon name="check" class="vdp-trust-check" />No-haggle price</span>
+        <span><lucide-icon name="check" class="vdp-trust-check" />Carfax included</span>
+        <span><lucide-icon name="check" class="vdp-trust-check" />7-day returns</span>
       </div>
 
     </div><!-- /vdp-buy-box -->
@@ -372,6 +403,18 @@
     </div>
   </div>
 
+</div>
+
+<!-- Mobile sticky CTA bar -->
+<div class="vdp-mobile-sticky">
+  <div class="vdp-mobile-sticky-left">
+    <span class="vdp-mobile-sticky-price">{{ v.price | currency:'USD':'symbol':'1.0-0' }}</span>
+    <span class="vdp-mobile-sticky-label">No-haggle price</span>
+  </div>
+  <div class="vdp-mobile-sticky-actions">
+    <button class="vdp-mobile-btn-primary" (click)="reserveVehicle(v)">Get This Price</button>
+    <a routerLink="/financing" class="vdp-mobile-btn-secondary">Finance</a>
+  </div>
 </div>
 }
 
