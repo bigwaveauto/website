@@ -3,13 +3,11 @@
 @if(fullVehicle()?.results; as v){
 @let total = v.photos.length;
 
-<!-- ── Full-page grid: content left, sticky buy box right ── -->
+<!-- ── Full-page grid ── -->
 <div class="vdp-shell">
 
-  <!-- ── Left column: photo + details ── -->
-  <div class="vdp-left">
-
-    <!-- Photo -->
+  <!-- ── Photo column ── -->
+  <div class="vdp-photo-col">
     <div class="vdp-photo-fixed">
       @if(total > 0){
       <div class="vdp-photo-main" (click)="openSinglePhoto(selectedPhotoIndex())">
@@ -34,135 +32,7 @@
       }
     </div>
 
-    <!-- Below photo: Details section -->
-    <div class="vdp-below">
-
-  <!-- Highlights -->
-  <div class="vdp-highlights-section">
-    @if(makeLogo()){
-    <div class="vdp-make-logo-wrap">
-      <img [src]="makeLogo()!" [alt]="v.make" class="vdp-make-logo" />
-    </div>}
-    <h2 class="vdp-highlights-heading">Highlights</h2>
-    <div class="vdp-highlights-grid">
-      @for(item of detailsItems; track $index){
-        @let val = $any(v)[item.datacol];
-        @if(val){
-        <div class="vdp-highlight-card" [class.vdp-highlight-card--odometer]="$any(item).odometer">
-          @if($any(item).odometer){
-            <span class="vdp-highlight-label">{{ item.displayName }}</span>
-            <div class="vdp-odometer">
-              @for(ch of formatOdometer(val); track $index; let i = $index){
-                @if(ch === ','){ <span class="vdp-odo-comma">,</span> }
-                @else {
-                <span class="vdp-odo-slot" [style.animation-delay]="(formatOdometer(val).length - 1 - i) * 55 + 'ms'">{{ ch }}</span>
-                }
-              }
-            </div>
-            <span class="vdp-odo-unit">miles</span>
-          } @else if($any(item).colorType; as ct){
-            @let hex = getColorHex(val);
-            @if(hex){
-            <div class="vdp-color-swatch" [style.background]="hex" [class.vdp-color-light]="hex === '#FAFAFA' || hex === '#F0F0F0' || hex === '#FFFFF0' || hex === '#F5F0E1' || hex === '#E8DCC8' || hex === '#EFDECD'"></div>
-            } @else {
-            <div class="vdp-highlight-icon-wrap">
-              <lucide-icon [name]="item.icon" class="vdp-highlight-icon" />
-            </div>}
-            <span class="vdp-highlight-label">{{ item.displayName }}</span>
-            <span class="vdp-highlight-value">{{ val }}</span>
-          } @else {
-          <div class="vdp-highlight-icon-wrap">
-            <lucide-icon [name]="item.icon" class="vdp-highlight-icon" />
-          </div>
-          <span class="vdp-highlight-label">{{ item.displayName }}</span>
-          <span class="vdp-highlight-value">
-            @if(item.format === 'miles'){ {{ val | number:'1.0-0' }} mi }
-            @else { {{ val }} }
-          </span>
-          }
-        </div>}
-      }
-      @if(v.mpgcity && v.mpghwy){
-      <div class="vdp-highlight-card">
-        <div class="vdp-highlight-icon-wrap">
-          <lucide-icon name="leaf" class="vdp-highlight-icon" />
-        </div>
-        <span class="vdp-highlight-label">Fuel Economy</span>
-        <span class="vdp-highlight-value">{{ v.mpgcity }}c / {{ v.mpghwy }}h</span>
-      </div>}
-    </div>
-  </div>
-
-  <!-- Trust bar -->
-  <div class="vdp-trust-bar">
-    <div class="vdp-trust-item">
-      <lucide-icon name="tag" class="vdp-trust-icon" />
-      <span>No-Haggle Pricing</span>
-    </div>
-    <div class="vdp-trust-item">
-      <lucide-icon name="shield-check" class="vdp-trust-icon" />
-      <span>Full Carfax Included</span>
-    </div>
-    <div class="vdp-trust-item">
-      <lucide-icon name="truck" class="vdp-trust-icon" />
-      <span>Nationwide Delivery</span>
-    </div>
-    <div class="vdp-trust-item">
-      <lucide-icon name="refresh-cw" class="vdp-trust-icon" />
-      <span>7-Day Returns</span>
-    </div>
-  </div>
-
-  <!-- Recurrent battery health badge — renders automatically for EVs/PHEVs, no-op for others -->
-  <div class="recurrent_badge_container" [attr.data-vin]="$any(v).vin"></div>
-
-  <!-- Carfax (inline embed) — same pattern as the proposal page -->
-  @if(carfaxLinkUrl()){
-  <div class="vdp-doc-section">
-    <div class="vdp-doc-bar">
-      <div class="vdp-doc-bar-left">
-        <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="vdp-doc-carfax-logo" loading="lazy" />
-        <span class="vdp-doc-label">Vehicle History Report</span>
-      </div>
-      <a [href]="carfaxLinkUrl()" target="_blank" rel="noopener" class="vdp-doc-view-btn">
-        View Report <lucide-icon name="chevron-right" class="vdp-history-link-arrow" />
-      </a>
-    </div>
-    @if(safeCarfaxPdfUrl()){
-    <iframe class="vdp-doc-embed" [src]="safeCarfaxPdfUrl()" frameborder="0"></iframe>
-    }
-  </div>
-  }
-
-  <!-- Description -->
-  @if(v.vehicledescription || v.notes){
-  <div class="vdp-desc-section">
-    <h2 class="vdp-highlights-heading">About This Vehicle</h2>
-    <p class="vdp-description">{{ v.vehicledescription || v.notes }}</p>
-  </div>}
-
-  <!-- Window Sticker / Build Sheet (inline embed) -->
-  @if(v.monroneysticker){
-  <div class="vdp-doc-section">
-    <div class="vdp-doc-bar">
-      <div class="vdp-doc-bar-left">
-        <span class="vdp-doc-badge vdp-doc-badge--monroney">MONRONEY</span>
-        <span class="vdp-doc-label">Window Sticker</span>
-      </div>
-      <a [href]="v.monroneysticker" target="_blank" rel="noopener" class="vdp-doc-view-btn">
-        View Sticker <lucide-icon name="chevron-right" class="vdp-history-link-arrow" />
-      </a>
-    </div>
-    @if(safeWindowStickerUrl()){
-    <iframe class="vdp-doc-embed" [src]="safeWindowStickerUrl()" frameborder="0"></iframe>
-    }@else{
-    <img [src]="v.monroneysticker" class="vdp-doc-embed vdp-doc-embed--img" alt="Window Sticker" />
-    }
-  </div>
-  }
-
-    </div><!-- /vdp-below -->
-  </div><!-- /vdp-left -->
+  </div><!-- /vdp-photo-col -->
 
   <!-- ── Right: Sticky Buy Box ── -->
   <div class="vdp-right">
@@ -244,6 +114,100 @@
 
     </div><!-- /vdp-buy-box -->
   </div><!-- /vdp-right -->
+
+  <!-- ── Details column (specs, docs) ── -->
+  <div class="vdp-details-col">
+    <div class="vdp-below">
+
+  <!-- Specs -->
+  <section class="vdp-specs-section">
+    <!-- Mileage hero -->
+    <div class="vdp-mileage-hero">
+      <div class="vdp-odometer">
+        @for(ch of formatOdometer(v.mileage); track $index; let i = $index){
+          @if(ch === ','){ <span class="vdp-odo-comma">,</span> }
+          @else {
+          <span class="vdp-odo-slot" [style.animation-delay]="(formatOdometer(v.mileage).length - 1 - i) * 55 + 'ms'">{{ ch }}</span>
+          }
+        }
+      </div>
+      <span class="vdp-odo-unit">miles</span>
+    </div>
+
+    <!-- Spec definition list -->
+    <dl class="vdp-spec-list">
+      @for(item of detailsItems; track $index){
+        @let val = $any(v)[item.datacol];
+        @if(val && !$any(item).odometer){
+        <div class="vdp-spec-row">
+          <dt class="vdp-spec-label">{{ item.displayName }}</dt>
+          <dd class="vdp-spec-value">
+            @if($any(item).colorType){
+              @let hex = getColorHex(val);
+              @if(hex){ <span class="vdp-spec-swatch" [style.background]="hex" [class.vdp-spec-swatch--light]="hex === '#FAFAFA' || hex === '#F0F0F0' || hex === '#FFFFF0' || hex === '#F5F0E1' || hex === '#E8DCC8' || hex === '#EFDECD'"></span> }
+            }
+            {{ val }}
+          </dd>
+        </div>}
+      }
+      @if(v.mpgcity && v.mpghwy){
+      <div class="vdp-spec-row">
+        <dt class="vdp-spec-label">Fuel Economy</dt>
+        <dd class="vdp-spec-value">{{ v.mpgcity }} city / {{ v.mpghwy }} hwy</dd>
+      </div>}
+    </dl>
+  </section>
+
+  <!-- Recurrent battery health badge -->
+  <div class="recurrent_badge_container" [attr.data-vin]="$any(v).vin"></div>
+
+  <!-- Carfax (inline embed) — same pattern as the proposal page -->
+  @if(carfaxLinkUrl()){
+  <div class="vdp-doc-section">
+    <div class="vdp-doc-bar">
+      <div class="vdp-doc-bar-left">
+        <img src="/Carfax/CARFAX_logo_above-head.png" alt="Carfax" class="vdp-doc-carfax-logo" loading="lazy" />
+        <span class="vdp-doc-label">Vehicle History Report</span>
+      </div>
+      <a [href]="carfaxLinkUrl()" target="_blank" rel="noopener" class="vdp-doc-view-btn">
+        View Report <lucide-icon name="chevron-right" class="vdp-history-link-arrow" />
+      </a>
+    </div>
+    @if(safeCarfaxPdfUrl()){
+    <iframe class="vdp-doc-embed" [src]="safeCarfaxPdfUrl()" frameborder="0"></iframe>
+    }
+  </div>
+  }
+
+  <!-- Description -->
+  @if(v.vehicledescription || v.notes){
+  <div class="vdp-desc-section">
+    <h2 class="vdp-highlights-heading">About This Vehicle</h2>
+    <p class="vdp-description">{{ v.vehicledescription || v.notes }}</p>
+  </div>}
+
+  <!-- Window Sticker / Build Sheet (inline embed) -->
+  @if(v.monroneysticker){
+  <div class="vdp-doc-section">
+    <div class="vdp-doc-bar">
+      <div class="vdp-doc-bar-left">
+        <span class="vdp-doc-badge vdp-doc-badge--monroney">MONRONEY</span>
+        <span class="vdp-doc-label">Window Sticker</span>
+      </div>
+      <a [href]="v.monroneysticker" target="_blank" rel="noopener" class="vdp-doc-view-btn">
+        View Sticker <lucide-icon name="chevron-right" class="vdp-history-link-arrow" />
+      </a>
+    </div>
+    @if(safeWindowStickerUrl()){
+    <iframe class="vdp-doc-embed" [src]="safeWindowStickerUrl()" frameborder="0"></iframe>
+    }@else{
+    <img [src]="v.monroneysticker" class="vdp-doc-embed vdp-doc-embed--img" alt="Window Sticker" />
+    }
+  </div>
+  }
+
+    </div><!-- /vdp-below -->
+  </div><!-- /vdp-details-col -->
 
 </div><!-- /vdp-shell -->
 

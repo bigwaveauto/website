@@ -1,8 +1,16 @@
 $blue: #2563eb;
-$page-bg: #e8eaed;
+$page-bg: #ffffff;
 $card-bg: #ffffff;
 $border: rgba(0,0,0,0.08);
 $text-muted: rgba(0,0,0,0.45);
+
+// Dark buy box tokens
+$bb-bg: #0a0a0a;
+$bb-text: #ffffff;
+$bb-muted: rgba(255,255,255,0.45);
+$bb-border: rgba(255,255,255,0.1);
+$bb-surface: rgba(255,255,255,0.06);
+$bb-accent: #0e7490;
 
 :host {
   display: block;
@@ -11,10 +19,15 @@ $text-muted: rgba(0,0,0,0.45);
   color: #111;
 }
 
-/* ── Page shell: content left, sticky buy box right ── */
+/* ── Page shell: named grid areas for correct mobile order ── */
 .vdp-shell {
   display: grid;
   grid-template-columns: 1fr calc(22vw + 40px);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "photo   buybox"
+    "details buybox";
+  align-items: start;
 
   @media (max-width: 1280px) {
     grid-template-columns: 1fr calc(34vw + 20px);
@@ -22,11 +35,21 @@ $text-muted: rgba(0,0,0,0.45);
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "photo"
+      "buybox"
+      "details";
   }
 }
 
-/* ── Left column ── */
-.vdp-left {
+.vdp-photo-col {
+  grid-area: photo;
+  min-width: 0;
+}
+
+.vdp-details-col {
+  grid-area: details;
   min-width: 0;
 }
 
@@ -41,8 +64,9 @@ $text-muted: rgba(0,0,0,0.45);
   z-index: 0;
 
   @media (max-width: 1024px) {
-    height: 50vh;
-    min-height: 300px;
+    height: 62vw;
+    min-height: 280px;
+    max-height: 480px;
     margin: 0;
     border-radius: 0;
   }
@@ -153,36 +177,38 @@ $text-muted: rgba(0,0,0,0.45);
   }
 }
 
-.vdp-buy-box {
+.vdp-right {
+  grid-area: buybox;
+  align-self: start;
   position: sticky;
-  top: 10px;
-  border: 1.5px solid rgba(0,0,0,0.12);
-  border-radius: 16px;
-  background: white;
-  padding: 28px 24px 32px;
+  top: 0;
+}
+
+.vdp-buy-box {
+  background: $bb-bg;
+  color: $bb-text;
+  padding: 28px 24px 36px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-height: 100dvh;
 
   @media (max-width: 1024px) {
-    position: relative;
-    top: auto;
-    border: none;
-    border-radius: 0;
-    padding: 16px 4px 80px;
-    gap: 14px;
+    min-height: unset;
+    padding: 24px 20px 28px;
+    gap: 16px;
   }
 }
 
 /* ── Below photo: details section ── */
 .vdp-below {
-  padding: 40px 32px 60px;
+  padding: 0 28px 60px;
   display: flex;
   flex-direction: column;
   gap: 24px;
 
   @media (max-width: 1024px) {
-    padding: 24px 20px 40px;
+    padding: 0 20px 40px;
   }
 }
 
@@ -191,67 +217,72 @@ $text-muted: rgba(0,0,0,0.45);
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: $text-muted;
+  color: $bb-muted;
   text-decoration: none;
-  padding: 6px 12px;
-  border-radius: 8px;
-  transition: background 0.15s, color 0.15s;
-
-  &:hover { background: rgba(0,0,0,0.05); color: #111; }
+  padding: 6px 0;
+  transition: color 0.15s;
+  &:hover { color: $bb-text; }
 }
-.vdp-back-icon { width: 16px; height: 16px; }
+.vdp-back-icon { width: 14px; height: 14px; }
 
 /* Title block */
 .vdp-title-block { display: flex; flex-direction: column; gap: 4px; }
 
 .vdp-buybox-logo {
-  height: 52px;
+  height: 44px;
   width: auto;
-  max-width: 160px;
+  max-width: 140px;
   object-fit: contain;
   object-position: left center;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
 }
 
 .vdp-vin-stock {
   display: flex;
-  gap: 16px;
-  font-size: 13px;
-  color: $text-muted;
-  margin-top: 2px;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 11px;
+  color: $bb-muted;
+  margin-top: 4px;
+  letter-spacing: 0.2px;
 }
 
 .vdp-year-label {
-  font-size: 16px;
-  font-weight: 600;
-  color: $text-muted;
+  font-size: 13px;
+  font-weight: 500;
+  color: $bb-muted;
+  letter-spacing: 0.3px;
 }
 
 .vdp-title {
-  font-size: clamp(28px, 3.5vw, 38px);
-  font-weight: 800;
-  color: #111;
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 900;
+  color: $bb-text;
   margin: 0;
-  line-height: 1.1;
+  line-height: 1.05;
+  text-wrap: balance;
 }
 
 /* Key stats bar */
 .vdp-key-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 16px;
-  font-size: 16px;
-  color: #555;
+  gap: 0 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: $bb-muted;
 
   span {
     display: flex;
     align-items: center;
     &:not(:last-child)::after {
-      content: '|';
-      margin-left: 16px;
-      color: rgba(0,0,0,0.15);
+      content: '·';
+      margin-left: 20px;
+      color: $bb-border;
     }
   }
 }
@@ -259,8 +290,8 @@ $text-muted: rgba(0,0,0,0.45);
 /* Price section */
 .vdp-price-section {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
+  align-items: center;
+  gap: 14px;
 }
 
 /* History and inspection section */
@@ -458,93 +489,53 @@ $text-muted: rgba(0,0,0,0.45);
 /* (specs now use .vdp-details-grid) */
 
 /* Price */
-.vdp-price { font-size: clamp(32px, 4vw, 42px); font-weight: 800; color: #111; line-height: 1; }
-.vdp-msrp { font-size: 16px; color: $text-muted; text-decoration: line-through; }
+.vdp-price { font-size: clamp(40px, 4.5vw, 56px); font-weight: 900; color: $bb-text; line-height: 1; }
+.vdp-msrp { font-size: 14px; color: $bb-muted; text-decoration: line-through; }
 
 .vdp-savings-badge {
   display: inline-flex;
   align-items: center;
-  background: #dcfce7;
-  color: #15803d;
-  font-size: 13px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  font-size: 12px;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 20px;
   white-space: nowrap;
+  border: 1px solid rgba(52, 211, 153, 0.3);
 }
 
 .vdp-msrp-line {
-  font-size: 13px;
-  color: $text-muted;
-  margin-top: -4px;
+  font-size: 12px;
+  color: $bb-muted;
+  margin-top: -8px;
   text-decoration: line-through;
 }
 
-/* Trust strip (inside buy box) */
+/* Trust strip (inside dark buy box) */
 .vdp-trust-strip {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 16px;
-  padding-top: 4px;
-  border-top: 1px solid #f0f0f0;
+  gap: 6px 16px;
+  padding-top: 8px;
+  border-top: 1px solid $bb-border;
+  margin-top: auto;
 
   span {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     font-size: 12px;
-    font-weight: 600;
-    color: #6b7280;
+    font-weight: 500;
+    color: $bb-muted;
   }
 }
 
 .vdp-trust-check {
-  width: 13px;
-  height: 13px;
-  color: #10b981;
+  width: 12px;
+  height: 12px;
+  color: #34d399;
   flex-shrink: 0;
-}
-
-/* Trust bar (left column, below highlights) */
-.vdp-trust-bar {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0;
-  background: #f8f9fb;
-  border: 1.5px solid #f0f0f0;
-  border-radius: 14px;
-  overflow: hidden;
-
-  @media (max-width: 600px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.vdp-trust-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 16px 12px;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: #374151;
-  border-right: 1.5px solid #f0f0f0;
-
-  &:last-child { border-right: none; }
-
-  @media (max-width: 600px) {
-    &:nth-child(2) { border-right: none; }
-    &:nth-child(3), &:nth-child(4) { border-top: 1.5px solid #f0f0f0; }
-  }
-}
-
-.vdp-trust-icon {
-  width: 20px;
-  height: 20px;
-  color: #10b981;
 }
 
 /* Mobile sticky CTA bar */
@@ -555,13 +546,13 @@ $text-muted: rgba(0,0,0,0.45);
   left: 0;
   right: 0;
   z-index: 100;
-  background: white;
-  border-top: 1px solid #e5e7eb;
+  background: #0a0a0a;
+  border-top: 1px solid rgba(255,255,255,0.08);
   padding: 12px 16px;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
 
   @media (max-width: 1024px) {
     display: flex;
@@ -571,20 +562,20 @@ $text-muted: rgba(0,0,0,0.45);
 .vdp-mobile-sticky-left {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   min-width: 0;
 }
 
 .vdp-mobile-sticky-price {
-  font-size: 20px;
-  font-weight: 800;
-  color: #111;
+  font-size: 22px;
+  font-weight: 900;
+  color: white;
   line-height: 1;
 }
 
 .vdp-mobile-sticky-label {
   font-size: 11px;
-  color: #9ca3af;
+  color: rgba(255,255,255,0.4);
   font-weight: 500;
 }
 
@@ -595,47 +586,49 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-mobile-btn-primary {
-  background: #111;
+  background: $bb-accent;
   color: white;
   border: none;
   border-radius: 10px;
-  padding: 12px 18px;
+  padding: 12px 20px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
+  min-height: 48px;
   transition: background 0.2s;
-  &:hover { background: #333; }
+  &:hover { background: lighten($bb-accent, 5%); }
 }
 
 .vdp-mobile-btn-secondary {
-  background: transparent;
-  color: #111;
-  border: 1.5px solid rgba(0,0,0,0.2);
+  background: rgba(255,255,255,0.06);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: 10px;
   padding: 12px 18px;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
   display: flex;
   align-items: center;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
+  min-height: 48px;
   transition: border-color 0.2s, background 0.2s;
-  &:hover { border-color: rgba(0,0,0,0.4); background: rgba(0,0,0,0.02); }
+  &:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); }
 }
 
 /* "What does this really cost?" card */
 .vdp-cost-card {
   padding: 18px 20px;
-  background: #f8f9fb;
-  border-radius: 12px;
-  border: 1px solid $border;
+  background: $bb-surface;
+  border-radius: 10px;
+  border: 1px solid $bb-border;
   cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  &:hover { border-color: rgba(0,0,0,0.2); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  transition: border-color 0.2s, background 0.2s;
+  &:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.09); }
 }
 
 .vdp-cost-header {
@@ -646,15 +639,15 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-cost-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #111;
+  font-size: 14px;
+  font-weight: 600;
+  color: $bb-muted;
 }
 
 .vdp-cost-chevron {
-  width: 18px;
-  height: 18px;
-  color: $text-muted;
+  width: 16px;
+  height: 16px;
+  color: $bb-muted;
 }
 
 .vdp-cost-summary {
@@ -670,24 +663,24 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-cost-item-label {
-  font-size: 16px;
+  font-size: 11px;
   font-weight: 500;
-  color: $text-muted;
+  color: $bb-muted;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
 }
 
 .vdp-cost-item-value {
   font-size: 22px;
   font-weight: 800;
-  color: #111;
+  color: $bb-text;
   line-height: 1.2;
 }
 
 .vdp-cost-divider {
   width: 1px;
   height: 36px;
-  background: rgba(0,0,0,0.1);
+  background: $bb-border;
   flex-shrink: 0;
 }
 
@@ -772,118 +765,81 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 /* Highlights cards — Rivian vertical style */
-.vdp-highlights-section {
-  padding: 0;
+/* ── Specs section (replaces card grid) ── */
+.vdp-specs-section {
+  padding: 28px 28px 0;
+
+  @media (max-width: 1024px) {
+    padding: 24px 20px 0;
+  }
 }
 
-.vdp-highlights-heading {
-  font-size: 22px;
-  font-weight: 800;
-  color: #111;
-  margin: 0 0 16px;
-}
-
-.vdp-highlights-grid {
+/* Mileage hero — dark odometer above spec list */
+.vdp-mileage-hero {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+/* Spec definition list */
+.vdp-spec-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  margin: 0;
+  padding: 0;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vdp-spec-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px 14px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+
+  @media (max-width: 600px) {
+    padding: 12px 0;
+  }
+}
+
+.vdp-spec-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(0,0,0,0.4);
+}
+
+.vdp-spec-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111;
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.vdp-highlight-card {
-  flex: 0 0 calc(25% - 6px);
-  min-width: 0;
-  background: white;
-  border: 1.5px solid #f0f0f0;
-  border-radius: 14px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
-  cursor: default;
-
-  &:hover {
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    transform: translateY(-2px);
-    border-color: #e0e0e0;
-  }
-
-  @media (max-width: 900px) {
-    flex: 0 0 calc(33.333% - 6px);
-  }
-
-  @media (max-width: 600px) {
-    flex: 0 0 calc(50% - 4px);
-  }
-}
-
-.vdp-highlight-icon-wrap {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: rgba(52, 211, 153, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.vdp-spec-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
   flex-shrink: 0;
-  margin-bottom: 2px;
-}
-
-.vdp-highlight-icon {
-  width: 15px;
-  height: 15px;
-  color: #10b981;
-}
-
-/* Color swatch */
-.vdp-color-swatch {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  flex-shrink: 0;
-  margin-bottom: 2px;
   border: 1.5px solid transparent;
 
-  &.vdp-color-light {
+  &.vdp-spec-swatch--light {
     border-color: #d1d5db;
   }
 }
 
-/* Label is now secondary — small, uppercase, gray */
-.vdp-highlight-label {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: #9ca3af;
-  line-height: 1.2;
-}
-
-/* Value is the hero — bold, dark */
-.vdp-highlight-value {
-  font-size: 15px;
-  font-weight: 700;
-  color: #111;
-  line-height: 1.3;
-}
-
-/* ── Odometer mileage card ── */
-.vdp-highlight-card--odometer {
-  justify-content: center;
-  gap: 8px;
-  background: #0f0f0f;
-  border-color: #0f0f0f;
-  color: white;
-
-  &:hover {
-    border-color: #222;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-  }
-
-  .vdp-highlight-label {
-    color: rgba(255,255,255,0.4);
-  }
-}
+/* ── Odometer (shared between hero and old card) ── */
 
 .vdp-odometer {
   display: flex;
@@ -994,52 +950,56 @@ $text-muted: rgba(0,0,0,0.45);
 .vdp-btn-reserve {
   display: block;
   width: 100%;
-  background: #111;
+  background: $bb-accent;
   color: white;
   text-align: center;
-  padding: 14px;
+  padding: 16px;
   border-radius: 10px;
   font-size: 16px;
   font-weight: 700;
   border: none;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.2s;
-  &:hover { background: #333; }
+  min-height: 52px;
+  transition: background 0.2s, transform 0.1s;
+  &:hover { background: lighten($bb-accent, 5%); }
+  &:active { transform: scale(0.99); }
 }
 
 .vdp-btn-primary {
   display: block;
-  background: $blue;
-  color: white;
+  background: $bb-surface;
+  color: $bb-text;
   text-align: center;
   padding: 14px;
   border-radius: 10px;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
   text-decoration: none;
-  border: none;
+  border: 1.5px solid $bb-border;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.2s;
-  &:hover { background: darken($blue, 8%); }
+  min-height: 52px;
+  transition: background 0.2s, border-color 0.2s;
+  &:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.25); }
 }
 
 .vdp-btn-outline {
   display: block;
   background: transparent;
-  color: #111;
+  color: $bb-muted;
   text-align: center;
   padding: 12px;
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   text-decoration: none;
-  border: 1.5px solid rgba(0,0,0,0.15);
+  border: 1px solid $bb-border;
   cursor: pointer;
   font-family: inherit;
-  transition: border-color 0.2s, background 0.2s;
-  &:hover { border-color: rgba(0,0,0,0.4); background: rgba(0,0,0,0.02); }
+  min-height: 48px;
+  transition: border-color 0.2s, color 0.2s;
+  &:hover { border-color: rgba(255,255,255,0.3); color: $bb-text; }
 }
 
 .vdp-btn-sticker {
