@@ -156,6 +156,9 @@
 
       <!-- Title -->
       <div class="vdp-title-block">
+        @if(makeLogo()){
+        <img [src]="makeLogo()!" [alt]="v.make" class="vdp-buybox-logo" />
+        }
         <span class="vdp-year-label">{{ v.year }}</span>
         <h1 class="vdp-title">{{ v.make }} {{ v.model }} {{ v.trim }}</h1>
         <div class="vdp-vin-stock">

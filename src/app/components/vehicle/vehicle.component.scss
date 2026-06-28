@@ -205,6 +205,15 @@ $text-muted: rgba(0,0,0,0.45);
 /* Title block */
 .vdp-title-block { display: flex; flex-direction: column; gap: 4px; }
 
+.vdp-buybox-logo {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  object-position: left center;
+  margin-bottom: 4px;
+  opacity: 0.85;
+}
+
 .vdp-vin-stock {
   display: flex;
   gap: 16px;
