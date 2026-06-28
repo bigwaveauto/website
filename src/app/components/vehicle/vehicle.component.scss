@@ -169,7 +169,8 @@ $text-muted: rgba(0,0,0,0.45);
     top: auto;
     border: none;
     border-radius: 0;
-    padding: 24px 4px 0;
+    padding: 16px 4px 80px;
+    gap: 14px;
   }
 }
 
@@ -217,7 +218,7 @@ $text-muted: rgba(0,0,0,0.45);
 .vdp-vin-stock {
   display: flex;
   gap: 16px;
-  font-size: 16px;
+  font-size: 13px;
   color: $text-muted;
   margin-top: 2px;
 }
@@ -229,11 +230,11 @@ $text-muted: rgba(0,0,0,0.45);
 }
 
 .vdp-title {
-  font-size: clamp(24px, 3vw, 36px);
+  font-size: clamp(28px, 3.5vw, 38px);
   font-weight: 800;
   color: #111;
   margin: 0;
-  line-height: 1.15;
+  line-height: 1.1;
 }
 
 /* Key stats bar */
@@ -457,7 +458,7 @@ $text-muted: rgba(0,0,0,0.45);
 /* (specs now use .vdp-details-grid) */
 
 /* Price */
-.vdp-price { font-size: 36px; font-weight: 800; color: #111; line-height: 1; }
+.vdp-price { font-size: clamp(32px, 4vw, 42px); font-weight: 800; color: #111; line-height: 1; }
 .vdp-msrp { font-size: 16px; color: $text-muted; text-decoration: line-through; }
 
 .vdp-savings-badge {
@@ -786,6 +787,7 @@ $text-muted: rgba(0,0,0,0.45);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
+  align-items: start;
 
   @media (max-width: 900px) {
     grid-template-columns: repeat(3, 1fr);
