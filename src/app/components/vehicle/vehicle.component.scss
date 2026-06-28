@@ -1526,6 +1526,7 @@ $bb-accent: #0e7490;
   overflow: hidden;
   position: relative;
   padding: 16px;
+  touch-action: none; /* let our handlers control pinch/pan */
 }
 
 .vdp-lb-img {
@@ -1534,8 +1535,10 @@ $bb-accent: #0e7490;
   object-fit: contain;
   display: block;
   transform-origin: center;
-  transition: transform 0.25s ease;
+  transition: transform 0.1s ease; /* snappier during pinch */
   border-radius: 6px;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .vdp-lb-zoom {

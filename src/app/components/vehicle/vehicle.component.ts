@@ -295,10 +295,17 @@ export class VehicleComponent implements OnInit, OnDestroy {
     this.lightboxOpen.set(true);
     this.galleryCategory.set('All');
     this.buildPhotoCategories();
-    setTimeout(() => document.querySelector<HTMLElement>('.vdp-lb')?.focus(), 50);
+    setTimeout(() => {
+      document.querySelector<HTMLElement>('.vdp-lb')?.focus();
+      this._attachLbTouch();
+    }, 50);
   }
 
-  closeLightbox() { this.lightboxOpen.set(false); }
+  closeLightbox() {
+    this._detachLbTouch();
+    this.lightboxOpen.set(false);
+    this.zoomLevel.set(1);
+  }
 
   openSinglePhoto(index: number) {
     this.selectedPhotoIndex.set(index);
@@ -307,8 +314,75 @@ export class VehicleComponent implements OnInit, OnDestroy {
 
   prevPhoto(total: number) { this.selectedPhotoIndex.update(i => (i - 1 + total) % total); this.zoomLevel.set(1); }
   nextPhoto(total: number) { this.selectedPhotoIndex.update(i => (i + 1) % total); this.zoomLevel.set(1); }
-  zoomIn() { this.zoomLevel.update(z => Math.min(z + 0.5, 3)); }
+  zoomIn() { this.zoomLevel.update(z => Math.min(z + 0.5, 4)); }
   zoomOut() { this.zoomLevel.update(z => Math.max(z - 0.5, 1)); }
+
+  // ── Pinch-to-zoom & swipe (non-passive touch listeners attached after lightbox opens) ──
+  private _pinchStartDist = 0;
+  private _pinchStartZoom = 1;
+  private _swipeStartX = 0;
+  private _swipeStartY = 0;
+  private _lbWrap: Element | null = null;
+  private _boundTouchStart: ((e: TouchEvent) => void) | null = null;
+  private _boundTouchMove: ((e: TouchEvent) => void) | null = null;
+  private _boundTouchEnd: ((e: TouchEvent) => void) | null = null;
+
+  private _attachLbTouch() {
+    this._lbWrap = document.querySelector('.vdp-lb-img-wrap');
+    if (!this._lbWrap) return;
+
+    this._boundTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        this._pinchStartDist = Math.sqrt(dx * dx + dy * dy);
+        this._pinchStartZoom = this.zoomLevel();
+      } else if (e.touches.length === 1) {
+        this._swipeStartX = e.touches[0].clientX;
+        this._swipeStartY = e.touches[0].clientY;
+      }
+    };
+
+    this._boundTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const next = Math.min(Math.max(this._pinchStartZoom * (dist / this._pinchStartDist), 1), 4);
+        this.zoomLevel.set(Math.round(next * 100) / 100);
+      } else if (e.touches.length === 1 && this.zoomLevel() > 1) {
+        e.preventDefault(); // allow panning image when zoomed
+      }
+    };
+
+    this._boundTouchEnd = (e: TouchEvent) => {
+      // Swipe navigation only when not zoomed
+      if (e.changedTouches.length === 1 && this.zoomLevel() <= 1) {
+        const dx = e.changedTouches[0].clientX - this._swipeStartX;
+        const dy = e.changedTouches[0].clientY - this._swipeStartY;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+          const v = this.fullVehicle()?.results;
+          if (v) {
+            dx < 0 ? this.nextPhoto(v.photos.length) : this.prevPhoto(v.photos.length);
+          }
+        }
+      }
+    };
+
+    this._lbWrap.addEventListener('touchstart', this._boundTouchStart as EventListener, { passive: false });
+    this._lbWrap.addEventListener('touchmove', this._boundTouchMove as EventListener, { passive: false });
+    this._lbWrap.addEventListener('touchend', this._boundTouchEnd as EventListener, { passive: true });
+  }
+
+  private _detachLbTouch() {
+    if (!this._lbWrap) return;
+    if (this._boundTouchStart) this._lbWrap.removeEventListener('touchstart', this._boundTouchStart as EventListener);
+    if (this._boundTouchMove) this._lbWrap.removeEventListener('touchmove', this._boundTouchMove as EventListener);
+    if (this._boundTouchEnd) this._lbWrap.removeEventListener('touchend', this._boundTouchEnd as EventListener);
+    this._lbWrap = null;
+  }
 
   setGalleryCategory(cat: string) {
     this.galleryCategory.set(cat);
