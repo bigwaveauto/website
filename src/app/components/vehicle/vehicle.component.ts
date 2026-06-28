@@ -453,6 +453,7 @@ export class VehicleComponent implements OnInit, OnDestroy {
         })).subscribe((vehicle) => {
           this.selectedPhotoIndex.set(0);
           this.fullVehicle.set(vehicle);
+          this.buildPhotoCategories();
         });
   }
 
