@@ -10,23 +10,41 @@
   <div class="vdp-photo-col">
     <div class="vdp-photo-fixed">
       @if(total > 0){
+
+      <!-- Left strip: exterior thumbnails -->
+      <div class="vdp-thumb-strip vdp-thumb-strip--left">
+        @for(p of v.photos; track $index; let i = $index){
+          @if(getPhotoCategory(i) === 'Exterior'){
+          <button class="vdp-thumb" [class.active]="i === selectedPhotoIndex()" (click)="selectGalleryPhoto(i)">
+            <img [src]="p.thumbnail || p.large" [alt]="'Exterior ' + i" loading="lazy" />
+          </button>
+          }
+        }
+      </div>
+
+      <!-- Center: main photo -->
       <div class="vdp-photo-main" (click)="openSinglePhoto(selectedPhotoIndex())">
         <img [src]="v.photos[selectedPhotoIndex()].large" [alt]="v.title" fetchpriority="high" />
-        <!-- Expand icon -->
         <button class="vdp-photo-expand"><lucide-icon name="maximize-2" /></button>
-        <!-- Nav arrows -->
         @if(total > 1){
         <button class="vdp-photo-arrow left" (click)="$event.stopPropagation(); prevPhoto(total)"><lucide-icon name="chevron-left" /></button>
         <button class="vdp-photo-arrow right" (click)="$event.stopPropagation(); nextPhoto(total)"><lucide-icon name="chevron-right" /></button>
-        <!-- Dots -->
-        <div class="vdp-photo-dots">
-          @for(p of v.photos | slice:0:8; track $index; let i = $index){
-          <span class="vdp-photo-dot" [class.active]="i === selectedPhotoIndex()" (click)="$event.stopPropagation(); selectGalleryPhoto(i)"></span>
+        }
+        <!-- Counter badge -->
+        <div class="vdp-photo-counter">{{ selectedPhotoIndex() + 1 }} / {{ total }}</div>
+      </div>
+
+      <!-- Right strip: interior thumbnails -->
+      <div class="vdp-thumb-strip vdp-thumb-strip--right">
+        @for(p of v.photos; track $index; let i = $index){
+          @if(getPhotoCategory(i) === 'Interior'){
+          <button class="vdp-thumb" [class.active]="i === selectedPhotoIndex()" (click)="selectGalleryPhoto(i)">
+            <img [src]="p.thumbnail || p.large" [alt]="'Interior ' + i" loading="lazy" />
+          </button>
           }
-          @if(total > 8){<span class="vdp-photo-dot-more">+{{ total - 8 }}</span>}
-        </div>
         }
       </div>
+
       }@else{
       <div class="vdp-no-photo-wrap"><span>Photos Coming Soon</span></div>
       }

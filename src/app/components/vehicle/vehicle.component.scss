@@ -72,6 +72,58 @@ $bb-accent: #0e7490;
   }
 }
 
+/* Thumbnail strips — absolutely overlaid on the black bars */
+.vdp-thumb-strip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 76px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  padding: 10px 6px;
+  background: rgba(0,0,0,0.45);
+  z-index: 2;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+
+  &--left { left: 0; border-radius: 20px 0 0 20px; @media (max-width: 1024px) { width: 54px; border-radius: 0; } }
+  &--right { right: 0; border-radius: 0 20px 20px 0; @media (max-width: 1024px) { width: 54px; border-radius: 0; } }
+
+  @media (max-width: 480px) { display: none; }
+}
+
+.vdp-thumb {
+  flex-shrink: 0;
+  width: 100%;
+  aspect-ratio: 4/3;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 5px;
+  overflow: hidden;
+  opacity: 0.5;
+  transition: opacity 0.15s, outline 0.15s;
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  background: #222;
+
+  &.active {
+    opacity: 1;
+    outline-color: #0e7490;
+  }
+
+  &:hover:not(.active) { opacity: 0.8; }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
 .vdp-photo-main {
   width: 100%;
   height: 100%;
@@ -154,6 +206,23 @@ $bb-accent: #0e7490;
 .vdp-photo-dot-more {
   font-size: 16px;
   color: rgba(255,255,255,0.6);
+}
+
+/* Photo counter badge replaces dots */
+.vdp-photo-counter {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.55);
+  color: rgba(255,255,255,0.85);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 .vdp-no-photo-wrap {
