@@ -767,20 +767,28 @@ $bb-accent: #0e7490;
 /* Highlights cards — Rivian vertical style */
 /* ── Specs section (replaces card grid) ── */
 .vdp-specs-section {
-  padding: 28px 28px 0;
+  padding: 20px 28px 0;
 
   @media (max-width: 1024px) {
-    padding: 24px 20px 0;
+    padding: 16px 20px 0;
   }
 }
 
 /* Mileage hero — dark odometer above spec list */
 .vdp-mileage-hero {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 28px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.vdp-mileage-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(0,0,0,0.4);
 }
 
 /* Spec definition list */
@@ -902,7 +910,7 @@ $bb-accent: #0e7490;
 }
 
 .vdp-odo-comma {
-  color: rgba(255,255,255,0.3);
+  color: rgba(0,0,0,0.35);
   font-family: 'Courier New', monospace;
   font-size: 18px;
   font-weight: 700;
@@ -913,10 +921,10 @@ $bb-accent: #0e7490;
 
 .vdp-odo-unit {
   font-size: 11px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.35);
+  font-weight: 700;
+  color: rgba(0,0,0,0.4);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
 }
 
 /* Legacy — keep for calc panel internals */
@@ -987,19 +995,19 @@ $bb-accent: #0e7490;
 .vdp-btn-outline {
   display: block;
   background: transparent;
-  color: $bb-muted;
+  color: rgba(255,255,255,0.75);
   text-align: center;
   padding: 12px;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
-  border: 1px solid $bb-border;
+  border: 1px solid rgba(255,255,255,0.2);
   cursor: pointer;
   font-family: inherit;
   min-height: 48px;
-  transition: border-color 0.2s, color 0.2s;
-  &:hover { border-color: rgba(255,255,255,0.3); color: $bb-text; }
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  &:hover { border-color: rgba(255,255,255,0.4); color: $bb-text; background: rgba(255,255,255,0.05); }
 }
 
 .vdp-btn-sticker {
