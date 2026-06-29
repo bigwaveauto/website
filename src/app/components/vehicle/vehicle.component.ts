@@ -491,7 +491,7 @@ export class VehicleComponent implements OnInit, OnDestroy {
     'compass yellow': { hex: '#D4A02A' },
     // Rivian interior
     'black mountain': { hex: '#1A1A1A' },
-    'forest edge': { hex: '#9E7B58' },
+    'forest edge': { hex: '#C4C0A8' },
     'ocean coast': { hex: '#4A6FA5' },
     // Tesla exterior
     'midnight silver metallic': { hex: '#74787A', metallic: true },
