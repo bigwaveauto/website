@@ -53,7 +53,8 @@ export class AdminInventoryListComponent implements OnInit {
     'In Mechanical', 'In Body/Paint', 'In Detail', 'In Photos',
   ]);
 
-  readonly saleStages = new Set(['Listed', 'Offered/Negotiating']);
+  readonly saleStages = new Set(['Listed', 'Jillian Driver', 'Offered/Negotiating']);
+  readonly soldStages = new Set(['Sold — Pending Delivery', 'Sold — Delivered']);
 
   isGrouped = computed(() => !this.search() && !this.stageFilter());
 
@@ -70,7 +71,7 @@ export class AdminInventoryListComponent implements OnInit {
     }
 
     return [...buckets.entries()]
-      .filter(([, vs]) => vs.length > 0)
+      .filter(([stage, vs]) => vs.length > 0 && !this.soldStages.has(stage))
       .map(([stage, vs]) => ({
         stage,
         label: stage === '__none__' ? 'No Stage Set' : stage,
@@ -187,6 +188,11 @@ export class AdminInventoryListComponent implements OnInit {
     const q = this.search().toLowerCase();
     const sf = this.stageFilter();
     let list = this.vehicles();
+
+    // Hide sold vehicles unless explicitly filtered to a sold stage
+    if (!this.soldStages.has(sf)) {
+      list = list.filter(v => !this.soldStages.has(this.getStage(v.vin)));
+    }
 
     if (q) {
       list = list.filter(v =>
