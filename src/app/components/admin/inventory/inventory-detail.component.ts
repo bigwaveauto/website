@@ -177,7 +177,7 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   stageList = [
     'At Auction — Won, Awaiting Pickup', 'In Transport', 'Arrived — Needs Intake',
     'In Mechanical', 'In Body/Paint', 'In Detail', 'In Photos',
-    'Listed', 'Offered/Negotiating', 'Sold — Pending Delivery', 'Sold — Delivered',
+    'Listed', 'Jillian Driver', 'Offered/Negotiating', 'Sold — Pending Delivery', 'Sold — Delivered',
   ];
   stageNotes = signal('');
   movingStage = signal(false);
@@ -205,6 +205,7 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
       'In Detail': 'Detail',
       'In Photos': 'Photos',
       'Listed': 'Listed',
+      'Jillian Driver': 'J. Driver',
       'Offered/Negotiating': 'Negotiating',
       'Sold — Pending Delivery': 'Sold (Pending)',
       'Sold — Delivered': 'Delivered',

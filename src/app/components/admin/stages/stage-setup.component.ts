@@ -35,7 +35,7 @@ export class StageSetupComponent implements OnInit {
     '', // no selection
     'At Auction — Won, Awaiting Pickup', 'In Transport', 'Arrived — Needs Intake',
     'In Mechanical', 'In Body/Paint', 'In Detail', 'In Photos',
-    'Listed', 'Offered/Negotiating', 'Sold — Pending Delivery', 'Sold — Delivered',
+    'Listed', 'Jillian Driver', 'Offered/Negotiating', 'Sold — Pending Delivery', 'Sold — Delivered',
   ];
 
   ngOnInit() {

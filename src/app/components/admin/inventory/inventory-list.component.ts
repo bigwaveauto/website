@@ -37,14 +37,14 @@ export class AdminInventoryListComponent implements OnInit {
   stageList = [
     'At Auction — Won, Awaiting Pickup', 'In Transport', 'Arrived — Needs Intake',
     'In Mechanical', 'In Body/Paint', 'In Detail', 'In Photos',
-    'Listed', 'Offered/Negotiating', 'Sold — Pending Delivery', 'Sold — Delivered',
+    'Listed', 'Jillian Driver', 'Offered/Negotiating', 'Sold — Pending Delivery', 'Sold — Delivered',
   ];
 
   readonly pipelineOrder = [
     '__none__',
     'At Auction — Won, Awaiting Pickup', 'In Transport', 'Arrived — Needs Intake',
     'In Mechanical', 'In Body/Paint', 'In Detail', 'In Photos',
-    'Listed', 'Offered/Negotiating',
+    'Listed', 'Jillian Driver', 'Offered/Negotiating',
     'Sold — Pending Delivery', 'Sold — Delivered',
   ];
 
