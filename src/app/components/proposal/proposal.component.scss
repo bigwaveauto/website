@@ -658,11 +658,11 @@ $hv: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .fin-est-fields {
-  display: flex; gap: 8px;
+  display: flex; gap: 8px; width: 100%; box-sizing: border-box;
 }
 
 .fin-est-field {
-  flex: 1;
+  flex: 1; min-width: 0;
   label { display: block; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
   &.fin-est-field-full { flex: none; width: 100%; margin-bottom: 8px; }
 }
