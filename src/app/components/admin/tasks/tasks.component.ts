@@ -17,6 +17,7 @@ export class TasksComponent {
   private router = inject(Router);
 
   filter = signal<'all' | 'missing_carfax' | 'missing_warranty' | 'recon' | 'manual'>('all');
+  completing = signal<Set<string>>(new Set());
 
   newTaskVin = signal('');
   newTaskTitle = signal('');
@@ -64,10 +65,16 @@ export class TasksComponent {
   }
 
   complete(task: Task) {
-    this.tasks.complete(task);
-    if (task.auto && task.vin) {
-      this.router.navigate(['/admin/inventory', task.vin]);
-    }
+    const s = new Set(this.completing());
+    s.add(task.id);
+    this.completing.set(s);
+    // Brief flash then remove
+    setTimeout(() => {
+      this.tasks.complete(task);
+      const s2 = new Set(this.completing());
+      s2.delete(task.id);
+      this.completing.set(s2);
+    }, 400);
   }
 
   dismiss(task: Task) {

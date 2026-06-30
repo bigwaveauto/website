@@ -117,8 +117,11 @@ $muted: #64748b;
   &:hover { border-color: #94a3b8; }
 
   &--auto { background: #fafbff; }
-
   &--high { border-left: 3px solid #ef4444; }
+  &--completing {
+    background: #f0fdf4; border-color: #0d9488;
+    .task-check { background: $teal; border-color: $teal; color: white; }
+  }
 }
 
 .task-check {

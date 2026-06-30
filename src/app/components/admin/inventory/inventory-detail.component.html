@@ -62,9 +62,9 @@
     </div>
     }
 
-    @if(stageHistory().length > 1){
+    @if(stageHistory().length > 1 || auditLog().length){
     <details class="det-stage-history">
-      <summary>Stage History ({{ stageHistory().length }})</summary>
+      <summary>Audit Trail ({{ stageHistory().length + auditLog().length }})</summary>
       <div class="det-stage-timeline">
         @for(s of stageHistory(); track s.id){
         <div class="det-stage-event">
@@ -77,9 +77,19 @@
             <span class="det-stage-event-meta">
               {{ s.entered_at | date:'M/d/yyyy h:mm a' }}
               @if(s.exited_at){ — {{ s.exited_at | date:'M/d/yyyy h:mm a' }} }
-              &middot; {{ s.created_by }}
+              @if(s.created_by){ &middot; {{ s.created_by }} }
             </span>
             @if(s.notes){<span class="det-stage-event-notes">{{ s.notes }}</span>}
+          </div>
+        </div>
+        }
+        @for(a of auditLog(); track a.id){
+        <div class="det-stage-event det-stage-event--audit">
+          <div class="det-stage-event-dot det-stage-event-dot--audit"></div>
+          <div class="det-stage-event-body">
+            <span class="det-stage-event-name">{{ a.title }}</span>
+            <span class="det-stage-event-meta">{{ a.created_at | date:'M/d/yyyy h:mm a' }}@if(a.created_by){ &middot; {{ a.created_by }} }</span>
+            @if(a.notes){<span class="det-stage-event-notes">{{ a.notes }}</span>}
           </div>
         </div>
         }

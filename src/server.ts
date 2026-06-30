@@ -3443,6 +3443,40 @@ app.patch('/api/admin/vehicle/warranty-enabled', async (req, res) => {
 });
 
 /**
+ * Vehicle Audit Log
+ */
+
+// POST /api/admin/vehicle/audit — append an audit event
+app.post('/api/admin/vehicle/audit', async (req, res) => {
+  try {
+    const { vin, event_type, title, notes, created_by } = req.body;
+    if (!vin || !title) { res.status(400).json({ error: 'vin and title required' }); return; }
+    const { data, error } = await supabase.from('vehicle_audit_log').insert({
+      vin, event_type: event_type || 'note', title, notes: notes || null, created_by: created_by || null,
+    }).select().single();
+    if (error) throw error;
+    res.json(data);
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to write audit log' });
+  }
+});
+
+// GET /api/admin/vehicle/:vin/audit — fetch audit log for a vehicle
+app.get('/api/admin/vehicle/:vin/audit', async (req, res) => {
+  try {
+    const { vin } = req.params;
+    const { data, error } = await supabase.from('vehicle_audit_log')
+      .select('*').eq('vin', vin).order('created_at', { ascending: false }).limit(100);
+    if (error) throw error;
+    res.json(data || []);
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to load audit log' });
+  }
+});
+
+/**
  * Vehicle Pipeline Stages
  */
 

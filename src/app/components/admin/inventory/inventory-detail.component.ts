@@ -187,6 +187,7 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   // Pipeline stage
   currentStage = signal<any>(null);
   stageHistory = signal<any[]>([]);
+  auditLog = signal<any[]>([]);
   stageList = [
     'At Auction — Won, Awaiting Pickup', 'In Transport', 'Arrived — Needs Intake',
     'In Mechanical', 'In Body/Paint', 'In Detail', 'In Photos',
@@ -377,6 +378,9 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
         this.currentStage.set(data.current);
         this.stageHistory.set(data.history);
       },
+    });
+    this.http.get<any[]>(`/api/admin/vehicle/${vin}/audit`).subscribe({
+      next: (data) => this.auditLog.set(data || []),
     });
   }
 

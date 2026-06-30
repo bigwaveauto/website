@@ -60,14 +60,14 @@
   <div class="tasks-section">
     <div class="tasks-section-heading">Auto-generated</div>
     @for(task of filteredAuto(); track task.id){
-    <div class="task-card task-card--auto" [class.task-card--high]="task.priority === 'high'">
-      <button class="task-check" (click)="complete(task)" title="Go fix it">
-        <lucide-icon name="external-link" />
+    <div class="task-card task-card--auto" [class.task-card--high]="task.priority === 'high'" [class.task-card--completing]="completing().has(task.id)">
+      <button class="task-check" (click)="complete(task)" title="Mark done">
+        <lucide-icon name="check" />
       </button>
       <div class="task-body">
         <div class="task-title">{{ task.title }}</div>
         @if(task.vin){
-        <div class="task-vin">{{ task.vin }}</div>
+        <button class="task-vin-link" (click)="goToVehicle(task.vin)">{{ task.vin }}</button>
         }
       </div>
       <span class="task-type-tag task-type-tag--{{ task.type }}">
@@ -87,7 +87,7 @@
   <div class="tasks-section">
     <div class="tasks-section-heading">Manual tasks</div>
     @for(task of filteredManual(); track task.id){
-    <div class="task-card" [class.task-card--high]="task.priority === 'high'">
+    <div class="task-card" [class.task-card--high]="task.priority === 'high'" [class.task-card--completing]="completing().has(task.id)">
       <button class="task-check" (click)="complete(task)" title="Mark done">
         <lucide-icon name="check" />
       </button>

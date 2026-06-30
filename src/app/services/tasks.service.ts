@@ -42,10 +42,23 @@ export class TasksService {
   }
 
   complete(task: Task) {
+    // Optimistically remove from list
     this.autoTasks.update(ts => ts.filter(t => t.id !== task.id));
     this.manualTasks.update(ts => ts.filter(t => t.id !== task.id));
+
+    // Persist completion on stored tasks
     if (!task.auto) {
       this.http.patch(`/api/admin/tasks/${task.id}`, { status: 'done' }).subscribe();
+    }
+
+    // Write to audit log for any task linked to a VIN
+    if (task.vin) {
+      this.http.post('/api/admin/vehicle/audit', {
+        vin: task.vin,
+        event_type: 'task_done',
+        title: `✓ ${task.title}`,
+        notes: null,
+      }).subscribe();
     }
   }
 
