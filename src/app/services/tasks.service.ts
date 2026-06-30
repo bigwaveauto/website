@@ -11,6 +11,7 @@ export interface Task {
   notes?: string;
   auto?: boolean;
   created_at?: string;
+  vehicle?: { year?: number; make?: string; model?: string; label: string };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -53,11 +54,12 @@ export class TasksService {
 
     // Write to audit log for any task linked to a VIN
     if (task.vin) {
+      const vehicleLabel = task.vehicle?.label || task.vin;
       this.http.post('/api/admin/vehicle/audit', {
         vin: task.vin,
         event_type: 'task_done',
-        title: `✓ ${task.title}`,
-        notes: null,
+        title: `✓ ${task.title} — ${vehicleLabel}`,
+        notes: task.notes || null,
       }).subscribe();
     }
   }

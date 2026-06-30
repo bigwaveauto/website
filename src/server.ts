@@ -3373,19 +3373,34 @@ app.get('/api/admin/tasks', async (_req, res) => {
       .eq('status', 'active');
     const invMap = new Map((invRows || []).map((r: any) => [r.vin, r]));
 
-    const label = (vin: string) => {
+    const vehicleInfo = (vin: string) => {
       const v = invMap.get(vin);
-      return v ? `${v.year} ${v.make} ${v.model}` : vin;
+      return v ? { year: v.year, make: v.make, model: v.model, label: `${v.year} ${v.make} ${v.model}` } : { label: vin };
     };
 
     const autoTasks: any[] = [];
     for (const vin of activeVins) {
+      const vehicle = vehicleInfo(vin);
       if (!carfaxVins.has(vin)) {
-        autoTasks.push({ id: `auto:missing_carfax:${vin}`, type: 'missing_carfax', vin, title: `Get Carfax — ${label(vin)}`, auto: true, priority: 'normal' });
+        autoTasks.push({ id: `auto:missing_carfax:${vin}`, type: 'missing_carfax', vin, title: 'Get Carfax', vehicle, auto: true, priority: 'normal' });
       }
       if (warrantyDisabledVins.has(vin)) {
-        autoTasks.push({ id: `auto:missing_warranty:${vin}`, type: 'missing_warranty', vin, title: `Verify Warranty — ${label(vin)}`, auto: true, priority: 'low' });
+        autoTasks.push({ id: `auto:missing_warranty:${vin}`, type: 'missing_warranty', vin, title: 'Verify Warranty', vehicle, auto: true, priority: 'low' });
       }
+    }
+
+    // Attach vehicle info to manual tasks that have a VIN
+    const manualVins = [...new Set((stored || []).filter((t: any) => t.vin).map((t: any) => t.vin as string))];
+    if (manualVins.length) {
+      const { data: manualVehicles } = await supabase
+        .from('vehicle_inventory').select('vin, year, make, model').in('vin', manualVins);
+      const manualMap = new Map((manualVehicles || []).map((r: any) => [r.vin, r]));
+      (stored || []).forEach((t: any) => {
+        if (t.vin && manualMap.has(t.vin)) {
+          const v = manualMap.get(t.vin);
+          t.vehicle = { year: v.year, make: v.make, model: v.model, label: `${v.year} ${v.make} ${v.model}` };
+        }
+      });
     }
 
     res.json({ auto: autoTasks, manual: stored || [] });

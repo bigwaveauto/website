@@ -160,6 +160,20 @@ $muted: #64748b;
   &:hover { text-decoration: underline; }
 }
 
+.task-vehicle {
+  display: flex; flex-direction: column; gap: 1px; margin-top: 3px;
+  background: none; border: none; padding: 0; cursor: pointer; text-align: left;
+  &:hover .task-vehicle-label { text-decoration: underline; }
+}
+
+.task-vehicle-label {
+  font-size: 12px; font-weight: 700; color: $blue;
+}
+
+.task-vehicle-vin {
+  font-size: 10px; color: $muted; font-family: monospace;
+}
+
 .task-type-tag {
   display: flex; align-items: center; gap: 4px;
   font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px;

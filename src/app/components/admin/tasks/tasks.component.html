@@ -66,8 +66,11 @@
       </button>
       <div class="task-body">
         <div class="task-title">{{ task.title }}</div>
-        @if(task.vin){
-        <button class="task-vin-link" (click)="goToVehicle(task.vin)">{{ task.vin }}</button>
+        @if(task.vehicle){
+        <button class="task-vehicle" (click)="goToVehicle(task.vin)">
+          <span class="task-vehicle-label">{{ task.vehicle.label }}</span>
+          <span class="task-vehicle-vin">{{ task.vin }}</span>
+        </button>
         }
       </div>
       <span class="task-type-tag task-type-tag--{{ task.type }}">
@@ -94,7 +97,12 @@
       <div class="task-body">
         <div class="task-title">{{ task.title }}</div>
         @if(task.notes){<div class="task-notes">{{ task.notes }}</div>}
-        @if(task.vin){
+        @if(task.vehicle){
+        <button class="task-vehicle" (click)="goToVehicle(task.vin)">
+          <span class="task-vehicle-label">{{ task.vehicle.label }}</span>
+          <span class="task-vehicle-vin">{{ task.vin }}</span>
+        </button>
+        }@else if(task.vin){
         <button class="task-vin-link" (click)="goToVehicle(task.vin)">{{ task.vin }}</button>
         }
       </div>
