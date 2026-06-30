@@ -2,8 +2,8 @@
   <div class="tasks-header">
     <div class="tasks-header-left">
       <h1 class="tasks-title">Task List</h1>
-      @if(!loading()){
-      <span class="tasks-badge">{{ totalOpen() }} open</span>
+      @if(tasks.loaded()){
+      <span class="tasks-badge">{{ tasks.totalOpen() }} open</span>
       }
     </div>
     <button class="tasks-add-btn" (click)="showAdd.set(!showAdd())">
@@ -48,7 +48,7 @@
     </button>
   </div>
 
-  @if(loading()){
+  @if(tasks.loading() && !tasks.loaded()){
   <div class="tasks-loading">
     <div class="tasks-spinner"></div>
     <span>Loading tasks…</span>

@@ -2,8 +2,8 @@ import { Component, signal, inject, OnInit, PLATFORM_ID, ApplicationRef } from '
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { TasksService } from '../../services/tasks.service';
 
 @Component({
   selector: 'app-admin',
@@ -11,34 +11,31 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './admin.component.scss',
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, LucideAngularModule],
-  // HttpClient injected below; no need to add to imports (provided in root)
 })
 export class AdminComponent implements OnInit {
   readonly auth = inject(AuthService);
+  readonly tasks = inject(TasksService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private appRef = inject(ApplicationRef);
-  private http = inject(HttpClient);
 
-  // Whitelisted admin emails — add your team members here
   readonly adminEmails = ['dave@bigwaveauto.com', 'dlucas589@gmail.com'];
 
   authorized = signal(false);
   checking = signal(true);
-  taskCount = signal(0);
 
   navItems = [
-    { label: 'Home',          icon: 'home',        route: '/admin' },
+    { label: 'Home',          icon: 'home',         route: '/admin' },
     { label: 'Tasks',         icon: 'check-square', route: '/admin/tasks' },
-    { label: 'Proposals',     icon: 'file-text',   route: '/admin/proposals' },
-    { label: 'Inventory',     icon: 'car',         route: '/admin/inventory' },
-    { label: 'Rivian Report', icon: 'zap',         route: '/admin/rivians' },
-    { label: 'Acquisitions',  icon: 'radar',       route: '/admin/acquisitions' },
-    { label: 'Leads',         icon: 'users',       route: '/admin/customers' },
-    { label: 'Members',       icon: 'user-plus',   route: '/admin/members' },
-    { label: 'Sales Tax',     icon: 'calculator',  route: '/admin/tax' },
-    { label: 'Transactions',  icon: 'receipt',     route: '/admin/transactions' },
-    { label: 'Settings',      icon: 'settings',    route: '/admin/settings' },
+    { label: 'Proposals',     icon: 'file-text',    route: '/admin/proposals' },
+    { label: 'Inventory',     icon: 'car',          route: '/admin/inventory' },
+    { label: 'Rivian Report', icon: 'zap',          route: '/admin/rivians' },
+    { label: 'Acquisitions',  icon: 'radar',        route: '/admin/acquisitions' },
+    { label: 'Leads',         icon: 'users',        route: '/admin/customers' },
+    { label: 'Members',       icon: 'user-plus',    route: '/admin/members' },
+    { label: 'Sales Tax',     icon: 'calculator',   route: '/admin/tax' },
+    { label: 'Transactions',  icon: 'receipt',      route: '/admin/transactions' },
+    { label: 'Settings',      icon: 'settings',     route: '/admin/settings' },
   ];
 
   loginError = signal('');
@@ -57,20 +54,13 @@ export class AdminComponent implements OnInit {
     this.appRef.tick();
   }
 
-  private loadTaskCount() {
-    this.http.get<{ auto: any[]; manual: any[] }>('/api/admin/tasks').subscribe({
-      next: (d) => this.taskCount.set((d.auto?.length || 0) + (d.manual?.length || 0)),
-    });
-  }
-
   private checkAccess() {
     const email = this.auth.user()?.email?.toLowerCase();
     if (email && this.adminEmails.includes(email)) {
       this.authorized.set(true);
       this.loginError.set('');
-      this.loadTaskCount();
+      this.tasks.load(); // pre-fetch so Tasks page shows instantly
     } else if (email) {
-      // Logged in but not authorized
       this.authorized.set(false);
       this.loginError.set(`${email} is not authorized for admin access.`);
     } else {
@@ -81,7 +71,6 @@ export class AdminComponent implements OnInit {
 
   async adminSignIn() {
     this.loginError.set('');
-    // Pass return path via the OAuth redirect URL
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     await this.auth.signInWithGoogleTo(`${origin}/auth/callback?returnTo=/admin`);
   }
