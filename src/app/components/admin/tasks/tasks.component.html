@@ -1,0 +1,121 @@
+<div class="tasks-page">
+  <div class="tasks-header">
+    <div class="tasks-header-left">
+      <h1 class="tasks-title">Task List</h1>
+      @if(!loading()){
+      <span class="tasks-badge">{{ totalOpen() }} open</span>
+      }
+    </div>
+    <button class="tasks-add-btn" (click)="showAdd.set(!showAdd())">
+      <lucide-icon name="plus" /> Add Task
+    </button>
+  </div>
+
+  @if(showAdd()){
+  <div class="tasks-add-form">
+    <div class="tasks-add-row">
+      <input class="tasks-input" placeholder="Task title *" [ngModel]="newTaskTitle()" (ngModelChange)="newTaskTitle.set($event)" />
+      <input class="tasks-input tasks-input-vin" placeholder="VIN (optional)" [ngModel]="newTaskVin()" (ngModelChange)="newTaskVin.set($event)" />
+    </div>
+    <div class="tasks-add-row">
+      <input class="tasks-input" placeholder="Notes (optional)" [ngModel]="newTaskNotes()" (ngModelChange)="newTaskNotes.set($event)" />
+      <select class="tasks-select" [ngModel]="newTaskPriority()" (ngModelChange)="newTaskPriority.set($event)">
+        <option value="high">High priority</option>
+        <option value="normal">Normal</option>
+        <option value="low">Low</option>
+      </select>
+      <button class="tasks-save-btn" (click)="addTask()" [disabled]="addingTask() || !newTaskTitle().trim()">
+        @if(addingTask()){ Saving… }@else{ Save Task }
+      </button>
+    </div>
+  </div>
+  }
+
+  <!-- Filter tabs -->
+  <div class="tasks-filters">
+    <button class="tasks-filter-btn" [class.active]="filter()==='all'" (click)="filter.set('all')">All</button>
+    <button class="tasks-filter-btn" [class.active]="filter()==='missing_carfax'" (click)="filter.set('missing_carfax')">
+      <lucide-icon name="file-search" /> Carfax
+    </button>
+    <button class="tasks-filter-btn" [class.active]="filter()==='missing_warranty'" (click)="filter.set('missing_warranty')">
+      <lucide-icon name="shield-alert" /> Warranty
+    </button>
+    <button class="tasks-filter-btn" [class.active]="filter()==='recon'" (click)="filter.set('recon')">
+      <lucide-icon name="wrench" /> Recon
+    </button>
+    <button class="tasks-filter-btn" [class.active]="filter()==='manual'" (click)="filter.set('manual')">
+      <lucide-icon name="clipboard-list" /> Manual
+    </button>
+  </div>
+
+  @if(loading()){
+  <div class="tasks-loading">
+    <div class="tasks-spinner"></div>
+    <span>Loading tasks…</span>
+  </div>
+  }@else{
+
+  <!-- Auto tasks -->
+  @if(filteredAuto().length){
+  <div class="tasks-section">
+    <div class="tasks-section-heading">Auto-generated</div>
+    @for(task of filteredAuto(); track task.id){
+    <div class="task-card task-card--auto" [class.task-card--high]="task.priority === 'high'">
+      <button class="task-check" (click)="complete(task)" title="Go fix it">
+        <lucide-icon name="external-link" />
+      </button>
+      <div class="task-body">
+        <div class="task-title">{{ task.title }}</div>
+        @if(task.vin){
+        <div class="task-vin">{{ task.vin }}</div>
+        }
+      </div>
+      <span class="task-type-tag task-type-tag--{{ task.type }}">
+        <lucide-icon [name]="typeIcon(task.type)" />
+        {{ typeLabel(task.type) }}
+      </span>
+      <button class="task-dismiss" (click)="dismiss(task)" title="Dismiss">
+        <lucide-icon name="x" />
+      </button>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Manual / recon tasks -->
+  @if(filteredManual().length){
+  <div class="tasks-section">
+    <div class="tasks-section-heading">Manual tasks</div>
+    @for(task of filteredManual(); track task.id){
+    <div class="task-card" [class.task-card--high]="task.priority === 'high'">
+      <button class="task-check" (click)="complete(task)" title="Mark done">
+        <lucide-icon name="check" />
+      </button>
+      <div class="task-body">
+        <div class="task-title">{{ task.title }}</div>
+        @if(task.notes){<div class="task-notes">{{ task.notes }}</div>}
+        @if(task.vin){
+        <button class="task-vin-link" (click)="goToVehicle(task.vin)">{{ task.vin }}</button>
+        }
+      </div>
+      <span class="task-type-tag task-type-tag--{{ task.type }}">
+        <lucide-icon [name]="typeIcon(task.type)" />
+        {{ typeLabel(task.type) }}
+      </span>
+      <button class="task-dismiss" (click)="dismiss(task)" title="Dismiss">
+        <lucide-icon name="x" />
+      </button>
+    </div>
+    }
+  </div>
+  }
+
+  @if(!filteredAuto().length && !filteredManual().length){
+  <div class="tasks-empty">
+    <lucide-icon name="check-circle" />
+    <span>All clear — no open tasks</span>
+  </div>
+  }
+
+  }<!-- /!loading -->
+</div>

@@ -41,6 +41,9 @@
       <a [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item.route === '/admin' }" class="adm-nav-item">
         <lucide-icon [name]="item.icon" />
         <span>{{ item.label }}</span>
+        @if(item.route === '/admin/tasks' && taskCount() > 0){
+        <span class="adm-task-badge">{{ taskCount() }}</span>
+        }
       </a>
       }
     </nav>

@@ -942,12 +942,24 @@ $bb-accent: #0e7490;
 
 /* Warranty section */
 .vdp-warranty-section {
-  background: #f5f5f7;
-  border-radius: 14px;
+  background: #1a2234;
+  border-radius: 16px;
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+}
+
+.vdp-warranty-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.vdp-warranty-icon {
+  width: 14px;
+  height: 14px;
+  color: $bb-accent;
 }
 
 .vdp-warranty-heading {
@@ -955,58 +967,82 @@ $bb-accent: #0e7490;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: rgba(0,0,0,0.32);
-  margin: 0 0 2px;
+  color: rgba(255,255,255,0.45);
+  margin: 0;
 }
 
-.vdp-warranty-row {
+.vdp-warranty-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.vdp-warranty-card {
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 14px 14px 12px;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 6px;
+  border: 1px solid rgba(255,255,255,0.07);
+
+  &--expired {
+    background: rgba(239,68,68,0.08);
+    border-color: rgba(239,68,68,0.2);
+  }
+
+  &--low {
+    background: rgba(245,158,11,0.08);
+    border-color: rgba(245,158,11,0.2);
+  }
 }
 
-.vdp-warranty-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.vdp-warranty-name {
-  font-size: 14px;
+.vdp-warranty-card-name {
+  font-size: 11px;
   font-weight: 700;
-  color: #111;
+  color: rgba(255,255,255,0.55);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
-.vdp-warranty-status {
-  font-size: 12px;
-  color: rgba(0,0,0,0.4);
-  white-space: nowrap;
-  &.expired { color: #dc2626; }
+.vdp-warranty-card-status {
+  font-size: 11px;
+  color: rgba(255,255,255,0.7);
+  text-align: center;
+  font-weight: 500;
 }
 
-.vdp-warranty-track {
-  height: 4px;
-  background: rgba(0,0,0,0.09);
-  border-radius: 2px;
-  overflow: hidden;
+.vdp-warranty-arc-wrap {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  margin-top: 4px;
 }
 
-.vdp-warranty-fill {
+.vdp-warranty-arc {
+  width: 100%;
   height: 100%;
-  background: $bb-accent;
-  border-radius: 2px;
-  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-  &.expired { background: #ef4444; width: 100% !important; }
+}
+
+.vdp-warranty-arc-pct {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: white;
 }
 
 .vdp-warranty-note {
-  font-size: 11px;
-  color: rgba(0,0,0,0.28);
-  margin: 2px 0 0;
+  font-size: 10px;
+  color: rgba(255,255,255,0.22);
+  margin: 0;
   line-height: 1.5;
-  padding-top: 6px;
-  border-top: 1px solid rgba(0,0,0,0.06);
+  text-align: center;
 }
 
 /* Mileage hero — dark odometer above spec list */

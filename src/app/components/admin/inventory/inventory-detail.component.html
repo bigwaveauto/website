@@ -100,6 +100,9 @@
     <button class="det-tab" [class.active]="activeTab() === 'carfax'" (click)="activeTab.set('carfax')">
       Carfax @if(carfaxPdfUrl()){ <span class="det-tab-badge det-tab-badge--done">✓</span> }
     </button>
+    <button class="det-tab" [class.active]="activeTab() === 'warranty'" (click)="activeTab.set('warranty')">
+      Warranty @if(warrantyEnabled()){ <span class="det-tab-badge det-tab-badge--done">✓</span> }
+    </button>
     <button class="det-tab" [class.active]="activeTab() === 'description'" (click)="activeTab.set('description')">Description</button>
   </div>
 
@@ -459,6 +462,31 @@
       }
     </label>
     }
+  </div>
+  }
+
+  <!-- ═══ WARRANTY TAB ═══ -->
+  @if(activeTab() === 'warranty'){
+  <div class="det-card">
+    <h2 class="det-card-title">Warranty</h2>
+    <p class="det-warranty-note">
+      When enabled, remaining warranty is displayed on the vehicle detail page — estimated from make, year, and mileage.
+      Only enable once you've confirmed the vehicle still has active coverage.
+    </p>
+    <div class="det-warranty-toggle-row">
+      <div class="det-warranty-toggle-label">
+        <span class="det-warranty-toggle-title">Show warranty on VDP</span>
+        <span class="det-warranty-toggle-sub">{{ warrantyEnabled() ? 'Visible to shoppers' : 'Hidden from shoppers' }}</span>
+      </div>
+      <button class="det-warranty-toggle-btn"
+              [class.det-warranty-toggle-btn--on]="warrantyEnabled()"
+              [disabled]="warrantyToggling()"
+              (click)="toggleWarranty(!warrantyEnabled())">
+        @if(warrantyToggling()){ <div class="det-mini-spinner"></div> }@else{
+          @if(warrantyEnabled()){ <lucide-icon name="eye" /> On }@else{ <lucide-icon name="eye-off" /> Off }
+        }
+      </button>
+    </div>
   </div>
   }
 

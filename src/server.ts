@@ -3272,6 +3272,7 @@ app.get('/api/admin/vehicle/:vin', async (req, res) => {
       windowSticker: (windowSticker as any)?.url || null,
       carfaxPdf: (carfaxDoc as any)?.url || null,
       marketData: marketData.data || null,
+      warrantyEnabled: (pricing.data as any)?.warranty_enabled ?? false,
     });
   } catch (err) {
     console.error(err);
@@ -3313,6 +3314,131 @@ app.post('/api/admin/vehicle/save', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to save' });
+  }
+});
+
+/**
+ * Task List
+ */
+
+// GET /api/admin/tasks — stored manual/recon tasks + computed auto-tasks
+app.get('/api/admin/tasks', async (_req, res) => {
+  try {
+    // Stored tasks (recon, manual)
+    const { data: stored, error: storedErr } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('status', 'open')
+      .order('created_at', { ascending: false });
+    if (storedErr) throw storedErr;
+
+    // Auto-tasks: vehicles missing carfax
+    const { data: carfaxDocs } = await supabase
+      .from('vehicle_documents')
+      .select('vin')
+      .eq('type', 'carfax');
+    const carfaxVins = new Set((carfaxDocs || []).map((d: any) => d.vin));
+
+    // Auto-tasks: vehicles with warranty_enabled=false
+    const { data: warrantyRows } = await supabase
+      .from('vehicle_pricing')
+      .select('vin, warranty_enabled');
+    const warrantyDisabledVins = new Set(
+      (warrantyRows || []).filter((r: any) => !r.warranty_enabled).map((r: any) => r.vin)
+    );
+
+    // Active vehicle list from vehicle_pricing (all that have a pricing row = admin-touched)
+    const { data: pricingRows } = await supabase
+      .from('vehicle_pricing')
+      .select('vin');
+    const adminVins: string[] = (pricingRows || []).map((r: any) => r.vin);
+
+    // Also pull vAuto active vins from pipeline stages
+    const { data: stageRows } = await supabase
+      .from('vehicle_stages')
+      .select('vin, stage');
+    const soldStages = new Set(['Sold — Pending Delivery', 'Sold — Delivered']);
+    const activeVins = new Set([
+      ...adminVins,
+      ...(stageRows || []).filter((r: any) => !soldStages.has(r.stage)).map((r: any) => r.vin),
+    ]);
+
+    // Fetch vehicle labels for auto-tasks
+    const vinList = [...activeVins];
+    // Get year/make/model from vehicle_inventory (vAuto sync table) or vehicle_pricing
+    const { data: invRows } = await supabase
+      .from('vehicle_inventory')
+      .select('vin, year, make, model')
+      .in('vin', vinList.slice(0, 500))
+      .eq('status', 'active');
+    const invMap = new Map((invRows || []).map((r: any) => [r.vin, r]));
+
+    const label = (vin: string) => {
+      const v = invMap.get(vin);
+      return v ? `${v.year} ${v.make} ${v.model}` : vin;
+    };
+
+    const autoTasks: any[] = [];
+    for (const vin of activeVins) {
+      if (!carfaxVins.has(vin)) {
+        autoTasks.push({ id: `auto:missing_carfax:${vin}`, type: 'missing_carfax', vin, title: `Get Carfax — ${label(vin)}`, auto: true, priority: 'normal' });
+      }
+      if (warrantyDisabledVins.has(vin)) {
+        autoTasks.push({ id: `auto:missing_warranty:${vin}`, type: 'missing_warranty', vin, title: `Verify Warranty — ${label(vin)}`, auto: true, priority: 'low' });
+      }
+    }
+
+    res.json({ auto: autoTasks, manual: stored || [] });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to load tasks' });
+  }
+});
+
+// POST /api/admin/tasks — create a manual/recon task
+app.post('/api/admin/tasks', async (req, res) => {
+  try {
+    const { vin, type, title, priority, notes } = req.body;
+    if (!title) { res.status(400).json({ error: 'title required' }); return; }
+    const { data, error } = await supabase.from('tasks').insert({
+      vin: vin || null, type: type || 'manual', title, priority: priority || 'normal', notes: notes || null,
+    }).select().single();
+    if (error) throw error;
+    res.json(data);
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create task' });
+  }
+});
+
+// PATCH /api/admin/tasks/:id — complete or dismiss a task
+app.patch('/api/admin/tasks/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const { data, error } = await supabase.from('tasks').update({
+      status, completed_at: status === 'done' ? new Date().toISOString() : null, updated_at: new Date().toISOString(),
+    }).eq('id', id).select().single();
+    if (error) throw error;
+    res.json(data);
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update task' });
+  }
+});
+
+// PATCH /api/admin/vehicle/warranty-enabled — toggle warranty visibility on VDP
+app.patch('/api/admin/vehicle/warranty-enabled', async (req, res) => {
+  try {
+    const { vin, enabled } = req.body;
+    if (!vin) { res.status(400).json({ error: 'vin required' }); return; }
+    const { error } = await supabase.from('vehicle_pricing')
+      .upsert({ vin, warranty_enabled: !!enabled, updated_at: new Date().toISOString() }, { onConflict: 'vin' });
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update warranty setting' });
   }
 });
 
@@ -4346,17 +4472,19 @@ app.get('/api/inventory/:vin', async (req, res) => {
     if (!v) { res.status(404).json({ error: 'Vehicle not found' }); return; }
 
     // Load window sticker + Carfax + saved photo categories
-    const [wsResult, cfResult, catsResult] = await Promise.all([
+    const [wsResult, cfResult, catsResult, pricingResult] = await Promise.all([
       Promise.resolve(supabase.from('vehicle_documents').select('url').eq('vin', v.vin).eq('type', 'window_sticker').maybeSingle()).then(r => r.data).catch(() => null),
       Promise.resolve(supabase.from('vehicle_documents').select('url').eq('vin', v.vin).eq('type', 'carfax').maybeSingle()).then(r => r.data).catch(() => null),
       supabase.from('vehicle_photo_categories')
       .select('url, category, sort_order')
       .eq('vin', v.vin)
       .order('sort_order'),
+      supabase.from('vehicle_pricing').select('warranty_enabled').eq('vin', v.vin).maybeSingle(),
     ]);
     const wsDoc = wsResult;
     const cfDoc = cfResult;
     const savedCats = catsResult?.data;
+    const warrantyEnabled = (pricingResult as any)?.data?.warranty_enabled ?? false;
     const catMap = new Map((savedCats || []).map((c: any) => [c.url, c.category]));
 
     const photos = v.photos.map((url: string, i: number) => ({
@@ -4477,6 +4605,7 @@ app.get('/api/inventory/:vin', async (req, res) => {
       tiles: [],
       installedoptions: [],
       finance: computeFinance(v.price),
+      warrantyenabled: warrantyEnabled,
     };
 
     res.json({

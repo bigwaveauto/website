@@ -201,6 +201,14 @@ $text-muted: rgba(255,255,255,0.45);
   &:hover { color: $text !important; }
 }
 
+.adm-task-badge {
+  margin-left: auto;
+  background: #ef4444; color: white;
+  font-size: 10px; font-weight: 800;
+  min-width: 18px; height: 18px; padding: 0 4px;
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+}
+
 /* ── Main content ── */
 .adm-main {
   flex: 1;

@@ -1,0 +1,185 @@
+$blue: #2563eb;
+$teal: #0d9488;
+$border: #e2e8f0;
+$text: #1e293b;
+$muted: #64748b;
+
+.tasks-page {
+  padding: 28px 32px;
+  max-width: 860px;
+}
+
+.tasks-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.tasks-header-left {
+  display: flex; align-items: center; gap: 10px;
+}
+
+.tasks-title {
+  font-size: 22px; font-weight: 800; color: $text; margin: 0;
+}
+
+.tasks-badge {
+  background: $blue; color: white;
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+}
+
+.tasks-add-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: $blue; color: white;
+  border: none; border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  &:hover { background: #1d4ed8; }
+  lucide-icon { width: 14px; height: 14px; }
+}
+
+.tasks-add-form {
+  background: #f8fafc; border: 1px solid $border; border-radius: 12px;
+  padding: 16px; margin-bottom: 20px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.tasks-add-row {
+  display: flex; gap: 8px;
+}
+
+.tasks-input {
+  flex: 1; min-width: 0; padding: 8px 12px;
+  border: 1.5px solid $border; border-radius: 8px;
+  font-size: 13px; font-family: inherit;
+  &:focus { outline: none; border-color: $blue; }
+  &.tasks-input-vin { max-width: 200px; font-family: monospace; font-size: 12px; }
+}
+
+.tasks-select {
+  padding: 8px 10px; border: 1.5px solid $border; border-radius: 8px;
+  font-size: 13px; font-family: inherit; background: white;
+  &:focus { outline: none; border-color: $blue; }
+}
+
+.tasks-save-btn {
+  background: $blue; color: white; border: none; border-radius: 8px;
+  padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+  white-space: nowrap;
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:hover:not(:disabled) { background: #1d4ed8; }
+}
+
+.tasks-filters {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;
+}
+
+.tasks-filter-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 20px;
+  border: 1.5px solid $border; background: white;
+  font-size: 12px; font-weight: 600; color: $muted; cursor: pointer;
+  transition: all 0.15s;
+  lucide-icon { width: 12px; height: 12px; }
+  &.active {
+    background: $blue; color: white; border-color: $blue;
+  }
+  &:hover:not(.active) { border-color: $blue; color: $blue; }
+}
+
+.tasks-loading {
+  display: flex; align-items: center; gap: 10px;
+  color: $muted; padding: 40px 0;
+}
+
+.tasks-spinner {
+  width: 18px; height: 18px;
+  border: 2px solid $border; border-top-color: $blue;
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.tasks-section {
+  margin-bottom: 28px;
+}
+
+.tasks-section-heading {
+  font-size: 11px; font-weight: 700; color: $muted;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.task-card {
+  display: flex; align-items: center; gap: 12px;
+  background: white; border: 1.5px solid $border; border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 6px;
+  transition: border-color 0.15s;
+
+  &:hover { border-color: #94a3b8; }
+
+  &--auto { background: #fafbff; }
+
+  &--high { border-left: 3px solid #ef4444; }
+}
+
+.task-check {
+  flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid $border; background: white;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: $muted; transition: all 0.15s;
+  lucide-icon { width: 14px; height: 14px; }
+
+  &:hover {
+    border-color: $teal; background: $teal; color: white;
+  }
+}
+
+.task-body {
+  flex: 1; min-width: 0;
+}
+
+.task-title {
+  font-size: 13px; font-weight: 600; color: $text;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.task-notes {
+  font-size: 11px; color: $muted; margin-top: 2px;
+}
+
+.task-vin {
+  font-size: 10px; color: $muted; font-family: monospace; margin-top: 2px;
+}
+
+.task-vin-link {
+  font-size: 10px; color: $blue; font-family: monospace; margin-top: 2px;
+  background: none; border: none; padding: 0; cursor: pointer;
+  &:hover { text-decoration: underline; }
+}
+
+.task-type-tag {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px;
+  white-space: nowrap; flex-shrink: 0;
+  lucide-icon { width: 10px; height: 10px; }
+
+  &--missing_carfax  { background: #fef3c7; color: #92400e; }
+  &--missing_warranty { background: #e0f2fe; color: #0369a1; }
+  &--recon           { background: #f0fdf4; color: #166534; }
+  &--manual          { background: #f3f4f6; color: #374151; }
+}
+
+.task-dismiss {
+  flex-shrink: 0; width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; background: none; color: #cbd5e1; cursor: pointer; border-radius: 4px;
+  lucide-icon { width: 12px; height: 12px; }
+  &:hover { background: #fee2e2; color: #ef4444; }
+}
+
+.tasks-empty {
+  display: flex; align-items: center; gap: 10px;
+  color: $teal; font-size: 15px; font-weight: 600;
+  padding: 48px 0;
+  lucide-icon { width: 24px; height: 24px; }
+}

@@ -68,6 +68,7 @@ export const routes: Routes = [
       { path: 'intake', loadComponent: () => import('../components/admin/intake/intake.component').then(m => m.IntakeComponent) },
       { path: 'inventory', loadComponent: () => import('../components/admin/inventory/inventory-list.component').then(m => m.AdminInventoryListComponent) },
       { path: 'inventory/:vin', loadComponent: () => import('../components/admin/inventory/inventory-detail.component').then(m => m.AdminInventoryDetailComponent) },
+      { path: 'tasks', loadComponent: () => import('../components/admin/tasks/tasks.component').then(m => m.TasksComponent) },
       { path: 'stages/setup', loadComponent: () => import('../components/admin/stages/stage-setup.component').then(m => m.StageSetupComponent) },
       { path: 'appraisals', loadComponent: () => import('../components/admin/appraisals-list/appraisals-list.component').then(m => m.AdminAppraisalsListComponent) },
       { path: 'appraisal', loadComponent: () => import('../components/admin/appraisal/appraisal.component').then(m => m.AdminAppraisalComponent) },

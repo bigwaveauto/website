@@ -157,6 +157,19 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
   carfaxAccidents = signal('');
   carfaxService = signal('');
   carfaxUse = signal('');
+
+  warrantyEnabled = signal(false);
+  warrantyToggling = signal(false);
+
+  toggleWarranty(enabled: boolean) {
+    const vin = this.vin();
+    if (!vin) return;
+    this.warrantyToggling.set(true);
+    this.http.patch('/api/admin/vehicle/warranty-enabled', { vin, enabled }).subscribe({
+      next: () => { this.warrantyEnabled.set(enabled); this.warrantyToggling.set(false); },
+      error: () => this.warrantyToggling.set(false),
+    });
+  }
   descHighlights = signal('');
 
   // Market data
@@ -300,6 +313,7 @@ export class AdminInventoryDetailComponent implements OnInit, OnDestroy {
         if (data.photos?.length) this.photos.set(data.photos);
         if (data.windowSticker) this.windowStickerUrl.set(data.windowSticker);
         if (data.carfaxPdf) this.carfaxPdfUrl.set(data.carfaxPdf);
+        this.warrantyEnabled.set(data.warrantyEnabled ?? false);
         if (data.pricing) {
           this.askingPrice.set(data.pricing.asking_price ?? this.askingPrice());
           this.advertisingPrice.set(data.pricing.advertising_price ?? this.advertisingPrice());

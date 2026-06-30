@@ -2,6 +2,7 @@ import { Component, signal, inject, OnInit, PLATFORM_ID, ApplicationRef } from '
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -10,21 +11,25 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './admin.component.scss',
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, LucideAngularModule],
+  // HttpClient injected below; no need to add to imports (provided in root)
 })
 export class AdminComponent implements OnInit {
   readonly auth = inject(AuthService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private appRef = inject(ApplicationRef);
+  private http = inject(HttpClient);
 
   // Whitelisted admin emails — add your team members here
   readonly adminEmails = ['dave@bigwaveauto.com', 'dlucas589@gmail.com'];
 
   authorized = signal(false);
   checking = signal(true);
+  taskCount = signal(0);
 
   navItems = [
     { label: 'Home',          icon: 'home',        route: '/admin' },
+    { label: 'Tasks',         icon: 'check-square', route: '/admin/tasks' },
     { label: 'Proposals',     icon: 'file-text',   route: '/admin/proposals' },
     { label: 'Inventory',     icon: 'car',         route: '/admin/inventory' },
     { label: 'Rivian Report', icon: 'zap',         route: '/admin/rivians' },
@@ -52,11 +57,18 @@ export class AdminComponent implements OnInit {
     this.appRef.tick();
   }
 
+  private loadTaskCount() {
+    this.http.get<{ auto: any[]; manual: any[] }>('/api/admin/tasks').subscribe({
+      next: (d) => this.taskCount.set((d.auto?.length || 0) + (d.manual?.length || 0)),
+    });
+  }
+
   private checkAccess() {
     const email = this.auth.user()?.email?.toLowerCase();
     if (email && this.adminEmails.includes(email)) {
       this.authorized.set(true);
       this.loginError.set('');
+      this.loadTaskCount();
     } else if (email) {
       // Logged in but not authorized
       this.authorized.set(false);

@@ -201,22 +201,35 @@
       </div>}
     </dl>
 
-    <!-- Warranty section -->
-    @if(warrantyItems().length){
+    <!-- Warranty section — only shown when enabled in admin -->
+    @if($any(v).warrantyenabled && warrantyItems().length){
     <div class="vdp-warranty-section">
-      <h3 class="vdp-warranty-heading">Remaining Warranty</h3>
-      @for(w of warrantyItems(); track w.name){
-      <div class="vdp-warranty-row">
-        <div class="vdp-warranty-meta">
-          <span class="vdp-warranty-name">{{ w.name }}</span>
-          <span class="vdp-warranty-status" [class.expired]="w.expired">{{ w.status }}</span>
-        </div>
-        <div class="vdp-warranty-track">
-          <div class="vdp-warranty-fill" [style.width]="w.pct + '%'" [class.expired]="w.expired"></div>
-        </div>
+      <div class="vdp-warranty-header">
+        <lucide-icon name="shield-check" class="vdp-warranty-icon" />
+        <span class="vdp-warranty-heading">Remaining Warranty</span>
       </div>
-      }
-      <p class="vdp-warranty-note">Estimated based on original coverage terms. Verify current status with dealer.</p>
+      <div class="vdp-warranty-cards">
+        @for(w of warrantyItems(); track w.name){
+        <div class="vdp-warranty-card" [class.vdp-warranty-card--expired]="w.expired" [class.vdp-warranty-card--low]="!w.expired && w.pct < 25">
+          <div class="vdp-warranty-card-name">{{ w.name }}</div>
+          <div class="vdp-warranty-card-status">{{ w.status }}</div>
+          <div class="vdp-warranty-arc-wrap">
+            <svg class="vdp-warranty-arc" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="7" />
+              <circle cx="40" cy="40" r="32" fill="none"
+                [attr.stroke]="w.expired ? '#ef4444' : w.pct < 25 ? '#f59e0b' : '#0d9488'"
+                stroke-width="7"
+                stroke-linecap="round"
+                stroke-dasharray="201"
+                [attr.stroke-dashoffset]="201 - (201 * (w.expired ? 1 : w.pct) / 100)"
+                transform="rotate(-90 40 40)" />
+            </svg>
+            <span class="vdp-warranty-arc-pct">{{ w.expired ? '—' : w.pct + '%' }}</span>
+          </div>
+        </div>
+        }
+      </div>
+      <p class="vdp-warranty-note">Estimated from original coverage. Verify with dealer.</p>
     </div>
     }
 
