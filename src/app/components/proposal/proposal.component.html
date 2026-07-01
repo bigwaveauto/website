@@ -190,7 +190,7 @@
           <div class="wi-section">
             <div class="wi-section-head">Price of the Vehicle</div>
             <div class="wi-row">
-              <span class="wi-lbl">Dealer Retail Price</span>
+              <span class="wi-lbl">Purchase Price</span>
               <span class="wi-amt">{{ askingPrice | currency:'USD':'symbol':'1.2-2' }}</span>
             </div>
             @for(li of taxableLineItems; track $index){
@@ -200,7 +200,7 @@
             </div>
             }
             <div class="wi-subtotal">
-              <span><span class="wi-num">1.</span> Cash Price</span>
+              <span>Cash Price</span>
               <span>{{ taxableGross | currency:'USD':'symbol':'1.2-2' }}</span>
             </div>
           </div>
@@ -213,7 +213,7 @@
             <div class="wi-trade-vehicle">{{ tradeIn.year }} {{ tradeIn.make }} {{ tradeIn.model }}@if(tradeIn.vin){ &middot; {{ tradeIn.vin }}}</div>
             }
             <div class="wi-subtotal wi-credit">
-              <span><span class="wi-num">2.</span> Owned Trade-in Allowance</span>
+              <span>Owned Trade-in Allowance</span>
               <span>{{ tradeIn.allowance | currency:'USD':'symbol':'1.2-2' }}</span>
             </div>
           </div>
@@ -232,7 +232,7 @@
               <span class="wi-amt">{{ p.tax_rate }}%</span>
             </div>
             <div class="wi-subtotal">
-              <span><span class="wi-num">4.</span> Total Tax</span>
+              <span>Total Tax</span>
               <span>{{ taxAmount | currency:'USD':'symbol':'1.2-2' }}</span>
             </div>
           </div>
@@ -249,7 +249,7 @@
             </div>
             }
             <div class="wi-subtotal">
-              <span><span class="wi-num">5.</span> Total Non-Taxable Items</span>
+              <span>Total Non-Taxable Items</span>
               <span>{{ nonTaxableTotal | currency:'USD':'symbol':'1.2-2' }}</span>
             </div>
           </div>
